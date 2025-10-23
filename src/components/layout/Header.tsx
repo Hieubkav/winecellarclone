@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown, Globe, ShoppingCart, Search as SearchIcon, Menu, X } from "lucide-react";
+import { ChevronDown, Search as SearchIcon, Menu, X } from "lucide-react";
 
 // =====================================
 // Types (FIXED: removed stray '#'-comment in NavLeaf)
@@ -101,57 +101,9 @@ export default function Header() {
 
   return (
     <header className="w-full text-sm text-zinc-700">
-      <TopBar />
       <MainBar />
       <NavBar />
     </header>
-  );
-}
-
-// =====================================
-// TopBar
-// =====================================
-function TopBar() {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="bg-[#ededed] text-xs text-zinc-600">
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-center sm:text-left">
-          For foreign customers, please Get in touch with us on{" "}
-          <Link href="/" className="font-semibold text-[#990d23] hover:underline">
-            Kakaotalk
-          </Link>
-        </p>
-        <div className="relative">
-          <button
-            onClick={() => setOpen((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-full px-2 py-1 transition hover:text-[#990d23]"
-            aria-haspopup="menu"
-            aria-expanded={open}
-          >
-            <Globe size={16} />
-            <span>Language</span>
-            <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
-          </button>
-          {open && (
-            <nav
-              className="absolute right-0 top-full z-20 mt-2 w-36 rounded-md border bg-white p-2 shadow-lg"
-              onMouseLeave={() => setOpen(false)}
-            >
-              {languageOptions.map((lang) => (
-                <Link
-                  key={lang.code}
-                  href={lang.href}
-                  className="block w-full rounded px-3 py-1.5 text-left text-sm text-zinc-700 hover:bg-zinc-100"
-                >
-                  {lang.label}
-                </Link>
-              ))}
-            </nav>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -161,14 +113,9 @@ function TopBar() {
 function MainBar() {
   return (
     <div className="bg-[#990d23]">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-2 md:gap-3">
-        {/* Mobile menu button */}
-        <div className="col-span-2 flex md:hidden">
-          <MobileTrigger />
-        </div>
-
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-2 md:gap-4">
         {/* Logo */}
-        <div className="col-span-8 flex justify-center md:col-span-3 md:justify-start lg:col-span-2">
+        <div className="col-span-6 flex items-center md:col-span-3 md:justify-start">
           <Link href="/" className="inline-flex items-center" aria-label="Trang chủ">
             <Image
               src="https://winecellar.vn/wp-content/uploads/2022/09/W-Bronze-logo-New-1.png"
@@ -181,47 +128,22 @@ function MainBar() {
           </Link>
         </div>
 
+        {/* Mobile menu button */}
+        <div className="col-span-6 flex justify-end md:hidden">
+          <MobileTrigger />
+        </div>
+
         {/* Search */}
-        <div className="col-span-12 md:col-span-7 lg:col-span-8">
+        <div className="col-span-12 mt-2 flex justify-center md:col-span-6 md:mt-0">
           <Search />
         </div>
 
-        {/* Cart */}
-        <div className="col-span-2 hidden justify-end md:col-span-2 md:flex">
-          <CartButton />
-        </div>
-
-        {/* Cart (mobile) */}
-        <div className="col-span-2 flex justify-end md:hidden">
-          <CartIconOnly />
+        {/* Contact */}
+        <div className="hidden md:col-span-3 md:flex md:items-center md:justify-end">
+          <ContactButton />
         </div>
       </div>
     </div>
-  );
-}
-
-function CartButton() {
-  return (
-    <Link
-      href="/"
-      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#990d23] shadow-sm ring-1 ring-black/5 transition hover:bg-zinc-100"
-      aria-label="Giỏ hàng"
-    >
-      <ShoppingCart size={16} />
-      <span>Giỏ hàng</span>
-    </Link>
-  );
-}
-
-function CartIconOnly() {
-  return (
-    <Link
-      href="/"
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#990d23] shadow-sm ring-1 ring-black/5 transition hover:bg-zinc-100"
-      aria-label="Giỏ hàng"
-    >
-      <ShoppingCart size={16} />
-    </Link>
   );
 }
 
@@ -231,7 +153,7 @@ function CartIconOnly() {
 function Search() {
   const [focus, setFocus] = useState(false);
   return (
-    <div className="relative z-20 w-full">
+    <div className="relative z-20 mx-auto w-full max-w-[460px]">
       <SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
       {focus && (
         <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border bg-white p-3 text-sm text-zinc-700 shadow-lg">
@@ -272,6 +194,17 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         <SearchIcon size={17} />
       </button>
     </form>
+  );
+}
+
+function ContactButton() {
+  return (
+    <Link
+      href="/contact"
+      className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-white/20"
+    >
+      Liên hệ
+    </Link>
   );
 }
 
@@ -397,9 +330,6 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </nav>
-        <div className="border-t p-4">
-          <CartButton />
-        </div>
       </div>
     </div>
   );
