@@ -245,7 +245,7 @@ function MainBar() {
 function Search() {
   const [focus, setFocus] = useState(false)
   return (
-    <div className="relative z-20 mx-auto w-full max-w-[460px]">
+    <div className="relative z-20 mx-auto w-full max-w-[520px]">
       <SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
       {focus && (
         <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border bg-white p-3 text-sm text-zinc-700 shadow-lg">
@@ -334,18 +334,21 @@ function NavBar() {
 
 function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
   const containerClasses = isFull
-    ? "fixed left-0 right-0 top-full z-20 rounded-b-2xl border-b border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-8 py-7 shadow-xl"
-    : "absolute left-0 top-full w-fit max-w-xs rounded-b-xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-6 py-5 shadow-xl"
+    ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-8 py-7 shadow-xl"
+    : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-6 py-5 shadow-xl"
 
-  const gridClasses = isFull ? "grid-cols-1 md:grid-cols-4" : "grid-cols-1"
+  const gridClasses = isFull ? "grid-cols-1 gap-8 md:grid-cols-4" : "grid-cols-1 gap-4"
 
   return (
     <div
       className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
     >
-      <div className={`mx-auto max-w-7xl grid gap-8 ${gridClasses}`}>
-        {menu.map((section) => (
-          <div key={section.label}>
+      <div className={`mx-auto grid max-w-7xl ${gridClasses}`}>
+        {menu.map((section, idx) => (
+          <div
+            key={section.label}
+            className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-zinc-200 md:pl-6" : ""}`}
+          >
             <h3 className="pb-3 text-[0.8rem] font-bold uppercase tracking-[0.18em] text-[#990d23]">{section.label}</h3>
             <ul className="space-y-2">
               {section.children.map((child) => (
@@ -397,45 +400,51 @@ function MobileTrigger() {
 }
 
 function MobileDrawer({ onClose }: { onClose: () => void }) {
-  const [navigationStack, setNavigationStack] = useState<(NavNode | null)[]>([null])
-  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItemWithChildren | null>(null)
-
-  const currentLevel = navigationStack[navigationStack.length - 1]
+  const [activeMenu, setActiveMenu] = useState<MenuItemWithChildren | null>(null)
+  const [activeSection, setActiveSection] = useState<NavNode | null>(null)
 
   const handleSelectMenu = (item: MenuItemWithChildren) => {
-    setSelectedMenuItem(item)
-    if (item.children) {
-      setNavigationStack([null, item.children[0]])
+    if (item.children && item.children.length > 0) {
+      setActiveMenu(item)
+      setActiveSection(null)
+    } else {
+      onClose()
     }
+  }
+
+  const handleSelectSection = (section: NavNode) => {
+    setActiveSection(section)
   }
 
   const handleBack = () => {
-    if (navigationStack.length > 1) {
-      setNavigationStack(navigationStack.slice(0, -1))
+    if (activeSection) {
+      setActiveSection(null)
+    } else if (activeMenu) {
+      setActiveMenu(null)
     } else {
-      setSelectedMenuItem(null)
+      onClose()
     }
   }
+
+  const headerTitle = activeSection?.label ?? activeMenu?.label ?? "Menu"
+  const showBackButton = !!activeMenu
 
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       {/* Panel */}
-      <div className="absolute inset-y-0 right-0 w-[86%] max-w-sm border-l border-[#7b1f2f] bg-gradient-to-b from-[#b01c37] via-[#a01830] to-[#8b1428] shadow-2xl">
+      <div className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#7b1f2f] bg-gradient-to-b from-[#b01c37] via-[#a01830] to-[#8b1428] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#7b1f2f] bg-[#990d23] px-4 py-3">
           <span className="text-base font-bold text-white">
-            {navigationStack.length > 1 && selectedMenuItem?.children ? (
-              <button
-                onClick={handleBack}
-                className="flex items-center gap-2 text-white transition hover:text-white/80"
-              >
+            {showBackButton ? (
+              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-white/80">
                 <ChevronDown size={18} className="rotate-90" />
-                <span>{currentLevel?.label}</span>
+                <span>{headerTitle}</span>
               </button>
             ) : (
-              "Menu"
+              headerTitle
             )}
           </span>
           <button
@@ -449,22 +458,19 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
 
         {/* Navigation */}
         <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm">
-          {navigationStack.length === 1 ? (
+          {!activeMenu && (
             <>
-              {menuItems.map((item) => {
-                if (item.children) {
-                  return (
-                    <button
-                      key={item.label}
-                      onClick={() => handleSelectMenu(item)}
-                      className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
-                    >
-                      <span className="text-sm">{item.label}</span>
-                      <ChevronDown size={16} className="-rotate-90" />
-                    </button>
-                  )
-                }
-                return (
+              {menuItems.map((item) =>
+                item.children ? (
+                  <button
+                    key={item.label}
+                    onClick={() => handleSelectMenu(item)}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
+                  >
+                    <span className="text-sm">{item.label}</span>
+                    <ChevronDown size={16} className="-rotate-90" />
+                  </button>
+                ) : (
                   <Link
                     key={item.label}
                     href={item.href}
@@ -473,19 +479,36 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   >
                     {item.label}
                   </Link>
-                )
-              })}
+                ),
+              )}
             </>
-          ) : (
+          )}
+
+          {activeMenu && !activeSection && (
             <div className="space-y-1">
-              {currentLevel?.children.map((child) => (
+              {activeMenu.children?.map((section) => (
+                <button
+                  key={section.label}
+                  onClick={() => handleSelectSection(section)}
+                  className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/15"
+                >
+                  <span>{section.label}</span>
+                  <ChevronDown size={15} className="-rotate-90 text-white/70" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {activeMenu && activeSection && (
+            <div className="space-y-1">
+              {activeSection.children.map((child) => (
                 <Link
                   key={child.label}
                   href={child.href}
                   className={`block rounded px-3 py-1.5 text-[0.8rem] transition ${
                     child.isHot
-                      ? "font-semibold text-white bg-white/15"
-                      : "text-white/80 hover:bg-white/15 hover:text-white"
+                      ? "bg-white/15 font-semibold text-white"
+                      : "text-white/85 hover:bg-white/15 hover:text-white"
                   }`}
                   onClick={onClose}
                 >
