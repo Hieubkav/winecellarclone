@@ -62,7 +62,7 @@ export const menuItems: MenuItemWithChildren[] = [
           { label: "Rượu vang cường hóa", href: "/" },
           { label: "Rượu vang không cồn", href: "/" },
           { label: "Rượu vang Organic", href: "/" },
-          { label: "Tất cả rượu vang", href: "/", isHot: false },
+          { label: "Tất cả rượu vang", href: "/" },
         ],
       },
       {
@@ -117,16 +117,63 @@ export const menuItems: MenuItemWithChildren[] = [
     href: "/",
     children: [
       {
-        label: "Whisky",
+        label: "Loại rượu",
         children: [
-          { label: "Single Malt", href: "/" },
-          { label: "Blended Scotch", href: "/" },
+          { label: "Rượu Whisky", href: "/" },
+          { label: "Rượu Cognac", href: "/" },
+          { label: "Rượu Rum", href: "/" },
+          { label: "Rượu Gin", href: "/" },
+          { label: "Rượu Vermouth", href: "/" },
+          { label: "Rượu Whisky Single Malt", href: "/" },
         ],
       },
-      { label: "Cognac", children: [{ label: "XO", href: "/" }] },
+      {
+        label: "Thương hiệu (Cột 1)",
+        children: [
+          { label: "GlenAllachie", href: "/" },
+          { label: "Tamdhu", href: "/" },
+          { label: "Glengoyne", href: "/" },
+          { label: "Kilchoman", href: "/" },
+          { label: "Meikle Tòir", href: "/" },
+          { label: "Glen Moray", href: "/" },
+          { label: "Thomas Hine & Co", href: "/" },
+          { label: "Cognac Lhéraud", href: "/" },
+          { label: "Rosebank", href: "/" },
+        ],
+      },
+      {
+        label: "Thương hiệu (Cột 2)",
+        children: [
+          { label: "Hunter Laing", href: "/" },
+          { label: "That Boutique-Y Whisky Company", href: "/" },
+          { label: "Kill Devil", href: "/" },
+          { label: "Cadenhead's", href: "/" },
+          { label: "The Ileach", href: "/" },
+          { label: "The Original Islay Rum", href: "/" },
+          { label: "Silver Seal", href: "/" },
+          { label: "MacNair's", href: "/" },
+        ],
+      },
+      {
+        label: "Quà tặng",
+        children: [{ label: "Quà tặng rượu mạnh", href: "/" }],
+      },
     ],
   },
-  { label: "Vang Pháp", href: "/" },
+  {
+    label: "Sản phẩm khác",
+    href: "/",
+    children: [
+      {
+        label: "Danh mục",
+        children: [
+          { label: "Bia", href: "/" },
+          { label: "Trà", href: "/" },
+          { label: "Bánh", href: "/" },
+        ],
+      },
+    ],
+  },
   { label: "Liên hệ", href: "/" },
 ]
 
@@ -260,17 +307,22 @@ function NavBar() {
   return (
     <div className="sticky top-0 z-10 border-b border-zinc-200 bg-white/85 shadow-sm backdrop-blur-md">
       <div className="mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav className="flex items-center gap-4 text-[0.75rem] font-medium text-zinc-800">
+        <nav
+          className="flex items-center gap-4 text-[0.8rem] font-medium text-zinc-800"
+          style={{ fontFamily: "'Poppins', sans-serif" }}
+        >
           {menuItems.map((item) => (
             <div key={item.label} className="group relative py-2">
               <Link
                 href={item.href}
-                className="flex items-center gap-1.5 font-[500] transition-colors hover:text-[#990d23]"
+                className="flex items-center gap-1.5 font-medium transition-colors hover:text-[#990d23]"
               >
-                <span className="uppercase tracking-[0.18em]">{item.label}</span>
+                <span className="uppercase tracking-wide">{item.label}</span>
                 {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
               </Link>
-              {item.children && <MegaMenu menu={item.children} isFull={item.label === "Rượu vang"} />}
+              {item.children && (
+                <MegaMenu menu={item.children} isFull={item.label === "Rượu vang" || item.label === "Rượu mạnh"} />
+              )}
             </div>
           ))}
         </nav>
@@ -283,9 +335,9 @@ function NavBar() {
 function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
   const containerClasses = isFull
     ? "fixed left-0 right-0 top-full z-20 rounded-b-2xl border-b border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-8 py-7 shadow-xl"
-    : "absolute left-0 top-full min-w-[500px] rounded-b-xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-6 py-5 shadow-xl"
+    : "absolute left-0 top-full w-fit max-w-xs rounded-b-xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-6 py-5 shadow-xl"
 
-  const gridClasses = isFull ? "grid-cols-1 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3"
+  const gridClasses = isFull ? "grid-cols-1 md:grid-cols-4" : "grid-cols-1"
 
   return (
     <div
@@ -346,17 +398,22 @@ function MobileTrigger() {
 
 function MobileDrawer({ onClose }: { onClose: () => void }) {
   const [navigationStack, setNavigationStack] = useState<(NavNode | null)[]>([null])
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItemWithChildren | null>(null)
 
   const currentLevel = navigationStack[navigationStack.length - 1]
-  const currentItem = menuItems.find((item) => item.label === "Rượu vang")
 
-  const handleSelectSection = (section: NavNode) => {
-    setNavigationStack([...navigationStack, section])
+  const handleSelectMenu = (item: MenuItemWithChildren) => {
+    setSelectedMenuItem(item)
+    if (item.children) {
+      setNavigationStack([null, item.children[0]])
+    }
   }
 
   const handleBack = () => {
     if (navigationStack.length > 1) {
       setNavigationStack(navigationStack.slice(0, -1))
+    } else {
+      setSelectedMenuItem(null)
     }
   }
 
@@ -369,7 +426,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#7b1f2f] bg-[#990d23] px-4 py-3">
           <span className="text-base font-bold text-white">
-            {navigationStack.length > 1 ? (
+            {navigationStack.length > 1 && selectedMenuItem?.children ? (
               <button
                 onClick={handleBack}
                 className="flex items-center gap-2 text-white transition hover:text-white/80"
@@ -395,21 +452,16 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
           {navigationStack.length === 1 ? (
             <>
               {menuItems.map((item) => {
-                if (item.label === "Rượu vang") {
+                if (item.children) {
                   return (
-                    <div key={item.label}>
-                      <button
-                        onClick={() => {
-                          if (item.children) {
-                            setNavigationStack([null, item.children[0]])
-                          }
-                        }}
-                        className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
-                      >
-                        <span className="text-sm">{item.label}</span>
-                        <ChevronDown size={16} className="-rotate-90" />
-                      </button>
-                    </div>
+                    <button
+                      key={item.label}
+                      onClick={() => handleSelectMenu(item)}
+                      className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
+                    >
+                      <span className="text-sm">{item.label}</span>
+                      <ChevronDown size={16} className="-rotate-90" />
+                    </button>
                   )
                 }
                 return (
