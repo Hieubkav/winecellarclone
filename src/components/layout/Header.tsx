@@ -161,7 +161,7 @@ function TopBar() {
 function MainBar() {
   return (
     <div className="bg-[#990d23]">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-3 px-4 py-3 md:gap-4">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-2 md:gap-3">
         {/* Mobile menu button */}
         <div className="col-span-2 flex md:hidden">
           <MobileTrigger />
@@ -173,10 +173,10 @@ function MainBar() {
             <Image
               src="https://winecellar.vn/wp-content/uploads/2022/09/W-Bronze-logo-New-1.png"
               alt="Winecellar.vn logo"
-              width={140}
-              height={54}
+              width={96}
+              height={36}
               priority
-              className="h-auto w-[140px] md:w-[150px]"
+              className="h-auto w-[96px] md:w-[110px]"
             />
           </Link>
         </div>
@@ -204,10 +204,10 @@ function CartButton() {
   return (
     <Link
       href="/"
-      className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#990d23] shadow-sm ring-1 ring-black/5 transition hover:bg-zinc-100"
+      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#990d23] shadow-sm ring-1 ring-black/5 transition hover:bg-zinc-100"
       aria-label="Giỏ hàng"
     >
-      <ShoppingCart size={18} />
+      <ShoppingCart size={16} />
       <span>Giỏ hàng</span>
     </Link>
   );
@@ -217,10 +217,10 @@ function CartIconOnly() {
   return (
     <Link
       href="/"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#990d23] shadow-sm ring-1 ring-black/5 transition hover:bg-zinc-100"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#990d23] shadow-sm ring-1 ring-black/5 transition hover:bg-zinc-100"
       aria-label="Giỏ hàng"
     >
-      <ShoppingCart size={18} />
+      <ShoppingCart size={16} />
     </Link>
   );
 }
@@ -256,20 +256,20 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         type="search"
         name="s"
         placeholder="Tìm kiếm rượu vang, rượu mạnh..."
-        className="w-full rounded-full border border-white/20 bg-white/10 py-2 pl-10 pr-10 text-sm text-white placeholder-white/70 transition focus:border-white/50 focus:bg-white/20 focus:outline-none"
+        className="w-full rounded-full border border-white/20 bg-white/10 py-1.5 pl-9 pr-9 text-sm text-white placeholder-white/70 transition focus:border-white/50 focus:bg-white/20 focus:outline-none"
         autoComplete="off"
         onFocus={onFocus}
         onBlur={onBlur}
       />
-      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center text-white/90">
-        <SearchIcon size={18} />
+      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-white/90">
+        <SearchIcon size={17} />
       </span>
       <button
         type="submit"
-        className="absolute inset-y-0 right-0 grid w-10 place-items-center rounded-r-full text-white transition hover:text-zinc-200"
+        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-white transition hover:text-zinc-200"
         aria-label="Tìm kiếm"
       >
-        <SearchIcon size={18} />
+        <SearchIcon size={17} />
       </button>
     </form>
   );
