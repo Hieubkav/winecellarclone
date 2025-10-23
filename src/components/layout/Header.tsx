@@ -1,9 +1,29 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ChevronDown, SearchIcon, Menu, X } from "lucide-react"
+import { Montserrat } from "next/font/google"
+import { ChevronDown, Menu, Search as SearchIcon, X } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
+  NavigationMenuLink,
+} from "@/components/ui/navigation-menu"
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
+} from "@/components/ui/sheet"
 
 // =====================================
 // Types
@@ -177,6 +197,12 @@ export const menuItems: MenuItemWithChildren[] = [
   { label: "Liên hệ", href: "/" },
 ]
 
+const navFont = Montserrat({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  display: "swap",
+})
+
 // =====================================
 // Header
 // =====================================
@@ -266,37 +292,40 @@ function Search() {
 function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => void }) {
   return (
     <form action="/" method="get" className="relative w-full" role="search" aria-label="Tìm kiếm sản phẩm">
-      <input
+      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-white/80">
+        <SearchIcon size={16} />
+      </span>
+      <Input
         type="search"
         name="s"
         placeholder="Tìm kiếm rượu vang, rượu mạnh..."
-        className="w-full rounded-full border border-white/20 bg-white/10 py-1.5 pl-9 pr-9 text-sm text-white placeholder-white/70 transition focus:border-white/50 focus:bg-white/20 focus:outline-none"
         autoComplete="off"
         onFocus={onFocus}
         onBlur={onBlur}
+        className="h-10 pl-9 pr-12"
       />
-      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-white/90">
-        <SearchIcon size={17} />
-      </span>
-      <button
+      <Button
         type="submit"
-        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-white transition hover:text-zinc-200"
+        size="icon"
+        variant="outline"
         aria-label="Tìm kiếm"
+        className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full border-white/40 bg-white/10 text-white hover:bg-white/25"
       >
-        <SearchIcon size={17} />
-      </button>
+        <SearchIcon size={15} />
+      </Button>
     </form>
   )
 }
 
 function ContactButton() {
   return (
-    <Link
-      href="/contact"
-      className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-white/20"
+    <Button
+      asChild
+      variant="outline"
+      className="border-white/40 bg-white/10 text-white hover:bg-white/20"
     >
-      Liên hệ
-    </Link>
+      <Link href="/contact">Liên hệ</Link>
+    </Button>
   )
 }
 
@@ -307,71 +336,86 @@ function NavBar() {
   return (
     <div className="sticky top-0 z-10 border-b border-zinc-200 bg-white/85 shadow-sm backdrop-blur-md">
       <div className="mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav
-          className="flex items-center gap-4 text-[0.8rem] font-medium text-zinc-800"
-          style={{ fontFamily: "'Poppins', sans-serif" }}
-        >
-          {menuItems.map((item) => (
-            <div key={item.label} className="group relative py-2">
-              <Link
-                href={item.href}
-                className="flex items-center gap-1.5 font-medium transition-colors hover:text-[#990d23]"
-              >
-                <span className="uppercase tracking-wide">{item.label}</span>
-                {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
-              </Link>
-              {item.children && (
-                <MegaMenu menu={item.children} isFull={item.label === "Rượu vang" || item.label === "Rượu mạnh"} />
-              )}
-            </div>
-          ))}
-        </nav>
+        <NavigationMenu className={cn(navFont.className, "w-full justify-center")}>
+          <NavigationMenuList>
+            {menuItems.map((item) => {
+              const isFull = item.label === "Rượu vang" || item.label === "Rượu mạnh"
+              if (item.children) {
+                return (
+                  <NavigationMenuItem key={item.label}>
+                    <NavigationMenuTrigger className="text-sm font-semibold uppercase tracking-tight text-zinc-700 hover:text-[#990d23]">
+                      {item.label}
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent
+                      className={
+                        isFull
+                          ? "left-1/2 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl px-8 py-7"
+                          : "left-1/2 min-w-[280px] -translate-x-1/2 px-6 py-5"
+                      }
+                    >
+                      <MegaMenuGrid menu={item.children} isFull={isFull} />
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                )
+              }
+
+              return (
+                <NavigationMenuItem key={item.label}>
+                  <NavigationMenuLink asChild>
+                    <Link
+                      href={item.href}
+                      className="inline-flex h-10 items-center rounded-full px-4 text-sm font-semibold uppercase tracking-tight text-zinc-700 transition hover:text-[#990d23]"
+                    >
+                      {item.label}
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              )
+            })}
+          </NavigationMenuList>
+        </NavigationMenu>
       </div>
       <MobileNav />
     </div>
   )
 }
 
-function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
-  const containerClasses = isFull
-    ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-8 py-7 shadow-xl"
-    : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-6 py-5 shadow-xl"
-
-  const gridClasses = isFull ? "grid-cols-1 gap-8 md:grid-cols-4" : "grid-cols-1 gap-4"
-
+function MegaMenuGrid({ menu, isFull }: { menu: NavNode[]; isFull: boolean }) {
   return (
-    <div
-      className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
-    >
-      <div className={`mx-auto grid max-w-7xl ${gridClasses}`}>
-        {menu.map((section, idx) => (
-          <div
-            key={section.label}
-            className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-zinc-200 md:pl-6" : ""}`}
-          >
-            <h3 className="pb-3 text-[0.8rem] font-bold uppercase tracking-[0.18em] text-[#990d23]">{section.label}</h3>
-            <ul className="space-y-2">
-              {section.children.map((child) => (
-                <li key={child.label}>
-                  <Link
-                    href={child.href}
-                    className={`block text-[0.8rem] transition-colors ${
-                      child.isHot ? "font-semibold text-[#b01c37]" : "text-zinc-600 hover:text-[#b01c37]"
-                    }`}
-                  >
-                    {child.isHot && (
-                      <span className="mr-1 inline-block rounded bg-[#b01c37] px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
-                        HOT
-                      </span>
-                    )}
-                    {child.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+    <div className={cn("grid gap-6", isFull ? "md:grid-cols-4" : "grid-cols-1")}>
+      {menu.map((section, idx) => (
+        <div
+          key={section.label}
+          className={cn(
+            "min-w-[180px]",
+            isFull && idx > 0 ? "md:border-l md:border-zinc-200 md:pl-6" : undefined,
+          )}
+        >
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-tight text-[#990d23]">
+            {section.label}
+          </h3>
+          <ul className="space-y-2.5">
+            {section.children.map((child) => (
+              <li key={child.label}>
+                <Link
+                  href={child.href}
+                  className={cn(
+                    "block text-[0.9rem] leading-relaxed transition-colors",
+                    child.isHot ? "font-semibold text-[#b01c37]" : "text-zinc-600 hover:text-[#b01c37]",
+                  )}
+                >
+                  {child.isHot && (
+                    <span className="mr-1 inline-flex items-center rounded bg-[#b01c37] px-1.5 py-0.5 text-xs font-bold text-white">
+                      HOT
+                    </span>
+                  )}
+                  {child.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   )
 }
@@ -385,23 +429,55 @@ function MobileNav() {
 // =====================================
 function MobileTrigger() {
   const [open, setOpen] = useState(false)
+  const resetRef = useRef<() => void>(() => {})
+
+  const registerReset = useCallback((fn: () => void) => {
+    resetRef.current = fn
+  }, [])
+
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next) {
+        resetRef.current?.()
+      }
+      setOpen(next)
+    },
+    [],
+  )
+
   return (
-    <>
-      <button
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-white/10 text-white ring-1 ring-white/15 backdrop-blur-md transition hover:bg-white/20"
-        aria-label="Mở menu"
-        onClick={() => setOpen(true)}
-      >
-        <Menu size={20} />
-      </button>
-      {open && <MobileDrawer onClose={() => setOpen(false)} />}
-    </>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 rounded-md border-white/30 bg-white/10 text-white ring-1 ring-white/15 backdrop-blur-md transition hover:bg-white/20"
+          aria-label="Mở menu"
+        >
+          <Menu size={20} />
+        </Button>
+      </SheetTrigger>
+      <MobileDrawer onClose={() => handleOpenChange(false)} registerReset={registerReset} />
+    </Sheet>
   )
 }
 
-function MobileDrawer({ onClose }: { onClose: () => void }) {
+function MobileDrawer({
+  onClose,
+  registerReset,
+}: {
+  onClose: () => void
+  registerReset: (fn: () => void) => void
+}) {
   const [activeMenu, setActiveMenu] = useState<MenuItemWithChildren | null>(null)
   const [activeSection, setActiveSection] = useState<NavNode | null>(null)
+
+  useEffect(() => {
+    registerReset(() => {
+      setActiveMenu(null)
+      setActiveSection(null)
+    })
+  }, [registerReset])
 
   const handleSelectMenu = (item: MenuItemWithChildren) => {
     if (item.children && item.children.length > 0) {
@@ -421,110 +497,101 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
       setActiveSection(null)
     } else if (activeMenu) {
       setActiveMenu(null)
-    } else {
-      onClose()
     }
   }
 
   const headerTitle = activeSection?.label ?? activeMenu?.label ?? "Menu"
-  const showBackButton = !!activeMenu
 
   return (
-    <div className="fixed inset-0 z-50">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      {/* Panel */}
-      <div className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#7b1f2f] bg-gradient-to-b from-[#b01c37] via-[#a01830] to-[#8b1428] shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#7b1f2f] bg-[#990d23] px-4 py-3">
-          <span className="text-base font-bold text-white">
-            {showBackButton ? (
-              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-white/80">
-                <ChevronDown size={18} className="rotate-90" />
-                <span>{headerTitle}</span>
-              </button>
-            ) : (
-              headerTitle
-            )}
-          </span>
-          <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white transition hover:bg-white/20"
-            aria-label="Đóng menu"
-            onClick={onClose}
-          >
-            <X size={18} />
-          </button>
+    <SheetContent>
+      <SheetHeader className="flex items-center justify-between border-b border-[#7b1f2f] bg-[#990d23]">
+        <div className="flex items-center gap-2">
+          {activeMenu && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="h-9 w-9 rounded-md text-white hover:bg-white/20"
+            >
+              <ChevronDown size={18} className="rotate-90" />
+            </Button>
+          )}
+          <SheetTitle className="text-white">{headerTitle}</SheetTitle>
         </div>
+        <SheetClose asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md text-white hover:bg-white/20">
+            <X size={18} />
+          </Button>
+        </SheetClose>
+      </SheetHeader>
 
-        {/* Navigation */}
-        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm">
-          {!activeMenu && (
-            <>
-              {menuItems.map((item) =>
-                item.children ? (
-                  <button
-                    key={item.label}
-                    onClick={() => handleSelectMenu(item)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
-                  >
-                    <span className="text-sm">{item.label}</span>
-                    <ChevronDown size={16} className="-rotate-90" />
-                  </button>
-                ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
-                    onClick={onClose}
-                  >
-                    {item.label}
-                  </Link>
-                ),
-              )}
-            </>
-          )}
-
-          {activeMenu && !activeSection && (
-            <div className="space-y-1">
-              {activeMenu.children?.map((section) => (
-                <button
-                  key={section.label}
-                  onClick={() => handleSelectSection(section)}
-                  className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/15"
-                >
-                  <span>{section.label}</span>
-                  <ChevronDown size={15} className="-rotate-90 text-white/70" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {activeMenu && activeSection && (
-            <div className="space-y-1">
-              {activeSection.children.map((child) => (
+      <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm text-white">
+        {!activeMenu &&
+          menuItems.map((item) =>
+            item.children ? (
+              <Button
+                key={item.label}
+                onClick={() => handleSelectMenu(item)}
+                variant="ghost"
+                className="w-full justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase text-white hover:bg-white/15"
+              >
+                <span>{item.label}</span>
+                <ChevronDown size={16} className="-rotate-90 text-white/70" />
+              </Button>
+            ) : (
+              <SheetClose asChild key={item.label}>
                 <Link
-                  key={child.label}
+                  href={item.href}
+                  className="block rounded-lg px-3 py-2.5 font-semibold uppercase text-white transition hover:bg-white/15"
+                  onClick={onClose}
+                >
+                  {item.label}
+                </Link>
+              </SheetClose>
+            ),
+          )}
+
+        {activeMenu && !activeSection && (
+          <div className="space-y-1">
+            {activeMenu.children?.map((section) => (
+              <Button
+                key={section.label}
+                onClick={() => handleSelectSection(section)}
+                variant="ghost"
+                className="w-full justify-between rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold uppercase text-white hover:bg-white/20"
+              >
+                <span>{section.label}</span>
+                <ChevronDown size={15} className="-rotate-90 text-white/70" />
+              </Button>
+            ))}
+          </div>
+        )}
+
+        {activeMenu && activeSection && (
+          <div className="space-y-1">
+            {activeSection.children.map((child) => (
+              <SheetClose asChild key={child.label}>
+                <Link
                   href={child.href}
-                  className={`block rounded px-3 py-1.5 text-[0.8rem] transition ${
-                    child.isHot
-                      ? "bg-white/15 font-semibold text-white"
-                      : "text-white/85 hover:bg-white/15 hover:text-white"
-                  }`}
+                  className={cn(
+                    "block rounded px-3 py-1.5 text-sm transition",
+                    child.isHot ? "bg-white/15 font-semibold text-white" : "text-white/85 hover:bg-white/15 hover:text-white",
+                  )}
                   onClick={onClose}
                 >
                   {child.isHot && (
-                    <span className="mr-1 inline-block rounded bg-white/30 px-1 py-0.5 text-[0.65rem] font-bold text-white">
+                    <span className="mr-1 inline-block rounded bg-white/30 px-1 py-0.5 text-xs font-bold text-white">
                       HOT
                     </span>
                   )}
                   {child.label}
                 </Link>
-              ))}
-            </div>
-          )}
-        </nav>
-      </div>
-    </div>
+              </SheetClose>
+            ))}
+          </div>
+        )}
+      </nav>
+    </SheetContent>
   )
 }
 
@@ -546,7 +613,7 @@ export function __selfTest(): boolean {
     const probeNavLeaf: NavLeaf = { label: "_", href: "/_" }
     console.assert(!!probeNavLeaf.href, "NavLeaf href missing")
     return true
-  } catch (_) {
+  } catch {
     return false
   }
 }
