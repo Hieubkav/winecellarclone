@@ -1,27 +1,28 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { ChevronDown, Search as SearchIcon, Menu, X } from "lucide-react";
+import { useEffect, useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { ChevronDown, SearchIcon, Menu, X } from "lucide-react"
 
 // =====================================
-// Types (FIXED: removed stray '#'-comment in NavLeaf)
+// Types
 // =====================================
 export interface NavLeaf {
-  label: string;
-  href: string;
+  label: string
+  href: string
+  isHot?: boolean
 }
 export interface NavNode {
-  label: string;
-  children: NavLeaf[];
+  label: string
+  children: NavLeaf[]
 }
 export interface MenuItemBase {
-  label: string;
-  href: string;
+  label: string
+  href: string
 }
 export interface MenuItemWithChildren extends MenuItemBase {
-  children?: NavNode[];
+  children?: NavNode[]
 }
 
 // =====================================
@@ -30,7 +31,7 @@ export interface MenuItemWithChildren extends MenuItemBase {
 export const languageOptions = [
   { code: "en", label: "English", href: "/" },
   { code: "vi", label: "Tiếng Việt", href: "/" },
-];
+]
 
 export const trendingKeywords: NavLeaf[] = [
   { label: "vang pháp", href: "/" },
@@ -41,7 +42,7 @@ export const trendingKeywords: NavLeaf[] = [
   { label: "bánh quy", href: "/" },
   { label: "trà anh quốc", href: "/" },
   { label: "nước khoáng", href: "/" },
-];
+]
 
 export const menuItems: MenuItemWithChildren[] = [
   { label: "Trang chủ", href: "/" },
@@ -50,18 +51,63 @@ export const menuItems: MenuItemWithChildren[] = [
     href: "/",
     children: [
       {
-        label: "Vang đỏ",
+        label: "Theo loại rượu",
         children: [
-          { label: "Vang đỏ Pháp", href: "/" },
-          { label: "Vang đỏ Ý", href: "/" },
-          { label: "Vang đỏ Tây Ban Nha", href: "/" },
+          { label: "Rượu vang đỏ", href: "/", isHot: true },
+          { label: "Rượu vang trắng", href: "/" },
+          { label: "Rượu vang sủi", href: "/" },
+          { label: "Champagne (Sâm panh)", href: "/" },
+          { label: "Rượu vang hồng", href: "/" },
+          { label: "Rượu vang ngọt", href: "/" },
+          { label: "Rượu vang cường hóa", href: "/" },
+          { label: "Rượu vang không cồn", href: "/" },
+          { label: "Rượu vang Organic", href: "/" },
+          { label: "Tất cả rượu vang", href: "/", isHot: false },
         ],
       },
       {
-        label: "Vang trắng",
+        label: "Theo quốc gia",
         children: [
-          { label: "Vang trắng Pháp", href: "/" },
-          { label: "Vang trắng Ý", href: "/" },
+          { label: "Pháp", href: "/" },
+          { label: "Ý", href: "/" },
+          { label: "Tây Ban Nha", href: "/" },
+          { label: "Chile", href: "/" },
+          { label: "Mỹ", href: "/" },
+          { label: "Úc", href: "/" },
+          { label: "New Zealand", href: "/" },
+          { label: "Argentina", href: "/" },
+          { label: "Bồ Đào Nha", href: "/" },
+          { label: "Đức", href: "/" },
+          { label: "Nam Phi", href: "/" },
+        ],
+      },
+      {
+        label: "Theo giống nho",
+        children: [
+          { label: "Cabernet Sauvignon", href: "/" },
+          { label: "Merlot", href: "/" },
+          { label: "Syrah (Shiraz)", href: "/" },
+          { label: "Pinot Noir", href: "/" },
+          { label: "Malbec", href: "/" },
+          { label: "Montepulciano D'Abruzzo", href: "/" },
+          { label: "Negroamaro", href: "/" },
+          { label: "Primitivo", href: "/" },
+          { label: "Chardonnay", href: "/" },
+          { label: "Sauvignon Blanc", href: "/" },
+          { label: "Riesling", href: "/" },
+          { label: "Tìm giống nho", href: "/" },
+        ],
+      },
+      {
+        label: "Theo vùng nổi tiếng",
+        children: [
+          { label: "Bordeaux", href: "/" },
+          { label: "Bourgogne (Pháp)", href: "/" },
+          { label: "Tuscany", href: "/" },
+          { label: "Puglia", href: "/" },
+          { label: "Piedmont (Ý)", href: "/" },
+          { label: "California (Mỹ)", href: "/" },
+          { label: "Champagne (Pháp)", href: "/" },
         ],
       },
     ],
@@ -82,33 +128,32 @@ export const menuItems: MenuItemWithChildren[] = [
   },
   { label: "Vang Pháp", href: "/" },
   { label: "Liên hệ", href: "/" },
-];
+]
 
 // =====================================
-// Header (clean, modern, fully responsive)
+// Header
 // =====================================
 export default function Header() {
-  // Optional: run lightweight tests in dev once to help catch shape errors quickly
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
       try {
-        const results = __runTests();
+        const results = __runTests()
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (globalThis as any).__HEADER_TEST_RESULTS__ = results;
+        ;(globalThis as any).__HEADER_TEST_RESULTS__ = results
       } catch {}
     }
-  }, []);
+  }, [])
 
   return (
     <header className="w-full text-sm text-zinc-700">
       <MainBar />
       <NavBar />
     </header>
-  );
+  )
 }
 
 // =====================================
-// MainBar (compact, balanced)
+// MainBar
 // =====================================
 function MainBar() {
   return (
@@ -144,14 +189,14 @@ function MainBar() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // =====================================
 // Search
 // =====================================
 function Search() {
-  const [focus, setFocus] = useState(false);
+  const [focus, setFocus] = useState(false)
   return (
     <div className="relative z-20 mx-auto w-full max-w-[460px]">
       <SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
@@ -168,7 +213,7 @@ function Search() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => void }) {
@@ -194,7 +239,7 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         <SearchIcon size={17} />
       </button>
     </form>
-  );
+  )
 }
 
 function ContactButton() {
@@ -205,44 +250,65 @@ function ContactButton() {
     >
       Liên hệ
     </Link>
-  );
+  )
 }
 
 // =====================================
-// NavBar + MegaMenu + MobileNav
+// NavBar + MegaMenu
 // =====================================
 function NavBar() {
   return (
-    <div className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 shadow-sm backdrop-blur-md">
+    <div className="sticky top-0 z-10 border-b border-zinc-200 bg-white/85 shadow-sm backdrop-blur-md">
       <div className="mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav className="flex items-center gap-6 text-[15px] font-medium text-zinc-800">
+        <nav className="flex items-center gap-4 text-[0.75rem] font-medium text-zinc-800">
           {menuItems.map((item) => (
-            <div key={item.label} className="group relative py-3">
-              <Link href={item.href} className="flex items-center gap-1.5 transition-colors hover:text-[#990d23]">
-                <span className="uppercase tracking-wide">{item.label}</span>
-                {item.children && <ChevronDown size={16} className="transition-transform group-hover:rotate-180" />}
+            <div key={item.label} className="group relative py-2">
+              <Link
+                href={item.href}
+                className="flex items-center gap-1.5 font-[500] transition-colors hover:text-[#990d23]"
+              >
+                <span className="uppercase tracking-[0.18em]">{item.label}</span>
+                {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
               </Link>
-              {item.children && <MegaMenu menu={item.children} />}
+              {item.children && <MegaMenu menu={item.children} isFull={item.label === "Rượu vang"} />}
             </div>
           ))}
         </nav>
       </div>
       <MobileNav />
     </div>
-  );
+  )
 }
 
-function MegaMenu({ menu }: { menu: NavNode[] }) {
+function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
+  const containerClasses = isFull
+    ? "fixed left-0 right-0 top-full z-20 rounded-b-2xl border-b border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-8 py-7 shadow-xl"
+    : "absolute left-0 top-full min-w-[500px] rounded-b-xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-6 py-5 shadow-xl"
+
+  const gridClasses = isFull ? "grid-cols-1 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3"
+
   return (
-    <div className="invisible absolute left-0 top-full z-20 mt-0 min-w-[560px] translate-y-4 rounded-b-lg border-t-2 border-[#990d23] bg-white p-6 opacity-0 shadow-lg transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-      <div className="grid grid-cols-2 gap-8 md:grid-cols-3">
+    <div
+      className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
+    >
+      <div className={`mx-auto max-w-7xl grid gap-8 ${gridClasses}`}>
         {menu.map((section) => (
           <div key={section.label}>
-            <h3 className="mb-3 text-base font-semibold uppercase tracking-wide text-[#990d23]">{section.label}</h3>
+            <h3 className="pb-3 text-[0.8rem] font-bold uppercase tracking-[0.18em] text-[#990d23]">{section.label}</h3>
             <ul className="space-y-2">
               {section.children.map((child) => (
                 <li key={child.label}>
-                  <Link href={child.href} className="block text-sm text-zinc-600 transition-colors hover:text-black">
+                  <Link
+                    href={child.href}
+                    className={`block text-[0.8rem] transition-colors ${
+                      child.isHot ? "font-semibold text-[#b01c37]" : "text-zinc-600 hover:text-[#b01c37]"
+                    }`}
+                  >
+                    {child.isHot && (
+                      <span className="mr-1 inline-block rounded bg-[#b01c37] px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
+                        HOT
+                      </span>
+                    )}
                     {child.label}
                   </Link>
                 </li>
@@ -252,19 +318,18 @@ function MegaMenu({ menu }: { menu: NavNode[] }) {
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-// Mobile placeholder to keep API compatible with previous code
 function MobileNav() {
-  return <div className="lg:hidden" />;
+  return <div className="lg:hidden" />
 }
 
 // =====================================
-// Mobile Drawer Nav
+// Mobile Drawer
 // =====================================
 function MobileTrigger() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
   return (
     <>
       <button
@@ -276,83 +341,138 @@ function MobileTrigger() {
       </button>
       {open && <MobileDrawer onClose={() => setOpen(false)} />}
     </>
-  );
+  )
 }
 
 function MobileDrawer({ onClose }: { onClose: () => void }) {
+  const [navigationStack, setNavigationStack] = useState<(NavNode | null)[]>([null])
+
+  const currentLevel = navigationStack[navigationStack.length - 1]
+  const currentItem = menuItems.find((item) => item.label === "Rượu vang")
+
+  const handleSelectSection = (section: NavNode) => {
+    setNavigationStack([...navigationStack, section])
+  }
+
+  const handleBack = () => {
+    if (navigationStack.length > 1) {
+      setNavigationStack(navigationStack.slice(0, -1))
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       {/* Panel */}
-      <div className="absolute inset-y-0 left-0 w-[86%] max-w-sm bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <span className="text-base font-semibold text-zinc-800">Menu</span>
+      <div className="absolute inset-y-0 right-0 w-[86%] max-w-sm border-l border-[#7b1f2f] bg-gradient-to-b from-[#b01c37] via-[#a01830] to-[#8b1428] shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-[#7b1f2f] bg-[#990d23] px-4 py-3">
+          <span className="text-base font-bold text-white">
+            {navigationStack.length > 1 ? (
+              <button
+                onClick={handleBack}
+                className="flex items-center gap-2 text-white transition hover:text-white/80"
+              >
+                <ChevronDown size={18} className="rotate-90" />
+                <span>{currentLevel?.label}</span>
+              </button>
+            ) : (
+              "Menu"
+            )}
+          </span>
           <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-700 hover:bg-zinc-100"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white transition hover:bg-white/20"
             aria-label="Đóng menu"
             onClick={onClose}
           >
             <X size={18} />
           </button>
         </div>
-        <nav className="max-h-[calc(100vh-56px)] space-y-2 overflow-y-auto px-4 py-3 text-sm">
-          {menuItems.map((item) => (
-            <div key={item.label} className="border-b pb-2">
-              <Link
-                href={item.href}
-                className="flex items-center justify-between py-1.5 font-semibold text-zinc-800"
-              >
-                {item.label}
-                {item.children && <ChevronDown size={16} />}
-              </Link>
-              {item.children && (
-                <div className="ml-2 space-y-2 py-1 text-zinc-600">
-                  {item.children.map((child) => (
-                    <div key={child.label}>
-                      <h4 className="text-[13px] font-semibold text-zinc-700">{child.label}</h4>
-                      <div className="ml-3 space-y-1 text-zinc-500">
-                        {child.children.map((subChild) => (
-                          <Link
-                            key={subChild.label}
-                            href={subChild.href}
-                            className="block py-0.5 transition-colors hover:text-[#990d23]"
-                            onClick={onClose}
-                          >
-                            {subChild.label}
-                          </Link>
-                        ))}
-                      </div>
+
+        {/* Navigation */}
+        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm">
+          {navigationStack.length === 1 ? (
+            <>
+              {menuItems.map((item) => {
+                if (item.label === "Rượu vang") {
+                  return (
+                    <div key={item.label}>
+                      <button
+                        onClick={() => {
+                          if (item.children) {
+                            setNavigationStack([null, item.children[0]])
+                          }
+                        }}
+                        className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
+                      >
+                        <span className="text-sm">{item.label}</span>
+                        <ChevronDown size={16} className="-rotate-90" />
+                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                  )
+                }
+                return (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
+                    onClick={onClose}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </>
+          ) : (
+            <div className="space-y-1">
+              {currentLevel?.children.map((child) => (
+                <Link
+                  key={child.label}
+                  href={child.href}
+                  className={`block rounded px-3 py-1.5 text-[0.8rem] transition ${
+                    child.isHot
+                      ? "font-semibold text-white bg-white/15"
+                      : "text-white/80 hover:bg-white/15 hover:text-white"
+                  }`}
+                  onClick={onClose}
+                >
+                  {child.isHot && (
+                    <span className="mr-1 inline-block rounded bg-white/30 px-1 py-0.5 text-[0.65rem] font-bold text-white">
+                      HOT
+                    </span>
+                  )}
+                  {child.label}
+                </Link>
+              ))}
             </div>
-          ))}
+          )}
         </nav>
       </div>
     </div>
-  );
+  )
 }
 
 // =====================================
-// Tests (runtime + shape) — do not remove; add more below if needed
+// Tests
 // =====================================
 export function __selfTest(): boolean {
   try {
-    console.assert(Array.isArray(languageOptions) && languageOptions.length >= 2, "languageOptions missing");
-    console.assert(Array.isArray(trendingKeywords), "trendingKeywords not array");
-    console.assert(menuItems.every((m) => typeof m.label === "string" && typeof m.href === "string"), "menuItems shape");
-    const firstMenu = menuItems.find((m) => m.children);
+    console.assert(Array.isArray(languageOptions) && languageOptions.length >= 2, "languageOptions missing")
+    console.assert(Array.isArray(trendingKeywords), "trendingKeywords not array")
+    console.assert(
+      menuItems.every((m) => typeof m.label === "string" && typeof m.href === "string"),
+      "menuItems shape",
+    )
+    const firstMenu = menuItems.find((m) => m.children)
     if (firstMenu?.children) {
-      console.assert(Array.isArray(firstMenu.children[0].children), "nested children shape");
+      console.assert(Array.isArray(firstMenu.children[0].children), "nested children shape")
     }
-    // Type probe (will be tree-shaken in prod)
-    const probeNavLeaf: NavLeaf = { label: "_", href: "/_" };
-    console.assert(!!probeNavLeaf.href, "NavLeaf href missing");
-    return true;
+    const probeNavLeaf: NavLeaf = { label: "_", href: "/_" }
+    console.assert(!!probeNavLeaf.href, "NavLeaf href missing")
+    return true
   } catch (_) {
-    return false;
+    return false
   }
 }
 
@@ -362,6 +482,6 @@ export function __runTests() {
     hasLanguageDropdown: typeof languageOptions[0]?.label === "string",
     hasTrending: trendingKeywords.length > 0,
     hasMenuItems: menuItems.length >= 4,
-  };
-  return results;
+  }
+  return results
 }
