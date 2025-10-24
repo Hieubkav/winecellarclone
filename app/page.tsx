@@ -1,9 +1,10 @@
-import { NavigationMenuDemo } from "@/components/layouts/Navbar";
+import Header  from "@/components/layouts/Header";
 
 export default function Home() {
   return (
       <div>
-        <NavigationMenuDemo />
+        <Header />
+        
       </div>
   );
 }
