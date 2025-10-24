@@ -143,7 +143,7 @@ function ContactButton() {
 
 function NavBar() {
   return (
-    <div className="sticky top-0 z-10 border-b border-[#9B2C3B]/40 bg-[#1C1C1C]/92 shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md">
+    <div className="sticky top-0 z-10 border-b border-[#9B2C3B]/40 shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md" style={{ backgroundColor: BRAND_HIGHLIGHT }}>
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
         <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-white/70">
           {menuItems.map((item) => {
@@ -155,7 +155,7 @@ function NavBar() {
               >
                 <Link
                   href={item.href}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1 transition-all hover:bg-[#9B2C3B]/15 hover:text-[#9B2C3B]"
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1 transition-all hover:bg-white/10 hover:text-[#ECAA4D]"
                 >
                   <span>{item.label}</span>
                   {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
@@ -167,7 +167,7 @@ function NavBar() {
             )
           })}
         </nav>
-        <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[#9B2C3B]/60 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[#ECAA4D]/70 to-transparent" />
       </div>
       <MobileNav />
     </div>
@@ -272,8 +272,8 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       {/* Panel */}
       <div
-        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#9B2C3B]/40 text-white shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
-        style={{ backgroundColor: BRAND_BASE }}
+        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#ECAA4D]/35 text-white shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
+        style={{ backgroundColor: BRAND_HIGHLIGHT }}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#9B2C3B]/40 px-4 py-3">
@@ -308,7 +308,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                     className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/10"
                   >
                     <span className="text-sm">{item.label}</span>
-                    <ChevronDown size={16} className="-rotate-90 text-white/70" />
+                    <ChevronDown size={18} className="-rotate-90 text-[#ECAA4D] opacity-90" />
                   </button>
                 ) : (
                   <Link
@@ -333,7 +333,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/10"
                 >
                   <span>{section.label}</span>
-                  <ChevronDown size={15} className="-rotate-90 text-[#9B2C3B]" />
+                  <ChevronDown size={18} className="-rotate-90 text-[#ECAA4D] opacity-90" />
                 </button>
               ))}
             </div>
