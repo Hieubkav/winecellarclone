@@ -4,4 +4,4 @@ Trả lời bằng tiếng việt
 
 Thiết kế UI/UX minimalism , đừng để end user phải suy nghĩ 
 
-Website này là Thiên Kim Wine. Màu tổng thể là #1C1C1C, #ECAA4D,#9B2C3B.Dùng font Montserrat Bold Dùng cho tên thương hiệu, tiêu đề và Montserrat Regular Dùng cho phần văn bản phụ
+Website này là Thiên Kim Wine. Màu tổng thể là #1C1C1C, #ECAA4D,#9B2C3B.Dùng font Montserrat Bold Dùng cho tên thương hiệu, tiêu đề và Montserrat Regular Dùng cho phần văn bản phụ. Trong 3 màu trên cho màu đen làm nền đi (60%) hai màu kia 20

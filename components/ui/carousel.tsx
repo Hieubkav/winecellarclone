@@ -4,10 +4,22 @@ import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
+import { Montserrat } from "next/font/google"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+})
+
+const BRAND_COLORS = {
+  base: "#1C1C1C",
+  accent: "#ECAA4D",
+  highlight: "#9B2C3B",
+} as const
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
@@ -120,7 +132,12 @@ function Carousel({
     >
       <div
         onKeyDownCapture={handleKeyDown}
-        className={cn("relative", className)}
+        className={cn(
+          montserrat.className,
+          "relative isolate text-white",
+          className,
+        )}
+        style={{ backgroundColor: BRAND_COLORS.base }}
         role="region"
         aria-roledescription="carousel"
         data-slot="carousel"
@@ -143,9 +160,9 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
     >
       <div
         className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className
+          "flex gap-6 pb-8",
+          orientation === "horizontal" ? "-ml-6" : "-mt-6 flex-col",
+          className,
         )}
         {...props}
       />
@@ -162,9 +179,9 @@ function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
       aria-roledescription="slide"
       data-slot="carousel-item"
       className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full",
-        orientation === "horizontal" ? "pl-4" : "pt-4",
-        className
+        "min-w-0 shrink-0 grow-0 basis-full rounded-xl border border-white/10 bg-black/20 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.35)] backdrop-blur-sm transition hover:border-[#ECAA4D]/50",
+        orientation === "horizontal" ? "pl-6" : "pt-6",
+        className,
       )}
       {...props}
     />
@@ -173,8 +190,6 @@ function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
 
 function CarouselPrevious({
   className,
-  variant = "outline",
-  size = "icon",
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
@@ -182,20 +197,21 @@ function CarouselPrevious({
   return (
     <Button
       data-slot="carousel-previous"
-      variant={variant}
-      size={size}
+      variant="ghost"
+      size="icon"
       className={cn(
-        "absolute size-8 rounded-full",
+        "absolute z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-md transition hover:border-[#ECAA4D] hover:text-[#ECAA4D] hover:bg-black/55 disabled:pointer-events-none disabled:opacity-30",
         orientation === "horizontal"
-          ? "top-1/2 -left-12 -translate-y-1/2"
-          : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
-        className
+          ? "left-2 top-1/2 -translate-y-1/2 md:left-4"
+          : "left-1/2 top-4 -translate-x-1/2 rotate-90",
+        "hidden sm:flex",
+        className,
       )}
       disabled={!canScrollPrev}
       onClick={scrollPrev}
       {...props}
     >
-      <ArrowLeft />
+      <ArrowLeft className="h-4 w-4" />
       <span className="sr-only">Previous slide</span>
     </Button>
   )
@@ -203,8 +219,6 @@ function CarouselPrevious({
 
 function CarouselNext({
   className,
-  variant = "outline",
-  size = "icon",
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollNext, canScrollNext } = useCarousel()
@@ -212,20 +226,21 @@ function CarouselNext({
   return (
     <Button
       data-slot="carousel-next"
-      variant={variant}
-      size={size}
+      variant="ghost"
+      size="icon"
       className={cn(
-        "absolute size-8 rounded-full",
+        "absolute z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-md transition hover:border-[#ECAA4D] hover:text-[#ECAA4D] hover:bg-black/55 disabled:pointer-events-none disabled:opacity-30",
         orientation === "horizontal"
-          ? "top-1/2 -right-12 -translate-y-1/2"
-          : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
-        className
+          ? "right-2 top-1/2 -translate-y-1/2 md:right-4"
+          : "bottom-4 left-1/2 -translate-x-1/2 rotate-90",
+        "hidden sm:flex",
+        className,
       )}
       disabled={!canScrollNext}
       onClick={scrollNext}
       {...props}
     >
-      <ArrowRight />
+      <ArrowRight className="h-4 w-4" />
       <span className="sr-only">Next slide</span>
     </Button>
   )
