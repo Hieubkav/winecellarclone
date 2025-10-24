@@ -116,12 +116,12 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         onFocus={onFocus}
         onBlur={onBlur}
       />
-      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-[#ECAA4D]">
+      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-[#9B2C3B]">
         <SearchIcon size={17} />
       </span>
       <button
         type="submit"
-        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-[#ECAA4D] transition hover:text-white"
+        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-[#9B2C3B] transition hover:text-white"
         aria-label="Tìm kiếm"
       >
         <SearchIcon size={17} />
@@ -144,7 +144,7 @@ function ContactButton() {
 function NavBar() {
   return (
     <div className="sticky top-0 z-10 border-b border-[#9B2C3B]/40 bg-[#1C1C1C]/92 shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md">
-      <div className="mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
+      <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
         <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-white/70">
           {menuItems.map((item) => {
             const isMega = item.label === "Rượu vang" || item.label === "Rượu mạnh"
@@ -155,7 +155,7 @@ function NavBar() {
               >
                 <Link
                   href={item.href}
-                className="flex items-center gap-1.5 transition-colors hover:text-[#9B2C3B]"
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1 transition-all hover:bg-[#9B2C3B]/15 hover:text-[#9B2C3B]"
                 >
                   <span>{item.label}</span>
                   {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
@@ -167,6 +167,7 @@ function NavBar() {
             )
           })}
         </nav>
+        <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[#9B2C3B]/60 to-transparent" />
       </div>
       <MobileNav />
     </div>
@@ -193,8 +194,8 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
                 <li key={child.label}>
                   <Link
                     href={child.href}
-                    className={`block text-[0.78rem] transition-colors ${
-                      child.isHot ? "font-semibold text-[#ECAA4D]" : "text-white/70 hover:text-[#9B2C3B]"
+                    className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
+                      child.isHot ? "font-semibold text-[#ECAA4D]" : "text-white/75 hover:bg-[#9B2C3B]/25 hover:text-white"
                     }`}
                   >
                     {child.isHot && (
@@ -217,15 +218,14 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
 function MobileNav() {
   return <div className="lg:hidden" />
 }
-
 function MobileTrigger() {
   const [open, setOpen] = useState(false)
 
   return (
     <>
       <button
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-[#1C1C1C] shadow-[0_6px_18px_rgba(236,170,77,0.45)] transition hover:brightness-105"
-        style={{ backgroundColor: BRAND_ACCENT }}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
+        style={{ backgroundColor: BRAND_HIGHLIGHT }}
         aria-label="Mở menu"
         onClick={() => setOpen(true)}
       >

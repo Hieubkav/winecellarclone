@@ -57,7 +57,6 @@ export default function HeroCarousel() {
   return (
     <section className="section banner-main-new relative w-full overflow-hidden bg-[#1C1C1C]">
       <div className="bg-banner-slider pointer-events-none absolute inset-0 hidden lg:block" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-[#9B2C3B]/18 to-[#1C1C1C]" />
       <div className="relative mx-auto w-full">
         <Carousel
           className="group mx-auto w-full max-w-[1920px]"
@@ -88,12 +87,12 @@ export default function HeroCarousel() {
             <>
               <CarouselPrevious
                 size="icon-lg"
-                className="hidden -left-8 h-16 w-16 border-none bg-[#ECAA4D]/90 text-[#1C1C1C] shadow-lg transition-all hover:bg-[#ECAA4D] focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+                className="hidden -left-8 h-16 w-16 border-none bg-[#9B2C3B]/90 text-[#ECAA4D] shadow-lg transition-all hover:bg-[#9B2C3B] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
                 onClick={() => autoplay.current.reset()}
               />
               <CarouselNext
                 size="icon-lg"
-                className="hidden -right-8 h-16 w-16 border-none bg-[#ECAA4D]/90 text-[#1C1C1C] shadow-lg transition-all hover:bg-[#ECAA4D] focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+                className="hidden -right-8 h-16 w-16 border-none bg-[#9B2C3B]/90 text-[#ECAA4D] shadow-lg transition-all hover:bg-[#9B2C3B] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
                 onClick={() => autoplay.current.reset()}
               />
             </>
@@ -108,8 +107,9 @@ export default function HeroCarousel() {
                 type="button"
                 onClick={() => handleDotClick(index)}
                 className={cn(
-                  "h-3 w-3 rounded-full border border-[#ECAA4D]/70 bg-[#ECAA4D]/40 transition-all hover:bg-[#ECAA4D]/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9B2C3B]",
-                  current === index && "h-3.5 w-8 rounded-full border-[#9B2C3B] bg-[#9B2C3B]"
+                  "h-3 w-3 rounded-full border border-[#9B2C3B]/70 bg-[#9B2C3B]/40 transition-all hover:bg-[#9B2C3B]/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ECAA4D]",
+                  current === index &&
+                    "h-3.5 w-8 rounded-full border-[#ECAA4D] bg-[#9B2C3B] shadow-[0_0_0_1px_rgba(236,170,77,0.45)]"
                 )}
                 aria-label={`Chuyển tới slide ${index + 1}`}
                 aria-current={current === index}
