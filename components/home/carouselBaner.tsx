@@ -18,6 +18,10 @@ import { cn } from "@/lib/utils"
 const AUTOPLAY_DELAY = 3000
 
 export default function HeroCarousel() {
+  if (heroSlides.length === 0) {
+    return null
+  }
+  const hasMultipleSlides = heroSlides.length > 1
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const autoplay = useRef<ReturnType<typeof Autoplay>>(
@@ -56,8 +60,8 @@ export default function HeroCarousel() {
       <div className="relative mx-auto w-full">
         <Carousel
           className="group mx-auto w-full max-w-[1920px]"
-          opts={{ align: "center", loop: true }}
-          plugins={[autoplay.current]}
+          opts={{ align: "center", loop: hasMultipleSlides }}
+          plugins={hasMultipleSlides ? [autoplay.current] : []}
           setApi={setApi}
         >
           <CarouselContent className="ml-0">
@@ -79,35 +83,41 @@ export default function HeroCarousel() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious
-            size="icon-lg"
-            className="hidden -left-8 h-16 w-16 border-none bg-white/85 text-[#1f1f1f] shadow-lg transition-all hover:bg-white focus-visible:ring-[#990d23] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
-            onClick={() => autoplay.current.reset()}
-          />
-          <CarouselNext
-            size="icon-lg"
-            className="hidden -right-8 h-16 w-16 border-none bg-white/85 text-[#1f1f1f] shadow-lg transition-all hover:bg-white focus-visible:ring-[#990d23] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
-            onClick={() => autoplay.current.reset()}
-          />
+          {hasMultipleSlides && (
+            <>
+              <CarouselPrevious
+                size="icon-lg"
+                className="hidden -left-8 h-16 w-16 border-none bg-white/85 text-[#1f1f1f] shadow-lg transition-all hover:bg-white focus-visible:ring-[#990d23] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+                onClick={() => autoplay.current.reset()}
+              />
+              <CarouselNext
+                size="icon-lg"
+                className="hidden -right-8 h-16 w-16 border-none bg-white/85 text-[#1f1f1f] shadow-lg transition-all hover:bg-white focus-visible:ring-[#990d23] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+                onClick={() => autoplay.current.reset()}
+              />
+            </>
+          )}
         </Carousel>
 
-        <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">
-          {heroSlides.map((slide, index) => (
-            <button
-              key={slide.image}
-              type="button"
-              onClick={() => handleDotClick(index)}
-              className={cn(
-                "h-3 w-3 rounded-full border border-white/70 bg-white/60 transition-all hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#990d23]",
-                current === index && "h-3.5 w-8 rounded-full border-[#990d23] bg-[#990d23]"
-              )}
-              aria-label={`Chuyển tới slide ${index + 1}`}
-              aria-current={current === index}
-            >
-              <span className="sr-only">{`Slide ${index + 1}`}</span>
-            </button>
-          ))}
-        </div>
+        {hasMultipleSlides && (
+          <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">
+            {heroSlides.map((slide, index) => (
+              <button
+                key={slide.image}
+                type="button"
+                onClick={() => handleDotClick(index)}
+                className={cn(
+                  "h-3 w-3 rounded-full border border-white/70 bg-white/60 transition-all hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#990d23]",
+                  current === index && "h-3.5 w-8 rounded-full border-[#990d23] bg-[#990d23]"
+                )}
+                aria-label={`Chuyển tới slide ${index + 1}`}
+                aria-current={current === index}
+              >
+                <span className="sr-only">{`Slide ${index + 1}`}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )

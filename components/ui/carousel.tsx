@@ -40,6 +40,8 @@ type CarouselContextProps = {
   scrollNext: () => void
   canScrollPrev: boolean
   canScrollNext: boolean
+  slideCount: number
+  isLoop: boolean
 } & CarouselProps
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
@@ -63,20 +65,32 @@ function Carousel({
   children,
   ...props
 }: React.ComponentProps<"div"> & CarouselProps) {
-  const [carouselRef, api] = useEmblaCarousel(
-    {
-      ...opts,
-      axis: orientation === "horizontal" ? "x" : "y",
-    },
-    plugins
-  )
+  const axis = orientation === "horizontal" ? "x" : "y"
+  const mergedOptions = React.useMemo(() => {
+    const baseOptions: CarouselOptions = { ...(opts ?? {}), axis }
+    if (baseOptions.loop === undefined) {
+      baseOptions.loop = true
+    }
+    return baseOptions
+  }, [axis, opts])
+  const loopOption = mergedOptions.loop
+
+  const [carouselRef, api] = useEmblaCarousel(mergedOptions, plugins)
   const [canScrollPrev, setCanScrollPrev] = React.useState(false)
   const [canScrollNext, setCanScrollNext] = React.useState(false)
+  const [slideCount, setSlideCount] = React.useState(0)
+  const isLooping = React.useMemo(() => {
+    if (typeof loopOption === "object") {
+      return Object.values(loopOption).some(Boolean)
+    }
+    return Boolean(loopOption)
+  }, [loopOption])
 
   const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) return
     setCanScrollPrev(api.canScrollPrev())
     setCanScrollNext(api.canScrollNext())
+    setSlideCount(api.scrollSnapList().length)
   }, [])
 
   const scrollPrev = React.useCallback(() => {
@@ -107,6 +121,7 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
+    setSlideCount(api.scrollSnapList().length)
     onSelect(api)
     api.on("reInit", onSelect)
     api.on("select", onSelect)
@@ -128,6 +143,8 @@ function Carousel({
         scrollNext,
         canScrollPrev,
         canScrollNext,
+        slideCount,
+        isLoop: isLooping,
       }}
     >
       <div
@@ -192,7 +209,13 @@ function CarouselPrevious({
   className,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { orientation, scrollPrev, canScrollPrev } = useCarousel()
+  const { orientation, scrollPrev, canScrollPrev, slideCount, isLoop } = useCarousel()
+
+  if (slideCount <= 1) {
+    return null
+  }
+
+  const isDisabled = (!isLoop && !canScrollPrev) || slideCount <= 1
 
   return (
     <Button
@@ -207,7 +230,7 @@ function CarouselPrevious({
         "hidden sm:flex",
         className,
       )}
-      disabled={!canScrollPrev}
+      disabled={isDisabled}
       onClick={scrollPrev}
       {...props}
     >
@@ -221,7 +244,13 @@ function CarouselNext({
   className,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { orientation, scrollNext, canScrollNext } = useCarousel()
+  const { orientation, scrollNext, canScrollNext, slideCount, isLoop } = useCarousel()
+
+  if (slideCount <= 1) {
+    return null
+  }
+
+  const isDisabled = (!isLoop && !canScrollNext) || slideCount <= 1
 
   return (
     <Button
@@ -236,7 +265,7 @@ function CarouselNext({
         "hidden sm:flex",
         className,
       )}
-      disabled={!canScrollNext}
+      disabled={isDisabled}
       onClick={scrollNext}
       {...props}
     >
