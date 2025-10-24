@@ -207,6 +207,7 @@ function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
 
 function CarouselPrevious({
   className,
+  onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollPrev, canScrollPrev, slideCount, isLoop } = useCarousel()
@@ -216,6 +217,11 @@ function CarouselPrevious({
   }
 
   const isDisabled = (!isLoop && !canScrollPrev) || slideCount <= 1
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (isDisabled) return
+    scrollPrev()
+    onClick?.(event)
+  }
 
   return (
     <Button
@@ -231,7 +237,7 @@ function CarouselPrevious({
         className,
       )}
       disabled={isDisabled}
-      onClick={scrollPrev}
+      onClick={handleClick}
       {...props}
     >
       <ArrowLeft className="h-4 w-4" />
@@ -242,6 +248,7 @@ function CarouselPrevious({
 
 function CarouselNext({
   className,
+  onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { orientation, scrollNext, canScrollNext, slideCount, isLoop } = useCarousel()
@@ -251,6 +258,11 @@ function CarouselNext({
   }
 
   const isDisabled = (!isLoop && !canScrollNext) || slideCount <= 1
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (isDisabled) return
+    scrollNext()
+    onClick?.(event)
+  }
 
   return (
     <Button
@@ -266,7 +278,7 @@ function CarouselNext({
         className,
       )}
       disabled={isDisabled}
-      onClick={scrollNext}
+      onClick={handleClick}
       {...props}
     >
       <ArrowRight className="h-4 w-4" />
