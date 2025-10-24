@@ -1,10 +1,9 @@
-import Header  from "@/components/layouts/Header";
+import HeroCarousel from "@/components/home/carouselBaner";
 
 export default function Home() {
   return (
       <div>
-        <Header />
-        
+        <HeroCarousel />
       </div>
   );
 }

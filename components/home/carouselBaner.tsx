@@ -1,0 +1,114 @@
+"use client"
+
+import Image from "next/image"
+import { useEffect, useRef, useState } from "react"
+import Autoplay from "embla-carousel-autoplay"
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel"
+import { heroSlides } from "@/data/winecellar"
+import { cn } from "@/lib/utils"
+
+const AUTOPLAY_DELAY = 3000
+
+export default function HeroCarousel() {
+  const [api, setApi] = useState<CarouselApi>()
+  const [current, setCurrent] = useState(0)
+  const autoplay = useRef<ReturnType<typeof Autoplay>>(
+    Autoplay({
+      delay: AUTOPLAY_DELAY,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+    })
+  )
+
+  useEffect(() => {
+    if (!api) return
+
+    const handleSelect = () => {
+      setCurrent(api.selectedScrollSnap())
+    }
+
+    handleSelect()
+    api.on("select", handleSelect)
+    api.on("reInit", handleSelect)
+
+    return () => {
+      api.off("select", handleSelect)
+      api.off("reInit", handleSelect)
+    }
+  }, [api])
+
+  const handleDotClick = (index: number) => {
+    api?.scrollTo(index)
+    autoplay.current.reset()
+  }
+
+  return (
+    <section className="section banner-main-new relative w-full overflow-hidden bg-white">
+      <div className="bg-banner-slider pointer-events-none absolute inset-0 hidden lg:block" />
+      <div className="relative mx-auto w-full">
+        <Carousel
+          className="group mx-auto w-full max-w-[1920px]"
+          opts={{ align: "center", loop: true }}
+          plugins={[autoplay.current]}
+          setApi={setApi}
+        >
+          <CarouselContent className="ml-0">
+            {heroSlides.map((slide, index) => (
+              <CarouselItem key={slide.image} className="pl-0">
+                <div className="relative block">
+                  <div className="relative block aspect-[1920/610] w-full">
+                    <Image
+                      src={slide.image}
+                      alt={slide.alt}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                      sizes="100vw"
+                    />
+                  </div>
+                  <span className="sr-only">{slide.alt}</span>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious
+            size="icon-lg"
+            className="hidden -left-8 h-16 w-16 border-none bg-white/85 text-[#1f1f1f] shadow-lg transition-all hover:bg-white focus-visible:ring-[#990d23] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+            onClick={() => autoplay.current.reset()}
+          />
+          <CarouselNext
+            size="icon-lg"
+            className="hidden -right-8 h-16 w-16 border-none bg-white/85 text-[#1f1f1f] shadow-lg transition-all hover:bg-white focus-visible:ring-[#990d23] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+            onClick={() => autoplay.current.reset()}
+          />
+        </Carousel>
+
+        <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">
+          {heroSlides.map((slide, index) => (
+            <button
+              key={slide.image}
+              type="button"
+              onClick={() => handleDotClick(index)}
+              className={cn(
+                "h-3 w-3 rounded-full border border-white/70 bg-white/60 transition-all hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#990d23]",
+                current === index && "h-3.5 w-8 rounded-full border-[#990d23] bg-[#990d23]"
+              )}
+              aria-label={`Chuyển tới slide ${index + 1}`}
+              aria-current={current === index}
+            >
+              <span className="sr-only">{`Slide ${index + 1}`}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
