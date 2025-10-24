@@ -89,11 +89,11 @@ function Search() {
     <div className="relative z-20 mx-auto w-full max-w-[520px]">
       <SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
       {focus && (
-        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-white/10 bg-[#1C1C1C]/95 p-3 text-xs text-white/85 shadow-lg backdrop-blur">
-          <span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#ECAA4D]">Trending</span>
+        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-[#9B2C3B]/45 bg-[#1C1C1C]/95 p-3 text-xs text-white/85 shadow-lg backdrop-blur">
+          <span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#9B2C3B]">Trending</span>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             {trendingKeywords.map((item) => (
-              <Link key={item.label} href={item.href} className="text-xs text-white/70 transition hover:text-[#ECAA4D]">
+              <Link key={item.label} href={item.href} className="text-xs text-white/70 transition hover:text-[#9B2C3B]">
                 {item.label}
               </Link>
             ))}
@@ -111,7 +111,7 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         type="search"
         name="s"
         placeholder="Tìm kiếm rượu vang, rượu mạnh..."
-        className="w-full rounded-full border border-white/10 bg-white/5 py-1.5 pl-9 pr-9 text-sm text-white placeholder-white/45 transition focus:border-[#ECAA4D] focus:bg-white/10 focus:outline-none"
+        className="w-full rounded-full border border-white/10 bg-white/5 py-1.5 pl-9 pr-9 text-sm text-white placeholder-white/45 transition focus:border-[#9B2C3B] focus:bg-white/10 focus:outline-none"
         autoComplete="off"
         onFocus={onFocus}
         onBlur={onBlur}
@@ -132,10 +132,10 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
 
 function ContactButton() {
   return (
-    <Link
-      href="/contact"
-      className="inline-flex items-center rounded-full bg-[#ECAA4D] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] text-[#1C1C1C] transition hover:bg-[#f3b663]"
-    >
+      <Link
+        href="/contact"
+        className="inline-flex items-center rounded-full bg-[#9B2C3B] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[#b23f4a]"
+      >
       Liên hệ
     </Link>
   )
@@ -155,7 +155,7 @@ function NavBar() {
               >
                 <Link
                   href={item.href}
-                  className="flex items-center gap-1.5 transition-colors hover:text-[#ECAA4D]"
+                className="flex items-center gap-1.5 transition-colors hover:text-[#9B2C3B]"
                 >
                   <span>{item.label}</span>
                   {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
@@ -194,7 +194,7 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
                   <Link
                     href={child.href}
                     className={`block text-[0.78rem] transition-colors ${
-                      child.isHot ? "font-semibold text-[#ECAA4D]" : "text-white/70 hover:text-[#ECAA4D]"
+                      child.isHot ? "font-semibold text-[#ECAA4D]" : "text-white/70 hover:text-[#9B2C3B]"
                     }`}
                   >
                     {child.isHot && (
@@ -279,7 +279,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
         <div className="flex items-center justify-between border-b border-[#9B2C3B]/40 px-4 py-3">
           <span className="text-base font-bold uppercase tracking-[0.16em]" style={{ color: BRAND_ACCENT }}>
             {showBackButton ? (
-              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-[#ECAA4D]">
+              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-[#9B2C3B]">
                 <ChevronDown size={18} className="rotate-90" />
                 <span>{headerTitle}</span>
               </button>
@@ -333,7 +333,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/10"
                 >
                   <span>{section.label}</span>
-                  <ChevronDown size={15} className="-rotate-90 text-[#ECAA4D]" />
+                  <ChevronDown size={15} className="-rotate-90 text-[#9B2C3B]" />
                 </button>
               ))}
             </div>
