@@ -3,183 +3,26 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ChevronDown, SearchIcon, Menu, X } from "lucide-react"
+import { Montserrat } from "next/font/google"
+import { ChevronDown, Menu, SearchIcon, X } from "lucide-react"
 
-// =====================================
-// Types
-// =====================================
-export interface NavLeaf {
-  label: string
-  href: string
-  isHot?: boolean
-}
-export interface NavNode {
-  label: string
-  children: NavLeaf[]
-}
-export interface MenuItemBase {
-  label: string
-  href: string
-}
-export interface MenuItemWithChildren extends MenuItemBase {
-  children?: NavNode[]
-}
+import {
+  BRAND_COLORS,
+  languageOptions,
+  menuItems,
+  trendingKeywords,
+  type MenuItemWithChildren,
+  type NavLeaf,
+  type NavNode,
+} from "./header.data"
 
-// =====================================
-// Data
-// =====================================
-export const languageOptions = [
-  { code: "en", label: "English", href: "/" },
-  { code: "vi", label: "Tiếng Việt", href: "/" },
-]
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+})
 
-export const trendingKeywords: NavLeaf[] = [
-  { label: "vang pháp", href: "/" },
-  { label: "vang ý", href: "/" },
-  { label: "rượu mạnh", href: "/" },
-  { label: "bia", href: "/" },
-  { label: "ly rượu vang", href: "/" },
-  { label: "bánh quy", href: "/" },
-  { label: "trà anh quốc", href: "/" },
-  { label: "nước khoáng", href: "/" },
-]
+const { base: BRAND_BASE, accent: BRAND_ACCENT, highlight: BRAND_HIGHLIGHT } = BRAND_COLORS
 
-export const menuItems: MenuItemWithChildren[] = [
-  { label: "Trang chủ", href: "/" },
-  {
-    label: "Rượu vang",
-    href: "/",
-    children: [
-      {
-        label: "Theo loại rượu",
-        children: [
-          { label: "Rượu vang đỏ", href: "/", isHot: true },
-          { label: "Rượu vang trắng", href: "/" },
-          { label: "Rượu vang sủi", href: "/" },
-          { label: "Champagne (Sâm panh)", href: "/" },
-          { label: "Rượu vang hồng", href: "/" },
-          { label: "Rượu vang ngọt", href: "/" },
-          { label: "Rượu vang cường hóa", href: "/" },
-          { label: "Rượu vang không cồn", href: "/" },
-          { label: "Rượu vang Organic", href: "/" },
-          { label: "Tất cả rượu vang", href: "/" },
-        ],
-      },
-      {
-        label: "Theo quốc gia",
-        children: [
-          { label: "Pháp", href: "/" },
-          { label: "Ý", href: "/" },
-          { label: "Tây Ban Nha", href: "/" },
-          { label: "Chile", href: "/" },
-          { label: "Mỹ", href: "/" },
-          { label: "Úc", href: "/" },
-          { label: "New Zealand", href: "/" },
-          { label: "Argentina", href: "/" },
-          { label: "Bồ Đào Nha", href: "/" },
-          { label: "Đức", href: "/" },
-          { label: "Nam Phi", href: "/" },
-        ],
-      },
-      {
-        label: "Theo giống nho",
-        children: [
-          { label: "Cabernet Sauvignon", href: "/" },
-          { label: "Merlot", href: "/" },
-          { label: "Syrah (Shiraz)", href: "/" },
-          { label: "Pinot Noir", href: "/" },
-          { label: "Malbec", href: "/" },
-          { label: "Montepulciano D'Abruzzo", href: "/" },
-          { label: "Negroamaro", href: "/" },
-          { label: "Primitivo", href: "/" },
-          { label: "Chardonnay", href: "/" },
-          { label: "Sauvignon Blanc", href: "/" },
-          { label: "Riesling", href: "/" },
-          { label: "Tìm giống nho", href: "/" },
-        ],
-      },
-      {
-        label: "Theo vùng nổi tiếng",
-        children: [
-          { label: "Bordeaux", href: "/" },
-          { label: "Bourgogne (Pháp)", href: "/" },
-          { label: "Tuscany", href: "/" },
-          { label: "Puglia", href: "/" },
-          { label: "Piedmont (Ý)", href: "/" },
-          { label: "California (Mỹ)", href: "/" },
-          { label: "Champagne (Pháp)", href: "/" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Rượu mạnh",
-    href: "/",
-    children: [
-      {
-        label: "Loại rượu",
-        children: [
-          { label: "Rượu Whisky", href: "/" },
-          { label: "Rượu Cognac", href: "/" },
-          { label: "Rượu Rum", href: "/" },
-          { label: "Rượu Gin", href: "/" },
-          { label: "Rượu Vermouth", href: "/" },
-          { label: "Rượu Whisky Single Malt", href: "/" },
-        ],
-      },
-      {
-        label: "Thương hiệu (Cột 1)",
-        children: [
-          { label: "GlenAllachie", href: "/" },
-          { label: "Tamdhu", href: "/" },
-          { label: "Glengoyne", href: "/" },
-          { label: "Kilchoman", href: "/" },
-          { label: "Meikle Tòir", href: "/" },
-          { label: "Glen Moray", href: "/" },
-          { label: "Thomas Hine & Co", href: "/" },
-          { label: "Cognac Lhéraud", href: "/" },
-          { label: "Rosebank", href: "/" },
-        ],
-      },
-      {
-        label: "Thương hiệu (Cột 2)",
-        children: [
-          { label: "Hunter Laing", href: "/" },
-          { label: "That Boutique-Y Whisky Company", href: "/" },
-          { label: "Kill Devil", href: "/" },
-          { label: "Cadenhead's", href: "/" },
-          { label: "The Ileach", href: "/" },
-          { label: "The Original Islay Rum", href: "/" },
-          { label: "Silver Seal", href: "/" },
-          { label: "MacNair's", href: "/" },
-        ],
-      },
-      {
-        label: "Quà tặng",
-        children: [{ label: "Quà tặng rượu mạnh", href: "/" }],
-      },
-    ],
-  },
-  {
-    label: "Sản phẩm khác",
-    href: "/",
-    children: [
-      {
-        label: "Danh mục",
-        children: [
-          { label: "Bia", href: "/" },
-          { label: "Trà", href: "/" },
-          { label: "Bánh", href: "/" },
-        ],
-      },
-    ],
-  },
-  { label: "Liên hệ", href: "/" },
-]
-
-// =====================================
-// Header
-// =====================================
 export default function Header() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -192,31 +35,31 @@ export default function Header() {
   }, [])
 
   return (
-    <header className="w-full text-sm text-zinc-700">
+    <header className={`${montserrat.className} w-full text-sm text-white`}>
       <MainBar />
       <NavBar />
     </header>
   )
 }
 
-// =====================================
-// MainBar
-// =====================================
 function MainBar() {
   return (
-    <div className="bg-[#990d23]">
+    <div className="border-b border-white/10" style={{ backgroundColor: BRAND_BASE }}>
       <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-2 md:gap-4">
         {/* Logo */}
         <div className="col-span-6 flex items-center md:col-span-3 md:justify-start">
-          <Link href="/" className="inline-flex items-center" aria-label="Trang chủ">
+          <Link href="/" className="flex items-center gap-3" aria-label="Thiên Kim Wine - Trang chủ">
             <Image
-              src="https://winecellar.vn/wp-content/uploads/2022/09/W-Bronze-logo-New-1.png"
-              alt="Winecellar.vn logo"
-              width={96}
-              height={36}
+              src="/media/logo.webp"
+              alt="Thiên Kim Wine logo"
+              width={56}
+              height={56}
               priority
-              className="h-auto w-[96px] md:w-[110px]"
+              className="h-12 w-12 object-contain"
             />
+            <span className="hidden text-xs font-bold uppercase tracking-[0.32em] text-[#ECAA4D] md:inline md:text-sm">
+              Thiên Kim Wine
+            </span>
           </Link>
         </div>
 
@@ -239,20 +82,18 @@ function MainBar() {
   )
 }
 
-// =====================================
-// Search
-// =====================================
 function Search() {
   const [focus, setFocus] = useState(false)
+
   return (
     <div className="relative z-20 mx-auto w-full max-w-[520px]">
       <SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
       {focus && (
-        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border bg-white p-3 text-sm text-zinc-700 shadow-lg">
-          <span className="font-semibold">Trending:</span>
+        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-white/10 bg-[#1C1C1C]/95 p-3 text-xs text-white/85 shadow-lg backdrop-blur">
+          <span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#ECAA4D]">Trending</span>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             {trendingKeywords.map((item) => (
-              <Link key={item.label} href={item.href} className="text-xs transition hover:text-[#990d23]">
+              <Link key={item.label} href={item.href} className="text-xs text-white/70 transition hover:text-[#ECAA4D]">
                 {item.label}
               </Link>
             ))}
@@ -270,17 +111,17 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         type="search"
         name="s"
         placeholder="Tìm kiếm rượu vang, rượu mạnh..."
-        className="w-full rounded-full border border-white/20 bg-white/10 py-1.5 pl-9 pr-9 text-sm text-white placeholder-white/70 transition focus:border-white/50 focus:bg-white/20 focus:outline-none"
+        className="w-full rounded-full border border-white/10 bg-white/5 py-1.5 pl-9 pr-9 text-sm text-white placeholder-white/45 transition focus:border-[#ECAA4D] focus:bg-white/10 focus:outline-none"
         autoComplete="off"
         onFocus={onFocus}
         onBlur={onBlur}
       />
-      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-white/90">
+      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-[#ECAA4D]">
         <SearchIcon size={17} />
       </span>
       <button
         type="submit"
-        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-white transition hover:text-zinc-200"
+        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-[#ECAA4D] transition hover:text-white"
         aria-label="Tìm kiếm"
       >
         <SearchIcon size={17} />
@@ -293,31 +134,25 @@ function ContactButton() {
   return (
     <Link
       href="/contact"
-      className="inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-white/20"
+      className="inline-flex items-center rounded-full bg-[#ECAA4D] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] text-[#1C1C1C] transition hover:bg-[#f3b663]"
     >
       Liên hệ
     </Link>
   )
 }
 
-// =====================================
-// NavBar + MegaMenu
-// =====================================
 function NavBar() {
   return (
-    <div className="sticky top-0 z-10 border-b border-zinc-200 bg-white/85 shadow-sm backdrop-blur-md">
+    <div className="sticky top-0 z-10 border-b border-[#9B2C3B]/40 bg-[#1C1C1C]/92 shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md">
       <div className="mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav
-          className="flex items-center gap-4 text-[0.8rem] font-medium text-zinc-800"
-          style={{ fontFamily: "'Poppins', sans-serif" }}
-        >
+        <nav className="flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-white/70">
           {menuItems.map((item) => (
             <div key={item.label} className="group relative py-2">
               <Link
                 href={item.href}
-                className="flex items-center gap-1.5 font-medium transition-colors hover:text-[#990d23]"
+                className="flex items-center gap-1.5 transition-colors hover:text-[#ECAA4D]"
               >
-                <span className="uppercase tracking-wide">{item.label}</span>
+                <span>{item.label}</span>
                 {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
               </Link>
               {item.children && (
@@ -334,8 +169,8 @@ function NavBar() {
 
 function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
   const containerClasses = isFull
-    ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-8 py-7 shadow-xl"
-    : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-zinc-200 bg-gradient-to-br from-white via-white to-zinc-50 px-6 py-5 shadow-xl"
+    ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#9B2C3B]/40 bg-[#1C1C1C]/98 px-8 py-7 shadow-[0_28px_60px_rgba(0,0,0,0.55)]"
+    : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-[#9B2C3B]/40 bg-[#1C1C1C]/98 px-6 py-5 shadow-[0_24px_48px_rgba(0,0,0,0.45)]"
 
   const gridClasses = isFull ? "grid-cols-1 gap-8 md:grid-cols-4" : "grid-cols-1 gap-4"
 
@@ -345,22 +180,19 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
     >
       <div className={`mx-auto grid max-w-7xl ${gridClasses}`}>
         {menu.map((section, idx) => (
-          <div
-            key={section.label}
-            className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-zinc-200 md:pl-6" : ""}`}
-          >
-            <h3 className="pb-3 text-[0.8rem] font-bold uppercase tracking-[0.18em] text-[#990d23]">{section.label}</h3>
+          <div key={section.label} className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-white/10 md:pl-6" : ""}`}>
+            <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
             <ul className="space-y-2">
               {section.children.map((child) => (
                 <li key={child.label}>
                   <Link
                     href={child.href}
-                    className={`block text-[0.8rem] transition-colors ${
-                      child.isHot ? "font-semibold text-[#b01c37]" : "text-zinc-600 hover:text-[#b01c37]"
+                    className={`block text-[0.78rem] transition-colors ${
+                      child.isHot ? "font-semibold text-[#ECAA4D]" : "text-white/70 hover:text-[#ECAA4D]"
                     }`}
                   >
                     {child.isHot && (
-                      <span className="mr-1 inline-block rounded bg-[#b01c37] px-1.5 py-0.5 text-[0.65rem] font-bold text-white">
+                      <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
                         HOT
                       </span>
                     )}
@@ -380,15 +212,14 @@ function MobileNav() {
   return <div className="lg:hidden" />
 }
 
-// =====================================
-// Mobile Drawer
-// =====================================
 function MobileTrigger() {
   const [open, setOpen] = useState(false)
+
   return (
     <>
       <button
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-white/10 text-white ring-1 ring-white/15 backdrop-blur-md transition hover:bg-white/20"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-white shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
+        style={{ backgroundColor: BRAND_HIGHLIGHT }}
         aria-label="Mở menu"
         onClick={() => setOpen(true)}
       >
@@ -432,14 +263,17 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       {/* Panel */}
-      <div className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#7b1f2f] bg-gradient-to-b from-[#b01c37] via-[#a01830] to-[#8b1428] shadow-2xl">
+      <div
+        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#9B2C3B]/40 text-white shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
+        style={{ backgroundColor: BRAND_BASE }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#7b1f2f] bg-[#990d23] px-4 py-3">
-          <span className="text-base font-bold text-white">
+        <div className="flex items-center justify-between border-b border-[#9B2C3B]/40 px-4 py-3">
+          <span className="text-base font-bold uppercase tracking-[0.16em]" style={{ color: BRAND_ACCENT }}>
             {showBackButton ? (
-              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-white/80">
+              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-[#ECAA4D]">
                 <ChevronDown size={18} className="rotate-90" />
                 <span>{headerTitle}</span>
               </button>
@@ -448,7 +282,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
             )}
           </span>
           <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white transition hover:bg-white/20"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white transition hover:bg-white/10"
             aria-label="Đóng menu"
             onClick={onClose}
           >
@@ -457,7 +291,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Navigation */}
-        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm">
+        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm text-white/85">
           {!activeMenu && (
             <>
               {menuItems.map((item) =>
@@ -465,16 +299,16 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   <button
                     key={item.label}
                     onClick={() => handleSelectMenu(item)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/10"
                   >
                     <span className="text-sm">{item.label}</span>
-                    <ChevronDown size={16} className="-rotate-90" />
+                    <ChevronDown size={16} className="-rotate-90 text-white/70" />
                   </button>
                 ) : (
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/15"
+                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/10"
                     onClick={onClose}
                   >
                     {item.label}
@@ -490,10 +324,10 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                 <button
                   key={section.label}
                   onClick={() => handleSelectSection(section)}
-                  className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/15"
+                  className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/10"
                 >
                   <span>{section.label}</span>
-                  <ChevronDown size={15} className="-rotate-90 text-white/70" />
+                  <ChevronDown size={15} className="-rotate-90 text-[#ECAA4D]" />
                 </button>
               ))}
             </div>
@@ -505,15 +339,15 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                 <Link
                   key={child.label}
                   href={child.href}
-                  className={`block rounded px-3 py-1.5 text-[0.8rem] transition ${
+                  className={`block rounded px-3 py-1.5 text-[0.85rem] transition ${
                     child.isHot
-                      ? "bg-white/15 font-semibold text-white"
-                      : "text-white/85 hover:bg-white/15 hover:text-white"
+                      ? "bg-[#9B2C3B] font-semibold text-white"
+                      : "text-white/85 hover:bg-[#9B2C3B]/25 hover:text-white"
                   }`}
                   onClick={onClose}
                 >
                   {child.isHot && (
-                    <span className="mr-1 inline-block rounded bg-white/30 px-1 py-0.5 text-[0.65rem] font-bold text-white">
+                    <span className="mr-1 inline-block rounded bg-[#ECAA4D] px-1 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#1C1C1C]">
                       HOT
                     </span>
                   )}
@@ -528,9 +362,6 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
   )
 }
 
-// =====================================
-// Tests
-// =====================================
 export function __selfTest(): boolean {
   try {
     console.assert(Array.isArray(languageOptions) && languageOptions.length >= 2, "languageOptions missing")
@@ -560,4 +391,3 @@ export function __runTests() {
   }
   return results
 }
-
