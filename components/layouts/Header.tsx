@@ -145,21 +145,27 @@ function NavBar() {
   return (
     <div className="sticky top-0 z-10 border-b border-[#9B2C3B]/40 bg-[#1C1C1C]/92 shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md">
       <div className="mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav className="flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-white/70">
-          {menuItems.map((item) => (
-            <div key={item.label} className="group relative py-2">
-              <Link
-                href={item.href}
-                className="flex items-center gap-1.5 transition-colors hover:text-[#ECAA4D]"
+        <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-white/70">
+          {menuItems.map((item) => {
+            const isMega = item.label === "Rượu vang" || item.label === "Rượu mạnh"
+            return (
+              <div
+                key={item.label}
+                className={`group py-2 ${isMega ? "relative lg:static" : "relative"}`}
               >
-                <span>{item.label}</span>
-                {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
-              </Link>
-              {item.children && (
-                <MegaMenu menu={item.children} isFull={item.label === "Rượu vang" || item.label === "Rượu mạnh"} />
-              )}
-            </div>
-          ))}
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-1.5 transition-colors hover:text-[#ECAA4D]"
+                >
+                  <span>{item.label}</span>
+                  {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
+                </Link>
+                {item.children && (
+                  <MegaMenu menu={item.children} isFull={isMega} />
+                )}
+              </div>
+            )
+          })}
         </nav>
       </div>
       <MobileNav />
@@ -218,8 +224,8 @@ function MobileTrigger() {
   return (
     <>
       <button
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-white shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
-        style={{ backgroundColor: BRAND_HIGHLIGHT }}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-[#1C1C1C] shadow-[0_6px_18px_rgba(236,170,77,0.45)] transition hover:brightness-105"
+        style={{ backgroundColor: BRAND_ACCENT }}
         aria-label="Mở menu"
         onClick={() => setOpen(true)}
       >
