@@ -56,7 +56,7 @@ export default function HeroCarousel() {
 
   return (
     <section className="relative w-full overflow-hidden bg-white py-2 text-[#1C1C1C] sm:py-8 lg:py-4">
-      <div className="relative mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10">
+      <div className="relative mx-auto w-full max-w-7xl px-2 sm:px-2 lg:px-2">
         <div className="relative overflow-hidden rounded ">
           <Carousel
             className="group mx-auto w-full bg-transparent text-[#1C1C1C]"
