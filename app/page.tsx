@@ -5,17 +5,21 @@ import FavouriteProducts from "@/components/home/FavouriteProducts";
 import BrandShowcase from "@/components/home/BrandShowcase";
 import CollectionShowcase from "@/components/home/CollectionShowcase";
 import EditorialSpotlight from "@/components/home/EditorialSpotlight";
-import { wineShowcaseProducts, spiritShowcaseProducts, homeEditorials } from "@/data/homeCollections";
+import {
+  wineShowcaseProducts,
+  spiritShowcaseProducts,
+  homeEditorials,
+} from "@/data/homeCollections";
 
 export default function Home() {
   return (
-    <main className="bg-white text-[#1C1C1C]">
+    <main className="tk-type-system bg-white text-[#1C1C1C]">
       <HeroCarousel />
       <DualBanner />
       <CategoryGrid />
       <FavouriteProducts />
       <BrandShowcase />
-      
+
       <CollectionShowcase
         title="Rượu Vang"
         subtitle="Rượu Vang"
@@ -28,7 +32,7 @@ export default function Home() {
       <CollectionShowcase
         title="Rượu Mạnh"
         subtitle="Rượu Mạnh"
-        description="Trải nghiệm những dòng rượu mạnh hảo hạng từ các thương hiệu danh tiếng thế giới"
+        description="Trải nghiệm những dòng rượu mạnh hào hùng từ các thương hiệu danh tiếng thế giới"
         ctaLabel="Xem Thêm"
         ctaHref="/spirits"
         products={spiritShowcaseProducts}

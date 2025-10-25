@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-montserrat);
+  --font-mono: var(--font-montserrat);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -117,7 +117,38 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans text-base leading-[1.65];
+  }
+}
+
+@layer components {
+  .tk-type-system {
+    font-family: var(--font-montserrat);
+    color: #1C1C1C;
+    --tk-heading-size: clamp(2rem, 2.6vw, 3.2rem);
+    --tk-body-size: 1rem;
+    --tk-subtext-size: 0.85rem;
+    --tk-subtext-tracking: 0.18em;
+  }
+
+  .tk-type-system :is(h1, h2, h3, h4, h5, h6, .tk-heading) {
+    font-weight: 700;
+    font-size: var(--tk-heading-size);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .tk-type-system :is(p, li, .tk-body) {
+    font-weight: 500;
+    font-size: var(--tk-body-size);
+    line-height: 1.7;
+  }
+
+  .tk-type-system :is(small, .tk-subtext, [data-type="subtext"]) {
+    font-weight: 300;
+    font-size: var(--tk-subtext-size);
+    letter-spacing: var(--tk-subtext-tracking);
+    text-transform: uppercase;
   }
 }
 
