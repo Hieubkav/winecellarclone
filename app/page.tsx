@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <main className="bg-white text-[#1C1C1C]">
       <HeroCarousel />
-      {/* <DualBanner /> */}
+      <DualBanner />
       <CategoryGrid />
       <FavouriteProducts />
       <BrandShowcase />

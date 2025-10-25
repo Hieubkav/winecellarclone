@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/layouts/Header";
 import Speedial from "@/components/layouts/Speedial";
 import Footer from "@/components/layouts/Footer";
+import AgeGate from "@/components/layouts/AgeGate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <AgeGate />
         <Header />
         <Speedial />
         {children}
