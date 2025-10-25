@@ -11,16 +11,19 @@ export interface Wine {
   producer: string;
   image: string;
   isNew: boolean;
-  category: string;
+  wineType: string; // instead of 'category'
   brand: string;
   colors: string[];
   deliveryDays: number;
   vintage: number;
-  grape: string;
+  grapeVariety: string; // instead of 'grape'
   region: string;
+  country: string; // separate country field
   alcoholContent: number;
   volume: number;
 }
+
+type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
 interface WineStore {
   // State
@@ -29,19 +32,29 @@ interface WineStore {
   selectedCategory: string;
   searchQuery: string;
   priceRange: [number, number];
-  selectedBrands: string[];
+  selectedWineTypes: string[]; // loại rượu
+  selectedCountries: string[]; // quốc gia
+  selectedGrapeVarieties: string[]; // giống nho
+  selectedRegions: string[]; // vùng nổi tiếng
+  selectedBrands: string[]; // thương hiệu
   selectedColors: string[];
   deliveryDate: string;
   viewMode: string;
+  sortBy: SortOption; // Thêm trạng thái sắp xếp
 
   // Actions
   setSelectedCategory: (category: string) => void;
   setSearchQuery: (query: string) => void;
   setPriceRange: (range: [number, number]) => void;
+  toggleWineType: (type: string) => void; // instead of toggleType
+  toggleCountry: (country: string) => void;
+  toggleGrapeVariety: (grape: string) => void; // instead of toggleGrape
+  toggleRegion: (region: string) => void;
   toggleBrand: (brand: string) => void;
   toggleColor: (color: string) => void;
   setDeliveryDate: (date: string) => void;
   setViewMode: (mode: string) => void;
+  setSortBy: (sortBy: SortOption) => void; // Thêm hành động sắp xếp
   applyFilters: () => void;
 }
 
@@ -58,13 +71,14 @@ const sampleWines: Wine[] = [
     producer: "Château Margaux",
     image: "https://placehold.co/600x400?text=Vang+Đỏ",
     isNew: true,
-    category: "red",
-    brand: "chateau-margaux",
+    wineType: "Vang đỏ",
+    brand: "Château Margaux",
     colors: ["red"],
     deliveryDays: 2,
     vintage: 2018,
-    grape: "Cabernet Sauvignon, Merlot",
-    region: "Bordeaux, Pháp",
+    grapeVariety: "Cabernet Sauvignon, Merlot",
+    region: "Bordeaux",
+    country: "Pháp",
     alcoholContent: 13.5,
     volume: 750
   },
@@ -79,13 +93,14 @@ const sampleWines: Wine[] = [
     producer: "Domaine William Fèvre",
     image: "https://placehold.co/600x400?text=Vang+Trắng",
     isNew: true,
-    category: "white",
-    brand: "william-fevre",
+    wineType: "Vang trắng",
+    brand: "William Fèvre",
     colors: ["yellow"],
     deliveryDays: 3,
     vintage: 2020,
-    grape: "Chardonnay",
-    region: "Burgundy, Pháp",
+    grapeVariety: "Chardonnay",
+    region: "Burgundy",
+    country: "Pháp",
     alcoholContent: 12.8,
     volume: 750
   },
@@ -100,13 +115,14 @@ const sampleWines: Wine[] = [
     producer: "Château d'Esclans",
     image: "https://placehold.co/600x400?text=Vang+Hồng",
     isNew: false,
-    category: "rose",
-    brand: "chateau-esclans",
+    wineType: "Vang hồng",
+    brand: "Château d'Esclans",
     colors: ["pink"],
     deliveryDays: 2,
     vintage: 2021,
-    grape: "Grenache, Cinsault, Rolle",
-    region: "Provence, Pháp",
+    grapeVariety: "Grenache, Cinsault, Rolle",
+    region: "Provence",
+    country: "Pháp",
     alcoholContent: 13.0,
     volume: 750
   },
@@ -121,13 +137,14 @@ const sampleWines: Wine[] = [
     producer: "Nino Franco",
     image: "https://placehold.co/600x400?text=Vang+Sủi",
     isNew: true,
-    category: "sparkling",
-    brand: "nino-franco",
+    wineType: "Vang sủi",
+    brand: "Nino Franco",
     colors: ["yellow"],
     deliveryDays: 1,
     vintage: 2021,
-    grape: "Glera",
-    region: "Veneto, Ý",
+    grapeVariety: "Glera",
+    region: "Veneto",
+    country: "Ý",
     alcoholContent: 11.0,
     volume: 750
   },
@@ -140,13 +157,14 @@ const sampleWines: Wine[] = [
     producer: "Giacomo Conterno",
     image: "https://placehold.co/600x400?text=Barolo",
     isNew: false,
-    category: "red",
-    brand: "giacomo-conterno",
+    wineType: "Vang đỏ",
+    brand: "Giacomo Conterno",
     colors: ["red"],
     deliveryDays: 4,
     vintage: 2017,
-    grape: "Nebbiolo",
-    region: "Piedmont, Ý",
+    grapeVariety: "Nebbiolo",
+    region: "Piedmont",
+    country: "Ý",
     alcoholContent: 14.5,
     volume: 750
   },
@@ -161,13 +179,14 @@ const sampleWines: Wine[] = [
     producer: "S.A. Prüm",
     image: "https://placehold.co/600x400?text=Riesling",
     isNew: true,
-    category: "white",
-    brand: "s-a-prum",
+    wineType: "Vang trắng",
+    brand: "S.A. Prüm",
     colors: ["yellow"],
     deliveryDays: 5,
     vintage: 2019,
-    grape: "Riesling",
-    region: "Mosel, Đức",
+    grapeVariety: "Riesling",
+    region: "Mosel",
+    country: "Đức",
     alcoholContent: 12.5,
     volume: 750
   },
@@ -182,13 +201,14 @@ const sampleWines: Wine[] = [
     producer: "Domaine de la Romanée-Conti",
     image: "https://placehold.co/600x400?text=Romanee",
     isNew: true,
-    category: "red",
-    brand: "romanee-conti",
+    wineType: "Vang đỏ",
+    brand: "Domaine de la Romanée-Conti",
     colors: ["red"],
     deliveryDays: 7,
     vintage: 2018,
-    grape: "Pinot Noir",
-    region: "Burgundy, Pháp",
+    grapeVariety: "Pinot Noir",
+    region: "Burgundy",
+    country: "Pháp",
     alcoholContent: 13.0,
     volume: 750
   },
@@ -201,13 +221,14 @@ const sampleWines: Wine[] = [
     producer: "Lopez de Heredia",
     image: "https://placehold.co/600x400?text=Rioja",
     isNew: false,
-    category: "red",
-    brand: "vinas-ardanza",
+    wineType: "Vang đỏ",
+    brand: "Vina Ardanza",
     colors: ["red"],
     deliveryDays: 3,
     vintage: 2016,
-    grape: "Tempranillo, Garnacha",
-    region: "Rioja, Tây Ban Nha",
+    grapeVariety: "Tempranillo, Garnacha",
+    region: "Rioja",
+    country: "Tây Ban Nha",
     alcoholContent: 13.5,
     volume: 750
   },
@@ -222,13 +243,14 @@ const sampleWines: Wine[] = [
     producer: "Cloudy Bay",
     image: "https://placehold.co/600x400?text=Cloudy+Bay",
     isNew: true,
-    category: "white",
-    brand: "cloudy-bay",
+    wineType: "Vang trắng",
+    brand: "Cloudy Bay",
     colors: ["yellow"],
     deliveryDays: 2,
     vintage: 2020,
-    grape: "Sauvignon Blanc",
-    region: "Marlborough, New Zealand",
+    grapeVariety: "Sauvignon Blanc",
+    region: "Marlborough",
+    country: "New Zealand",
     alcoholContent: 13.0,
     volume: 750
   },
@@ -243,13 +265,14 @@ const sampleWines: Wine[] = [
     producer: "Dal Forno Romano",
     image: "https://placehold.co/600x400?text=Amarone",
     isNew: true,
-    category: "red",
-    brand: "dal-forno-romano",
+    wineType: "Vang đỏ",
+    brand: "Dal Forno Romano",
     colors: ["red"],
     deliveryDays: 6,
     vintage: 2017,
-    grape: "Corvina, Rondinella, Molinara",
-    region: "Veneto, Ý",
+    grapeVariety: "Corvina, Rondinella, Molinara",
+    region: "Valpolicella",
+    country: "Ý",
     alcoholContent: 15.5,
     volume: 750
   },
@@ -264,13 +287,14 @@ const sampleWines: Wine[] = [
     producer: "Veuve Clicquot",
     image: "https://placehold.co/600x400?text=Champagne",
     isNew: false,
-    category: "sparkling",
-    brand: "veuve-clicquot",
+    wineType: "Vang sủi",
+    brand: "Veuve Clicquot",
     colors: ["yellow"],
     deliveryDays: 1,
     vintage: 2016,
-    grape: "Chardonnay, Pinot Noir, Pinot Meunier",
-    region: "Champagne, Pháp",
+    grapeVariety: "Chardonnay, Pinot Noir, Pinot Meunier",
+    region: "Champagne",
+    country: "Pháp",
     alcoholContent: 12.0,
     volume: 750
   },
@@ -285,14 +309,81 @@ const sampleWines: Wine[] = [
     producer: "Opus One",
     image: "https://placehold.co/600x400?text=Opus+One",
     isNew: true,
-    category: "red",
-    brand: "opus-one",
+    wineType: "Vang đỏ",
+    brand: "Opus One",
     colors: ["red"],
     deliveryDays: 4,
     vintage: 2019,
-    grape: "Cabernet Sauvignon",
-    region: "Napa Valley, Mỹ",
+    grapeVariety: "Cabernet Sauvignon",
+    region: "Napa Valley",
+    country: "Mỹ",
     alcoholContent: 14.5,
+    volume: 750
+  },
+  {
+    id: 13,
+    name: "Rượu vang đỏ Penfolds Grange 2018",
+    price: 3299.0,
+    originalPrice: 3999.0,
+    discount: 18,
+    rating: 4.9,
+    orders: 89,
+    producer: "Penfolds",
+    image: "https://placehold.co/600x400?text=Penfolds",
+    isNew: true,
+    wineType: "Vang đỏ",
+    brand: "Penfolds",
+    colors: ["red"],
+    deliveryDays: 5,
+    vintage: 2018,
+    grapeVariety: "Shiraz",
+    region: "South Australia",
+    country: "Úc",
+    alcoholContent: 14.0,
+    volume: 750
+  },
+  {
+    id: 14,
+    name: "Rượu vang trắng Cloudy Bay Sauvignon Blanc 2021",
+    price: 1199.0,
+    originalPrice: 1499.0,
+    discount: 20,
+    rating: 4.6,
+    orders: 145,
+    producer: "Cloudy Bay",
+    image: "https://placehold.co/600x400?text=CB+SB",
+    isNew: true,
+    wineType: "Vang trắng",
+    brand: "Cloudy Bay",
+    colors: ["yellow"],
+    deliveryDays: 2,
+    vintage: 2021,
+    grapeVariety: "Sauvignon Blanc",
+    region: "Marlborough",
+    country: "New Zealand",
+    alcoholContent: 12.5,
+    volume: 750
+  },
+  {
+    id: 15,
+    name: "Rượu vang đỏ Vega Sicilia Único 2016",
+    price: 2799.0,
+    originalPrice: 3299.0,
+    discount: 15,
+    rating: 4.8,
+    orders: 65,
+    producer: "Vega Sicilia",
+    image: "https://placehold.co/600x400?text=Vega",
+    isNew: false,
+    wineType: "Vang đỏ",
+    brand: "Vega Sicilia",
+    colors: ["red"],
+    deliveryDays: 6,
+    vintage: 2016,
+    grapeVariety: "Tinto Fino (Tempranillo)",
+    region: "Ribera del Duero",
+    country: "Tây Ban Nha",
+    alcoholContent: 14.0,
     volume: 750
   }
 ];
@@ -303,11 +394,16 @@ export const useWineStore = create<WineStore>((set, get) => ({
   filteredWines: sampleWines,
   selectedCategory: "all",
   searchQuery: "",
-  priceRange: [0, 3000],
-  selectedBrands: [],
+  priceRange: [0, 5000],
+  selectedWineTypes: [], // loại rượu
+  selectedCountries: [], // quốc gia
+  selectedGrapeVarieties: [], // giống nho
+  selectedRegions: [], // vùng nổi tiếng
+  selectedBrands: [], // thương hiệu
   selectedColors: [],
   deliveryDate: "any",
   viewMode: "grid",
+  sortBy: 'name-asc', // Mặc định sắp xếp theo tên A-Z
 
   // Actions
   setSelectedCategory: (category) => {
@@ -322,6 +418,42 @@ export const useWineStore = create<WineStore>((set, get) => ({
 
   setPriceRange: (range) => {
     set({ priceRange: range });
+    get().applyFilters();
+  },
+
+  toggleWineType: (type) => {
+    const { selectedWineTypes } = get();
+    const newWineTypes = selectedWineTypes.includes(type)
+      ? selectedWineTypes.filter((t) => t !== type)
+      : [...selectedWineTypes, type];
+    set({ selectedWineTypes: newWineTypes });
+    get().applyFilters();
+  },
+
+  toggleCountry: (country) => {
+    const { selectedCountries } = get();
+    const newCountries = selectedCountries.includes(country)
+      ? selectedCountries.filter((c) => c !== country)
+      : [...selectedCountries, country];
+    set({ selectedCountries: newCountries });
+    get().applyFilters();
+  },
+
+  toggleGrapeVariety: (grape) => {
+    const { selectedGrapeVarieties } = get();
+    const newGrapeVarieties = selectedGrapeVarieties.includes(grape)
+      ? selectedGrapeVarieties.filter((g) => g !== grape)
+      : [...selectedGrapeVarieties, grape];
+    set({ selectedGrapeVarieties: newGrapeVarieties });
+    get().applyFilters();
+  },
+
+  toggleRegion: (region) => {
+    const { selectedRegions } = get();
+    const newRegions = selectedRegions.includes(region)
+      ? selectedRegions.filter((r) => r !== region)
+      : [...selectedRegions, region];
+    set({ selectedRegions: newRegions });
     get().applyFilters();
   },
 
@@ -352,22 +484,33 @@ export const useWineStore = create<WineStore>((set, get) => ({
     set({ viewMode: mode });
   },
 
+  setSortBy: (sortBy) => {
+    set({ sortBy });
+    // Gọi lại applyFilters để áp dụng sắp xếp
+    get().applyFilters();
+  },
+
   applyFilters: () => {
     const {
       wines,
       selectedCategory,
       searchQuery,
       priceRange,
+      selectedWineTypes,
+      selectedCountries,
+      selectedGrapeVarieties,
+      selectedRegions,
       selectedBrands,
       selectedColors,
-      deliveryDate
+      deliveryDate,
+      sortBy
     } = get();
 
     let filtered = wines;
 
     // Category filter
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((wine) => wine.category === selectedCategory);
+      filtered = filtered.filter((wine) => wine.wineType === selectedCategory);
     }
 
     // Search filter
@@ -386,7 +529,37 @@ export const useWineStore = create<WineStore>((set, get) => ({
       (wine) => wine.price >= priceRange[0] && wine.price <= priceRange[1]
     );
 
-    // Brand filter
+    // Wine Type filter (loại rượu)
+    if (selectedWineTypes.length > 0) {
+      filtered = filtered.filter((wine) => selectedWineTypes.includes(wine.wineType));
+    }
+
+    // Country filter (quốc gia)
+    if (selectedCountries.length > 0) {
+      filtered = filtered.filter((wine) => selectedCountries.includes(wine.country));
+    }
+
+    // Grape Variety filter (giống nho)
+    if (selectedGrapeVarieties.length > 0) {
+      filtered = filtered.filter((wine) => {
+        // Check if any grape in selectedGrapeVarieties is included in wine.grapeVariety
+        return selectedGrapeVarieties.some(grape => 
+          wine.grapeVariety.toLowerCase().includes(grape.toLowerCase())
+        );
+      });
+    }
+
+    // Region filter (vùng nổi tiếng)
+    if (selectedRegions.length > 0) {
+      filtered = filtered.filter((wine) => {
+        // Check if the wine's region is in the selected regions
+        return selectedRegions.some(region => 
+          wine.region.toLowerCase().includes(region.toLowerCase())
+        );
+      });
+    }
+
+    // Brand filter (thương hiệu)
     if (selectedBrands.length > 0) {
       filtered = filtered.filter((wine) => selectedBrands.includes(wine.brand));
     }
@@ -410,6 +583,22 @@ export const useWineStore = create<WineStore>((set, get) => ({
               : 999;
       filtered = filtered.filter((wine) => wine.deliveryDays <= maxDays);
     }
+
+    // Sort the filtered wines
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return a.name.localeCompare(b.name);
+        case 'name-desc':
+          return b.name.localeCompare(a.name);
+        case 'price-asc':
+          return a.price - b.price;
+        case 'price-desc':
+          return b.price - a.price;
+        default:
+          return 0;
+      }
+    });
 
     set({ filteredWines: filtered });
   }

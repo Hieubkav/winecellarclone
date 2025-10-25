@@ -16,30 +16,90 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWineStore } from "@/app/filter/store";
 
+const wineTypes = [
+  { id: "Vang đỏ", label: "Vang đỏ", icon: "🍷" },
+  { id: "Vang trắng", label: "Vang trắng", icon: "🥂" },
+  { id: "Vang hồng", label: "Vang hồng", icon: "🌸" },
+  { id: "Vang sủi", label: "Vang sủi", icon: "🍾" },
+  { id: "Vang tráng miệng", label: "Vang tráng miệng", icon: "🍯" },
+  { id: "Vang mạnh", label: "Vang mạnh", icon: "🥃" },
+  { id: "Vang hữu cơ", label: "Vang hữu cơ", icon: "🌿" },
+  { id: "Vang cổ điển", label: "Vang cổ điển", icon: "🏺" }
+];
+
 const categories = [
   { id: "all", label: "Tất cả", icon: "🍷" },
-  { id: "red", label: "Vang đỏ", icon: "🍷" },
-  { id: "white", label: "Vang trắng", icon: "🥂" },
-  { id: "rose", label: "Vang hồng", icon: "🌸" },
-  { id: "sparkling", label: "Vang sủi", icon: "🍾" },
-  { id: "dessert", label: "Vang tráng miệng", icon: "🍯" },
-  { id: "fortified", label: "Vang mạnh", icon: "🥃" },
-  { id: "organic", label: "Vang hữu cơ", icon: "🌿" },
-  { id: "vintage", label: "Vang cổ điển", icon: "🏺" }
+  { id: "Vang đỏ", label: "Vang đỏ", icon: "🍷" },
+  { id: "Vang trắng", label: "Vang trắng", icon: "🥂" },
+  { id: "Vang hồng", label: "Vang hồng", icon: "🌸" },
+  { id: "Vang sủi", label: "Vang sủi", icon: "🍾" },
+  { id: "Vang tráng miệng", label: "Vang tráng miệng", icon: "🍯" },
+  { id: "Vang mạnh", label: "Vang mạnh", icon: "🥃" },
+  { id: "Vang hữu cơ", label: "Vang hữu cơ", icon: "🌿" },
+  { id: "Vang cổ điển", label: "Vang cổ điển", icon: "🏺" }
+];
+
+const countries = [
+  { id: "Pháp", label: "Pháp" },
+  { id: "Ý", label: "Ý" },
+  { id: "Đức", label: "Đức" },
+  { id: "Tây Ban Nha", label: "Tây Ban Nha" },
+  { id: "Mỹ", label: "Mỹ" },
+  { id: "Úc", label: "Úc" },
+  { id: "New Zealand", label: "New Zealand" }
+];
+
+const grapeVarieties = [
+  { id: "Cabernet Sauvignon", label: "Cabernet Sauvignon" },
+  { id: "Chardonnay", label: "Chardonnay" },
+  { id: "Pinot Noir", label: "Pinot Noir" },
+  { id: "Sauvignon Blanc", label: "Sauvignon Blanc" },
+  { id: "Merlot", label: "Merlot" },
+  { id: "Nebbiolo", label: "Nebbiolo" },
+  { id: "Tempranillo", label: "Tempranillo" },
+  { id: "Grenache", label: "Grenache" },
+  { id: "Syrah/Shiraz", label: "Syrah/Shiraz" },
+  { id: "Riesling", label: "Riesling" },
+  { id: "Glera", label: "Glera" },
+  { id: "Cinsault", label: "Cinsault" },
+  { id: "Rolle", label: "Rolle" },
+  { id: "Garnacha", label: "Garnacha" },
+  { id: "Corvina", label: "Corvina" },
+  { id: "Rondinella", label: "Rondinella" },
+  { id: "Molinara", label: "Molinara" },
+  { id: "Tinto Fino (Tempranillo)", label: "Tinto Fino (Tempranillo)" }
+];
+
+const regions = [
+  { id: "Bordeaux", label: "Bordeaux" },
+  { id: "Burgundy", label: "Burgundy" },
+  { id: "Provence", label: "Provence" },
+  { id: "Veneto", label: "Veneto" },
+  { id: "Piedmont", label: "Piedmont" },
+  { id: "Mosel", label: "Mosel" },
+  { id: "Rioja", label: "Rioja" },
+  { id: "Marlborough", label: "Marlborough" },
+  { id: "Valpolicella", label: "Valpolicella" },
+  { id: "Champagne", label: "Champagne" },
+  { id: "Napa Valley", label: "Napa Valley" },
+  { id: "South Australia", label: "South Australia" },
+  { id: "Ribera del Duero", label: "Ribera del Duero" }
 ];
 
 const brands = [
-  { id: "chateau-margaux", label: "Château Margaux" },
-  { id: "romanee-conti", label: "Domaine de la Romanée-Conti" },
-  { id: "veuve-clicquot", label: "Veuve Clicquot" },
-  { id: "cloudy-bay", label: "Cloudy Bay" },
-  { id: "nino-franco", label: "Nino Franco" },
-  { id: "s-a-prum", label: "S.A. Prüm" },
-  { id: "opus-one", label: "Opus One" },
-  { id: "dal-forno-romano", label: "Dal Forno Romano" },
-  { id: "william-fevre", label: "William Fèvre" },
-  { id: "giacomo-conterno", label: "Giacomo Conterno" },
-  { id: "chateau-esclans", label: "Château d'Esclans" }
+  { id: "Château Margaux", label: "Château Margaux" },
+  { id: "Domaine de la Romanée-Conti", label: "Domaine de la Romanée-Conti" },
+  { id: "Veuve Clicquot", label: "Veuve Clicquot" },
+  { id: "Cloudy Bay", label: "Cloudy Bay" },
+  { id: "Nino Franco", label: "Nino Franco" },
+  { id: "S.A. Prüm", label: "S.A. Prüm" },
+  { id: "Opus One", label: "Opus One" },
+  { id: "Dal Forno Romano", label: "Dal Forno Romano" },
+  { id: "William Fèvre", label: "William Fèvre" },
+  { id: "Giacomo Conterno", label: "Giacomo Conterno" },
+  { id: "Château d'Esclans", label: "Château d'Esclans" },
+  { id: "Penfolds", label: "Penfolds" },
+  { id: "Vega Sicilia", label: "Vega Sicilia" }
 ];
 
 const colors = [
@@ -56,14 +116,18 @@ const colors = [
 function FilterSection() {
   const {
     priceRange,
+    selectedWineTypes,
+    selectedCountries,
+    selectedGrapeVarieties,
+    selectedRegions,
     selectedBrands,
-    selectedColors,
-    deliveryDate,
     selectedCategory, // Added selectedCategory
     setPriceRange,
+    toggleWineType,
+    toggleCountry,
+    toggleGrapeVariety,
+    toggleRegion,
     toggleBrand,
-    toggleColor,
-    setDeliveryDate,
     setSelectedCategory // Added setSelectedCategory
   } = useWineStore();
 
@@ -89,6 +153,69 @@ function FilterSection() {
 
       <Separator />
 
+      {/* Countries */}
+      <div>
+        <h3 className="mb-3 font-semibold">Quốc gia</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {countries.map((country) => (
+            <div key={country.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`country-${country.id}`}
+                checked={selectedCountries.includes(country.id)}
+                onCheckedChange={() => toggleCountry(country.id)}
+              />
+              <Label htmlFor={`country-${country.id}`} className="cursor-pointer text-sm font-normal">
+                {country.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Grape Varieties */}
+      <div>
+        <h3 className="mb-3 font-semibold">Giống nho</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {grapeVarieties.map((grape) => (
+            <div key={grape.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`grape-${grape.id}`}
+                checked={selectedGrapeVarieties.includes(grape.id)}
+                onCheckedChange={() => toggleGrapeVariety(grape.id)}
+              />
+              <Label htmlFor={`grape-${grape.id}`} className="cursor-pointer text-sm font-normal">
+                {grape.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Regions */}
+      <div>
+        <h3 className="mb-3 font-semibold">Vùng nổi tiếng</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {regions.map((region) => (
+            <div key={region.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`region-${region.id}`}
+                checked={selectedRegions.includes(region.id)}
+                onCheckedChange={() => toggleRegion(region.id)}
+              />
+              <Label htmlFor={`region-${region.id}`} className="cursor-pointer text-sm font-normal">
+                {region.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Brands */}
       <div>
         <h3 className="mb-3 font-semibold">Thương hiệu</h3>
@@ -110,61 +237,6 @@ function FilterSection() {
 
       <Separator />
 
-      {/* Colors */}
-      <div>
-        <h3 className="mb-3 font-semibold">Màu sắc</h3>
-        <div className="grid grid-cols-1 gap-2">
-          {colors.map((color) => (
-            <div key={color.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`color-${color.id}`}
-                checked={selectedColors.includes(color.id)}
-                onCheckedChange={() => toggleColor(color.id)}
-              />
-              <div className={`h-4 w-4 rounded ${color.color}`} />
-              <Label htmlFor={`color-${color.id}`} className="cursor-pointer text-sm font-normal">
-                {color.label}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Delivery Date */}
-      <div>
-        <h3 className="mb-3 font-semibold">Thời gian giao hàng</h3>
-        <RadioGroup value={deliveryDate} onValueChange={setDeliveryDate}>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="any" id="delivery-any" />
-            <Label htmlFor="delivery-any" className="text-sm font-normal">
-              Bất kỳ ngày nào
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="today" id="delivery-today" />
-            <Label htmlFor="delivery-today" className="text-sm font-normal">
-              Hôm nay
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="tomorrow" id="delivery-tomorrow" />
-            <Label htmlFor="delivery-tomorrow" className="text-sm font-normal">
-              Ngày mai
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="week" id="delivery-week" />
-            <Label htmlFor="delivery-week" className="text-sm font-normal">
-              Trong 7 ngày
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
-
-      <Separator />
-
       {/* Price Range */}
       <div>
         <h3 className="mb-3 font-semibold">Giá</h3>
@@ -172,7 +244,7 @@ function FilterSection() {
           <Slider
             value={priceRange}
             onValueChange={setPriceRange}
-            max={3000}
+            max={5000}
             step={10}
             className="w-full"
           />
@@ -200,7 +272,7 @@ function FilterSection() {
                 type="number"
                 value={priceRange[1]}
                 onChange={(e) =>
-                  setPriceRange([priceRange[0], Number.parseInt(e.target.value) || 3000])
+                  setPriceRange([priceRange[0], Number.parseInt(e.target.value) || 5000])
                 }
                 className="h-8"
               />
@@ -218,9 +290,11 @@ export default function WineList() {
     selectedCategory,
     searchQuery,
     viewMode,
+    sortBy,
     setSelectedCategory,
     setSearchQuery,
     setViewMode,
+    setSortBy,
     applyFilters
   } = useWineStore();
 
@@ -295,16 +369,31 @@ export default function WineList() {
                 </div>
               </div>
 
-              {/* View Toggle - Desktop only */}
-              <div className="hidden sm:block">
-                <ToggleGroup type="single" value={viewMode} onValueChange={setViewMode}>
-                  <ToggleGroupItem value="grid" aria-label="Grid view">
-                    <Grid3X3 className="h-4 w-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="list" aria-label="List view">
-                    <List className="h-4 w-4" />
-                  </ToggleGroupItem>
-                </ToggleGroup>
+              {/* Sort and View Toggle - Desktop only */}
+              <div className="flex items-center gap-2">
+                {/* Sort Options */}
+                <select 
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="border rounded px-2 py-1 text-sm"
+                >
+                  <option value="name-asc">A-Z</option>
+                  <option value="name-desc">Z-A</option>
+                  <option value="price-asc">Giá: Thấp đến cao</option>
+                  <option value="price-desc">Giá: Cao đến thấp</option>
+                </select>
+                
+                {/* View Toggle */}
+                <div className="hidden sm:block">
+                  <ToggleGroup type="single" value={viewMode} onValueChange={setViewMode}>
+                    <ToggleGroupItem value="grid" aria-label="Grid view">
+                      <Grid3X3 className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="list" aria-label="List view">
+                      <List className="h-4 w-4" />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
               </div>
             </div>
 
@@ -320,16 +409,30 @@ export default function WineList() {
                 />
               </div>
 
-              {/* View Toggle - Mobile */}
-              <div className="sm:hidden">
-                <ToggleGroup type="single" value={viewMode} onValueChange={setViewMode}>
-                  <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
-                    <Grid3X3 className="h-4 w-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="list" aria-label="List view" size="sm">
-                    <List className="h-4 w-4" />
-                  </ToggleGroupItem>
-                </ToggleGroup>
+              {/* Sort and View Toggle - Mobile */}
+              <div className="flex gap-2">
+                {/* Sort Options - Mobile */}
+                <select 
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="border rounded px-2 py-1 text-sm"
+                >
+                  <option value="name-asc">A-Z</option>
+                  <option value="name-desc">Z-A</option>
+                  <option value="price-asc">Giá: Thấp đến cao</option>
+                  <option value="price-desc">Giá: Cao đến thấp</option>
+                </select>
+                
+                <div className="sm:hidden">
+                  <ToggleGroup type="single" value={viewMode} onValueChange={setViewMode}>
+                    <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
+                      <Grid3X3 className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="list" aria-label="List view" size="sm">
+                      <List className="h-4 w-4" />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
               </div>
             </div>
           </div>
