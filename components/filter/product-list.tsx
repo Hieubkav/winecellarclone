@@ -399,40 +399,26 @@ export default function WineList() {
 
             {/* Bottom row - Search */}
             <div className="flex items-center gap-4">
-              <div className="relative flex-1 sm:flex-initial">
+              <div className="relative flex-1">
                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                 <Input
                   placeholder="Tìm kiếm rượu vang..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 sm:w-64"
+                  className="w-full pl-10"
                 />
               </div>
 
-              {/* Sort and View Toggle - Mobile */}
-              <div className="flex gap-2">
-                {/* Sort Options - Mobile */}
-                <select 
-                  value={sortBy} 
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="border rounded px-2 py-1 text-sm"
-                >
-                  <option value="name-asc">A-Z</option>
-                  <option value="name-desc">Z-A</option>
-                  <option value="price-asc">Giá: Thấp đến cao</option>
-                  <option value="price-desc">Giá: Cao đến thấp</option>
-                </select>
-                
-                <div className="sm:hidden">
-                  <ToggleGroup type="single" value={viewMode} onValueChange={setViewMode}>
-                    <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
-                      <Grid3X3 className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="list" aria-label="List view" size="sm">
-                      <List className="h-4 w-4" />
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
+              {/* View Toggle - Mobile */}
+              <div className="sm:hidden">
+                <ToggleGroup type="single" value={viewMode} onValueChange={setViewMode}>
+                  <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
+                    <Grid3X3 className="h-4 w-4" />
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="list" aria-label="List view" size="sm">
+                    <List className="h-4 w-4" />
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
             </div>
           </div>
