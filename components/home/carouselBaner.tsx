@@ -4,14 +4,15 @@ import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import Autoplay, { type AutoplayType } from "embla-carousel-autoplay"
 
+import { ArrowLeft, ArrowRight } from "lucide-react"
+
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel"
+import { Button } from "@/components/ui/button"
 import { heroSlides } from "@/data/winecellar"
 import { cn } from "@/lib/utils"
 
@@ -54,6 +55,18 @@ export default function HeroCarousel() {
     autoplay.current.reset()
   }
 
+  const handleManualNavigation = (direction: "prev" | "next") => {
+    if (!api) return
+
+    if (direction === "prev") {
+      api.scrollPrev()
+    } else {
+      api.scrollNext()
+    }
+
+    autoplay.current.reset()
+  }
+
   return (
     <section className="relative w-full overflow-hidden bg-white py-2 text-[#1C1C1C] sm:py-8 lg:py-4">
       <div className="relative mx-auto w-full max-w-8xl px-2 sm:px-2 lg:px-2">
@@ -87,18 +100,26 @@ export default function HeroCarousel() {
               ))}
             </CarouselContent>
             {hasMultipleSlides && (
-              <>
-                <CarouselPrevious
-                  size="icon"
-                  className="hidden -left-8 h-16 w-16 border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_30px_rgba(0,0,0,0.15)] transition-all hover:text-[#ECAA4D] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
-                  onClick={() => autoplay.current.reset()}
-                />
-                <CarouselNext
-                  size="icon"
-                  className="hidden -right-8 h-16 w-16 border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_30px_rgba(0,0,0,0.15)] transition-all hover:text-[#ECAA4D] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
-                  onClick={() => autoplay.current.reset()}
-                />
-              </>
+              <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-2 sm:px-4 lg:flex">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="pointer-events-auto inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition-all hover:border-[#ECAA4D] hover:bg-[#ECAA4D] hover:text-[#1C1C1C] focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 lg:h-14 lg:w-14"
+                  onClick={() => handleManualNavigation("prev")}
+                  aria-label="Xem slide truoc"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="pointer-events-auto inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition-all hover:border-[#ECAA4D] hover:bg-[#ECAA4D] hover:text-[#1C1C1C] focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 lg:h-14 lg:w-14"
+                  onClick={() => handleManualNavigation("next")}
+                  aria-label="Xem slide tiep theo"
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              </div>
             )}
           </Carousel>
 

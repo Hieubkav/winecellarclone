@@ -84,7 +84,7 @@ function DesktopSpeedDial() {
   return (
     <nav
       aria-label="Liên hệ nhanh Thiên Kim Wine"
-      className={`${montserrat.className} pointer-events-none fixed right-2 top-1/2 z-30 hidden w-14 flex-col lg:flex transform -translate-y-1/2`}
+      className={`${montserrat.className} pointer-events-none fixed right-4 bottom-4 z-30 hidden w-14 flex-col lg:flex`}
     >
       <ul className="pointer-events-auto flex flex-col gap-0">
         {DESKTOP_ORDER.map((id, index) => {
