@@ -64,7 +64,7 @@ const ACTION_LIBRARY: Record<string, SpeedDialAction> = {
 };
 
 const DESKTOP_ORDER = ["home", "hotline", "zalo", "messenger"] as const;
-const MOBILE_ORDER = ["hotline", "zalo", "messenger", "promo"] as const;
+const MOBILE_ORDER = ["home", "hotline", "zalo", "messenger"] as const;
 
 const BRAND_ICON_PATH: Partial<Record<SpeedDialAction["id"], string>> = {
   zalo: "/icons/zalo.png",
@@ -84,26 +84,39 @@ function DesktopSpeedDial() {
   return (
     <nav
       aria-label="Liên hệ nhanh Thiên Kim Wine"
-      className={`${montserrat.className} pointer-events-none fixed right-6 top-1/3 z-30 hidden w-10 flex-col lg:flex`}
+      className={`${montserrat.className} pointer-events-none fixed right-2 top-1/2 z-30 hidden w-14 flex-col lg:flex transform -translate-y-1/2`}
     >
       <ul className="pointer-events-auto flex flex-col gap-0">
-        {DESKTOP_ORDER.map((id) => {
+        {DESKTOP_ORDER.map((id, index) => {
           const action = ACTION_LIBRARY[id];
-          return <DesktopAction key={id} action={action} />;
+          const isFirstChild = index === 0;
+          const isLastChild = index === DESKTOP_ORDER.length - 1;
+          return <DesktopAction key={id} action={action} isFirstChild={isFirstChild} isLastChild={isLastChild} />;
         })}
       </ul>
     </nav>
   );
 }
 
-function DesktopAction({ action }: { action: SpeedDialAction }) {
+function DesktopAction({ action, isFirstChild, isLastChild }: { action: SpeedDialAction; isFirstChild?: boolean; isLastChild?: boolean }) {
+  let borderRadiusClass = "";
+  
+  if (isFirstChild) {
+    borderRadiusClass = "rounded-t-lg"; // Chỉ bo tròn trên
+  } else if (isLastChild) {
+    borderRadiusClass = "rounded-b-lg"; // Chỉ bo tròn dưới
+  } else {
+    borderRadiusClass = "rounded-none"; // Không bo tròn
+  }
+
   return (
     <LinkWrapper
       action={action}
-      className="flex flex-col items-center rounded-xl bg-[#9B2C3B] px-1 py-1 text-white transition hover:-translate-y-0.5 hover:bg-[#851e2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+      className={`flex flex-col items-center ${borderRadiusClass} bg-[#9B2C3B] px-2 py-2 text-white transition hover:-translate-y-0.5 hover:bg-[#851e2b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white shadow-lg relative`}
     >
-      <ActionSymbol action={action} size={20} className="text-white" />
-      <span className="sr-only">{action.label}</span>
+      <ActionSymbol action={action} size={22} className="text-white" />
+      <span className="text-[0.47rem] font-bold text-white mt-1">{action.label}</span>
+      <div className="absolute bottom-0 left-1.5 right-1.5 h-px bg-[#ECAA4D]/50"></div>
     </LinkWrapper>
   );
 }
@@ -114,20 +127,20 @@ function MobileBottomNav() {
   return (
     <nav
       aria-label="Thanh điều hướng nhanh trên di động"
-      className={`${montserrat.className} fixed inset-x-3 bottom-4 z-30 rounded-3xl border border-[#ECAA4D]/45 bg-white/95 shadow-[0_26px_60px_rgba(28,28,28,0.18)] backdrop-blur-md lg:hidden`}
+      className={`${montserrat.className} fixed inset-x-0 bottom-0 z-30 rounded-t-2xl bg-[#9B2C3B] shadow-[0_-4px_20px_rgba(0,0,0,0.1)] lg:hidden`}
       style={{ color: base }}
     >
-      <ul className="grid grid-cols-4 divide-x divide-[#1C1C1C]/8 text-center text-xs font-medium text-[#1C1C1C]">
+      <ul className="grid grid-cols-4 divide-x divide-[#ECAA4D]/50 text-center text-xs font-medium">
         {MOBILE_ORDER.map((id) => {
           const action = ACTION_LIBRARY[id];
           return (
             <li key={id} className="flex">
               <LinkWrapper
                 action={action}
-                className="flex w-full flex-col items-center gap-1 px-3 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-[#1C1C1C]/80 transition hover:text-[#9B2C3B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                className="flex w-full flex-col items-center gap-1 px-3 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-white transition hover:text-[#ECAA4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#9B2C3B]"
               >
-                <ActionSymbol action={action} size={22} className="text-[#9B2C3B]" />
-                <span className="text-[0.65rem] font-bold text-[#1C1C1C]">{action.label}</span>
+                <ActionSymbol action={action} size={22} className="text-white" />
+                <span className="text-[0.65rem] font-bold text-white">{action.label}</span>
               </LinkWrapper>
             </li>
           );

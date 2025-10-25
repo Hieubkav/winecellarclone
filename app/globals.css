@@ -131,3 +131,15 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Ẩn thanh cuộn dọc trên desktop nhưng vẫn giữ chức năng cuộn */
+@media (min-width: 1024px) {
+  html {
+    -ms-overflow-style: none;  /* Ẩn thanh cuộn trên IE và Edge */
+    scrollbar-width: none;     /* Ẩn thanh cuộn trên Firefox */
+  }
+  
+  html::-webkit-scrollbar {
+    display: none; /* Ẩn thanh cuộn trên Webkit (Chrome, Safari, Edge) */
+  }
+}
