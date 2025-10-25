@@ -1,10 +1,11 @@
 import HeroCarousel from "@/components/home/carouselBaner";
-import DualBanner from "@/components/home/DualBanner"
+import DualBanner from "@/components/home/DualBanner";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import FavouriteProducts from "@/components/home/FavouriteProducts";
 import BrandShowcase from "@/components/home/BrandShowcase";
 import CollectionShowcase from "@/components/home/CollectionShowcase";
-import { wineShowcaseProducts, spiritShowcaseProducts } from "@/data/homeCollections";
+import EditorialSpotlight from "@/components/home/EditorialSpotlight";
+import { wineShowcaseProducts, spiritShowcaseProducts, homeEditorials } from "@/data/homeCollections";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <CategoryGrid />
       <FavouriteProducts />
       <BrandShowcase />
+      
       <CollectionShowcase
         title="Bộ Sưu Tập Rượu Vang Nổi Bật"
         subtitle="Rượu Vang"
@@ -31,6 +33,12 @@ export default function Home() {
         ctaHref="/spirits"
         products={spiritShowcaseProducts}
         tone="spirit"
+      />
+      <EditorialSpotlight
+        label="Chuyện rượu"
+        title="Góc bài viết tối giản"
+        description="Tập trung vào trải nghiệm sang trọng nhưng không làm khó người đọc, mỗi bài viết là một ghi chú tinh tế từ Thiên Kim Wine."
+        articles={homeEditorials}
       />
     </main>
   );

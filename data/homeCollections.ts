@@ -9,6 +9,18 @@ export type HomeShowcaseProduct = {
   badge?: string;
 };
 
+export type HomeEditorial = {
+  id: string;
+  title: string;
+  summary: string;
+  href: string;
+  image: string;
+  readingTime: string;
+  highlight: string;
+  category: string;
+  publishDate: string;
+};
+
 export const spiritShowcaseProducts: HomeShowcaseProduct[] = [
   {
     id: "spirit-macallan-18",
@@ -84,6 +96,45 @@ export const spiritShowcaseProducts: HomeShowcaseProduct[] = [
     country: "France",
     style: "Cognac",
     price: "4.350.000 ₫",
+  },
+];
+
+export const homeEditorials: HomeEditorial[] = [
+  {
+    id: "editorial-terroir-burgundy",
+    title: "Bản giao hưởng terroir từ Burgundy",
+    summary:
+      "Tại sao những độ vang từ Burgundy luôn giữ được biến độ trên thị trường? Cùng theo dõi hành trình giữ gìn giá trị terroir qua những vườn nho gia truyền và quy trình ủ rượu tinh tế.",
+    href: "/stories/ban-giao-huong-terroir-burgundy",
+    image: "https://winecellar.vn/wp-content/uploads/2025/10/kham-pha-5-cap-ruou-vang-mon-viet-hoan-hao-cho-mua-thu-dong-tu-chuyen-gia-winecellar-vn-711x400.jpg",
+    readingTime: "5 phút đọc",
+    highlight: "Heritage Mapping",
+    category: "Terroir",
+    publishDate: "12 Tháng 10, 2025",
+  },
+  {
+    id: "editorial-cellar-rituals",
+    title: "Nghi thức phối hợp rượu cho bữa tiệc tối giản",
+    summary:
+      "Chỉ cần ba bước tối giản, bạn có thể tạo điểm nhấn thanh lịch cho bàn tiếp khách tối giản mà vẫn đậm chất tinh hoa sommelier của Thiên Kim Wine.",
+    href: "/stories/nghi-thuc-phoi-hop-ruou-toi-gian",
+    image: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?q=80&w=2070",
+    readingTime: "3 phút đọc",
+    highlight: "Pairing Ritual",
+    category: "Sommelier Tips",
+    publishDate: "05 Tháng 10, 2025",
+  },
+  {
+    id: "editorial-iconic-spirits",
+    title: "Iconic Spirits: phỏng vấn các cellar master",
+    summary:
+      "Lắng nghe các cellar master Việt Nam chia sẻ cách tạo ra trải nghiệm hương vị có chiều sâu cảm xúc cho khách hàng cao cấp và cách họ chọn lọc rượu mạnh kỳ công.",
+    href: "/stories/iconic-spirits-phong-van",
+    image: "https://images.unsplash.com/photo-1458891216473-4f26bb4eb40e?q=80&w=2070",
+    readingTime: "6 phút đọc",
+    highlight: "Master Q&A",
+    category: "Interview",
+    publishDate: "28 Tháng 09, 2025",
   },
 ];
 
