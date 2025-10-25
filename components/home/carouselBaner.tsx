@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
-import Autoplay from "embla-carousel-autoplay"
+import Autoplay, { type AutoplayType } from "embla-carousel-autoplay"
 
 import {
   Carousel,
@@ -24,7 +24,7 @@ export default function HeroCarousel() {
   const hasMultipleSlides = heroSlides.length > 1
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
-  const autoplay = useRef<ReturnType<typeof Autoplay>>(
+  const autoplay = useRef<AutoplayType>(
     Autoplay({
       delay: AUTOPLAY_DELAY,
       stopOnInteraction: false,
@@ -89,12 +89,12 @@ export default function HeroCarousel() {
             {hasMultipleSlides && (
               <>
                 <CarouselPrevious
-                  size="icon-lg"
+                  size="icon"
                   className="hidden -left-8 h-16 w-16 border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_30px_rgba(0,0,0,0.15)] transition-all hover:text-[#ECAA4D] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
                   onClick={() => autoplay.current.reset()}
                 />
                 <CarouselNext
-                  size="icon-lg"
+                  size="icon"
                   className="hidden -right-8 h-16 w-16 border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_30px_rgba(0,0,0,0.15)] transition-all hover:text-[#ECAA4D] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
                   onClick={() => autoplay.current.reset()}
                 />

@@ -5,10 +5,10 @@ import Link from "next/link"
 import { Montserrat } from "next/font/google"
 import { ArrowUpRight } from "lucide-react"
 
-import { cn } from "@/lib/utils"
 import type { HomeShowcaseProduct } from "@/data/homeCollections"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -18,6 +18,8 @@ const montserrat = Montserrat({
 type CollectionShowcaseProps = {
   title: string
   subtitle?: string
+  description?: string
+  ctaLabel?: string
   ctaHref: string
   products: HomeShowcaseProduct[]
   tone?: "wine" | "spirit"
@@ -26,34 +28,42 @@ type CollectionShowcaseProps = {
 export default function CollectionShowcase({
   title,
   subtitle,
+  description,
+  ctaLabel,
   ctaHref,
   products,
   tone = "wine",
 }: CollectionShowcaseProps) {
   const accent = tone === "spirit" ? "#ECAA4D" : "#9B2C3B"
   const contextLabel = subtitle ?? title
+  const resolvedCtaLabel = ctaLabel ?? "Xem thêm"
 
   return (
-    <section className="bg-white py-4">
+    <section className="bg-white py-4" aria-label={contextLabel}>
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
         <Card className="border-[#f1f1f1] bg-white/95">
-          <CardHeader className="flex flex-col gap-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle
-              className={cn(
-                montserrat.className,
-                "text-xl font-bold uppercase tracking-[0.18em] text-[#1C1C1C] sm:text-2xl",
+          <CardHeader className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2">
+              <CardTitle
+                className={cn(
+                  montserrat.className,
+                  "text-xl font-bold uppercase tracking-[0.18em] text-[#1C1C1C] sm:text-2xl",
+                )}
+              >
+                {title}
+              </CardTitle>
+              {description && (
+                <p className="max-w-2xl text-sm text-[#1C1C1C]/70">{description}</p>
               )}
-            >
-              {title}
-            </CardTitle>
+            </div>
             <Button
               asChild
-              aria-label={`Xem thêm ${contextLabel}`}
+              aria-label={`${resolvedCtaLabel} ${contextLabel}`}
               className="group h-10 rounded-full border border-[#ECAA4D] bg-white px-5 text-xs font-semibold uppercase tracking-[0.28em] text-[#1C1C1C] transition-colors hover:bg-[#ECAA4D] hover:text-[#1C1C1C]"
             >
               <Link href={ctaHref}>
                 <span className="flex items-center gap-1.5">
-                  Xem thêm
+                  {resolvedCtaLabel}
                   <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </span>
               </Link>
