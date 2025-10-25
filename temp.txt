@@ -60,14 +60,8 @@ export default function HeroCarousel() {
       style={{ backgroundColor: "#9B2C3B" }}
     >
       <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#681824] via-[#9B2C3B] to-[#1C1C1C] opacity-80 blur-3xl lg:block" />
-      <div
-        className="relative mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10"
-        style={{ backgroundColor: "#9B2C3B" }}
-      >
-        <div
-          className="relative overflow-hidden rounded-[32px] border border-white/15 bg-white text-[#1C1C1C] shadow-[0_35px_120px_rgba(10,10,10,0.35)]"
-          style={{ backgroundColor: "#FFFFFF" }}
-        >
+      <div className="relative mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10">
+        <div className="relative overflow-hidden rounded-[32px] border border-white/15 bg-white text-[#1C1C1C] shadow-[0_35px_120px_rgba(10,10,10,0.35)]">
           <Carousel
             className="group mx-auto w-full"
             opts={{ align: "center", loop: hasMultipleSlides }}
@@ -134,3 +128,4 @@ export default function HeroCarousel() {
     </section>
   )
 }
+
