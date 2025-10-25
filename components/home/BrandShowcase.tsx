@@ -24,7 +24,7 @@ export default function BrandShowcase() {
       <div className="mx-auto flex max-w-6xl flex-col gap-1">
         <header className="mb-1 text-center">
           <h2 className="text-2xl font-bold uppercase tracking-wide text-[#1C1C1C] md:text-3xl">
-            Thuong hieu noi bat
+            Thương hiệu hợp tác
           </h2>
         </header>
         <Carousel
