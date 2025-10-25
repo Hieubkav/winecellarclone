@@ -17,26 +17,26 @@ export default function Home() {
       <BrandShowcase />
       
       <CollectionShowcase
-        title="Bộ Sưu Tập Rượu Vang Nổi Bật"
+        title="Rượu Vang"
         subtitle="Rượu Vang"
         description="Khám phá những dòng rượu vang cao cấp được tuyển chọn cẩn thận từ khắp nơi trên thế giới"
-        ctaLabel="Xem Thêm Rượu Vang"
+        ctaLabel="Xem Thêm"
         ctaHref="/wines"
         products={wineShowcaseProducts}
         tone="wine"
       />
       <CollectionShowcase
-        title="Bộ Sưu Tập Rượu Mạnh Đẳng Cấp"
+        title="Rượu Mạnh"
         subtitle="Rượu Mạnh"
         description="Trải nghiệm những dòng rượu mạnh hảo hạng từ các thương hiệu danh tiếng thế giới"
-        ctaLabel="Xem Thêm Rượu Mạnh"
+        ctaLabel="Xem Thêm"
         ctaHref="/spirits"
         products={spiritShowcaseProducts}
         tone="spirit"
       />
       <EditorialSpotlight
         label="Chuyện rượu"
-        title="Góc bài viết tối giản"
+        title="Bài viết"
         description="Tập trung vào trải nghiệm sang trọng nhưng không làm khó người đọc, mỗi bài viết là một ghi chú tinh tế từ Thiên Kim Wine."
         articles={homeEditorials}
       />

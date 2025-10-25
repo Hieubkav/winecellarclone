@@ -42,8 +42,8 @@ export default function CollectionShowcase({
     <section className="bg-white py-4" aria-label={contextLabel}>
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
         <Card className="border-[#f1f1f1] bg-white/95">
-          <CardHeader className="flex flex-col gap-4 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-2">
+          <CardHeader className="flex flex-row items-end justify-between pb-6">
+            <div className="space-y-2 flex-1 min-w-0">
               <CardTitle
                 className={cn(
                   montserrat.className,
@@ -53,13 +53,13 @@ export default function CollectionShowcase({
                 {title}
               </CardTitle>
               {description && (
-                <p className="max-w-2xl text-sm text-[#1C1C1C]/70">{description}</p>
+                <p className="max-w-2xl text-sm text-[#1C1C1C]/70 hidden sm:block">{description}</p>
               )}
             </div>
             <Button
               asChild
-              aria-label={`${resolvedCtaLabel} ${contextLabel}`}
-              className="group h-10 rounded-full border border-[#ECAA4D] bg-white px-5 text-xs font-semibold uppercase tracking-[0.28em] text-[#1C1C1C] transition-colors hover:bg-[#ECAA4D] hover:text-[#1C1C1C]"
+              aria-label={resolvedCtaLabel}
+              className="group h-10 rounded-full border border-[#ECAA4D] bg-white px-5 text-xs font-semibold uppercase tracking-[0.28em] text-[#1C1C1C] transition-colors hover:bg-[#ECAA4D] hover:text-[#1C1C1C] ml-4"
             >
               <Link href={ctaHref}>
                 <span className="flex items-center gap-1.5">
