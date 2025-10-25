@@ -151,10 +151,9 @@ function Carousel({
         onKeyDownCapture={handleKeyDown}
         className={cn(
           montserrat.className,
-          "relative isolate text-white",
+          "relative isolate text-[#1C1C1C]",
           className,
         )}
-        style={{ backgroundColor: BRAND_COLORS.base }}
         role="region"
         aria-roledescription="carousel"
         data-slot="carousel"
@@ -177,7 +176,7 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
     >
       <div
         className={cn(
-          "flex gap-6 pb-8",
+          "flex gap-6 pb-0",
           orientation === "horizontal" ? "-ml-6" : "-mt-6 flex-col",
           className,
         )}
@@ -196,7 +195,7 @@ function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
       aria-roledescription="slide"
       data-slot="carousel-item"
       className={cn(
-        "min-w-0 shrink-0 grow-0 basis-full rounded-xl border border-white/10 bg-black/20 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.35)] backdrop-blur-sm transition hover:border-[#ECAA4D]/50",
+        "min-w-0 shrink-0 grow-0 basis-full rounded-xl border border-[#1C1C1C]/10 bg-white p-4 text-[#1C1C1C] shadow-[0_18px_40px_rgba(0,0,0,0.12)] backdrop-blur-sm transition hover:border-[#ECAA4D]/60",
         orientation === "horizontal" ? "pl-6" : "pt-6",
         className,
       )}
@@ -229,7 +228,7 @@ function CarouselPrevious({
       variant="ghost"
       size="icon"
       className={cn(
-        "absolute z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-md transition hover:border-[#ECAA4D] hover:text-[#ECAA4D] hover:bg-black/55 disabled:pointer-events-none disabled:opacity-30",
+        "absolute z-10 flex h-11 w-11 items-center justify-center rounded-xl border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_28px_rgba(0,0,0,0.15)] transition hover:border-[#ECAA4D] hover:text-[#ECAA4D] hover:bg-white disabled:pointer-events-none disabled:opacity-30",
         orientation === "horizontal"
           ? "left-2 top-1/2 -translate-y-1/2 md:left-4"
           : "left-1/2 top-4 -translate-x-1/2 rotate-90",
@@ -270,7 +269,7 @@ function CarouselNext({
       variant="ghost"
       size="icon"
       className={cn(
-        "absolute z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-[0_10px_28px_rgba(0,0,0,0.45)] backdrop-blur-md transition hover:border-[#ECAA4D] hover:text-[#ECAA4D] hover:bg-black/55 disabled:pointer-events-none disabled:opacity-30",
+        "absolute z-10 flex h-11 w-11 items-center justify-center rounded-xl border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_28px_rgba(0,0,0,0.15)] transition hover:border-[#ECAA4D] hover:text-[#ECAA4D] hover:bg-white disabled:pointer-events-none disabled:opacity-30",
         orientation === "horizontal"
           ? "right-2 top-1/2 -translate-y-1/2 md:right-4"
           : "bottom-4 left-1/2 -translate-x-1/2 rotate-90",

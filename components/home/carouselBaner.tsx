@@ -55,30 +55,23 @@ export default function HeroCarousel() {
   }
 
   return (
-    <section
-      className="relative w-full overflow-hidden py-8 text-white sm:py-10 lg:py-12"
-      style={{ backgroundColor: "#9B2C3B" }}
-    >
-      <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#681824] via-[#9B2C3B] to-[#1C1C1C] opacity-80 blur-3xl lg:block" />
-      <div
-        className="relative mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10"
-        style={{ backgroundColor: "#9B2C3B" }}
-      >
-        <div
-          className="relative overflow-hidden rounded-[32px] border border-white/15 bg-white text-[#1C1C1C] shadow-[0_35px_120px_rgba(10,10,10,0.35)]"
-          style={{ backgroundColor: "#FFFFFF" }}
-        >
+    <section className="relative w-full overflow-hidden bg-white py-2 text-[#1C1C1C] sm:py-8 lg:py-4">
+      <div className="relative mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10">
+        <div className="relative overflow-hidden rounded ">
           <Carousel
-            className="group mx-auto w-full"
+            className="group mx-auto w-full bg-transparent text-[#1C1C1C]"
             opts={{ align: "center", loop: hasMultipleSlides }}
             plugins={hasMultipleSlides ? [autoplay.current] : []}
             setApi={setApi}
           >
             <CarouselContent className="ml-0">
               {heroSlides.map((slide, index) => (
-                <CarouselItem key={slide.image} className="pl-0">
+                <CarouselItem
+                  key={slide.image}
+                  className="border-none bg-transparent p-0 pl-0 shadow-none"
+                >
                   <div className="relative block">
-                    <div className="relative block aspect-[1920/610] w-full">
+                    <div className="relative block aspect-[1920/610] w-full overflow-hidden rounded-xl bg-[#9B2C3B]">
                       <Image
                         src={slide.image}
                         alt={slide.alt}
@@ -97,38 +90,38 @@ export default function HeroCarousel() {
               <>
                 <CarouselPrevious
                   size="icon-lg"
-                  className="hidden -left-8 h-16 w-16 border border-[#ECAA4D]/35 bg-[#1C1C1C]/85 text-[#ECAA4D] shadow-lg transition-all hover:bg-[#1C1C1C] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+                  className="hidden -left-8 h-16 w-16 border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_30px_rgba(0,0,0,0.15)] transition-all hover:text-[#ECAA4D] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
                   onClick={() => autoplay.current.reset()}
                 />
                 <CarouselNext
                   size="icon-lg"
-                  className="hidden -right-8 h-16 w-16 border border-[#ECAA4D]/35 bg-[#1C1C1C]/85 text-[#ECAA4D] shadow-lg transition-all hover:bg-[#1C1C1C] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
+                  className="hidden -right-8 h-16 w-16 border border-[#1C1C1C]/15 bg-white text-[#1C1C1C] shadow-[0_12px_30px_rgba(0,0,0,0.15)] transition-all hover:text-[#ECAA4D] focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-0 focus-visible:ring-offset-transparent group-hover:flex lg:flex"
                   onClick={() => autoplay.current.reset()}
                 />
               </>
             )}
           </Carousel>
 
-        {hasMultipleSlides && (
-          <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">
-            {heroSlides.map((slide, index) => (
-              <button
-                key={slide.image}
-                type="button"
-                onClick={() => handleDotClick(index)}
-                className={cn(
-                  "h-3 w-3 rounded-full border border-white/60 bg-white/25 transition-all hover:bg-white/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ECAA4D]",
-                  current === index &&
-                    "h-3.5 w-8 rounded-full border-[#ECAA4D] bg-[#ECAA4D] shadow-[0_0_12px_rgba(236,170,77,0.4)]"
-                )}
-                aria-label={`Chuyển tới slide ${index + 1}`}
-                aria-current={current === index}
-              >
-                <span className="sr-only">{`Slide ${index + 1}`}</span>
-              </button>
-            ))}
-          </div>
-        )}
+          {hasMultipleSlides && (
+            <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">
+              {heroSlides.map((slide, index) => (
+                <button
+                  key={slide.image}
+                  type="button"
+                  onClick={() => handleDotClick(index)}
+                  className={cn(
+                    "h-3 w-3 rounded-full border border-[#1C1C1C]/20 bg-[#1C1C1C]/10 transition-all hover:bg-[#1C1C1C]/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ECAA4D]",
+                    current === index &&
+                      "h-3.5 w-8 rounded-full border-[#ECAA4D] bg-[#ECAA4D] shadow-[0_0_12px_rgba(236,170,77,0.4)]"
+                  )}
+                  aria-label={`Chuyen toi slide ${index + 1}`}
+                  aria-current={current === index}
+                >
+                  <span className="sr-only">{`Slide ${index + 1}`}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

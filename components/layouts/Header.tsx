@@ -44,17 +44,17 @@ export default function Header() {
 function MainBar() {
   return (
     <div className="border-b border-[#e8e8e8] bg-white">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-2 md:gap-4">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-1 md:gap-4">
         {/* Logo */}
         <div className="col-span-6 flex items-center md:col-span-3 md:justify-start">
           <Link href="/" className="flex items-center gap-3" aria-label="Thiên Kim Wine - Trang chủ">
             <Image
               src="/media/logo.webp"
               alt="Thiên Kim Wine logo"
-              width={56}
-              height={56}
+              width={72}
+              height={72}
               priority
-              className="h-12 w-12 object-contain"
+              className="h-16 w-16 object-contain"
             />
             <span className="hidden text-xs font-bold uppercase tracking-[0.32em] text-[#ECAA4D] md:inline md:text-sm">
               Thiên Kim Wine
@@ -68,7 +68,7 @@ function MainBar() {
         </div>
 
         {/* Search */}
-        <div className="col-span-12 mt-2 flex justify-center md:col-span-6 md:mt-0">
+        <div className="col-span-12 mt-1 flex justify-center md:col-span-6 md:mt-0">
           <Search />
         </div>
 
@@ -110,7 +110,7 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         type="search"
         name="s"
         placeholder="Tìm kiếm rượu vang, rượu mạnh..."
-        className="w-full rounded-full border border-[#d9d9d9] bg-white py-1.5 pl-9 pr-9 text-sm text-[#1C1C1C] placeholder-[#1C1C1C]/45 transition focus:border-[#9B2C3B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ECAA4D]/30"
+        className="w-full rounded-full border border-[#d9d9d9] bg-white py-1.5 pl-9 pr-16 text-sm text-[#1C1C1C] placeholder-[#1C1C1C]/45 transition focus:border-[#9B2C3B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ECAA4D]/30"
         autoComplete="off"
         onFocus={onFocus}
         onBlur={onBlur}
@@ -120,10 +120,10 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
       </span>
       <button
         type="submit"
-        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-[#9B2C3B] transition hover:text-[#1C1C1C]"
+        className="absolute inset-y-0 right-0 flex items-center justify-center rounded-r-full bg-[#ECAA4D] px-4 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-[#1C1C1C] transition hover:brightness-110"
         aria-label="Tìm kiếm"
       >
-        <SearchIcon size={17} />
+        Tìm
       </button>
     </form>
   )
@@ -142,9 +142,9 @@ function ContactButton() {
 
 function NavBar() {
   return (
-    <div className="sticky top-0 z-10 border-b border-[#751826] bg-[#9B2C3B] shadow-[0_12px_32px_rgba(155,44,59,0.45)]">
+    <div className="sticky top-0 z-10 border-b border-[#751826] bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-white/80">
+        <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
           {menuItems.map((item) => {
             const isMega = item.label === "Rượu vang" || item.label === "Rượu mạnh"
             return (
@@ -154,10 +154,12 @@ function NavBar() {
               >
                 <Link
                   href={item.href}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1 text-white/80 transition-all hover:bg-white/15 hover:text-white"
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[#1C1C1C]/80 transition-all hover:bg-[#1C1C1C]/10 hover:text-[#1C1C1C]"
                 >
                   <span>{item.label}</span>
-                  {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
+                  {item.children && (
+                    <ChevronDown size={14} className="text-[#1C1C1C]/70 transition-transform group-hover:rotate-180" />
+                  )}
                 </Link>
                 {item.children && (
                   <MegaMenu menu={item.children} isFull={isMega} />
@@ -166,7 +168,7 @@ function NavBar() {
             )
           })}
         </nav>
-        <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-white/55 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[#1C1C1C]/25 to-transparent" />
       </div>
       <MobileNav />
     </div>
@@ -273,13 +275,13 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       {/* Panel */}
       <div
-        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#751826] bg-[#9B2C3B] text-white shadow-[0_24px_64px_rgba(28,28,28,0.35)]"
+        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#751826] bg-[#ECAA4D] text-[#1C1C1C] shadow-[0_24px_64px_rgba(28,28,28,0.25)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/15 px-4 py-3">
-          <span className="text-base font-bold uppercase tracking-[0.16em]" style={{ color: BRAND_ACCENT }}>
+        <div className="flex items-center justify-between border-b border-[#1C1C1C]/10 px-4 py-3">
+          <span className="text-base font-bold uppercase tracking-[0.16em]" style={{ color: BRAND_BASE }}>
             {showBackButton ? (
-              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-[#ECAA4D]">
+              <button onClick={handleBack} className="flex items-center gap-2 text-[#1C1C1C] transition hover:text-[#9B2C3B]">
                 <ChevronDown size={18} className="rotate-90" />
                 <span>{headerTitle}</span>
               </button>
@@ -288,7 +290,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
             )}
           </span>
           <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white transition hover:bg-white/15"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-[#1C1C1C] transition hover:bg-[#1C1C1C]/10"
             aria-label="Đóng menu"
             onClick={onClose}
           >
@@ -297,7 +299,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Navigation */}
-        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm text-white/80">
+        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm text-[#1C1C1C]/85">
           {!activeMenu && (
             <>
               {menuItems.map((item) =>
@@ -305,16 +307,16 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   <button
                     key={item.label}
                     onClick={() => handleSelectMenu(item)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/10"
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-[#1C1C1C] transition hover:bg-[#1C1C1C]/10"
                   >
                     <span className="text-sm">{item.label}</span>
-                    <ChevronDown size={18} className="-rotate-90 text-white opacity-70" />
+                    <ChevronDown size={18} className="-rotate-90 text-[#1C1C1C]/70" />
                   </button>
                 ) : (
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/10"
+                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-[#1C1C1C] transition hover:bg-[#1C1C1C]/10"
                     onClick={onClose}
                   >
                     {item.label}
@@ -330,10 +332,10 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                 <button
                   key={section.label}
                   onClick={() => handleSelectSection(section)}
-                  className="flex w-full items-center justify-between rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/20"
+                  className="flex w-full items-center justify-between rounded-lg bg-white/50 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-[#1C1C1C] transition hover:bg-white"
                 >
                   <span>{section.label}</span>
-                  <ChevronDown size={18} className="-rotate-90 text-white opacity-80" />
+                  <ChevronDown size={18} className="-rotate-90 text-[#1C1C1C]/80" />
                 </button>
               ))}
             </div>
@@ -347,13 +349,13 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   href={child.href}
                   className={`block rounded px-3 py-1.5 text-[0.85rem] transition ${
                     child.isHot
-                      ? "bg-white/15 font-semibold text-white"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                      ? "bg-[#1C1C1C]/10 font-semibold text-[#1C1C1C]"
+                      : "text-[#1C1C1C]/80 hover:bg-[#1C1C1C]/10 hover:text-[#1C1C1C]"
                   }`}
                   onClick={onClose}
                 >
                   {child.isHot && (
-                    <span className="mr-1 inline-block rounded bg-[#ECAA4D] px-1 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#1C1C1C]">
+                    <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
                       HOT
                     </span>
                   )}
