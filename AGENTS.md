@@ -13,3 +13,20 @@ Website Thiên Kim Wine giữ nền trắng chủ đạo nhưng mọi điểm nh
 Font chữ: Montserrat Bold dùng cho tên thương hiệu, tiêu đề; Montserrat Regular dùng cho nội dung phụ.
 
 Ưu tiên làm UI bằng shadcn ui và dùng icon là lucide react
+
+## Chuẩn typography Montserrat
+
+- **Chữ tiêu đề (Heading/Hero)**  
+  - Mobile ≤768px: Montserrat Bold 32px, line-height 120%, chữ hoa nhẹ với letter-spacing -0.5px.  
+  - Desktop >768px: Montserrat Bold 48px, line-height 120%, letter-spacing -1px.  
+  - Dùng cho H1, hero banner, tên thương hiệu lớn.
+
+- **Chữ thường mô tả (Body)**  
+  - Mobile: Montserrat Medium 16px, line-height 165%.  
+  - Desktop: Montserrat Medium 18px, line-height 170%.  
+  - Dùng cho copy chính, mô tả sản phẩm, nội dung bài viết.
+
+- **Chữ phụ / meta (Subtext, badge, label)**  
+  - Mobile: Montserrat Light 13px, line-height 150%, chữ hoa với letter-spacing 2.8px.  
+  - Desktop: Montserrat Light 14px, line-height 150%, letter-spacing 3.2px.  
+  - Dùng cho nhãn phụ, badge, thông tin bổ sung, caption.
