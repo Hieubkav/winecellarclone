@@ -137,10 +137,10 @@ function MobileBottomNav() {
             <li key={id} className="flex">
               <LinkWrapper
                 action={action}
-                className="flex w-full flex-col items-center gap-1 px-3 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-white transition hover:text-[#ECAA4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#9B2C3B]"
+                className="flex w-full flex-col items-center gap-px px-2 py-2 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-white transition hover:text-[#ECAA4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#9B2C3B]"
               >
                 <ActionSymbol action={action} size={22} className="text-white" />
-                <span className="text-[0.65rem] font-bold text-white">{action.label}</span>
+                <span className="text-[0.52rem] font-bold text-white">{action.label}</span>
               </LinkWrapper>
             </li>
           );
