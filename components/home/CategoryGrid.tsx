@@ -15,16 +15,16 @@ export default function CategoryGrid() {
   const { highlight } = BRAND_COLORS
 
   return (
-    <section className="bg-[#1C1C1C]">
+    <section className="bg-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-2.5 px-4 py-5 sm:px-5 lg:px-6">
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:grid-cols-6">
           {spotlightCategories.map((category) => (
             <Link
               key={category.name}
               href={category.href}
-              className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1C1C1C]"
+              className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
-              <Card className="overflow-hidden border-white/5 bg-[#151515]/85 transition duration-200 hover:-translate-y-0.5 hover:border-[#ECAA4D]/45">
+              <Card className="overflow-hidden border-[#f3f3f3] bg-white transition duration-200 hover:-translate-y-0.5 hover:border-[#ECAA4D]/45 hover:shadow-[0_20px_40px_rgba(28,28,28,0.08)]">
                 <CardHeader className="relative p-0">
                   <div className="relative aspect-[5/3] overflow-hidden">
                     <Image

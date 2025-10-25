@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -35,7 +34,7 @@ export default function Header() {
   }, [])
 
   return (
-    <header className={`${montserrat.className} w-full text-sm text-white`}>
+    <header className={`${montserrat.className} w-full text-sm text-[#1C1C1C]`} style={{ color: BRAND_BASE }}>
       <MainBar />
       <NavBar />
     </header>
@@ -44,7 +43,7 @@ export default function Header() {
 
 function MainBar() {
   return (
-    <div className="border-b border-white/10" style={{ backgroundColor: BRAND_BASE }}>
+    <div className="border-b border-[#e8e8e8] bg-white">
       <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-2 md:gap-4">
         {/* Logo */}
         <div className="col-span-6 flex items-center md:col-span-3 md:justify-start">
@@ -89,11 +88,11 @@ function Search() {
     <div className="relative z-20 mx-auto w-full max-w-[520px]">
       <SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
       {focus && (
-        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-[#9B2C3B]/45 bg-[#1C1C1C]/95 p-3 text-xs text-white/85 shadow-lg backdrop-blur">
+        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-[#ECAA4D]/35 bg-white p-3 text-xs text-[#1C1C1C]/85 shadow-[0_18px_40px_rgba(28,28,28,0.12)]">
           <span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#9B2C3B]">Trending</span>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             {trendingKeywords.map((item) => (
-              <Link key={item.label} href={item.href} className="text-xs text-white/70 transition hover:text-[#9B2C3B]">
+              <Link key={item.label} href={item.href} className="text-xs text-[#1C1C1C]/70 transition hover:text-[#9B2C3B]">
                 {item.label}
               </Link>
             ))}
@@ -111,7 +110,7 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
         type="search"
         name="s"
         placeholder="Tìm kiếm rượu vang, rượu mạnh..."
-        className="w-full rounded-full border border-white/10 bg-white/5 py-1.5 pl-9 pr-9 text-sm text-white placeholder-white/45 transition focus:border-[#9B2C3B] focus:bg-white/10 focus:outline-none"
+        className="w-full rounded-full border border-[#d9d9d9] bg-white py-1.5 pl-9 pr-9 text-sm text-[#1C1C1C] placeholder-[#1C1C1C]/45 transition focus:border-[#9B2C3B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ECAA4D]/30"
         autoComplete="off"
         onFocus={onFocus}
         onBlur={onBlur}
@@ -121,7 +120,7 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
       </span>
       <button
         type="submit"
-        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-[#9B2C3B] transition hover:text-white"
+        className="absolute inset-y-0 right-0 grid w-9 place-items-center rounded-r-full text-[#9B2C3B] transition hover:text-[#1C1C1C]"
         aria-label="Tìm kiếm"
       >
         <SearchIcon size={17} />
@@ -143,9 +142,9 @@ function ContactButton() {
 
 function NavBar() {
   return (
-    <div className="sticky top-0 z-10 border-b border-[#9B2C3B]/40 shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md" style={{ backgroundColor: BRAND_HIGHLIGHT }}>
+    <div className="sticky top-0 z-10 border-b border-[#ECAA4D]/40 bg-white shadow-[0_12px_30px_rgba(236,170,77,0.15)] backdrop-blur-md">
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-white/70">
+        <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/70">
           {menuItems.map((item) => {
             const isMega = item.label === "Rượu vang" || item.label === "Rượu mạnh"
             return (
@@ -155,7 +154,7 @@ function NavBar() {
               >
                 <Link
                   href={item.href}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1 transition-all hover:bg-white/10 hover:text-[#ECAA4D]"
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1 transition-all hover:bg-[#ECAA4D]/15 hover:text-[#9B2C3B]"
                 >
                   <span>{item.label}</span>
                   {item.children && <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />}
@@ -176,8 +175,8 @@ function NavBar() {
 
 function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
   const containerClasses = isFull
-    ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#9B2C3B]/40 bg-[#1C1C1C]/98 px-8 py-7 shadow-[0_28px_60px_rgba(0,0,0,0.55)]"
-    : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-[#9B2C3B]/40 bg-[#1C1C1C]/98 px-6 py-5 shadow-[0_24px_48px_rgba(0,0,0,0.45)]"
+    ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#ECAA4D]/35 bg-white px-8 py-7 shadow-[0_28px_60px_rgba(28,28,28,0.12)]"
+    : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-[#ECAA4D]/35 bg-white px-6 py-5 shadow-[0_24px_48px_rgba(28,28,28,0.1)]"
 
   const gridClasses = isFull ? "grid-cols-1 gap-8 md:grid-cols-4" : "grid-cols-1 gap-4"
 
@@ -187,7 +186,7 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
     >
       <div className={`mx-auto grid max-w-7xl ${gridClasses}`}>
         {menu.map((section, idx) => (
-          <div key={section.label} className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-white/10 md:pl-6" : ""}`}>
+          <div key={section.label} className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-[#ECAA4D]/25 md:pl-6" : ""}`}>
             <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
             <ul className="space-y-2">
               {section.children.map((child) => (
@@ -195,7 +194,9 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
                   <Link
                     href={child.href}
                     className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
-                      child.isHot ? "font-semibold text-[#ECAA4D]" : "text-white/75 hover:bg-[#9B2C3B]/25 hover:text-white"
+                      child.isHot
+                        ? "font-semibold text-[#9B2C3B]"
+                        : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
                     }`}
                   >
                     {child.isHot && (
@@ -269,17 +270,16 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       {/* Panel */}
       <div
-        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#ECAA4D]/35 text-white shadow-[0_24px_64px_rgba(0,0,0,0.65)]"
-        style={{ backgroundColor: BRAND_HIGHLIGHT }}
+        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#ECAA4D]/35 bg-white text-[#1C1C1C] shadow-[0_24px_64px_rgba(28,28,28,0.15)]"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#9B2C3B]/40 px-4 py-3">
           <span className="text-base font-bold uppercase tracking-[0.16em]" style={{ color: BRAND_ACCENT }}>
             {showBackButton ? (
-              <button onClick={handleBack} className="flex items-center gap-2 text-white transition hover:text-[#9B2C3B]">
+              <button onClick={handleBack} className="flex items-center gap-2 text-[#1C1C1C] transition hover:text-[#9B2C3B]">
                 <ChevronDown size={18} className="rotate-90" />
                 <span>{headerTitle}</span>
               </button>
@@ -288,7 +288,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
             )}
           </span>
           <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-white transition hover:bg-white/10"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-[#1C1C1C] transition hover:bg-[#ECAA4D]/15"
             aria-label="Đóng menu"
             onClick={onClose}
           >
@@ -297,7 +297,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Navigation */}
-        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm text-white/85">
+        <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm text-[#1C1C1C]/85">
           {!activeMenu && (
             <>
               {menuItems.map((item) =>
@@ -305,7 +305,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   <button
                     key={item.label}
                     onClick={() => handleSelectMenu(item)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/10"
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-[#1C1C1C] transition hover:bg-[#ECAA4D]/15"
                   >
                     <span className="text-sm">{item.label}</span>
                     <ChevronDown size={18} className="-rotate-90 text-[#ECAA4D] opacity-90" />
@@ -314,7 +314,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-white/10"
+                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-[#1C1C1C] transition hover:bg-[#ECAA4D]/15"
                     onClick={onClose}
                   >
                     {item.label}
@@ -330,7 +330,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                 <button
                   key={section.label}
                   onClick={() => handleSelectSection(section)}
-                  className="flex w-full items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-white/10"
+                  className="flex w-full items-center justify-between rounded-lg bg-[#ECAA4D]/10 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-[#1C1C1C] transition hover:bg-[#ECAA4D]/20"
                 >
                   <span>{section.label}</span>
                   <ChevronDown size={18} className="-rotate-90 text-[#ECAA4D] opacity-90" />
@@ -348,7 +348,7 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
                   className={`block rounded px-3 py-1.5 text-[0.85rem] transition ${
                     child.isHot
                       ? "bg-[#9B2C3B] font-semibold text-white"
-                      : "text-white/85 hover:bg-[#9B2C3B]/25 hover:text-white"
+                      : "text-[#1C1C1C]/85 hover:bg-[#ECAA4D]/15 hover:text-[#1C1C1C]"
                   }`}
                   onClick={onClose}
                 >

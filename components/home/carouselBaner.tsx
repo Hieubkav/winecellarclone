@@ -55,7 +55,7 @@ export default function HeroCarousel() {
   }
 
   return (
-    <section className="section banner-main-new relative w-full overflow-hidden bg-[#1C1C1C]">
+    <section className="section banner-main-new relative w-full overflow-hidden bg-white">
       <div className="bg-banner-slider pointer-events-none absolute inset-0 hidden lg:block" />
       <div className="relative mx-auto w-full">
         <Carousel

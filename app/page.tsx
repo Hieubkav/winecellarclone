@@ -4,10 +4,10 @@ import CategoryGrid from "@/components/home/CategoryGrid";
 
 export default function Home() {
   return (
-      <div>
-        <HeroCarousel />
-        <DualBanner />
-        <CategoryGrid />
-      </div>
+    <main className="bg-white text-[#1C1C1C]">
+      <HeroCarousel />
+      <DualBanner />
+      <CategoryGrid />
+    </main>
   );
 }
