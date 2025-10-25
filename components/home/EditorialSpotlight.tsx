@@ -25,7 +25,7 @@ export default function EditorialSpotlight({ title, articles }: EditorialSpotlig
   return (
     <section className="bg-white py-12">
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
-        <div className="rounded-3xl bg-white p-6 shadow-sm md:p-10">
+        <div className="rounded-3xl bg-white p-6 md:p-10">
           <header className="mb-10 text-center">
             <h2
               className={cn(
@@ -54,7 +54,7 @@ type ArticleCardProps = {
 
 function ArticleCard({ article }: ArticleCardProps) {
   return (
-    <Card className="group flex h-full flex-col overflow-hidden border border-[#efefef] bg-white/95 p-0 shadow-none transition hover:-translate-y-1 hover:border-[#ECAA4D]/60 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#ECAA4D]">
+    <Card className="group flex h-full flex-col overflow-hidden border border-[#efefef] bg-white/95 p-0 transition hover:-translate-y-1 hover:border-[#ECAA4D]/60 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#ECAA4D]">
       <div className="relative aspect-video w-full overflow-hidden bg-[#FAFAFA]">
         <Image
           src={article.image}

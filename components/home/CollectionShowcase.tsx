@@ -36,7 +36,7 @@ export default function CollectionShowcase({
   return (
     <section className="bg-white py-4">
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
-        <Card className="border-[#f1f1f1] bg-white/95 shadow-[0_18px_40px_rgba(28,28,28,0.08)]">
+        <Card className="border-[#f1f1f1] bg-white/95">
           <CardHeader className="flex flex-col gap-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle
               className={cn(
