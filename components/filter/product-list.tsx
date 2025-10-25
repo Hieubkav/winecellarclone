@@ -360,17 +360,11 @@ export default function WineList() {
                         alt={wine.name}
                         className="h-40 w-full rounded-md object-cover sm:h-48"
                       />
-                      {wine.isNew && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 text-xs hover:bg-red-600">
-                          Mới
+                      {wine.originalPrice && wine.discount && (
+                        <Badge variant="destructive" className="absolute top-2 right-2 text-xs z-10">
+                          -{wine.discount}%
                         </Badge>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Heart className="h-4 w-4" />
-                      </Button>
                     </div>
 
                     <div className="space-y-2">
@@ -378,63 +372,24 @@ export default function WineList() {
                         {wine.name}
                       </h3>
 
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex justify-between items-center">
                         <span className="text-base font-bold text-blue-600 sm:text-lg">
                           {wine.price.toLocaleString('vi-VN')}₫
                         </span>
                         {wine.originalPrice && (
-                          <>
-                            <span className="text-muted-foreground text-xs line-through sm:text-sm">
-                              {wine.originalPrice.toLocaleString('vi-VN')}₫
-                            </span>
-                            <Badge variant="destructive" className="text-xs">
-                              -{wine.discount}%
-                            </Badge>
-                          </>
+                          <span className="text-muted-foreground text-xs line-through sm:text-sm">
+                            {wine.originalPrice.toLocaleString('vi-VN')}₫
+                          </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3 w-3 ${
-                                i < Math.floor(wine.rating)
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-muted-foreground text-xs">{wine.rating}</span>
-                      </div>
 
-                      <p className="text-muted-foreground text-xs">
-                        {wine.orders} đơn hàng trong tuần này
-                      </p>
 
-                      <p className="text-muted-foreground text-xs">Nhà sản xuất: {wine.producer}</p>
 
-                      <div className="text-muted-foreground text-xs">
-                        Giao hàng:{" "}
-                        {wine.deliveryDays === 0
-                          ? "Hôm nay"
-                          : wine.deliveryDays === 1
-                            ? "Ngày mai"
-                            : `${wine.deliveryDays} ngày`}
-                      </div>
 
-                      <div className="flex gap-2 pt-2">
-                        <Button className="flex-1" size="sm">
-                          <ShoppingCart className="mr-1 h-4 w-4 sm:mr-2" />
-                          <span className="xs:inline hidden">Thêm vào giỏ</span>
-                          <span className="xs:hidden">Thêm</span>
-                        </Button>
-                        <Button variant="outline" size="sm" className="bg-transparent px-2 sm:px-3">
-                          <Heart className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button className="w-full mt-2" size="sm">
+                        Xem ngay
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
