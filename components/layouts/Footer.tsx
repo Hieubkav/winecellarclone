@@ -20,92 +20,64 @@ const SOCIAL_LINKS = [
   { label: "YouTube", href: "https://youtube.com", icon: Youtube },
 ]
 
+const CURRENT_YEAR = new Date().getFullYear()
+
 export default function Footer() {
   return (
     <footer
-      className={`${montserrat.className} text-sm`}
+      className={`${montserrat.className} text-sm pb-10 sm:pb-0`}
       style={{ backgroundColor: NOIR_BASE, color: AMBER_ACCENT }}
       aria-label="Thiên Kim Wine - Footer"
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-12">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.15fr_0.85fr_1fr]">
-          <BrandBlock />
-          <InfoBlock />
-          <SocialBlock />
+      <div className="mx-auto w-full max-w-6xl px-4 py-8">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+          <div className="text-center sm:text-left">
+            <p className="text-sm font-semibold" style={{ color: AMBER_ACCENT }}>
+              Hotline
+            </p>
+            <Link href="tel:+84938110888" className="text-lg font-bold transition-opacity hover:opacity-80" style={{ color: AMBER_ACCENT }}>
+              0938 110 888
+            </Link>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-sm font-semibold" style={{ color: AMBER_ACCENT }}>
+              Địa chỉ
+            </p>
+            <address className="not-italic text-sm">
+              97 Pasteur, P. Bến Nghé, Quận 1
+            </address>
+            <p className="text-xs mt-1">Giờ mở cửa: 09:00 - 21:00 (T2-CN)</p>
+          </div>
+          
+          <div className="flex flex-col items-center sm:items-end gap-2">
+            <p className="text-sm font-semibold" style={{ color: AMBER_ACCENT }}>
+              Mạng xã hội
+            </p>
+            <div className="flex gap-3">
+              {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border transition hover:-translate-y-0.5 hover:opacity-90"
+                  style={{ backgroundColor: NOIR_BASE, borderColor: AMBER_ACCENT, color: AMBER_ACCENT }}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={1.6} />
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
+        
+        <FooterNote />
       </div>
     </footer>
   )
 }
 
-function BrandBlock() {
-  return (
-    <div className="flex flex-col gap-6 sm:col-span-2 lg:col-span-1">
-      <div
-        className="flex h-20 w-20 items-center justify-center rounded-full border-2"
-        style={{ borderColor: AMBER_ACCENT, backgroundColor: WINE_HIGHLIGHT }}
-      >
-        <Image src="/media/logo.webp" alt="Logo Thiên Kim Wine" width={64} height={64} className="h-14 w-14 object-contain" />
-      </div>
-      <div className="flex flex-col gap-2">
-        <span
-          className="inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.32em]"
-          style={{ backgroundColor: AMBER_ACCENT, color: NOIR_BASE }}
-        >
-          Thiên Kim Wine
-        </span>
-        <p className="max-w-xs text-sm leading-relaxed" style={{ color: AMBER_ACCENT }}>
-          Tinh hoa vang được tuyển chọn kỹ lưỡng, phục vụ trải nghiệm sang trọng nhưng tối giản.
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function InfoBlock() {
-  return (
-    <address className="not-italic text-sm leading-relaxed">
-      <p className="text-base font-bold" style={{ color: AMBER_ACCENT }}>
-        Showroom Q1 · Hồ Chí Minh
-      </p>
-      <p>97 Pasteur, P. Bến Nghé, Quận 1</p>
-      <p>Giờ mở cửa: 09:00 – 21:00 (T2 - CN)</p>
-      <div className="mt-3 flex flex-col gap-1 text-sm">
-        <Link href="tel:+84938110888" className="font-semibold transition-opacity hover:opacity-80" style={{ color: AMBER_ACCENT }}>
-          Hotline: 0938 110 888
-        </Link>
-        <Link href="mailto:hello@thienkim.wine" className="transition-opacity hover:opacity-80" style={{ color: AMBER_ACCENT }}>
-          hello@thienkim.wine
-        </Link>
-      </div>
-    </address>
-  )
-}
-
-function SocialBlock() {
-  return (
-    <div className="flex flex-col gap-4">
-      <span
-        className="inline-flex w-max items-center rounded-full px-4 py-1 text-xs font-bold uppercase tracking-[0.2em]"
-        style={{ backgroundColor: WINE_HIGHLIGHT, color: AMBER_ACCENT }}
-      >
-        Kết nối
-      </span>
-      <div className="flex items-center gap-3" aria-label="Liên kết mạng xã hội">
-        {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
-          <Link
-            key={label}
-            href={href}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={label}
-            className="flex h-12 w-12 items-center justify-center rounded-full border transition hover:opacity-80"
-            style={{ backgroundColor: NOIR_BASE, borderColor: AMBER_ACCENT, color: AMBER_ACCENT }}
-          >
-            <Icon className="h-5 w-5" strokeWidth={1.6} />
-          </Link>
-        ))}
-      </div>
-    </div>
-  )
+function FooterNote() {
+  return null;
 }

@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Montserrat } from "next/font/google"
-import { ArrowUpRight, Sparkles } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import type { HomeShowcaseProduct } from "@/data/homeCollections"
@@ -17,9 +17,7 @@ const montserrat = Montserrat({
 
 type CollectionShowcaseProps = {
   title: string
-  subtitle: string
-  description: string
-  ctaLabel: string
+  subtitle?: string
   ctaHref: string
   products: HomeShowcaseProduct[]
   tone?: "wine" | "spirit"
@@ -28,43 +26,34 @@ type CollectionShowcaseProps = {
 export default function CollectionShowcase({
   title,
   subtitle,
-  description,
-  ctaLabel,
   ctaHref,
   products,
   tone = "wine",
 }: CollectionShowcaseProps) {
   const accent = tone === "spirit" ? "#ECAA4D" : "#9B2C3B"
+  const contextLabel = subtitle ?? title
 
   return (
-    <section className="bg-white py-6">
+    <section className="bg-white py-4">
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
-        <Card className="border-[#f1f1f1] shadow-[0_30px_60px_rgba(28,28,28,0.08)]">
-          <CardHeader className="flex flex-col gap-4 pb-6 md:flex-row md:items-center md:justify-between md:pb-5">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#f1f1f1] px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-[#1C1C1C]/70">
-                <Sparkles className="h-4 w-4 text-[#ECAA4D]" strokeWidth={1.75} />
-                {subtitle}
-              </div>
-              <div>
-                <CardTitle
-                  className={cn(
-                    montserrat.className,
-                    "text-2xl font-bold uppercase tracking-wide text-[#1C1C1C]",
-                  )}
-                >
-                  {title}
-                </CardTitle>
-                <p className="mt-1 text-sm text-[#1C1C1C]/70">{description}</p>
-              </div>
-            </div>
+        <Card className="border-[#f1f1f1] bg-white/95 shadow-[0_18px_40px_rgba(28,28,28,0.08)]">
+          <CardHeader className="flex flex-col gap-2 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle
+              className={cn(
+                montserrat.className,
+                "text-xl font-bold uppercase tracking-[0.18em] text-[#1C1C1C] sm:text-2xl",
+              )}
+            >
+              {title}
+            </CardTitle>
             <Button
               asChild
-              className="group h-11 rounded-full border-2 border-[#ECAA4D] bg-transparent px-6 text-sm font-semibold uppercase tracking-wide text-[#1C1C1C] hover:bg-[#ECAA4D] hover:text-[#1C1C1C]"
+              aria-label={`Xem thêm ${contextLabel}`}
+              className="group h-10 rounded-full border border-[#ECAA4D] bg-white px-5 text-xs font-semibold uppercase tracking-[0.28em] text-[#1C1C1C] transition-colors hover:bg-[#ECAA4D] hover:text-[#1C1C1C]"
             >
               <Link href={ctaHref}>
-                <span className="flex items-center gap-2">
-                  {ctaLabel}
+                <span className="flex items-center gap-1.5">
+                  Xem thêm
                   <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </span>
               </Link>
@@ -72,7 +61,7 @@ export default function CollectionShowcase({
           </CardHeader>
 
           <CardContent className="pt-0">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {products.slice(0, 8).map((product) => (
                 <ProductTile key={product.id} product={product} accent={accent} />
               ))}
@@ -93,9 +82,9 @@ function ProductTile({ product, accent }: ProductTileProps) {
   return (
     <Link
       href={product.href}
-      className="group flex h-full flex-col rounded-2xl border border-[#eeeeee] bg-white p-3 shadow-[0_16px_30px_rgba(28,28,28,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_26px_45px_rgba(28,28,28,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+      className="group flex h-full flex-col rounded-2xl border border-[#eeeeee] bg-white p-2.5 shadow-[0_14px_30px_rgba(28,28,28,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(28,28,28,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/60 bg-[#fafafa]">
+      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/70 bg-[#fafafa]">
         <Image
           src={product.image}
           alt={product.name}
@@ -112,7 +101,7 @@ function ProductTile({ product, accent }: ProductTileProps) {
           </span>
         )}
       </div>
-      <div className="mt-3 flex flex-1 flex-col gap-1">
+      <div className="mt-2 flex flex-1 flex-col gap-1">
         <p
           className={cn(
             montserrat.className,
@@ -121,8 +110,8 @@ function ProductTile({ product, accent }: ProductTileProps) {
         >
           {product.name}
         </p>
-        <p className="text-xs uppercase tracking-[0.18em] text-[#1C1C1C]/60">
-          {product.country} · {product.style}
+        <p className="text-[0.65rem] uppercase tracking-[0.2em] text-[#1C1C1C]/55">
+          {product.country} - {product.style}
         </p>
         <p
           className={cn(
