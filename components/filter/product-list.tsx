@@ -14,32 +14,32 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useProductStore } from "@/app/filter/store";
+import { useWineStore } from "@/app/filter/store";
 
 const categories = [
-  { id: "all", label: "All", icon: "🏪" },
-  { id: "phones", label: "Phones", icon: "📱" },
-  { id: "headsets", label: "Headsets", icon: "🎧" },
-  { id: "laptops", label: "Laptops", icon: "💻" },
-  { id: "tv", label: "TV sets", icon: "📺" },
-  { id: "sound", label: "Sound", icon: "🔊" },
-  { id: "watches", label: "Watches", icon: "⌚" },
-  { id: "others", label: "Others", icon: "💡" },
-  { id: "internet", label: "Internet", icon: "🌐" }
+  { id: "all", label: "Tất cả", icon: "🍷" },
+  { id: "red", label: "Vang đỏ", icon: "🍷" },
+  { id: "white", label: "Vang trắng", icon: "🥂" },
+  { id: "rose", label: "Vang hồng", icon: "🌸" },
+  { id: "sparkling", label: "Vang sủi", icon: "🍾" },
+  { id: "dessert", label: "Vang tráng miệng", icon: "🍯" },
+  { id: "fortified", label: "Vang mạnh", icon: "🥃" },
+  { id: "organic", label: "Vang hữu cơ", icon: "🌿" },
+  { id: "vintage", label: "Vang cổ điển", icon: "🏺" }
 ];
 
 const brands = [
-  { id: "apple", label: "Apple" },
-  { id: "samsung", label: "Samsung" },
-  { id: "huawei", label: "Huawei" },
-  { id: "microsoft", label: "Microsoft" },
-  { id: "sony", label: "Sony" },
-  { id: "bose", label: "Bose" },
-  { id: "dell", label: "Dell" },
-  { id: "lg", label: "LG" },
-  { id: "jbl", label: "JBL" },
-  { id: "philips", label: "Philips" },
-  { id: "tp-link", label: "TP-Link" }
+  { id: "chateau-margaux", label: "Château Margaux" },
+  { id: "romanee-conti", label: "Domaine de la Romanée-Conti" },
+  { id: "veuve-clicquot", label: "Veuve Clicquot" },
+  { id: "cloudy-bay", label: "Cloudy Bay" },
+  { id: "nino-franco", label: "Nino Franco" },
+  { id: "s-a-prum", label: "S.A. Prüm" },
+  { id: "opus-one", label: "Opus One" },
+  { id: "dal-forno-romano", label: "Dal Forno Romano" },
+  { id: "william-fevre", label: "William Fèvre" },
+  { id: "giacomo-conterno", label: "Giacomo Conterno" },
+  { id: "chateau-esclans", label: "Château d'Esclans" }
 ];
 
 const colors = [
@@ -65,12 +65,12 @@ function FilterSection() {
     toggleColor,
     setDeliveryDate,
     setSelectedCategory // Added setSelectedCategory
-  } = useProductStore();
+  } = useWineStore();
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-3 font-semibold">Related categories</h3>
+        <h3 className="mb-3 font-semibold">Danh mục liên quan</h3>
         <RadioGroup value={selectedCategory} onValueChange={setSelectedCategory}>
           <div className="space-y-2 text-sm">
             {categories.map((category) => (
@@ -91,7 +91,7 @@ function FilterSection() {
 
       {/* Brands */}
       <div>
-        <h3 className="mb-3 font-semibold">Brands</h3>
+        <h3 className="mb-3 font-semibold">Thương hiệu</h3>
         <div className="max-h-48 space-y-3 overflow-y-auto">
           {brands.map((brand) => (
             <div key={brand.id} className="flex items-center space-x-2">
@@ -112,7 +112,7 @@ function FilterSection() {
 
       {/* Colors */}
       <div>
-        <h3 className="mb-3 font-semibold">Colors</h3>
+        <h3 className="mb-3 font-semibold">Màu sắc</h3>
         <div className="grid grid-cols-1 gap-2">
           {colors.map((color) => (
             <div key={color.id} className="flex items-center space-x-2">
@@ -134,30 +134,30 @@ function FilterSection() {
 
       {/* Delivery Date */}
       <div>
-        <h3 className="mb-3 font-semibold">Delivery date</h3>
+        <h3 className="mb-3 font-semibold">Thời gian giao hàng</h3>
         <RadioGroup value={deliveryDate} onValueChange={setDeliveryDate}>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="any" id="delivery-any" />
             <Label htmlFor="delivery-any" className="text-sm font-normal">
-              Any day
+              Bất kỳ ngày nào
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="today" id="delivery-today" />
             <Label htmlFor="delivery-today" className="text-sm font-normal">
-              Today
+              Hôm nay
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="tomorrow" id="delivery-tomorrow" />
             <Label htmlFor="delivery-tomorrow" className="text-sm font-normal">
-              Tomorrow
+              Ngày mai
             </Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="week" id="delivery-week" />
             <Label htmlFor="delivery-week" className="text-sm font-normal">
-              Within 7 days
+              Trong 7 ngày
             </Label>
           </div>
         </RadioGroup>
@@ -167,7 +167,7 @@ function FilterSection() {
 
       {/* Price Range */}
       <div>
-        <h3 className="mb-3 font-semibold">Price</h3>
+        <h3 className="mb-3 font-semibold">Giá</h3>
         <div className="space-y-4">
           <Slider
             value={priceRange}
@@ -179,7 +179,7 @@ function FilterSection() {
           <div className="flex items-center space-x-2">
             <div className="flex-1">
               <Label htmlFor="price-from" className="text-muted-foreground text-xs">
-                From
+                Từ
               </Label>
               <Input
                 id="price-from"
@@ -193,7 +193,7 @@ function FilterSection() {
             </div>
             <div className="flex-1">
               <Label htmlFor="price-to" className="text-muted-foreground text-xs">
-                To
+                Đến
               </Label>
               <Input
                 id="price-to"
@@ -212,9 +212,9 @@ function FilterSection() {
   );
 }
 
-export default function ProductList() {
+export default function WineList() {
   const {
-    filteredProducts,
+    filteredWines,
     selectedCategory,
     searchQuery,
     viewMode,
@@ -222,7 +222,7 @@ export default function ProductList() {
     setSearchQuery,
     setViewMode,
     applyFilters
-  } = useProductStore();
+  } = useWineStore();
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -251,23 +251,47 @@ export default function ProductList() {
                   <SheetTrigger asChild>
                     <Button variant="outline" size="sm" className="bg-transparent lg:hidden">
                       <Filter className="mr-2 h-4 w-4" />
-                      Filters
+                      Bộ lọc
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-80 sm:w-96">
-                    <SheetHeader>
-                      <SheetTitle>Filters</SheetTitle>
+                  <SheetContent side="left" className="w-80 sm:w-96 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <SheetHeader className="sticky top-0 bg-[#ECAA4D] z-10 py-4 px-6 border-b border-[#ECAA4D] flex items-center justify-between">
+                      <SheetTitle className="text-center flex-1">Bộ lọc</SheetTitle>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="p-2 h-auto w-auto text-white hover:bg-[#1C1C1C]/20"
+                        onClick={() => setMobileFiltersOpen(false)}
+                      >
+                        ✕
+                      </Button>
                     </SheetHeader>
-                    <ScrollArea className="h-full pr-4">
-                      <div className="py-4">
-                        <FilterSection />
-                      </div>
-                    </ScrollArea>
+                    <div className="py-4 px-6">
+                      <FilterSection />
+                    </div>
+                    <div className="sticky bottom-0 bg-white p-4 border-t border-[#ECAA4D] flex gap-2">
+                      <Button 
+                        className="flex-1 bg-[#ECAA4D] hover:bg-[#d4952d] text-[#1C1C1C]"
+                        onClick={() => {
+                          applyFilters();
+                          setMobileFiltersOpen(false);
+                        }}
+                      >
+                        Áp dụng
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="flex-1 border-[#ECAA4D] text-[#ECAA4D]"
+                        onClick={() => setMobileFiltersOpen(false)}
+                      >
+                        Đóng
+                      </Button>
+                    </div>
                   </SheetContent>
                 </Sheet>
 
                 <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                  {filteredProducts.length} products
+                  {filteredWines.length} sản phẩm
                 </div>
               </div>
 
@@ -289,7 +313,7 @@ export default function ProductList() {
               <div className="relative flex-1 sm:flex-initial">
                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
                 <Input
-                  placeholder="Search products..."
+                  placeholder="Tìm kiếm rượu vang..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 sm:w-64"
@@ -311,34 +335,34 @@ export default function ProductList() {
           </div>
 
           {/* Product Grid */}
-          {filteredProducts.length === 0 ? (
+          {filteredWines.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-muted-foreground text-lg">
-                No products found matching your filters.
+                Không tìm thấy sản phẩm phù hợp với bộ lọc của bạn.
               </p>
               <p className="text-muted-foreground mt-2 text-sm">
-                Try adjusting your search criteria.
+                Hãy thử điều chỉnh tiêu chí tìm kiếm.
               </p>
             </div>
           ) : (
             <div
               className={`grid gap-4 sm:gap-6 ${
                 viewMode === "grid"
-                  ? "xs:grid-cols-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4"
+                  ? "xs:grid-cols-2 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4"
                   : "grid-cols-1"
               }`}>
-              {filteredProducts.map((product: any) => (
-                <Card key={product.id} className="group transition-shadow hover:shadow-lg">
+              {filteredWines.map((wine: any) => (
+                <Card key={wine.id} className="group transition-shadow hover:shadow-lg">
                   <CardContent className="p-3 sm:p-4">
                     <div className="relative mb-3 sm:mb-4">
                       <img
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.title}
+                        src={wine.image || "/placeholder.svg"}
+                        alt={wine.name}
                         className="h-40 w-full rounded-md object-cover sm:h-48"
                       />
-                      {product.isNew && (
+                      {wine.isNew && (
                         <Badge className="absolute top-2 left-2 bg-red-500 text-xs hover:bg-red-600">
-                          New
+                          Mới
                         </Badge>
                       )}
                       <Button
@@ -351,20 +375,20 @@ export default function ProductList() {
 
                     <div className="space-y-2">
                       <h3 className="line-clamp-2 text-sm leading-tight font-medium">
-                        {product.title}
+                        {wine.name}
                       </h3>
 
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-base font-bold text-blue-600 sm:text-lg">
-                          ${product.price.toFixed(2)}
+                          {wine.price.toLocaleString('vi-VN')}₫
                         </span>
-                        {product.originalPrice && (
+                        {wine.originalPrice && (
                           <>
                             <span className="text-muted-foreground text-xs line-through sm:text-sm">
-                              ${product.originalPrice.toFixed(2)}
+                              {wine.originalPrice.toLocaleString('vi-VN')}₫
                             </span>
                             <Badge variant="destructive" className="text-xs">
-                              -{product.discount}%
+                              -{wine.discount}%
                             </Badge>
                           </>
                         )}
@@ -376,36 +400,36 @@ export default function ProductList() {
                             <Star
                               key={i}
                               className={`h-3 w-3 ${
-                                i < Math.floor(product.rating)
+                                i < Math.floor(wine.rating)
                                   ? "fill-yellow-400 text-yellow-400"
                                   : "text-gray-300"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-muted-foreground text-xs">{product.rating}</span>
+                        <span className="text-muted-foreground text-xs">{wine.rating}</span>
                       </div>
 
                       <p className="text-muted-foreground text-xs">
-                        {product.orders} orders this week
+                        {wine.orders} đơn hàng trong tuần này
                       </p>
 
-                      <p className="text-muted-foreground text-xs">Seller: {product.seller}</p>
+                      <p className="text-muted-foreground text-xs">Nhà sản xuất: {wine.producer}</p>
 
                       <div className="text-muted-foreground text-xs">
-                        Delivery:{" "}
-                        {product.deliveryDays === 0
-                          ? "Today"
-                          : product.deliveryDays === 1
-                            ? "Tomorrow"
-                            : `${product.deliveryDays} days`}
+                        Giao hàng:{" "}
+                        {wine.deliveryDays === 0
+                          ? "Hôm nay"
+                          : wine.deliveryDays === 1
+                            ? "Ngày mai"
+                            : `${wine.deliveryDays} ngày`}
                       </div>
 
                       <div className="flex gap-2 pt-2">
                         <Button className="flex-1" size="sm">
                           <ShoppingCart className="mr-1 h-4 w-4 sm:mr-2" />
-                          <span className="xs:inline hidden">Add to cart</span>
-                          <span className="xs:hidden">Add</span>
+                          <span className="xs:inline hidden">Thêm vào giỏ</span>
+                          <span className="xs:hidden">Thêm</span>
                         </Button>
                         <Button variant="outline" size="sm" className="bg-transparent px-2 sm:px-3">
                           <Heart className="h-4 w-4" />

@@ -1,26 +1,31 @@
 import { create } from "zustand";
 
-export interface Product {
+export interface Wine {
   id: number;
-  title: string;
+  name: string;
   price: number;
   originalPrice?: number;
   discount?: number;
   rating: number;
   orders: number;
-  seller: string;
+  producer: string;
   image: string;
   isNew: boolean;
   category: string;
   brand: string;
   colors: string[];
   deliveryDays: number;
+  vintage: number;
+  grape: string;
+  region: string;
+  alcoholContent: number;
+  volume: number;
 }
 
-interface ProductStore {
+interface WineStore {
   // State
-  products: Product[];
-  filteredProducts: Product[];
+  wines: Wine[];
+  filteredWines: Wine[];
   selectedCategory: string;
   searchQuery: string;
   priceRange: [number, number];
@@ -40,202 +45,262 @@ interface ProductStore {
   applyFilters: () => void;
 }
 
-// Sample products data with comprehensive filtering properties
-const sampleProducts: Product[] = [
+// Sample wines data with comprehensive filtering properties
+const sampleWines: Wine[] = [
   {
     id: 1,
-    title: "iPhone 14 Pro Max 256GB Space Black",
-    price: 999.0,
-    originalPrice: 1299.0,
-    discount: 23,
-    rating: 4.8,
-    orders: 234,
-    seller: "Apple Store Official",
-    image: "https://placehold.co/600x400?text=Image",
+    name: "Rượu vang đỏ Château Margaux Grand Vin 2018",
+    price: 2499.0,
+    originalPrice: 2999.0,
+    discount: 17,
+    rating: 4.9,
+    orders: 124,
+    producer: "Château Margaux",
+    image: "https://placehold.co/600x400?text=Vang+Đỏ",
     isNew: true,
-    category: "phones",
-    brand: "apple",
-    colors: ["black", "white"],
-    deliveryDays: 1
+    category: "red",
+    brand: "chateau-margaux",
+    colors: ["red"],
+    deliveryDays: 2,
+    vintage: 2018,
+    grape: "Cabernet Sauvignon, Merlot",
+    region: "Bordeaux, Pháp",
+    alcoholContent: 13.5,
+    volume: 750
   },
   {
     id: 2,
-    title: "Samsung Galaxy S23 Ultra 512GB",
-    price: 899.0,
-    originalPrice: 1199.0,
-    discount: 25,
+    name: "Rượu vang trắng Chablis Premier Cru 2020",
+    price: 1299.0,
+    originalPrice: 1599.0,
+    discount: 19,
     rating: 4.7,
-    orders: 189,
-    seller: "Samsung Official",
-    image: "https://placehold.co/600x400?text=Image",
+    orders: 98,
+    producer: "Domaine William Fèvre",
+    image: "https://placehold.co/600x400?text=Vang+Trắng",
     isNew: true,
-    category: "phones",
-    brand: "samsung",
-    colors: ["black", "purple"],
-    deliveryDays: 2
+    category: "white",
+    brand: "william-fevre",
+    colors: ["yellow"],
+    deliveryDays: 3,
+    vintage: 2020,
+    grape: "Chardonnay",
+    region: "Burgundy, Pháp",
+    alcoholContent: 12.8,
+    volume: 750
   },
   {
     id: 3,
-    title: "Huawei P50 Pro 128GB Golden",
+    name: "Rượu vang hồng Côtes de Provence Rosé 2021",
     price: 699.0,
     originalPrice: 899.0,
     discount: 22,
     rating: 4.5,
-    orders: 154,
-    seller: "Huawei Technology Ltd",
-    image: "https://placehold.co/600x400?text=Image",
+    orders: 254,
+    producer: "Château d'Esclans",
+    image: "https://placehold.co/600x400?text=Vang+Hồng",
     isNew: false,
-    category: "phones",
-    brand: "huawei",
-    colors: ["orange", "black"],
-    deliveryDays: 3
+    category: "rose",
+    brand: "chateau-esclans",
+    colors: ["pink"],
+    deliveryDays: 2,
+    vintage: 2021,
+    grape: "Grenache, Cinsault, Rolle",
+    region: "Provence, Pháp",
+    alcoholContent: 13.0,
+    volume: 750
   },
   {
     id: 4,
-    title: "Sony WH-1000XM5 Wireless Headphones",
-    price: 299.0,
-    originalPrice: 399.0,
+    name: "Rượu vang sủi bong bóng Prosecco Valdobbiadene DOCG",
+    price: 749.0,
+    originalPrice: 999.0,
     discount: 25,
-    rating: 4.9,
-    orders: 456,
-    seller: "Sony Electronics",
-    image: "https://placehold.co/600x400?text=Image",
+    rating: 4.8,
+    orders: 416,
+    producer: "Nino Franco",
+    image: "https://placehold.co/600x400?text=Vang+Sủi",
     isNew: true,
-    category: "headsets",
-    brand: "sony",
-    colors: ["black", "white"],
-    deliveryDays: 1
+    category: "sparkling",
+    brand: "nino-franco",
+    colors: ["yellow"],
+    deliveryDays: 1,
+    vintage: 2021,
+    grape: "Glera",
+    region: "Veneto, Ý",
+    alcoholContent: 11.0,
+    volume: 750
   },
   {
     id: 5,
-    title: "Bose QuietComfort 45 Headphones",
-    price: 249.0,
-    rating: 4.6,
-    orders: 321,
-    seller: "Bose Official Store",
-    image: "https://placehold.co/600x400?text=Image",
+    name: "Rượu vang đỏ Barolo DOCG 2017",
+    price: 1899.0,
+    rating: 4.9,
+    orders: 154,
+    producer: "Giacomo Conterno",
+    image: "https://placehold.co/600x400?text=Barolo",
     isNew: false,
-    category: "headsets",
-    brand: "bose",
-    colors: ["black", "white"],
-    deliveryDays: 2
+    category: "red",
+    brand: "giacomo-conterno",
+    colors: ["red"],
+    deliveryDays: 4,
+    vintage: 2017,
+    grape: "Nebbiolo",
+    region: "Piedmont, Ý",
+    alcoholContent: 14.5,
+    volume: 750
   },
   {
     id: 6,
-    title: "MacBook Pro 16-inch M2 Pro",
-    price: 2199.0,
-    originalPrice: 2499.0,
-    discount: 12,
+    name: "Rượu vang trắng Riesling S.A. Prüm 2019",
+    price: 1599.0,
+    originalPrice: 1999.0,
+    discount: 20,
     rating: 4.8,
-    orders: 89,
-    seller: "Apple Store Official",
-    image: "https://placehold.co/600x400?text=Image",
+    orders: 87,
+    producer: "S.A. Prüm",
+    image: "https://placehold.co/600x400?text=Riesling",
     isNew: true,
-    category: "laptops",
-    brand: "apple",
-    colors: ["gray", "white"],
-    deliveryDays: 3
+    category: "white",
+    brand: "s-a-prum",
+    colors: ["yellow"],
+    deliveryDays: 5,
+    vintage: 2019,
+    grape: "Riesling",
+    region: "Mosel, Đức",
+    alcoholContent: 12.5,
+    volume: 750
   },
   {
     id: 7,
-    title: "Dell XPS 13 Plus Intel i7",
-    price: 1299.0,
-    originalPrice: 1599.0,
-    discount: 19,
-    rating: 4.4,
-    orders: 167,
-    seller: "Dell Technologies",
-    image: "https://placehold.co/600x400?text=Image",
-    isNew: false,
-    category: "laptops",
-    brand: "dell",
-    colors: ["gray", "black"],
-    deliveryDays: 5
+    name: "Rượu vang đỏ Pinot Noir Domaine de la Romanée-Conti 2018",
+    price: 4999.0,
+    originalPrice: 5999.0,
+    discount: 17,
+    rating: 5.0,
+    orders: 34,
+    producer: "Domaine de la Romanée-Conti",
+    image: "https://placehold.co/600x400?text=Romanee",
+    isNew: true,
+    category: "red",
+    brand: "romanee-conti",
+    colors: ["red"],
+    deliveryDays: 7,
+    vintage: 2018,
+    grape: "Pinot Noir",
+    region: "Burgundy, Pháp",
+    alcoholContent: 13.0,
+    volume: 750
   },
   {
     id: 8,
-    title: "Microsoft Surface Laptop 5",
-    price: 999.0,
-    rating: 4.3,
-    orders: 134,
-    seller: "Microsoft Store",
-    image: "https://placehold.co/600x400?text=Image",
+    name: "Rượu vang đỏ Rioja Reserva Vina Ardanza 2016",
+    price: 1199.0,
+    rating: 4.6,
+    orders: 234,
+    producer: "Lopez de Heredia",
+    image: "https://placehold.co/600x400?text=Rioja",
     isNew: false,
-    category: "laptops",
-    brand: "microsoft",
-    colors: ["blue", "gray"],
-    deliveryDays: 4
+    category: "red",
+    brand: "vinas-ardanza",
+    colors: ["red"],
+    deliveryDays: 3,
+    vintage: 2016,
+    grape: "Tempranillo, Garnacha",
+    region: "Rioja, Tây Ban Nha",
+    alcoholContent: 13.5,
+    volume: 750
   },
   {
     id: 9,
-    title: "Samsung 65-inch QLED 4K Smart TV",
+    name: "Rượu vang trắng Sauvignon Blanc Cloudy Bay 2020",
     price: 1499.0,
-    originalPrice: 1899.0,
-    discount: 21,
-    rating: 4.6,
-    orders: 78,
-    seller: "Samsung Electronics",
-    image: "https://placehold.co/600x400?text=Image",
+    originalPrice: 1799.0,
+    discount: 17,
+    rating: 4.7,
+    orders: 112,
+    producer: "Cloudy Bay",
+    image: "https://placehold.co/600x400?text=Cloudy+Bay",
     isNew: true,
-    category: "tv",
-    brand: "samsung",
-    colors: ["black"],
-    deliveryDays: 7
+    category: "white",
+    brand: "cloudy-bay",
+    colors: ["yellow"],
+    deliveryDays: 2,
+    vintage: 2020,
+    grape: "Sauvignon Blanc",
+    region: "Marlborough, New Zealand",
+    alcoholContent: 13.0,
+    volume: 750
   },
   {
     id: 10,
-    title: "LG OLED 55-inch C3 Series",
-    price: 1299.0,
-    originalPrice: 1699.0,
-    discount: 24,
-    rating: 4.7,
-    orders: 92,
-    seller: "LG Electronics",
-    image: "https://placehold.co/600x400?text=Image",
+    name: "Rượu vang đỏ Amarone della Valpolicella 2017",
+    price: 2199.0,
+    originalPrice: 2599.0,
+    discount: 15,
+    rating: 4.8,
+    orders: 78,
+    producer: "Dal Forno Romano",
+    image: "https://placehold.co/600x400?text=Amarone",
     isNew: true,
-    category: "tv",
-    brand: "lg",
-    colors: ["black"],
-    deliveryDays: 6
+    category: "red",
+    brand: "dal-forno-romano",
+    colors: ["red"],
+    deliveryDays: 6,
+    vintage: 2017,
+    grape: "Corvina, Rondinella, Molinara",
+    region: "Veneto, Ý",
+    alcoholContent: 15.5,
+    volume: 750
   },
   {
     id: 11,
-    title: "JBL Charge 5 Portable Speaker",
-    price: 149.0,
-    originalPrice: 199.0,
-    discount: 25,
-    rating: 4.5,
-    orders: 267,
-    seller: "JBL Official",
-    image: "https://placehold.co/600x400?text=Image",
+    name: "Rượu vang sủi bong bóng Champagne Veuve Clicquot",
+    price: 2299.0,
+    originalPrice: 2699.0,
+    discount: 15,
+    rating: 4.9,
+    orders: 367,
+    producer: "Veuve Clicquot",
+    image: "https://placehold.co/600x400?text=Champagne",
     isNew: false,
-    category: "sound",
-    brand: "jbl",
-    colors: ["blue", "red", "black"],
-    deliveryDays: 2
+    category: "sparkling",
+    brand: "veuve-clicquot",
+    colors: ["yellow"],
+    deliveryDays: 1,
+    vintage: 2016,
+    grape: "Chardonnay, Pinot Noir, Pinot Meunier",
+    region: "Champagne, Pháp",
+    alcoholContent: 12.0,
+    volume: 750
   },
   {
     id: 12,
-    title: "Apple Watch Series 9 GPS 45mm",
-    price: 399.0,
-    originalPrice: 449.0,
-    discount: 11,
-    rating: 4.8,
-    orders: 345,
-    seller: "Apple Store Official",
-    image: "https://placehold.co/600x400?text=Image",
+    name: "Rượu vang đỏ Napa Valley Cabernet Sauvignon 2019",
+    price: 1799.0,
+    originalPrice: 1999.0,
+    discount: 10,
+    rating: 4.7,
+    orders: 194,
+    producer: "Opus One",
+    image: "https://placehold.co/600x400?text=Opus+One",
     isNew: true,
-    category: "watches",
-    brand: "apple",
-    colors: ["black", "white", "red"],
-    deliveryDays: 1
+    category: "red",
+    brand: "opus-one",
+    colors: ["red"],
+    deliveryDays: 4,
+    vintage: 2019,
+    grape: "Cabernet Sauvignon",
+    region: "Napa Valley, Mỹ",
+    alcoholContent: 14.5,
+    volume: 750
   }
 ];
 
-export const useProductStore = create<ProductStore>((set, get) => ({
+export const useWineStore = create<WineStore>((set, get) => ({
   // Initial state
-  products: sampleProducts,
-  filteredProducts: sampleProducts,
+  wines: sampleWines,
+  filteredWines: sampleWines,
   selectedCategory: "all",
   searchQuery: "",
   priceRange: [0, 3000],
@@ -289,7 +354,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
 
   applyFilters: () => {
     const {
-      products,
+      wines,
       selectedCategory,
       searchQuery,
       priceRange,
@@ -298,38 +363,38 @@ export const useProductStore = create<ProductStore>((set, get) => ({
       deliveryDate
     } = get();
 
-    let filtered = products;
+    let filtered = wines;
 
     // Category filter
     if (selectedCategory !== "all") {
-      filtered = filtered.filter((product) => product.category === selectedCategory);
+      filtered = filtered.filter((wine) => wine.category === selectedCategory);
     }
 
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (product) =>
-          product.title.toLowerCase().includes(query) ||
-          product.brand.toLowerCase().includes(query) ||
-          product.seller.toLowerCase().includes(query)
+        (wine) =>
+          wine.name.toLowerCase().includes(query) ||
+          wine.brand.toLowerCase().includes(query) ||
+          wine.producer.toLowerCase().includes(query)
       );
     }
 
     // Price range filter
     filtered = filtered.filter(
-      (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
+      (wine) => wine.price >= priceRange[0] && wine.price <= priceRange[1]
     );
 
     // Brand filter
     if (selectedBrands.length > 0) {
-      filtered = filtered.filter((product) => selectedBrands.includes(product.brand));
+      filtered = filtered.filter((wine) => selectedBrands.includes(wine.brand));
     }
 
     // Color filter
     if (selectedColors.length > 0) {
-      filtered = filtered.filter((product) =>
-        product.colors.some((color) => selectedColors.includes(color))
+      filtered = filtered.filter((wine) =>
+        wine.colors.some((color) => selectedColors.includes(color))
       );
     }
 
@@ -343,9 +408,9 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             : deliveryDate === "week"
               ? 7
               : 999;
-      filtered = filtered.filter((product) => product.deliveryDays <= maxDays);
+      filtered = filtered.filter((wine) => wine.deliveryDays <= maxDays);
     }
 
-    set({ filteredProducts: filtered });
+    set({ filteredWines: filtered });
   }
 }));
