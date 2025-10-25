@@ -34,7 +34,10 @@ export default function Header() {
   }, [])
 
   return (
-    <header className={`${montserrat.className} w-full text-sm text-[#1C1C1C]`} style={{ color: BRAND_BASE }}>
+    <header
+      className={`${montserrat.className} sticky top-0 z-40 w-full bg-white text-sm text-[#1C1C1C] shadow-[0_12px_30px_rgba(28,28,28,0.08)]`}
+      style={{ color: BRAND_BASE }}
+    >
       <MainBar />
       <NavBar />
     </header>
@@ -44,7 +47,7 @@ export default function Header() {
 function MainBar() {
   return (
     <div className="border-b border-[#e8e8e8] bg-white">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 py-1 md:gap-4">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 pb-2 md:gap-4">
         {/* Logo */}
         <div className="col-span-6 flex items-center md:col-span-3 md:justify-start">
           <Link href="/" className="flex items-center gap-3" aria-label="Thiên Kim Wine - Trang chủ">
@@ -68,7 +71,7 @@ function MainBar() {
         </div>
 
         {/* Search */}
-        <div className="col-span-12 mt-1 flex justify-center md:col-span-6 md:mt-0">
+        <div className="col-span-12 mt-0 flex justify-center md:col-span-6 md:mt-0">
           <Search />
         </div>
 
@@ -80,7 +83,6 @@ function MainBar() {
     </div>
   )
 }
-
 function Search() {
   const [focus, setFocus] = useState(false)
 
@@ -102,7 +104,6 @@ function Search() {
     </div>
   )
 }
-
 function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => void }) {
   return (
     <form action="/" method="get" className="relative w-full" role="search" aria-label="Tìm kiếm sản phẩm">
@@ -128,21 +129,19 @@ function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => 
     </form>
   )
 }
-
 function ContactButton() {
   return (
-      <Link
-        href="/contact"
-        className="inline-flex items-center rounded-full bg-[#9B2C3B] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[#b23f4a]"
-      >
+    <Link
+      href="/contact"
+      className="inline-flex items-center rounded-full bg-[#9B2C3B] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[#b23f4a]"
+    >
       Liên hệ
     </Link>
   )
 }
-
 function NavBar() {
   return (
-    <div className="sticky top-0 z-10 border-b border-[#751826] bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
+    <div className="border-b border-[#751826] bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
         <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
           {menuItems.map((item) => {
@@ -174,7 +173,6 @@ function NavBar() {
     </div>
   )
 }
-
 function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
   const containerClasses = isFull
     ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#ECAA4D]/35 bg-white px-8 py-7 shadow-[0_28px_60px_rgba(28,28,28,0.12)]"
@@ -218,9 +216,7 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
   )
 }
 
-function MobileNav() {
-  return <div className="lg:hidden" />
-}
+const MobileNav = () => <div className="lg:hidden" />
 function MobileTrigger() {
   const [open, setOpen] = useState(false)
 
