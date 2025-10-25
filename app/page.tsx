@@ -2,6 +2,7 @@ import HeroCarousel from "@/components/home/carouselBaner";
 import DualBanner from "@/components/home/DualBanner"
 import CategoryGrid from "@/components/home/CategoryGrid";
 import FavouriteProducts from "@/components/home/FavouriteProducts";
+import BrandShowcase from "@/components/home/BrandShowcase";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       {/* <DualBanner /> */}
       <CategoryGrid />
       <FavouriteProducts />
+      <BrandShowcase />
     </main>
   );
 }

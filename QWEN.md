@@ -1,5 +1,7 @@
 Trả lời bằng tiếng Việt.
 
+Bạn không được chạy lệnh liên quan đến build hay chạy server có gì thì nói với tôi 
+
 Đừng để một file vượt quá 400 dòng; ưu tiên tái sử dụng component hoặc tách file theo design pattern hiện đại.
 
 Thiết kế UI/UX theo phong cách tối giản để end user không phải suy nghĩ.
