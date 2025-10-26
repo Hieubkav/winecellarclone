@@ -7,7 +7,12 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  Building2,
+  Grape,
+  Wine as WineIcon,
+  Globe,
+  Percent
 } from "lucide-react";
 import { useState } from "react";
 
@@ -16,6 +21,22 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { wineProductData } from "@/data/product/product";
+
+interface MetaItem {
+  icon: React.ElementType;
+  label: string;
+}
+
+function MetaRow({ icon: Icon, label }: MetaItem) {
+  if (!label) return null;
+
+  return (
+    <div className="flex items-center gap-3 text-sm text-[#1C1C1C] font-medium">
+      <Icon className="h-5 w-5 text-[#9B2C3B]" strokeWidth={2} />
+      <span className="text-sm leading-snug">{label}</span>
+    </div>
+  );
+}
 
 export default function ProductDetailPage() {
   const { 
@@ -135,38 +156,8 @@ export default function ProductDetailPage() {
             <span className="text-3xl font-bold text-[#1C1C1C] font-montserrat">{price}</span>
             <span className="text-lg text-gray-500 line-through font-montserrat">{originalPrice}</span>
           </div>
-          <div className="text-[16px] md:text-[18px] leading-[1.65] md:leading-[1.7] text-[#1C1C1C] font-montserrat">Đã bán {unitsSold} chai</div>
 
           <div className="grid gap-4">
-            <div className="grid gap-4">
-              <div className="pb-2">
-                <h3 className="text-[13px] sm:text-[14px] font-light uppercase tracking-[2.8px] sm:tracking-[3.2px] text-[#1C1C1C]">Thông tin rượu</h3>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 text-[16px] sm:text-[18px] leading-[1.65] sm:leading-[1.70] text-[#1C1C1C] font-montserrat">
-                <div className="flex justify-between border-b pb-1">
-                  <span className="font-medium">Giống nho:</span>
-                  <span className="text-right">{details.grape}</span>
-                </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span className="font-medium">Vùng:</span>
-                  <span className="text-right">{details.region}</span>
-                </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span className="font-medium">Năm sản xuất:</span>
-                  <span className="text-right">{details.vintage}</span>
-                </div>
-                <div className="flex justify-between border-b pb-1">
-                  <span className="font-medium">Nồng độ:</span>
-                  <span className="text-right">{details.alcoholContent}</span>
-                </div>
-                <div className="flex justify-between border-b pb-1 col-span-2">
-                  <span className="font-medium">Nhà sản xuất:</span>
-                  <span className="text-right">{details.producer}</span>
-                </div>
-              </div>
-            </div>
-
             <div className="grid gap-3">
               <div className="pb-2">
                 <h3 className="text-[13px] sm:text-[14px] font-light uppercase tracking-[2.8px] sm:tracking-[3.2px] text-[#1C1C1C]">Mô tả</h3>
@@ -174,6 +165,20 @@ export default function ProductDetailPage() {
               <p className="text-[16px] sm:text-[18px] leading-[1.65] sm:leading-[1.70] text-[#1C1C1C] font-montserrat">
                 {description}
               </p>
+            </div>
+
+            {/* Wine Information Section */}
+            <div className="grid gap-3">
+              <div className="pb-2">
+                <h3 className="text-[13px] sm:text-[14px] font-light uppercase tracking-[2.8px] sm:tracking-[3.2px] text-[#1C1C1C]">Thông tin rượu</h3>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <MetaRow icon={Grape} label={details.grape} />
+                <MetaRow icon={WineIcon} label={details.wineType} />
+                <MetaRow icon={Building2} label={details.producer} />
+                <MetaRow icon={Globe} label={`Vang ${details.country}`} />
+                <MetaRow icon={Percent} label={details.alcoholContent} />
+              </div>
             </div>
 
             <div className="pt-2">

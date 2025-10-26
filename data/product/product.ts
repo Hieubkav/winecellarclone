@@ -18,6 +18,8 @@ export interface WineProduct {
     vintage: string;
     alcoholContent: string;
     producer: string;
+    wineType: string;
+    country: string;
   };
   description: string;
   badgeText: string;
@@ -44,10 +46,12 @@ export const wineProductData: WineProduct = {
   },
   details: {
     grape: "Chardonnay",
-    region: "Ardeche, Pháp",
+    region: "Ardeche",
     vintage: "2022",
     alcoholContent: "13%",
-    producer: "Louis Latour"
+    producer: "Louis Latour",
+    wineType: "Vang trắng",
+    country: "Pháp"
   },
   description: "Rượu vang Louis Latour Ardeche Chardonnay 2022 mang đến hương vị tinh tế của giống nho Chardonnay hảo hạng. Vang có màu vàng rơm sáng bóng, hương thơm phức hợp của trái cây nhiệt đới, hoa trắng và một chút vanilla. Vị vang cân bằng, mềm mại với độ chua vừa phải và hậu vị kéo dài, mang lại cảm giác sảng khoái.",
   badgeText: "Mới"
