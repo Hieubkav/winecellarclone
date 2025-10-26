@@ -98,8 +98,8 @@ export function FilterProductCard({ wine, viewMode }: ProductCardProps) {
             {wine.name}
           </h3>
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 w-full">
-            <p className="text-sm sm:text-base font-semibold text-[#9B2C3B]">
+          <div className="flex flex-col items-center sm:flex-row sm:items-center justify-between gap-0.5 w-full">
+            <p className="text-sm sm:text-base font-semibold text-[#9B2C3B] text-center sm:text-left">
               {formatPrice(wine.price)}
             </p>
 

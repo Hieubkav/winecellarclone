@@ -1,5 +1,5 @@
 export const wineTypes = [
-  { id: "Vang d?", label: "Vang d?", icon: "??" },
+  { id: "Vang đỏ", label: "Vang đỏ", icon: "??" },
   { id: "Vang trắng", label: "Vang trắng", icon: "??" },
   { id: "Vang hồng", label: "Vang hồng", icon: "??" },
   { id: "Vang sủi", label: "Vang sủi", icon: "??" },
@@ -11,7 +11,7 @@ export const wineTypes = [
 
 export const categories = [
   { id: "all", label: "Tất cả", icon: "??" },
-  { id: "Vang d?", label: "Vang d?", icon: "??" },
+  { id: "Vang đỏ", label: "Vang đỏ", icon: "??" },
   { id: "Vang trắng", label: "Vang trắng", icon: "??" },
   { id: "Vang hồng", label: "Vang hồng", icon: "??" },
   { id: "Vang sủi", label: "Vang sủi", icon: "??" },
