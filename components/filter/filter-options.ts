@@ -84,6 +84,14 @@ export const brands = [
   { id: "Vega Sicilia", label: "Vega Sicilia" }
 ];
 
+export const alcoholContents = [
+  { id: "10", label: "Dưới 10%" },
+  { id: "10-12", label: "10% - 12%" },
+  { id: "12-14", label: "12% - 14%" },
+  { id: "14-16", label: "14% - 16%" },
+  { id: "over16", label: "Trên 16%" }
+];
+
 export const colors = [
   { id: "red", label: "Red", color: "bg-red-500" },
   { id: "orange", label: "Orange", color: "bg-orange-500" },

@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useWineStore } from "@/data/filter/store";
 import type { Wine } from "@/data/filter/store";
 import { FilterProductCard } from "./product-card";
-import { brands, categories, countries, grapeVarieties, regions } from "./filter-options";
+import { brands, categories, countries, grapeVarieties, regions, alcoholContents } from "./filter-options";
 
 // Filter component for reuse in both desktop and mobile
 function FilterSection() {
@@ -25,6 +25,7 @@ function FilterSection() {
     selectedGrapeVarieties,
     selectedRegions,
     selectedBrands,
+    selectedAlcoholContents,
     selectedCategory, // Added selectedCategory
     setPriceRange,
     toggleWineType,
@@ -32,6 +33,7 @@ function FilterSection() {
     toggleGrapeVariety,
     toggleRegion,
     toggleBrand,
+    toggleAlcoholContent,
     setSelectedCategory // Added setSelectedCategory
   } = useWineStore();
 
@@ -182,6 +184,27 @@ function FilterSection() {
               />
             </div>
           </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Alcohol Content */}
+      <div>
+        <h3 className="mb-3 font-semibold">Nồng độ rượu</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {alcoholContents.map((alcohol) => (
+            <div key={alcohol.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`alcohol-${alcohol.id}`}
+                checked={selectedAlcoholContents.includes(alcohol.id)}
+                onCheckedChange={() => toggleAlcoholContent(alcohol.id)}
+              />
+              <Label htmlFor={`alcohol-${alcohol.id}`} className="cursor-pointer text-sm font-normal">
+                {alcohol.label}
+              </Label>
+            </div>
+          ))}
         </div>
       </div>
     </div>

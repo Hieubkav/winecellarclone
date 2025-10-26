@@ -38,6 +38,7 @@ interface WineStore {
   selectedRegions: string[]; // vùng nổi tiếng
   selectedBrands: string[]; // thương hiệu
   selectedColors: string[];
+  selectedAlcoholContents: string[]; // nồng độ rượu
   deliveryDate: string;
   viewMode: string;
   sortBy: SortOption; // Thêm trạng thái sắp xếp
@@ -52,6 +53,7 @@ interface WineStore {
   toggleRegion: (region: string) => void;
   toggleBrand: (brand: string) => void;
   toggleColor: (color: string) => void;
+  toggleAlcoholContent: (alcoholContent: string) => void; // nồng độ rượu
   setDeliveryDate: (date: string) => void;
   setViewMode: (mode: string) => void;
   setSortBy: (sortBy: SortOption) => void; // Thêm hành động sắp xếp
@@ -401,6 +403,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
   selectedRegions: [], // vùng nổi tiếng
   selectedBrands: [], // thương hiệu
   selectedColors: [],
+  selectedAlcoholContents: [], // nồng độ rượu
   deliveryDate: "any",
   viewMode: "grid",
   sortBy: 'name-asc', // Mặc định sắp xếp theo tên A-Z
@@ -475,6 +478,15 @@ export const useWineStore = create<WineStore>((set, get) => ({
     get().applyFilters();
   },
 
+  toggleAlcoholContent: (alcoholContent) => {
+    const { selectedAlcoholContents } = get();
+    const newAlcoholContents = selectedAlcoholContents.includes(alcoholContent)
+      ? selectedAlcoholContents.filter((ac) => ac !== alcoholContent)
+      : [...selectedAlcoholContents, alcoholContent];
+    set({ selectedAlcoholContents: newAlcoholContents });
+    get().applyFilters();
+  },
+
   setDeliveryDate: (date) => {
     set({ deliveryDate: date });
     get().applyFilters();
@@ -502,6 +514,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
       selectedRegions,
       selectedBrands,
       selectedColors,
+      selectedAlcoholContents,
       deliveryDate,
       sortBy
     } = get();
@@ -569,6 +582,20 @@ export const useWineStore = create<WineStore>((set, get) => ({
       filtered = filtered.filter((wine) =>
         wine.colors.some((color) => selectedColors.includes(color))
       );
+    }
+
+    // Alcohol content filter (nồng độ rượu)
+    if (selectedAlcoholContents.length > 0) {
+      filtered = filtered.filter((wine) => {
+        return selectedAlcoholContents.some(ac => {
+          if (ac === "10") return wine.alcoholContent < 10;
+          if (ac === "10-12") return wine.alcoholContent >= 10 && wine.alcoholContent <= 12;
+          if (ac === "12-14") return wine.alcoholContent > 12 && wine.alcoholContent <= 14;
+          if (ac === "14-16") return wine.alcoholContent > 14 && wine.alcoholContent <= 16;
+          if (ac === "over16") return wine.alcoholContent > 16;
+          return false;
+        });
+      });
     }
 
     // Delivery date filter
