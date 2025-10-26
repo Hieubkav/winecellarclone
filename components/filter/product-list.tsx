@@ -14,7 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useWineStore } from "@/app/filter/store";
+import { useWineStore } from "@/data/filter/store";
 
 const wineTypes = [
   { id: "Vang đỏ", label: "Vang đỏ", icon: "🍷" },
