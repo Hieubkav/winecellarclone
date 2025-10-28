@@ -85,6 +85,7 @@ interface WineStoreState {
   wines: Wine[]
   meta: ProductListMeta | null
   loading: boolean
+  loadingMore: boolean
   error: string | null
   initialized: boolean
   viewMode: "grid" | "list"
@@ -92,7 +93,7 @@ interface WineStoreState {
 
 interface WineStoreActions {
   initialize: () => Promise<void>
-  fetchProducts: () => Promise<void>
+  fetchProducts: (append?: boolean) => Promise<boolean>
   resetFilters: () => void
   setViewMode: (mode: "grid" | "list") => void
   setSearchQuery: (query: string) => void
@@ -104,7 +105,7 @@ interface WineStoreActions {
   setPriceRange: (range: PriceRange) => void
   toggleAlcoholBucket: (bucket: AlcoholBucket) => void
   setSortBy: (sort: SortOption) => void
-  setPage: (page: number) => void
+  loadMore: () => Promise<void>
 }
 
 export interface WineStore extends WineStoreState, WineStoreActions {}
@@ -289,6 +290,7 @@ const initialState: WineStoreState = {
   wines: [],
   meta: null,
   loading: false,
+  loadingMore: false,
   error: null,
   initialized: false,
   viewMode: "grid",
@@ -301,7 +303,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
       return
     }
 
-    set({ loading: true, error: null })
+    set({ loading: true, loadingMore: false, error: null })
 
     try {
       const payload = await fetchProductFilters()
@@ -319,31 +321,47 @@ export const useWineStore = create<WineStore>((set, get) => ({
       await get().fetchProducts()
     } catch (error) {
       const message = error instanceof Error ? error.message : "Khong the tai tuy chon loc."
-      set({ error: message, loading: false })
+      set({ error: message, loading: false, loadingMore: false })
     }
   },
-  fetchProducts: async () => {
+  fetchProducts: async (append = false) => {
     const { filters, initialized } = get()
     if (!initialized) {
-      return
+      return false
     }
 
-    set({ loading: true, error: null })
+    if (append) {
+      set({ loadingMore: true, error: null })
+    } else {
+      set({ loading: true, loadingMore: false, error: null })
+    }
 
     try {
       const response = await fetchProductList(buildQueryParams(filters))
       const mapped = response.data.map(mapProductToWine)
-      const filtered = applySearch(mapped, filters.searchQuery)
+      set((state) => {
+        let nextProducts = mapped
 
-      set({
-        products: mapped,
-        wines: filtered,
-        meta: response.meta,
-        loading: false,
+        if (append) {
+          const existingIds = new Set(state.products.map((wine) => wine.id))
+          const appended = mapped.filter((wine) => !existingIds.has(wine.id))
+          nextProducts = [...state.products, ...appended]
+        }
+
+        return {
+          products: nextProducts,
+          wines: applySearch(nextProducts, filters.searchQuery),
+          meta: response.meta,
+          loading: false,
+          loadingMore: false,
+        }
       })
+
+      return true
     } catch (error) {
       const message = error instanceof Error ? error.message : "Khong the tai danh sach san pham."
-      set({ error: message, loading: false })
+      set({ error: message, loading: false, loadingMore: false })
+      return false
     }
   },
   resetFilters: () => {
@@ -466,13 +484,35 @@ export const useWineStore = create<WineStore>((set, get) => ({
     }))
     get().fetchProducts()
   },
-  setPage: (page) => {
+  loadMore: async () => {
+    const { filters, meta, initialized, loading, loadingMore } = get()
+    if (!initialized || loading || loadingMore || !meta) {
+      return
+    }
+
+    const totalPages = meta.per_page > 0 ? Math.ceil(meta.total / meta.per_page) : 0
+    const nextPage = filters.page + 1
+    if (totalPages === 0 || nextPage > totalPages) {
+      return
+    }
+
+    const previousPage = filters.page
+
     set((state) => ({
       filters: {
         ...state.filters,
-        page,
+        page: nextPage,
       },
     }))
-    get().fetchProducts()
+
+    const success = await get().fetchProducts(true)
+    if (!success) {
+      set((state) => ({
+        filters: {
+          ...state.filters,
+          page: previousPage,
+        },
+      }))
+    }
   },
 }))
