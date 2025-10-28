@@ -1,4 +1,35 @@
-const DEFAULT_API_BASE_URL = "http://localhost:8000/api";
+const resolveDefaultBaseUrl = (): string => {
+  const fromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  if (fromEnv && fromEnv.trim().length > 0) {
+    return fromEnv;
+  }
+
+  return "http://127.0.0.1:8000/api";
+};
+
+const DEFAULT_API_BASE_URL = resolveDefaultBaseUrl();
+
+const isServerEnvironment = typeof window === "undefined";
+
+const coerceLoopbackHostname = (input: string): string => {
+  if (!input || !isServerEnvironment) {
+    return input;
+  }
+
+  try {
+    const parsed = new URL(input);
+
+    if (parsed.hostname.toLowerCase() === "localhost") {
+      parsed.hostname = "127.0.0.1";
+      return parsed.toString();
+    }
+  } catch {
+    // Giữ nguyên chuỗi gốc khi không parse được URL
+  }
+
+  return input;
+};
 
 const normalizeUrl = (base: string, path: string): string => {
   const trimmedBase = base.endsWith("/") ? base.slice(0, -1) : base;
@@ -17,6 +48,8 @@ const resolveApiBaseUrl = (): string => {
   return DEFAULT_API_BASE_URL;
 };
 
+const API_BASE_URL = coerceLoopbackHostname(resolveApiBaseUrl());
+
 export class ApiError extends Error {
   public readonly status: number;
   public readonly payload: unknown;
@@ -33,7 +66,7 @@ export async function apiFetch<TResponse>(
   path: string,
   init?: RequestInit
 ): Promise<TResponse> {
-  const url = normalizeUrl(resolveApiBaseUrl(), path);
+  const url = normalizeUrl(API_BASE_URL, path);
 
   const response = await fetch(url, {
     ...init,

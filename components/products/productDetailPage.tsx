@@ -33,7 +33,7 @@ const currencyFormatter = new Intl.NumberFormat("vi-VN", {
 
 const formatPrice = (product: ProductDetail): string => {
   if (product.show_contact_cta || !product.price || product.price <= 0) {
-    return "Li�n h?";
+    return "Liên hệ";
   }
 
   return currencyFormatter.format(product.price);
@@ -84,7 +84,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
   const badgeText = useMemo(() => {
     if (product.discount_percent) {
-      return `Gi?m ${product.discount_percent}%`;
+      return `Giảm ${product.discount_percent}%`;
     }
 
     if (product.badges && product.badges.length > 0) {
@@ -136,8 +136,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     setMainImageIndex(index);
   };
 
-  const categoryLabel = product.category?.name ?? product.type?.name ?? "S?n ph?m";
-  const description = product.description ?? "N?i dung s?n ph?m ?ang c?p nh?t.";
+  const categoryLabel = product.category?.name ?? product.type?.name ?? "Sản phẩm";
+  const description = product.description ?? "Nội dung sản phẩm đang cập nhật.";
   const priceLabel = formatPrice(product);
   const originalPriceLabel = formatOriginalPrice(product);
 
@@ -260,7 +260,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             <div className="grid gap-3">
               <div className="pb-2">
                 <h3 className="text-[13px] sm:text-[14px] font-light uppercase tracking-[2.8px] sm:tracking-[3.2px] text-[#1C1C1C]">
-                  M� t?
+                  Mô tả
                 </h3>
               </div>
               <p className="text-[16px] sm:text-[18px] leading-[1.65] sm:leading-[1.70] text-[#1C1C1C] font-montserrat">
@@ -272,7 +272,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             <div className="grid gap-3">
               <div className="pb-2">
                 <h3 className="text-[13px] sm:text-[14px] font-light uppercase tracking-[2.8px] sm:tracking-[3.2px] text-[#1C1C1C]">
-                  Th�ng tin ru?u
+                  Thông tin rượu
                 </h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -284,7 +284,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
             <div className="pt-2">
               <Button className="h-12 w-full text-lg bg-[#ECAA4D] text-white hover:bg-[#d9973a]">
-                Li�n h?
+                Liên hệ
               </Button>
             </div>
           </div>

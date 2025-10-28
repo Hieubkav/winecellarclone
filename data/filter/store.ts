@@ -204,11 +204,11 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
   }
 
   if (filters.countryIds.length > 0) {
-    params["terms[origin.country][]"] = filters.countryIds
+    params["terms[origin][country][]"] = filters.countryIds
   }
 
   if (filters.regionIds.length > 0) {
-    params["terms[origin.region][]"] = filters.regionIds
+    params["terms[origin][region][]"] = filters.regionIds
   }
 
   if (filters.grapeIds.length > 0) {
