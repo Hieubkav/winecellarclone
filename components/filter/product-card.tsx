@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Building2,
@@ -19,11 +19,12 @@ const numberFormatter = new Intl.NumberFormat("vi-VN", {
   maximumFractionDigits: 0
 });
 
-const formatPrice = (value: number | undefined) => {
-  if (typeof value !== "number") {
-    return null;
+const getDisplayPrice = (wine: Wine): string => {
+  if (wine.showContactCta || typeof wine.price !== "number" || wine.price <= 0) {
+    return "Li�n h?";
   }
-  return numberFormatter.format(value) + " VND";
+
+  return `${numberFormatter.format(wine.price)} VND`;
 };
 
 interface ProductCardProps {
@@ -34,14 +35,6 @@ interface ProductCardProps {
 interface MetaItem {
   icon: LucideIcon;
   label: string;
-}
-
-function MetaBadge({ label }: { label: string }) {
-  return (
-    <Badge className="bg-[#9B2C3B] text-white tracking-[0.18em] text-[11px] font-light uppercase rounded-full px-3 py-1">
-      {label}
-    </Badge>
-  );
 }
 
 function MetaRow({ icon: Icon, label }: MetaItem) {
@@ -57,11 +50,15 @@ function MetaRow({ icon: Icon, label }: MetaItem) {
 
 export function FilterProductCard({ wine, viewMode }: ProductCardProps) {
   const metaItems: MetaItem[] = [
-    { icon: Grape, label: wine.grapeVariety },
-    { icon: WineIcon, label: wine.wineType },
-    { icon: Building2, label: wine.producer || wine.brand },
-    { icon: Globe, label: `Vang ${wine.country}` },
-    { icon: Percent, label: `${wine.alcoholContent}% ABV` }
+    { icon: Grape, label: wine.grapeVariety ?? "" },
+    { icon: WineIcon, label: wine.wineType ?? "" },
+    { icon: Building2, label: wine.producer || wine.brand || "" },
+    { icon: Globe, label: wine.country ? `Vang ${wine.country}` : "" },
+    {
+      icon: Percent,
+      label:
+        typeof wine.alcoholContent === "number" ? `${wine.alcoholContent}% ABV` : "",
+    },
   ];
 
   const layoutClass = 
@@ -100,11 +97,11 @@ export function FilterProductCard({ wine, viewMode }: ProductCardProps) {
           
           <div className="flex flex-col items-center sm:flex-row sm:items-center justify-between gap-0.5 w-full">
             <p className="text-sm sm:text-base font-semibold text-[#9B2C3B] text-center sm:text-left">
-              {formatPrice(wine.price)}
+              {getDisplayPrice(wine)}
             </p>
 
-            <Button className="w-full sm:w-auto rounded-none sm:rounded-full bg-[#ECAA4D] py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1C1C1C] hover:bg-[#d2923f] shadow-none border-0">
-              Xem ngay
+            <Button className="w-full sm:w-auto rounded-none sm:rounded-full bg-[#ECAA4D] py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1C1C1C] hover:bg-[#d2923f] shadow-none border-0" asChild>
+              <Link href={`/products/${wine.slug}`}>Xem ngay</Link>
             </Button>
           </div>
         </div>

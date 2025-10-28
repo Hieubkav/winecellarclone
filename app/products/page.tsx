@@ -1,5 +1,5 @@
-import ProductDetailPage from "@/components/products/productDetailPage";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return <ProductDetailPage />;
+export default function ProductsPage() {
+  redirect("/filter");
 }

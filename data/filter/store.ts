@@ -1,632 +1,478 @@
-import { create } from "zustand";
+import { create } from "zustand"
+
+import {
+  fetchProductFilters,
+  fetchProductList,
+  type CountryFilterOption,
+  type ProductFilterOption,
+  type ProductListItem,
+  type ProductListMeta,
+} from "@/lib/api/products"
+
+const DEFAULT_PRICE_MAX = 10_000_000
+const DEFAULT_ALCOHOL_RANGE: [number, number] = [0, 100]
+const DEFAULT_PER_PAGE = 12
+
+export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc"
+
+type FilterOption = ProductFilterOption
+
+type PriceRange = [number, number]
+
+type AlcoholBucket = "10" | "10-12" | "12-14" | "14-16" | "over16"
+
+const ALCOHOL_BUCKETS: Record<AlcoholBucket, { min: number | null; max: number | null }> = {
+  "10": { min: null, max: 10 },
+  "10-12": { min: 10, max: 12 },
+  "12-14": { min: 12, max: 14 },
+  "14-16": { min: 14, max: 16 },
+  over16: { min: 16, max: null },
+}
+
+const SORT_TO_API: Record<SortOption, string> = {
+  "name-asc": "name",
+  "name-desc": "-name",
+  "price-asc": "price",
+  "price-desc": "-price",
+}
 
 export interface Wine {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  rating: number;
-  orders: number;
-  producer: string;
-  image: string;
-  isNew: boolean;
-  wineType: string; // instead of 'category'
-  brand: string;
-  colors: string[];
-  deliveryDays: number;
-  vintage: number;
-  grapeVariety: string; // instead of 'grape'
-  region: string;
-  country: string; // separate country field
-  alcoholContent: number;
-  volume: number;
+  id: number
+  slug: string
+  name: string
+  price: number | null
+  originalPrice?: number | null
+  discountPercent?: number | null
+  producer?: string | null
+  image?: string | null
+  badges?: string[]
+  wineType?: string | null
+  brand?: string | null
+  country?: string | null
+  alcoholContent?: number | null
+  volume?: number | null
+  showContactCta?: boolean
 }
 
-type SortOption = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
-
-interface WineStore {
-  // State
-  wines: Wine[];
-  filteredWines: Wine[];
-  selectedCategory: string;
-  searchQuery: string;
-  priceRange: [number, number];
-  selectedWineTypes: string[]; // loại rượu
-  selectedCountries: string[]; // quốc gia
-  selectedGrapeVarieties: string[]; // giống nho
-  selectedRegions: string[]; // vùng nổi tiếng
-  selectedBrands: string[]; // thương hiệu
-  selectedColors: string[];
-  selectedAlcoholContents: string[]; // nồng độ rượu
-  deliveryDate: string;
-  viewMode: string;
-  sortBy: SortOption; // Thêm trạng thái sắp xếp
-
-  // Actions
-  setSelectedCategory: (category: string) => void;
-  setSearchQuery: (query: string) => void;
-  setPriceRange: (range: [number, number]) => void;
-  toggleWineType: (type: string) => void; // instead of toggleType
-  toggleCountry: (country: string) => void;
-  toggleGrapeVariety: (grape: string) => void; // instead of toggleGrape
-  toggleRegion: (region: string) => void;
-  toggleBrand: (brand: string) => void;
-  toggleColor: (color: string) => void;
-  toggleAlcoholContent: (alcoholContent: string) => void; // nồng độ rượu
-  setDeliveryDate: (date: string) => void;
-  setViewMode: (mode: string) => void;
-  setSortBy: (sortBy: SortOption) => void; // Thêm hành động sắp xếp
-  applyFilters: () => void;
+interface FilterOptionsState {
+  categories: FilterOption[]
+  brands: FilterOption[]
+  grapes: FilterOption[]
+  countries: CountryFilterOption[]
+  regions: FilterOption[]
+  priceRange: PriceRange
+  alcoholRange: PriceRange
 }
 
-// Sample wines data with comprehensive filtering properties
-const sampleWines: Wine[] = [
-  {
-    id: 1,
-    name: "Rượu vang đỏ Château Margaux Grand Vin 2018",
-    price: 2499.0,
-    originalPrice: 2999.0,
-    discount: 17,
-    rating: 4.9,
-    orders: 124,
-    producer: "Château Margaux",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang đỏ",
-    brand: "Château Margaux",
-    colors: ["red"],
-    deliveryDays: 2,
-    vintage: 2018,
-    grapeVariety: "Cabernet Sauvignon, Merlot",
-    region: "Bordeaux",
-    country: "Pháp",
-    alcoholContent: 13.5,
-    volume: 750
-  },
-  {
-    id: 2,
-    name: "Rượu vang trắng Chablis Premier Cru 2020",
-    price: 1299.0,
-    originalPrice: 1599.0,
-    discount: 19,
-    rating: 4.7,
-    orders: 98,
-    producer: "Domaine William Fèvre",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang trắng",
-    brand: "William Fèvre",
-    colors: ["yellow"],
-    deliveryDays: 3,
-    vintage: 2020,
-    grapeVariety: "Chardonnay",
-    region: "Burgundy",
-    country: "Pháp",
-    alcoholContent: 12.8,
-    volume: 750
-  },
-  {
-    id: 3,
-    name: "Rượu vang hồng Côtes de Provence Rosé 2021",
-    price: 699.0,
-    originalPrice: 899.0,
-    discount: 22,
-    rating: 4.5,
-    orders: 254,
-    producer: "Château d'Esclans",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: false,
-    wineType: "Vang hồng",
-    brand: "Château d'Esclans",
-    colors: ["pink"],
-    deliveryDays: 2,
-    vintage: 2021,
-    grapeVariety: "Grenache, Cinsault, Rolle",
-    region: "Provence",
-    country: "Pháp",
-    alcoholContent: 13.0,
-    volume: 750
-  },
-  {
-    id: 4,
-    name: "Rượu vang sủi bong bóng Prosecco Valdobbiadene DOCG",
-    price: 749.0,
-    originalPrice: 999.0,
-    discount: 25,
-    rating: 4.8,
-    orders: 416,
-    producer: "Nino Franco",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang sủi",
-    brand: "Nino Franco",
-    colors: ["yellow"],
-    deliveryDays: 1,
-    vintage: 2021,
-    grapeVariety: "Glera",
-    region: "Veneto",
-    country: "Ý",
-    alcoholContent: 11.0,
-    volume: 750
-  },
-  {
-    id: 5,
-    name: "Rượu vang đỏ Barolo DOCG 2017",
-    price: 1899.0,
-    rating: 4.9,
-    orders: 154,
-    producer: "Giacomo Conterno",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: false,
-    wineType: "Vang đỏ",
-    brand: "Giacomo Conterno",
-    colors: ["red"],
-    deliveryDays: 4,
-    vintage: 2017,
-    grapeVariety: "Nebbiolo",
-    region: "Piedmont",
-    country: "Ý",
-    alcoholContent: 14.5,
-    volume: 750
-  },
-  {
-    id: 6,
-    name: "Rượu vang trắng Riesling S.A. Prüm 2019",
-    price: 1599.0,
-    originalPrice: 1999.0,
-    discount: 20,
-    rating: 4.8,
-    orders: 87,
-    producer: "S.A. Prüm",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang trắng",
-    brand: "S.A. Prüm",
-    colors: ["yellow"],
-    deliveryDays: 5,
-    vintage: 2019,
-    grapeVariety: "Riesling",
-    region: "Mosel",
-    country: "Đức",
-    alcoholContent: 12.5,
-    volume: 750
-  },
-  {
-    id: 7,
-    name: "Rượu vang đỏ Pinot Noir Domaine de la Romanée-Conti 2018",
-    price: 4999.0,
-    originalPrice: 5999.0,
-    discount: 17,
-    rating: 5.0,
-    orders: 34,
-    producer: "Domaine de la Romanée-Conti",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang đỏ",
-    brand: "Domaine de la Romanée-Conti",
-    colors: ["red"],
-    deliveryDays: 7,
-    vintage: 2018,
-    grapeVariety: "Pinot Noir",
-    region: "Burgundy",
-    country: "Pháp",
-    alcoholContent: 13.0,
-    volume: 750
-  },
-  {
-    id: 8,
-    name: "Rượu vang đỏ Rioja Reserva Vina Ardanza 2016",
-    price: 1199.0,
-    rating: 4.6,
-    orders: 234,
-    producer: "Lopez de Heredia",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: false,
-    wineType: "Vang đỏ",
-    brand: "Vina Ardanza",
-    colors: ["red"],
-    deliveryDays: 3,
-    vintage: 2016,
-    grapeVariety: "Tempranillo, Garnacha",
-    region: "Rioja",
-    country: "Tây Ban Nha",
-    alcoholContent: 13.5,
-    volume: 750
-  },
-  {
-    id: 9,
-    name: "Rượu vang trắng Sauvignon Blanc Cloudy Bay 2020",
-    price: 1499.0,
-    originalPrice: 1799.0,
-    discount: 17,
-    rating: 4.7,
-    orders: 112,
-    producer: "Cloudy Bay",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang trắng",
-    brand: "Cloudy Bay",
-    colors: ["yellow"],
-    deliveryDays: 2,
-    vintage: 2020,
-    grapeVariety: "Sauvignon Blanc",
-    region: "Marlborough",
-    country: "New Zealand",
-    alcoholContent: 13.0,
-    volume: 750
-  },
-  {
-    id: 10,
-    name: "Rượu vang đỏ Amarone della Valpolicella 2017",
-    price: 2199.0,
-    originalPrice: 2599.0,
-    discount: 15,
-    rating: 4.8,
-    orders: 78,
-    producer: "Dal Forno Romano",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang đỏ",
-    brand: "Dal Forno Romano",
-    colors: ["red"],
-    deliveryDays: 6,
-    vintage: 2017,
-    grapeVariety: "Corvina, Rondinella, Molinara",
-    region: "Valpolicella",
-    country: "Ý",
-    alcoholContent: 15.5,
-    volume: 750
-  },
-  {
-    id: 11,
-    name: "Rượu vang sủi bong bóng Champagne Veuve Clicquot",
-    price: 2299.0,
-    originalPrice: 2699.0,
-    discount: 15,
-    rating: 4.9,
-    orders: 367,
-    producer: "Veuve Clicquot",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: false,
-    wineType: "Vang sủi",
-    brand: "Veuve Clicquot",
-    colors: ["yellow"],
-    deliveryDays: 1,
-    vintage: 2016,
-    grapeVariety: "Chardonnay, Pinot Noir, Pinot Meunier",
-    region: "Champagne",
-    country: "Pháp",
-    alcoholContent: 12.0,
-    volume: 750
-  },
-  {
-    id: 12,
-    name: "Rượu vang đỏ Napa Valley Cabernet Sauvignon 2019",
-    price: 1799.0,
-    originalPrice: 1999.0,
-    discount: 10,
-    rating: 4.7,
-    orders: 194,
-    producer: "Opus One",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang đỏ",
-    brand: "Opus One",
-    colors: ["red"],
-    deliveryDays: 4,
-    vintage: 2019,
-    grapeVariety: "Cabernet Sauvignon",
-    region: "Napa Valley",
-    country: "Mỹ",
-    alcoholContent: 14.5,
-    volume: 750
-  },
-  {
-    id: 13,
-    name: "Rượu vang đỏ Penfolds Grange 2018",
-    price: 3299.0,
-    originalPrice: 3999.0,
-    discount: 18,
-    rating: 4.9,
-    orders: 89,
-    producer: "Penfolds",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang đỏ",
-    brand: "Penfolds",
-    colors: ["red"],
-    deliveryDays: 5,
-    vintage: 2018,
-    grapeVariety: "Shiraz",
-    region: "South Australia",
-    country: "Úc",
-    alcoholContent: 14.0,
-    volume: 750
-  },
-  {
-    id: 14,
-    name: "Rượu vang trắng Cloudy Bay Sauvignon Blanc 2021",
-    price: 1199.0,
-    originalPrice: 1499.0,
-    discount: 20,
-    rating: 4.6,
-    orders: 145,
-    producer: "Cloudy Bay",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: true,
-    wineType: "Vang trắng",
-    brand: "Cloudy Bay",
-    colors: ["yellow"],
-    deliveryDays: 2,
-    vintage: 2021,
-    grapeVariety: "Sauvignon Blanc",
-    region: "Marlborough",
-    country: "New Zealand",
-    alcoholContent: 12.5,
-    volume: 750
-  },
-  {
-    id: 15,
-    name: "Rượu vang đỏ Vega Sicilia Único 2016",
-    price: 2799.0,
-    originalPrice: 3299.0,
-    discount: 15,
-    rating: 4.8,
-    orders: 65,
-    producer: "Vega Sicilia",
-    image: "https://winecellar.vn/wp-content/uploads/2021/03/gemma-di-luna-moscato-vino-300x400.jpg",
-    isNew: false,
-    wineType: "Vang đỏ",
-    brand: "Vega Sicilia",
-    colors: ["red"],
-    deliveryDays: 6,
-    vintage: 2016,
-    grapeVariety: "Tinto Fino (Tempranillo)",
-    region: "Ribera del Duero",
-    country: "Tây Ban Nha",
-    alcoholContent: 14.0,
-    volume: 750
+interface FiltersState {
+  categoryId: number | null
+  brandIds: number[]
+  grapeIds: number[]
+  countryIds: number[]
+  regionIds: number[]
+  priceRange: PriceRange
+  alcoholBuckets: AlcoholBucket[]
+  sortBy: SortOption
+  searchQuery: string
+  page: number
+  perPage: number
+}
+
+interface WineStoreState {
+  options: FilterOptionsState
+  filters: FiltersState
+  products: Wine[]
+  wines: Wine[]
+  meta: ProductListMeta | null
+  loading: boolean
+  error: string | null
+  initialized: boolean
+  viewMode: "grid" | "list"
+}
+
+interface WineStoreActions {
+  initialize: () => Promise<void>
+  fetchProducts: () => Promise<void>
+  resetFilters: () => void
+  setViewMode: (mode: "grid" | "list") => void
+  setSearchQuery: (query: string) => void
+  setSelectedCategory: (id: number | null) => void
+  toggleBrand: (id: number) => void
+  toggleGrape: (id: number) => void
+  toggleCountry: (id: number) => void
+  toggleRegion: (id: number) => void
+  setPriceRange: (range: PriceRange) => void
+  toggleAlcoholBucket: (bucket: AlcoholBucket) => void
+  setSortBy: (sort: SortOption) => void
+  setPage: (page: number) => void
+}
+
+export interface WineStore extends WineStoreState, WineStoreActions {}
+
+const mapProductToWine = (product: ProductListItem): Wine => {
+  const fallbackImage = product.gallery.find((image) => image.url)?.url ?? null
+
+  return {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    originalPrice: product.original_price,
+    discountPercent: product.discount_percent,
+    producer: product.brand_term?.name ?? null,
+    brand: product.brand_term?.name ?? null,
+    country: product.country_term?.name ?? null,
+    alcoholContent: product.alcohol_percent,
+    volume: product.volume_ml,
+    image: product.main_image_url ?? fallbackImage,
+    badges: product.badges,
+    wineType: product.type?.name ?? product.category?.name ?? null,
+    showContactCta: product.show_contact_cta,
   }
-];
+}
+
+const applySearch = (items: Wine[], query: string): Wine[] => {
+  const normalized = query.trim().toLowerCase()
+  if (!normalized) {
+    return items
+  }
+
+  return items.filter((wine) => {
+    const haystack = [
+      wine.name,
+      wine.brand ?? "",
+      wine.producer ?? "",
+      wine.country ?? "",
+    ]
+      .join(" ")
+      .toLowerCase()
+
+    return haystack.includes(normalized)
+  })
+}
+
+const ensureRangeWithinBounds = (range: PriceRange, bounds: PriceRange): PriceRange => {
+  const [min, max] = range
+  const [boundMin, boundMax] = bounds
+
+  const safeMin = Math.max(boundMin, min)
+  const safeMax = Math.min(boundMax, max)
+
+  if (safeMin > safeMax) {
+    return [safeMin, safeMin]
+  }
+
+  return [safeMin, safeMax]
+}
+
+const toggleIdInList = (list: number[], id: number): number[] => {
+  return list.includes(id) ? list.filter((value) => value !== id) : [...list, id]
+}
+
+const computeAlcoholRange = (buckets: AlcoholBucket[]): { min: number | null; max: number | null } => {
+  if (buckets.length === 0) {
+    return { min: null, max: null }
+  }
+
+  let min: number | null = null
+  let max: number | null = null
+
+  buckets.forEach((bucket) => {
+    const config = ALCOHOL_BUCKETS[bucket]
+    if (config.min !== null) {
+      min = min === null ? config.min : Math.min(min, config.min)
+    }
+    if (config.max !== null) {
+      max = max === null ? config.max : Math.max(max, config.max)
+    }
+  })
+
+  return { min, max }
+}
+
+const buildQueryParams = (filters: FiltersState): Record<string, string | number | Array<string | number> | undefined> => {
+  const params: Record<string, string | number | Array<string | number> | undefined> = {
+    page: filters.page,
+    per_page: filters.perPage,
+    sort: SORT_TO_API[filters.sortBy],
+    price_min: filters.priceRange[0],
+    price_max: filters.priceRange[1],
+  }
+
+  if (filters.brandIds.length > 0) {
+    params["terms[brand][]"] = filters.brandIds
+  }
+
+  if (filters.countryIds.length > 0) {
+    params["terms[origin.country][]"] = filters.countryIds
+  }
+
+  if (filters.regionIds.length > 0) {
+    params["terms[origin.region][]"] = filters.regionIds
+  }
+
+  if (filters.grapeIds.length > 0) {
+    params["terms[grape][]"] = filters.grapeIds
+  }
+
+  if (filters.categoryId) {
+    params["category[]"] = [filters.categoryId]
+  }
+
+  const alcoholRange = computeAlcoholRange(filters.alcoholBuckets)
+  if (alcoholRange.min !== null) {
+    params.alcohol_min = alcoholRange.min
+  }
+
+  if (alcoholRange.max !== null) {
+    params.alcohol_max = alcoholRange.max
+  }
+
+  return params
+}
+
+const transformOptions = (payload: {
+  categories: FilterOption[]
+  brands: FilterOption[]
+  grapes: FilterOption[]
+  countries: CountryFilterOption[]
+  price: { min: number; max: number }
+  alcohol: { min: number; max: number }
+}): FilterOptionsState => {
+  const priceRange: PriceRange = [
+    Math.max(0, payload.price.min ?? 0),
+    Math.max(payload.price.max ?? 0, DEFAULT_PRICE_MAX),
+  ]
+
+  const regions: FilterOption[] = payload.countries.flatMap((country) => country.regions)
+
+  const alcoholRange: PriceRange = [
+    Math.max(0, payload.alcohol.min ?? DEFAULT_ALCOHOL_RANGE[0]),
+    Math.max(payload.alcohol.max ?? DEFAULT_ALCOHOL_RANGE[1], DEFAULT_ALCOHOL_RANGE[1]),
+  ]
+
+  return {
+    categories: payload.categories,
+    brands: payload.brands,
+    grapes: payload.grapes,
+    countries: payload.countries,
+    regions,
+    priceRange,
+    alcoholRange,
+  }
+}
+
+const initialState: WineStoreState = {
+  options: {
+    categories: [],
+    brands: [],
+    grapes: [],
+    countries: [],
+    regions: [],
+    priceRange: [0, DEFAULT_PRICE_MAX],
+    alcoholRange: DEFAULT_ALCOHOL_RANGE,
+  },
+  filters: {
+    categoryId: null,
+    brandIds: [],
+    grapeIds: [],
+    countryIds: [],
+    regionIds: [],
+    priceRange: [0, DEFAULT_PRICE_MAX],
+    alcoholBuckets: [],
+    sortBy: "name-asc",
+    searchQuery: "",
+    page: 1,
+    perPage: DEFAULT_PER_PAGE,
+  },
+  products: [],
+  wines: [],
+  meta: null,
+  loading: false,
+  error: null,
+  initialized: false,
+  viewMode: "grid",
+}
 
 export const useWineStore = create<WineStore>((set, get) => ({
-  // Initial state
-  wines: sampleWines,
-  filteredWines: sampleWines,
-  selectedCategory: "all",
-  searchQuery: "",
-  priceRange: [0, 5000],
-  selectedWineTypes: [], // loại rượu
-  selectedCountries: [], // quốc gia
-  selectedGrapeVarieties: [], // giống nho
-  selectedRegions: [], // vùng nổi tiếng
-  selectedBrands: [], // thương hiệu
-  selectedColors: [],
-  selectedAlcoholContents: [], // nồng độ rượu
-  deliveryDate: "any",
-  viewMode: "grid",
-  sortBy: 'name-asc', // Mặc định sắp xếp theo tên A-Z
+  ...initialState,
+  initialize: async () => {
+    if (get().initialized) {
+      return
+    }
 
-  // Actions
-  setSelectedCategory: (category) => {
-    set({ selectedCategory: category });
-    get().applyFilters();
+    set({ loading: true, error: null })
+
+    try {
+      const payload = await fetchProductFilters()
+      const options = transformOptions(payload)
+
+      set((state) => ({
+        options,
+        filters: {
+          ...state.filters,
+          priceRange: options.priceRange,
+        },
+        initialized: true,
+      }))
+
+      await get().fetchProducts()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Khong the tai tuy chon loc."
+      set({ error: message, loading: false })
+    }
   },
+  fetchProducts: async () => {
+    const { filters, initialized } = get()
+    if (!initialized) {
+      return
+    }
 
-  setSearchQuery: (query) => {
-    set({ searchQuery: query });
-    get().applyFilters();
+    set({ loading: true, error: null })
+
+    try {
+      const response = await fetchProductList(buildQueryParams(filters))
+      const mapped = response.data.map(mapProductToWine)
+      const filtered = applySearch(mapped, filters.searchQuery)
+
+      set({
+        products: mapped,
+        wines: filtered,
+        meta: response.meta,
+        loading: false,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Khong the tai danh sach san pham."
+      set({ error: message, loading: false })
+    }
   },
+  resetFilters: () => {
+    const { options, initialized } = get()
+    if (!initialized) {
+      return
+    }
 
-  setPriceRange: (range) => {
-    set({ priceRange: range });
-    get().applyFilters();
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        categoryId: null,
+        brandIds: [],
+        grapeIds: [],
+        countryIds: [],
+        regionIds: [],
+        priceRange: options.priceRange,
+        alcoholBuckets: [],
+        page: 1,
+        sortBy: "name-asc",
+        searchQuery: "",
+      },
+    }))
+
+    get().fetchProducts()
   },
-
-  toggleWineType: (type) => {
-    const { selectedWineTypes } = get();
-    const newWineTypes = selectedWineTypes.includes(type)
-      ? selectedWineTypes.filter((t) => t !== type)
-      : [...selectedWineTypes, type];
-    set({ selectedWineTypes: newWineTypes });
-    get().applyFilters();
-  },
-
-  toggleCountry: (country) => {
-    const { selectedCountries } = get();
-    const newCountries = selectedCountries.includes(country)
-      ? selectedCountries.filter((c) => c !== country)
-      : [...selectedCountries, country];
-    set({ selectedCountries: newCountries });
-    get().applyFilters();
-  },
-
-  toggleGrapeVariety: (grape) => {
-    const { selectedGrapeVarieties } = get();
-    const newGrapeVarieties = selectedGrapeVarieties.includes(grape)
-      ? selectedGrapeVarieties.filter((g) => g !== grape)
-      : [...selectedGrapeVarieties, grape];
-    set({ selectedGrapeVarieties: newGrapeVarieties });
-    get().applyFilters();
-  },
-
-  toggleRegion: (region) => {
-    const { selectedRegions } = get();
-    const newRegions = selectedRegions.includes(region)
-      ? selectedRegions.filter((r) => r !== region)
-      : [...selectedRegions, region];
-    set({ selectedRegions: newRegions });
-    get().applyFilters();
-  },
-
-  toggleBrand: (brand) => {
-    const { selectedBrands } = get();
-    const newBrands = selectedBrands.includes(brand)
-      ? selectedBrands.filter((b) => b !== brand)
-      : [...selectedBrands, brand];
-    set({ selectedBrands: newBrands });
-    get().applyFilters();
-  },
-
-  toggleColor: (color) => {
-    const { selectedColors } = get();
-    const newColors = selectedColors.includes(color)
-      ? selectedColors.filter((c) => c !== color)
-      : [...selectedColors, color];
-    set({ selectedColors: newColors });
-    get().applyFilters();
-  },
-
-  toggleAlcoholContent: (alcoholContent) => {
-    const { selectedAlcoholContents } = get();
-    const newAlcoholContents = selectedAlcoholContents.includes(alcoholContent)
-      ? selectedAlcoholContents.filter((ac) => ac !== alcoholContent)
-      : [...selectedAlcoholContents, alcoholContent];
-    set({ selectedAlcoholContents: newAlcoholContents });
-    get().applyFilters();
-  },
-
-  setDeliveryDate: (date) => {
-    set({ deliveryDate: date });
-    get().applyFilters();
-  },
-
   setViewMode: (mode) => {
-    set({ viewMode: mode });
+    set({ viewMode: mode })
   },
-
-  setSortBy: (sortBy) => {
-    set({ sortBy });
-    // Gọi lại applyFilters để áp dụng sắp xếp
-    get().applyFilters();
+  setSearchQuery: (query) => {
+    set((state) => ({
+      filters: { ...state.filters, searchQuery: query },
+      wines: applySearch(state.products, query),
+    }))
   },
+  setSelectedCategory: (id) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        categoryId: id,
+        page: 1,
+      },
+    }))
+    get().fetchProducts()
+  },
+  toggleBrand: (id) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        brandIds: toggleIdInList(state.filters.brandIds, id),
+        page: 1,
+      },
+    }))
+    get().fetchProducts()
+  },
+  toggleGrape: (id) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        grapeIds: toggleIdInList(state.filters.grapeIds, id),
+        page: 1,
+      },
+    }))
+    get().fetchProducts()
+  },
+  toggleCountry: (id) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        countryIds: toggleIdInList(state.filters.countryIds, id),
+        page: 1,
+      },
+    }))
+    get().fetchProducts()
+  },
+  toggleRegion: (id) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        regionIds: toggleIdInList(state.filters.regionIds, id),
+        page: 1,
+      },
+    }))
+    get().fetchProducts()
+  },
+  setPriceRange: (range) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        priceRange: ensureRangeWithinBounds(range, state.options.priceRange),
+        page: 1,
+      },
+    }))
+    get().fetchProducts()
+  },
+  toggleAlcoholBucket: (bucket) => {
+    set((state) => {
+      const exists = state.filters.alcoholBuckets.includes(bucket)
+      const next = exists
+        ? state.filters.alcoholBuckets.filter((item) => item !== bucket)
+        : [...state.filters.alcoholBuckets, bucket]
 
-  applyFilters: () => {
-    const {
-      wines,
-      selectedCategory,
-      searchQuery,
-      priceRange,
-      selectedWineTypes,
-      selectedCountries,
-      selectedGrapeVarieties,
-      selectedRegions,
-      selectedBrands,
-      selectedColors,
-      selectedAlcoholContents,
-      deliveryDate,
-      sortBy
-    } = get();
-
-    let filtered = wines;
-
-    // Category filter
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((wine) => wine.wineType === selectedCategory);
-    }
-
-    // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (wine) =>
-          wine.name.toLowerCase().includes(query) ||
-          wine.brand.toLowerCase().includes(query) ||
-          wine.producer.toLowerCase().includes(query)
-      );
-    }
-
-    // Price range filter
-    filtered = filtered.filter(
-      (wine) => wine.price >= priceRange[0] && wine.price <= priceRange[1]
-    );
-
-    // Wine Type filter (loại rượu)
-    if (selectedWineTypes.length > 0) {
-      filtered = filtered.filter((wine) => selectedWineTypes.includes(wine.wineType));
-    }
-
-    // Country filter (quốc gia)
-    if (selectedCountries.length > 0) {
-      filtered = filtered.filter((wine) => selectedCountries.includes(wine.country));
-    }
-
-    // Grape Variety filter (giống nho)
-    if (selectedGrapeVarieties.length > 0) {
-      filtered = filtered.filter((wine) => {
-        // Check if any grape in selectedGrapeVarieties is included in wine.grapeVariety
-        return selectedGrapeVarieties.some(grape => 
-          wine.grapeVariety.toLowerCase().includes(grape.toLowerCase())
-        );
-      });
-    }
-
-    // Region filter (vùng nổi tiếng)
-    if (selectedRegions.length > 0) {
-      filtered = filtered.filter((wine) => {
-        // Check if the wine's region is in the selected regions
-        return selectedRegions.some(region => 
-          wine.region.toLowerCase().includes(region.toLowerCase())
-        );
-      });
-    }
-
-    // Brand filter (thương hiệu)
-    if (selectedBrands.length > 0) {
-      filtered = filtered.filter((wine) => selectedBrands.includes(wine.brand));
-    }
-
-    // Color filter
-    if (selectedColors.length > 0) {
-      filtered = filtered.filter((wine) =>
-        wine.colors.some((color) => selectedColors.includes(color))
-      );
-    }
-
-    // Alcohol content filter (nồng độ rượu)
-    if (selectedAlcoholContents.length > 0) {
-      filtered = filtered.filter((wine) => {
-        return selectedAlcoholContents.some(ac => {
-          if (ac === "10") return wine.alcoholContent < 10;
-          if (ac === "10-12") return wine.alcoholContent >= 10 && wine.alcoholContent <= 12;
-          if (ac === "12-14") return wine.alcoholContent > 12 && wine.alcoholContent <= 14;
-          if (ac === "14-16") return wine.alcoholContent > 14 && wine.alcoholContent <= 16;
-          if (ac === "over16") return wine.alcoholContent > 16;
-          return false;
-        });
-      });
-    }
-
-    // Delivery date filter
-    if (deliveryDate !== "any") {
-      const maxDays =
-        deliveryDate === "today"
-          ? 0
-          : deliveryDate === "tomorrow"
-            ? 1
-            : deliveryDate === "week"
-              ? 7
-              : 999;
-      filtered = filtered.filter((wine) => wine.deliveryDays <= maxDays);
-    }
-
-    // Sort the filtered wines
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'name-asc':
-          return a.name.localeCompare(b.name);
-        case 'name-desc':
-          return b.name.localeCompare(a.name);
-        case 'price-asc':
-          return a.price - b.price;
-        case 'price-desc':
-          return b.price - a.price;
-        default:
-          return 0;
+      return {
+        filters: {
+          ...state.filters,
+          alcoholBuckets: next,
+          page: 1,
+        },
       }
-    });
-
-    set({ filteredWines: filtered });
-  }
-}));
+    })
+    get().fetchProducts()
+  },
+  setSortBy: (sort) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        sortBy: sort,
+        page: 1,
+      },
+    }))
+    get().fetchProducts()
+  },
+  setPage: (page) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        page,
+      },
+    }))
+    get().fetchProducts()
+  },
+}))

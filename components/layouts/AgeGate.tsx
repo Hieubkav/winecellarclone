@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Montserrat } from "next/font/google";
 import { ShieldCheck, ShieldAlert } from "lucide-react";
 
@@ -17,18 +17,14 @@ const montserrat = Montserrat({
 const STORAGE_KEY = "thiankim-age-verified";
 
 export default function AgeGate() {
-  const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [showWarning, setShowWarning] = useState(false);
+  const [open, setOpen] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
 
-  useEffect(() => {
-    const verified =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem(STORAGE_KEY)
-        : null;
-    setOpen(verified !== "true");
-    setMounted(true);
-  }, []);
+    return window.localStorage.getItem(STORAGE_KEY) !== "true";
+  });
+  const [showWarning, setShowWarning] = useState(false);
 
   const handleApprove = () => {
     if (typeof window !== "undefined") {
@@ -41,10 +37,6 @@ export default function AgeGate() {
   const handleReject = () => {
     setShowWarning(true);
   };
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <Dialog open={open}>

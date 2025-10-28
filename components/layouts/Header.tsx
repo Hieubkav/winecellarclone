@@ -133,7 +133,8 @@ function ContactButton() {
   return (
     <Link
       href="/contact"
-      className="inline-flex items-center rounded-full bg-[#9B2C3B] px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[#b23f4a]"
+      className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] transition hover:brightness-110"
+      style={{ backgroundColor: BRAND_ACCENT, color: BRAND_BASE }}
     >
       Liên hệ
     </Link>
@@ -381,7 +382,7 @@ export function __selfTest(): boolean {
     const probeNavLeaf: NavLeaf = { label: "_", href: "/_" }
     console.assert(!!probeNavLeaf.href, "NavLeaf href missing")
     return true
-  } catch (_) {
+  } catch {
     return false
   }
 }

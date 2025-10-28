@@ -19,9 +19,7 @@ import { cn } from "@/lib/utils"
 const AUTOPLAY_DELAY = 3000
 
 export default function HeroCarousel() {
-  if (heroSlides.length === 0) {
-    return null
-  }
+  const hasSlides = heroSlides.length > 0
   const hasMultipleSlides = heroSlides.length > 1
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
@@ -34,7 +32,7 @@ export default function HeroCarousel() {
   )
 
   useEffect(() => {
-    if (!api) return
+    if (!hasSlides || !api) return
 
     const handleSelect = () => {
       setCurrent(api.selectedScrollSnap())
@@ -48,11 +46,15 @@ export default function HeroCarousel() {
       api.off("select", handleSelect)
       api.off("reInit", handleSelect)
     }
-  }, [api])
+  }, [api, hasSlides])
+
+  if (!hasSlides) {
+    return null
+  }
 
   const handleDotClick = (index: number) => {
     api?.scrollTo(index)
-    autoplay.current.reset()
+    autoplay.current?.reset()
   }
 
   const handleManualNavigation = (direction: "prev" | "next") => {
@@ -64,7 +66,7 @@ export default function HeroCarousel() {
       api.scrollNext()
     }
 
-    autoplay.current.reset()
+    autoplay.current?.reset()
   }
 
   return (
