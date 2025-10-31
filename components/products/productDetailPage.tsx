@@ -154,32 +154,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       <Separator className="bg-gray-300" />
       <div className="grid items-start gap-6 md:gap-12 md:grid-cols-2">
         {/* Image Gallery Section */}
-        <div className="grid gap-4 md:grid-cols-[120px_1fr]">
-          {/* Thumbnail Images - Hidden on mobile, visible on desktop */}
-          <div className="hidden md:flex md:flex-col md:gap-4">
-            {imageSources.map((thumbnail, index) => (
-              <button
-                key={thumbnail + index}
-                className={`relative aspect-[4/3] overflow-hidden rounded-lg border transition-colors ${
-                  index === mainImageIndex
-                    ? "border-[#ECAA4D]"
-                    : "border-gray-200 hover:border-[#1C1C1C]"
-                } dark:hover:border-gray-50`}
-                onClick={() => selectImage(index)}
-              >
-                <Image
-                  src={thumbnail}
-                  alt={`Product thumbnail ${index + 1}`}
-                  fill
-                  className="object-contain object-center"
-                  sizes="(max-width: 768px) 160px, 240px"
-                />
-                <span className="sr-only">View Image {index + 1}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Main Product Image and Mobile Thumbnails */}
+        <div className="space-y-4">
+          {/* Main Product Image */}
           <div className="relative aspect-[4/3] w-full">
             <Image
               src={imageSources[mainImageIndex]}
@@ -216,33 +192,33 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 </Button>
               </>
             )}
-
-            {/* Mobile Thumbnail Images - Visible only on mobile */}
-            {imageSources.length > 1 && (
-              <div className="mt-4 flex flex-row gap-2 overflow-x-auto pb-2 md:hidden">
-                {imageSources.map((thumbnail, index) => (
-                  <button
-                    key={thumbnail + index}
-                    className={`relative flex-shrink-0 overflow-hidden rounded-lg border transition-colors ${
-                      index === mainImageIndex
-                        ? "border-[#ECAA4D]"
-                        : "border-gray-200 hover:border-[#1C1C1C]"
-                    } dark:hover:border-gray-50`}
-                    onClick={() => selectImage(index)}
-                  >
-                    <Image
-                      src={thumbnail}
-                      alt={`Product thumbnail ${index + 1}`}
-                      fill
-                      className="object-contain object-center"
-                      sizes="64px"
-                    />
-                    <span className="sr-only">View Image {index + 1}</span>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
+
+          {/* Thumbnail Images */}
+          {imageSources.length > 1 && (
+            <div className="flex flex-row gap-2 overflow-x-auto pb-2">
+              {imageSources.map((thumbnail, index) => (
+                <button
+                  key={thumbnail + index}
+                  className={`relative flex-shrink-0 w-16 h-16 overflow-hidden rounded-lg border transition-colors ${
+                    index === mainImageIndex
+                      ? "border-[#ECAA4D]"
+                      : "border-gray-200 hover:border-[#1C1C1C]"
+                  } dark:hover:border-gray-50`}
+                  onClick={() => selectImage(index)}
+                >
+                  <Image
+                    src={thumbnail}
+                    alt={`Product thumbnail ${index + 1}`}
+                    fill
+                    className="object-contain object-center"
+                    sizes="64px"
+                  />
+                  <span className="sr-only">View Image {index + 1}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Product Details Section */}
