@@ -11,7 +11,7 @@ import {
 
 const DEFAULT_PRICE_MAX = 10_000_000
 const DEFAULT_ALCOHOL_RANGE: [number, number] = [0, 100]
-const DEFAULT_PER_PAGE = 12
+const DEFAULT_PER_PAGE = 24
 
 export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc"
 
@@ -198,6 +198,11 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
     sort: SORT_TO_API[filters.sortBy],
     price_min: filters.priceRange[0],
     price_max: filters.priceRange[1],
+  }
+  const normalizedSearch = filters.searchQuery.trim()
+
+  if (normalizedSearch.length > 0) {
+    params.q = normalizedSearch
   }
 
   if (filters.brandIds.length > 0) {
@@ -392,10 +397,21 @@ export const useWineStore = create<WineStore>((set, get) => ({
     set({ viewMode: mode })
   },
   setSearchQuery: (query) => {
+    const normalized = query.trim()
+    const currentQuery = get().filters.searchQuery
+
+    if (currentQuery === normalized) {
+      return
+    }
+
     set((state) => ({
-      filters: { ...state.filters, searchQuery: query },
-      wines: applySearch(state.products, query),
+      filters: { ...state.filters, searchQuery: normalized, page: 1 },
+      wines: applySearch(state.products, normalized),
     }))
+
+    if (get().initialized) {
+      void get().fetchProducts()
+    }
   },
   setSelectedCategory: (id) => {
     set((state) => ({

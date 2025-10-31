@@ -1,49 +1,18 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react"
 import { useShallow } from "zustand/react/shallow"
-import { Search, Grid3X3, List, Filter, Loader2, X } from "lucide-react"
+import { Grid3X3, List, Filter, Loader2, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useWineStore, type SortOption, type Wine } from "@/data/filter/store"
-import { FilterSidebar } from "./filter-sidebar"
-import { FilterProductCard } from "./product-card"
+const FilterSidebar = lazy(() => import("./filter-sidebar").then(mod => ({ default: mod.FilterSidebar })))
+const FilterProductCard = lazy(() => import("./product-card").then(mod => ({ default: mod.FilterProductCard })))
+import { FilterSearchBar } from "./search-bar"
 
 
-interface LoadMoreProps {
-  active: boolean
-  loading: boolean
-  onLoadMore: () => void
-}
-
-function LoadMoreTrigger({ active, loading, onLoadMore }: LoadMoreProps) {
-  if (!active) {
-    return null
-  }
-
-  return (
-    <div className="mt-8 flex justify-center">
-      <Button
-        size="lg"
-        className="rounded-full bg-[#ECAA4D] px-6 text-[#1C1C1C] transition-all hover:bg-[#ECAA4D] hover:opacity-90 focus-visible:ring-[#ECAA4D]"
-        onClick={onLoadMore}
-        disabled={loading}
-      >
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Chờ
-          </>
-        ) : (
-          "Thêm"
-        )}
-      </Button>
-    </div>
-  )
-}
 
 export default function WineList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
@@ -79,6 +48,8 @@ export default function WineList() {
     })),
   )
 
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     if (!initialized) {
       initialize().catch(() => undefined)
@@ -90,11 +61,43 @@ export default function WineList() {
   const currentPage = filters.page
   const canLoadMore = !!meta && currentPage < totalPages
 
+  const requestMore = useCallback(() => {
+    if (!canLoadMore || loading || loadingMore) {
+      return
+    }
+
+    void loadMore()
+  }, [canLoadMore, loadMore, loading, loadingMore])
+
+  useEffect(() => {
+    const node = sentinelRef.current
+
+    if (!node || !canLoadMore) {
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+        if (entry.isIntersecting) {
+          requestMore()
+        }
+      },
+      { rootMargin: "600px 0px" },
+    )
+
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [canLoadMore, requestMore])
+
   return (
     <div className="bg-white text-[#1C1C1C]">
       <div className="mx-auto flex flex-col gap-10 px-4 py-8 lg:flex-row lg:py-12">
         <aside className="hidden w-full max-w-[300px] space-y-6 lg:block">
-          <FilterSidebar />
+        <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
+            <FilterSidebar />
+          </Suspense>
         </aside>
 
         <main className="flex-1">
@@ -108,32 +111,34 @@ export default function WineList() {
                       className="flex items-center gap-2 border-[#ECAA4D] text-[#ECAA4D]"
                     >
                       <Filter className="h-4 w-4" />
-                      Bộ lọc
+                      Bo loc
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-80 sm:w-96 overflow-y-auto">
-                    <SheetHeader className="relative sticky top-0 z-10 bg-[#ECAA4D] py-4 px-6">
+                    <SheetHeader className="sticky top-0 z-10 bg-[#ECAA4D] py-4 px-6">
                       <SheetTitle className="text-center text-base font-semibold text-[#1C1C1C]">
-                        Bộ lọc
+                        Bo loc
                       </SheetTitle>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="absolute right-4 top-3 text-[#1C1C1C]"
                         onClick={() => setMobileFiltersOpen(false)}
-                        aria-label="Đóng bộ lọc"
+                        aria-label="Dong bo loc"
                       >
                         <X className="h-5 w-5" />
                       </Button>
                     </SheetHeader>
                     <div className="py-4 px-6">
-                      <FilterSidebar />
+                    <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
+                        <FilterSidebar />
+                      </Suspense>
                     </div>
                   </SheetContent>
                 </Sheet>
 
                 <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                  {loading ? "Đợi..." : `${totalProducts} sp`}
+                  {loading ? "Doi..." : `${totalProducts} sp`}
                 </div>
               </div>
 
@@ -145,8 +150,8 @@ export default function WineList() {
                 >
                   <option value="name-asc">A-Z</option>
                   <option value="name-desc">Z-A</option>
-                  <option value="price-asc">Giá: Thấp đến cao</option>
-                  <option value="price-desc">Giá: Cao đến thấp</option>
+                  <option value="price-asc">Gia thap len cao</option>
+                  <option value="price-desc">Gia cao xuong thap</option>
                 </select>
 
                 <div className="hidden sm:block">
@@ -163,15 +168,11 @@ export default function WineList() {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-                <Input
-                  placeholder="Tìm..."
-                  value={filters.searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  className="w-full pl-10"
-                />
-              </div>
+              <FilterSearchBar
+                value={filters.searchQuery}
+                onChange={setSearchQuery}
+                disabled={!initialized}
+              />
 
               <div className="sm:hidden">
                 <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
@@ -187,34 +188,33 @@ export default function WineList() {
           </div>
 
           {loading ? (
-            <div className="py-12 text-center text-muted-foreground">Đợi...</div>
+            <div className="py-12 text-center text-muted-foreground">Doi...</div>
           ) : error ? (
             <div className="py-12 text-center text-destructive">{error}</div>
           ) : wines.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">Chưa có.</div>
+            <div className="py-12 text-center text-muted-foreground">Trong.</div>
           ) : (
             <div
               className={`grid gap-6 ${
                 viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
               }`}
             >
-              {wines.map((wine: Wine) => (
+              <Suspense fallback={<div className="animate-pulse bg-gray-200 aspect-square rounded" />}>
+                {wines.map((wine: Wine, index) => (
                 <FilterProductCard
-                  key={wine.id}
-                  wine={wine}
-                  viewMode={viewMode}
-                />
+                key={wine.id}
+                wine={wine}
+                viewMode={viewMode}
+                  priority={index < 4}
+                  />
               ))}
+              </Suspense>
             </div>
           )}
 
-          <LoadMoreTrigger
-            active={!loading && canLoadMore}
-            loading={loadingMore}
-            onLoadMore={() => {
-              void loadMore()
-            }}
-          />
+          <div ref={sentinelRef} className="flex justify-center py-10">
+            {loadingMore && <Loader2 className="h-6 w-6 animate-spin text-[#ECAA4D]" aria-hidden="true" />}
+          </div>
         </main>
       </div>
     </div>

@@ -1,16 +1,16 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Building2,
-  Grape,
-  LucideIcon,
-  Percent,
-  Globe,
-  Wine as WineIcon
+Building2,
+LucideIcon,
+Percent,
+Globe,
+Wine as WineIcon
 } from "lucide-react";
 import type { Wine } from "@/data/filter/store";
 
@@ -30,6 +30,7 @@ const getDisplayPrice = (wine: Wine): string => {
 interface ProductCardProps {
   wine: Wine;
   viewMode: "grid" | "list";
+  priority?: boolean;
 }
 
 interface MetaItem {
@@ -48,17 +49,16 @@ function MetaRow({ icon: Icon, label }: MetaItem) {
   );
 }
 
-export function FilterProductCard({ wine, viewMode }: ProductCardProps) {
+export const FilterProductCard = React.memo(function FilterProductCard({ wine, viewMode, priority = false }: ProductCardProps) {
   const metaItems: MetaItem[] = [
-    { icon: Grape, label: wine.grapeVariety ?? "" },
-    { icon: WineIcon, label: wine.wineType ?? "" },
-    { icon: Building2, label: wine.producer || wine.brand || "" },
-    { icon: Globe, label: wine.country ? `Vang ${wine.country}` : "" },
-    {
-      icon: Percent,
-      label:
-        typeof wine.alcoholContent === "number" ? `${wine.alcoholContent}% ABV` : "",
-    },
+  { icon: WineIcon, label: wine.wineType ?? "" },
+  { icon: Building2, label: wine.producer || wine.brand || "" },
+  { icon: Globe, label: wine.country ? `Vang ${wine.country}` : "" },
+  {
+    icon: Percent,
+  label:
+    typeof wine.alcoholContent === "number" ? `${wine.alcoholContent}% ABV` : "",
+  },
   ];
 
   const layoutClass = 
@@ -71,14 +71,18 @@ export function FilterProductCard({ wine, viewMode }: ProductCardProps) {
       <CardContent className="flex flex-col gap-1 p-2 sm:p-3 flex-grow">
         <div className={`flex flex-col gap-1 ${layoutClass}`}>
           <div className="flex flex-col items-center gap-1 sm:min-w-[180px]">
-            <div className="relative h-57 w-29 sm:h-68 sm:w-34">
+            <div className="relative h-57 w-29 sm:h-68 sm:w-34" style={{ aspectRatio: '29 / 57' }}>
               <Image
-                src={wine.image || "/placeholder/wine-bottle.svg"}
-                alt={wine.name}
-                fill
-                sizes="(max-width: 768px) 140px, 160px"
-                className="object-contain"
-                priority={false}
+              src={wine.image || "/placeholder/wine-bottle.svg"}
+              alt={wine.name}
+              fill
+              sizes="(max-width: 768px) 100px, 120px"
+              className="object-contain"
+              priority={priority}
+              loading={priority ? "eager" : "lazy"}
+              quality={60}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
               />
             </div>
           </div>
@@ -108,4 +112,4 @@ export function FilterProductCard({ wine, viewMode }: ProductCardProps) {
       </CardContent>
     </Card>
   );
-}
+});

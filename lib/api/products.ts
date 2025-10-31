@@ -46,6 +46,21 @@ export interface ProductListResponse {
   meta: ProductListMeta;
 }
 
+export interface ProductSuggestion {
+  id: number;
+  name: string;
+  slug: string;
+  price: number | null;
+  original_price: number | null;
+  discount_percent: number | null;
+  show_contact_cta: boolean;
+  main_image_url: string | null;
+  brand_term: ApiTerm | null;
+  country_term: ApiTerm | null;
+  category: ApiTerm | null;
+  type: ApiTerm | null;
+}
+
 export interface Breadcrumb {
   label: string;
   href: string;
@@ -80,6 +95,14 @@ export interface ProductDetail {
 
 interface ProductDetailResponse {
   data: ProductDetail;
+}
+
+interface ProductSuggestionResponse {
+  data: ProductSuggestion[];
+  meta: {
+    query: string | null;
+    limit: number;
+  };
 }
 
 type QueryValue = string | number | Array<string | number> | undefined;
@@ -166,4 +189,24 @@ export async function fetchProductFilters(): Promise<ProductFiltersPayload> {
   const response = await apiFetch<ProductFiltersResponse>(`v1/san-pham/filters/options`);
 
   return response.data;
+}
+
+interface ProductSuggestionOptions {
+  limit?: number;
+  params?: QueryParams;
+}
+
+export async function fetchProductSuggestions(
+  query: string,
+  options?: ProductSuggestionOptions
+): Promise<ProductSuggestionResponse> {
+  const { limit = 6, params } = options ?? {};
+
+  const searchQuery = buildQueryString({
+    ...(params ?? {}),
+    q: query,
+    limit,
+  });
+
+  return apiFetch<ProductSuggestionResponse>(`v1/san-pham/search/suggest${searchQuery}`);
 }

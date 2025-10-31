@@ -60,6 +60,29 @@ const remotePatterns: RemotePattern = [
 const nextConfig: NextConfig = {
   images: {
     remotePatterns,
+    formats: ['image/webp', 'image/avif'],
+  },
+  compress: true,
+  experimental: {
+    optimizeCss: true,
+  },
+  swcMinify: true,
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Link',
+            value: [
+              '<https://winecellar.vn>; rel=preconnect; crossorigin',
+              '<https://images.unsplash.com>; rel=preconnect; crossorigin',
+              '<https://placehold.co>; rel=preconnect; crossorigin',
+            ].join(', '),
+          },
+        ],
+      },
+    ];
   },
 };
 
