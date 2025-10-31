@@ -39,7 +39,7 @@ export default function CollectionShowcase({
   const resolvedCtaLabel = ctaLabel ?? "Xem thêm"
 
   return (
-    <section className="bg-white py-4" aria-label={contextLabel}>
+    <section className="bg-white py-6" aria-label={contextLabel}>
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
         <Card className="border-[#f1f1f1] bg-white/95">
           <CardHeader className="flex flex-row items-end justify-between pb-6">

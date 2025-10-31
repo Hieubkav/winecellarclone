@@ -6,6 +6,13 @@ import { Montserrat } from "next/font/google"
 import { ChevronDown, Menu, SearchIcon, X } from "lucide-react"
 
 import {
+Dialog,
+DialogContent,
+DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
+import {
   BRAND_COLORS,
   languageOptions,
   menuItems,
@@ -65,14 +72,15 @@ function MainBar() {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
-        <div className="col-span-6 flex justify-end md:hidden">
+        {/* Mobile buttons */}
+        <div className="col-span-6 flex justify-end gap-2 md:hidden">
+          <SearchMobile />
           <MobileTrigger />
         </div>
 
         {/* Search */}
         <div className="col-span-12 mt-0 flex justify-center md:col-span-6 md:mt-0">
-          <Search />
+        <SearchDesktop />
         </div>
 
         {/* Contact */}
@@ -83,25 +91,58 @@ function MainBar() {
     </div>
   )
 }
-function Search() {
-  const [focus, setFocus] = useState(false)
+function SearchDesktop() {
+const [focus, setFocus] = useState(false)
+
+return (
+<div className="hidden md:block relative z-20 mx-auto w-full max-w-[520px]">
+<SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
+{focus && (
+<div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-[#ECAA4D]/35 bg-white p-3 text-xs text-[#1C1C1C]/85 shadow-[0_18px_40px_rgba(28,28,28,0.12)]">
+<span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#9B2C3B]">Trending</span>
+<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+{trendingKeywords.map((item) => (
+<Link key={item.label} href={item.href} className="text-xs text-[#1C1C1C]/70 transition hover:text-[#9B2C3B]">
+{item.label}
+</Link>
+))}
+</div>
+</div>
+)}
+</div>
+)
+}
+function SearchMobile() {
+  const [open, setOpen] = useState(false)
 
   return (
-    <div className="relative z-20 mx-auto w-full max-w-[520px]">
-      <SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
-      {focus && (
-        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-[#ECAA4D]/35 bg-white p-3 text-xs text-[#1C1C1C]/85 shadow-[0_18px_40px_rgba(28,28,28,0.12)]">
-          <span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#9B2C3B]">Trending</span>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-            {trendingKeywords.map((item) => (
-              <Link key={item.label} href={item.href} className="text-xs text-[#1C1C1C]/70 transition hover:text-[#9B2C3B]">
-                {item.label}
-              </Link>
-            ))}
-          </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
+          style={{ backgroundColor: BRAND_HIGHLIGHT }}
+          aria-label="Mở tìm kiếm"
+        >
+          <SearchIcon size={20} />
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px] p-6">
+      <DialogTitle className="sr-only">Tìm kiếm sản phẩm</DialogTitle>
+      <div className="relative z-20 mx-auto w-full max-w-[520px]">
+      <SearchForm onFocus={() => {}} onBlur={() => {}} />
+      <div className="mt-4 rounded-md border border-[#ECAA4D]/35 bg-white p-3 text-xs text-[#1C1C1C]/85 shadow-[0_18px_40px_rgba(28,28,28,0.12)]">
+      <span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#9B2C3B]">Trending</span>
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+      {trendingKeywords.map((item) => (
+      <Link key={item.label} href={item.href} className="text-xs text-[#1C1C1C]/70 transition hover:text-[#9B2C3B]" onClick={() => setOpen(false)}>
+        {item.label}
+        </Link>
+        ))}
         </div>
-      )}
-    </div>
+        </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => void }) {

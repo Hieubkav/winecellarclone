@@ -125,30 +125,56 @@
   .tk-type-system {
     font-family: var(--font-montserrat);
     color: #1C1C1C;
-    --tk-heading-size: clamp(2rem, 2.6vw, 3.2rem);
-    --tk-body-size: 1rem;
-    --tk-subtext-size: 0.85rem;
-    --tk-subtext-tracking: 0.18em;
+    --tk-heading-size-mobile: 2rem; /* 32px */
+    --tk-heading-size-desktop: 3rem; /* 48px */
+    --tk-body-size-mobile: 1rem; /* 16px */
+    --tk-body-size-desktop: 1.125rem; /* 18px */
+    --tk-subtext-size-mobile: 0.8125rem; /* 13px */
+    --tk-subtext-size-desktop: 0.875rem; /* 14px */
+    --tk-subtext-tracking-mobile: 2.8px;
+    --tk-subtext-tracking-desktop: 3.2px;
   }
 
   .tk-type-system :is(h1, h2, h3, h4, h5, h6, .tk-heading) {
     font-weight: 700;
-    font-size: var(--tk-heading-size);
+    font-size: var(--tk-heading-size-mobile);
     line-height: 1.2;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.5px;
+  }
+
+  @media (min-width: 769px) {
+    .tk-type-system :is(h1, h2, h3, h4, h5, h6, .tk-heading) {
+      font-size: var(--tk-heading-size-desktop);
+      letter-spacing: -1px;
+    }
   }
 
   .tk-type-system :is(p, li, .tk-body) {
     font-weight: 500;
-    font-size: var(--tk-body-size);
-    line-height: 1.7;
+    font-size: var(--tk-body-size-mobile);
+    line-height: 1.65;
+  }
+
+  @media (min-width: 769px) {
+    .tk-type-system :is(p, li, .tk-body) {
+      font-size: var(--tk-body-size-desktop);
+      line-height: 1.7;
+    }
   }
 
   .tk-type-system :is(small, .tk-subtext, [data-type="subtext"]) {
     font-weight: 300;
-    font-size: var(--tk-subtext-size);
-    letter-spacing: var(--tk-subtext-tracking);
+    font-size: var(--tk-subtext-size-mobile);
+    letter-spacing: var(--tk-subtext-tracking-mobile);
+    line-height: 1.5;
     text-transform: uppercase;
+  }
+
+  @media (min-width: 769px) {
+    .tk-type-system :is(small, .tk-subtext, [data-type="subtext"]) {
+      font-size: var(--tk-subtext-size-desktop);
+      letter-spacing: var(--tk-subtext-tracking-desktop);
+    }
   }
 }
 

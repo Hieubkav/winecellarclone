@@ -9,7 +9,7 @@ export default function DualBanner() {
   }
 
   return (
-    <section className="relative bg-white pb-1 pt-0 sm:pb-1 lg:py-3">
+    <section className="relative bg-white pb-2 pt-0 sm:pb-2 lg:py-4">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#9B2C3B]/40 to-transparent" aria-hidden />
       <div className="mx-auto max-w-7xl px-0 sm:px-0 lg:px-2">
         <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-2">

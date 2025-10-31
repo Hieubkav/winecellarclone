@@ -23,7 +23,7 @@ type EditorialSpotlightProps = {
 
 export default function EditorialSpotlight({ title, articles }: EditorialSpotlightProps) {
   return (
-    <section className="bg-white py-12">
+    <section className="bg-white py-16">
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
         <div className="rounded-3xl bg-white p-6 md:p-10">
           <header className="mb-10 text-center">
