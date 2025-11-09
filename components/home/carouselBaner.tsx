@@ -13,14 +13,21 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { Button } from "@/components/ui/button"
-import { heroSlides } from "@/data/winecellar"
 import { cn } from "@/lib/utils"
 
 const AUTOPLAY_DELAY = 3000
 
-export default function HeroCarousel() {
-  const hasSlides = heroSlides.length > 0
-  const hasMultipleSlides = heroSlides.length > 1
+type HeroCarouselProps = {
+  slides: Array<{
+    image: string;
+    alt: string;
+    href?: string | null;
+  }>;
+};
+
+export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
+  const hasSlides = slides.length > 0
+  const hasMultipleSlides = slides.length > 1
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const autoplay = useRef<AutoplayType>(
@@ -80,9 +87,9 @@ export default function HeroCarousel() {
             setApi={setApi}
           >
             <CarouselContent className="ml-0">
-              {heroSlides.map((slide, index) => (
+              {slides.map((slide, index) => (
                 <CarouselItem
-                  key={slide.image}
+                  key={`${slide.image}-${index}`}
                   className="border-none bg-transparent p-0 pl-0 shadow-none"
                 >
                   <div className="relative block">
@@ -127,9 +134,9 @@ export default function HeroCarousel() {
 
           {hasMultipleSlides && (
             <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">
-              {heroSlides.map((slide, index) => (
+              {slides.map((slide, index) => (
                 <button
-                  key={slide.image}
+                  key={`dot-${slide.image}-${index}`}
                   type="button"
                   onClick={() => handleDotClick(index)}
                   className={cn(

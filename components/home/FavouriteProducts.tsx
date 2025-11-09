@@ -5,9 +5,15 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 
-import { favouriteProducts } from "@/data/winecellar";
+import type { HomeShowcaseProduct } from "@/data/homeCollections";
 
-export default function FavouriteProducts() {
+type FavouriteProductsProps = {
+  title: string;
+  subtitle?: string;
+  products: HomeShowcaseProduct[];
+};
+
+export default function FavouriteProducts({ title, products }: FavouriteProductsProps) {
   const [emblaRef] = useEmblaCarousel({ 
     align: 'start',
     skipSnaps: false,
@@ -20,7 +26,7 @@ export default function FavouriteProducts() {
         {/* Heading */}
         <header className="mb-4 flex items-center justify-between md:mb-5">
           <h2 className="font-brand text-lg font-bold text-[#1C1C1C] tracking-tight md:text-xl">
-            Sản phẩm nổi bật
+            {title}
           </h2>
 
           <Link
@@ -40,9 +46,9 @@ export default function FavouriteProducts() {
         {/* Scroll row */}
         <div ref={emblaRef} className="-mx-3 md:-mx-1.5 overflow-hidden">
           <div className="flex gap-3 md:gap-4">
-            {favouriteProducts.map((product) => (
+            {products.map((product) => (
               <div
-                key={product.href}
+                key={product.id}
                 className="flex-[0_0_auto] w-[140px] sm:w-[150px] md:w-[170px]"
               >
                 <ProductCard product={product} />
@@ -56,14 +62,7 @@ export default function FavouriteProducts() {
 }
 
 type ProductCardProps = {
-  product: {
-    href: string;
-    image: string;
-    name: string;
-    price?: string;
-    originalPrice?: string;
-    badge?: string;
-  };
+  product: HomeShowcaseProduct;
 };
 
 function ProductCard({ product }: ProductCardProps) {
@@ -95,11 +94,6 @@ function ProductCard({ product }: ProductCardProps) {
         </p>
 
         <div className="mt-auto space-y-0.5">
-          {product.originalPrice && (
-            <p className="text-[0.65rem] text-[#1C1C1C] opacity-60 line-through">
-              {product.originalPrice}
-            </p>
-          )}
           {product.price && (
             <p className="font-brand text-xs font-bold text-[#ECAA4D]">
               {product.price}

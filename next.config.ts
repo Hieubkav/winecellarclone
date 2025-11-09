@@ -40,7 +40,7 @@ const envPatterns = envMediaHosts
   .filter((pattern): pattern is NonNullable<typeof pattern> => Boolean(pattern));
 
 const needsLocalhostPattern = !envPatterns.some(
-  (pattern) => pattern.hostname === "localhost"
+  (pattern) => pattern.hostname === "localhost" || pattern.hostname === "127.0.0.1"
 );
 
 const remotePatterns: RemotePattern = [
@@ -51,16 +51,28 @@ const remotePatterns: RemotePattern = [
           hostname: "localhost",
           port: "8000",
         } as (typeof defaultPatterns)[number],
+        {
+          protocol: "http",
+          hostname: "127.0.0.1",
+          port: "8000",
+        } as (typeof defaultPatterns)[number],
       ]
     : []),
   ...envPatterns,
   ...defaultPatterns,
 ];
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns,
     formats: ['image/webp', 'image/avif'],
+    // Allow localhost/127.0.0.1 in development
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    // Disable optimization for localhost images in dev to bypass private IP check
+    unoptimized: !isProduction,
   },
   compress: true,
   experimental: {

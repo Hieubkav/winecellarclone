@@ -1,3 +1,15 @@
+import {
+  fetchHomeComponents,
+  type HomeComponent,
+  type HeroCarouselConfig,
+  type DualBannerConfig,
+  type CategoryGridConfig,
+  type BrandShowcaseConfig,
+  type CollectionShowcaseConfig,
+  type EditorialSpotlightConfig,
+  type FavouriteProductsConfig,
+  type FooterConfig,
+} from "@/lib/api/home";
 import HeroCarousel from "@/components/home/carouselBaner";
 import DualBanner from "@/components/home/DualBanner";
 import CategoryGrid from "@/components/home/CategoryGrid";
@@ -5,45 +17,103 @@ import FavouriteProducts from "@/components/home/FavouriteProducts";
 import BrandShowcase from "@/components/home/BrandShowcase";
 import CollectionShowcase from "@/components/home/CollectionShowcase";
 import EditorialSpotlight from "@/components/home/EditorialSpotlight";
+import HomeFooter from "@/components/home/Footer";
 import {
-  wineShowcaseProducts,
-  spiritShowcaseProducts,
-  homeEditorials,
-} from "@/data/homeCollections";
+  adaptHeroCarouselProps,
+  adaptDualBannerProps,
+  adaptCategoryGridProps,
+  adaptBrandShowcaseProps,
+  adaptCollectionShowcaseProps,
+  adaptEditorialSpotlightProps,
+  adaptFavouriteProductsProps,
+  adaptFooterProps,
+} from "@/components/home/adapters";
 
-export default function Home() {
+// Revalidate trang chủ mỗi 5 phút (300 giây)
+export const revalidate = 300;
+
+export default async function Home() {
+  let components: HomeComponent[] = [];
+
+  try {
+    components = await fetchHomeComponents();
+  } catch (error) {
+    console.error("Failed to fetch home components:", error);
+    // Fallback to empty array if API fails
+  }
+
   return (
     <main className="tk-type-system bg-white text-[#1C1C1C]">
-      <HeroCarousel />
-      <DualBanner />
-      <CategoryGrid />
-      <FavouriteProducts />
-      <BrandShowcase />
+      {components.map((component) => {
+        switch (component.type) {
+          case "hero_carousel":
+            return (
+              <HeroCarousel
+                key={component.id}
+                {...adaptHeroCarouselProps(component.config as HeroCarouselConfig)}
+              />
+            );
 
-      <CollectionShowcase
-        title="Rượu Vang"
-        subtitle="Rượu Vang"
-        description="Khám phá những dòng rượu vang cao cấp được tuyển chọn cẩn thận từ khắp nơi trên thế giới"
-        ctaLabel="Xem Thêm"
-        ctaHref="/wines"
-        products={wineShowcaseProducts}
-        tone="wine"
-      />
-      <CollectionShowcase
-        title="Rượu Mạnh"
-        subtitle="Rượu Mạnh"
-        description="Trải nghiệm những dòng rượu mạnh hào hùng từ các thương hiệu danh tiếng thế giới"
-        ctaLabel="Xem Thêm"
-        ctaHref="/spirits"
-        products={spiritShowcaseProducts}
-        tone="spirit"
-      />
-      <EditorialSpotlight
-        label="Chuyện rượu"
-        title="Bài viết"
-        description="Tập trung vào trải nghiệm sang trọng nhưng không làm khó người đọc, mỗi bài viết là một ghi chú tinh tế từ Thiên Kim Wine."
-        articles={homeEditorials}
-      />
+          case "dual_banner":
+            return (
+              <DualBanner
+                key={component.id}
+                {...adaptDualBannerProps(component.config as DualBannerConfig)}
+              />
+            );
+
+          case "category_grid":
+            return (
+              <CategoryGrid
+                key={component.id}
+                {...adaptCategoryGridProps(component.config as CategoryGridConfig)}
+              />
+            );
+
+          case "favourite_products":
+            return (
+              <FavouriteProducts
+                key={component.id}
+                {...adaptFavouriteProductsProps(component.config as FavouriteProductsConfig)}
+              />
+            );
+
+          case "brand_showcase":
+            return (
+              <BrandShowcase
+                key={component.id}
+                {...adaptBrandShowcaseProps(component.config as BrandShowcaseConfig)}
+              />
+            );
+
+          case "collection_showcase":
+            return (
+              <CollectionShowcase
+                key={component.id}
+                {...adaptCollectionShowcaseProps(component.config as CollectionShowcaseConfig)}
+              />
+            );
+
+          case "editorial_spotlight":
+            return (
+              <EditorialSpotlight
+                key={component.id}
+                {...adaptEditorialSpotlightProps(component.config as EditorialSpotlightConfig)}
+              />
+            );
+
+          case "footer":
+            return (
+              <HomeFooter
+                key={component.id}
+                {...adaptFooterProps(component.config as FooterConfig)}
+              />
+            );
+
+          default:
+            return null;
+        }
+      })}
     </main>
   );
 }

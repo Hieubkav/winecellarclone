@@ -3,7 +3,6 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layouts/Header";
 import Speedial from "@/components/layouts/Speedial";
-import Footer from "@/components/layouts/Footer";
 import AgeGate from "@/components/layouts/AgeGate";
 
 const montserrat = Montserrat({
@@ -36,7 +35,6 @@ export default function RootLayout({
         <Header />
         <Speedial />
         {children}
-        <Footer />
       </body>
     </html>
   );
