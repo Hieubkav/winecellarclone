@@ -8,14 +8,19 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useWineStore, type SortOption, type Wine } from "@/data/filter/store"
+import { useFilterUrlSync } from "@/hooks/use-filter-url-sync"
 const FilterSidebar = lazy(() => import("./filter-sidebar").then(mod => ({ default: mod.FilterSidebar })))
 const FilterProductCard = lazy(() => import("./product-card").then(mod => ({ default: mod.FilterProductCard })))
 import { FilterSearchBar } from "./search-bar"
+import { ProductSkeleton } from "./product-skeleton"
 
 
 
 export default function WineList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  
+  // Sync filters with URL for shareable links
+  useFilterUrlSync()
   const {
     wines,
     loading,
@@ -111,20 +116,20 @@ export default function WineList() {
                       className="flex items-center gap-2 border-[#ECAA4D] text-[#ECAA4D]"
                     >
                       <Filter className="h-4 w-4" />
-                      Bo loc
-                    </Button>
+                      Bộ lọc
+                      </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-80 sm:w-96 overflow-y-auto">
                     <SheetHeader className="sticky top-0 z-10 bg-[#ECAA4D] py-4 px-6">
                       <SheetTitle className="text-center text-base font-semibold text-[#1C1C1C]">
-                        Bo loc
+                      Bộ lọc
                       </SheetTitle>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="absolute right-4 top-3 text-[#1C1C1C]"
                         onClick={() => setMobileFiltersOpen(false)}
-                        aria-label="Dong bo loc"
+                        aria-label="Đóng bộ lọc"
                       >
                         <X className="h-5 w-5" />
                       </Button>
@@ -138,7 +143,7 @@ export default function WineList() {
                 </Sheet>
 
                 <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                  {loading ? "Doi..." : `${totalProducts} sp`}
+                  {loading ? "Đợi..." : `${totalProducts} sp`}
                 </div>
               </div>
 
@@ -150,8 +155,8 @@ export default function WineList() {
                 >
                   <option value="name-asc">A-Z</option>
                   <option value="name-desc">Z-A</option>
-                  <option value="price-asc">Gia thap len cao</option>
-                  <option value="price-desc">Gia cao xuong thap</option>
+                  <option value="price-asc">Giá thấp lên cao</option>
+                  <option value="price-desc">Giá cao xuống thấp</option>
                 </select>
 
                 <div className="hidden sm:block">
@@ -187,28 +192,52 @@ export default function WineList() {
             </div>
           </div>
 
-          {loading ? (
-            <div className="py-12 text-center text-muted-foreground">Doi...</div>
-          ) : error ? (
+          {error ? (
             <div className="py-12 text-center text-destructive">{error}</div>
-          ) : wines.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground">Trong.</div>
           ) : (
-            <div
-              className={`grid gap-6 ${
-                viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-              }`}
-            >
-              <Suspense fallback={<div className="animate-pulse bg-gray-200 aspect-square rounded" />}>
-                {wines.map((wine: Wine, index) => (
-                <FilterProductCard
-                key={wine.id}
-                wine={wine}
-                viewMode={viewMode}
-                  priority={index < 4}
-                  />
-              ))}
-              </Suspense>
+            <div className="relative">
+              {/* Loading overlay with backdrop */}
+              {loading && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#ECAA4D]" />
+                    <p className="text-sm text-muted-foreground">Đang tìm kiếm...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Products grid with smooth transition */}
+              <div
+                className={`grid gap-6 transition-opacity duration-200 ${
+                  viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+                } ${loading ? "opacity-50" : "opacity-100"}`}
+              >
+                {wines.length === 0 && !loading ? (
+                  <div className="col-span-full py-12 text-center text-muted-foreground">
+                    Không tìm thấy sản phẩm phù hợp.
+                  </div>
+                ) : loading && wines.length === 0 ? (
+                  // Show skeletons on first load
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <ProductSkeleton key={`skeleton-${index}`} />
+                  ))
+                ) : (
+                  <Suspense fallback={
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <ProductSkeleton key={`skeleton-suspense-${index}`} />
+                    ))
+                  }>
+                    {wines.map((wine: Wine, index) => (
+                      <FilterProductCard
+                        key={wine.id}
+                        wine={wine}
+                        viewMode={viewMode}
+                        priority={index < 4}
+                      />
+                    ))}
+                  </Suspense>
+                )}
+              </div>
             </div>
           )}
 

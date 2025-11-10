@@ -3,7 +3,6 @@ import { create } from "zustand"
 import {
   fetchProductFilters,
   fetchProductList,
-  type CountryFilterOption,
   type ProductFilterOption,
   type ProductListItem,
   type ProductListMeta,
@@ -54,28 +53,31 @@ export interface Wine {
   showContactCta?: boolean
 }
 
+interface AttributeFilter {
+  code: string
+  name: string
+  filter_type: string
+  display_config: Record<string, any>
+  options: FilterOption[]
+}
+
 interface FilterOptionsState {
   categories: FilterOption[]
-  brands: FilterOption[]
-  grapes: FilterOption[]
-  countries: CountryFilterOption[]
-  regions: FilterOption[]
   priceRange: PriceRange
   alcoholRange: PriceRange
+  attributeFilters: AttributeFilter[]
 }
 
 interface FiltersState {
   categoryId: number | null
-  brandIds: number[]
-  grapeIds: number[]
-  countryIds: number[]
-  regionIds: number[]
   priceRange: PriceRange
   alcoholBuckets: AlcoholBucket[]
   sortBy: SortOption
   searchQuery: string
   page: number
   perPage: number
+  // Dynamic attribute filter selections (e.g., { brand: [1,2], grape: [3,4] })
+  attributeSelections: Record<string, number[]>
 }
 
 interface WineStoreState {
@@ -97,14 +99,11 @@ interface WineStoreActions {
   resetFilters: () => void
   setViewMode: (mode: "grid" | "list") => void
   setSearchQuery: (query: string) => void
-  setSelectedCategory: (id: number | null) => void
-  toggleBrand: (id: number) => void
-  toggleGrape: (id: number) => void
-  toggleCountry: (id: number) => void
-  toggleRegion: (id: number) => void
-  setPriceRange: (range: PriceRange) => void
-  toggleAlcoholBucket: (bucket: AlcoholBucket) => void
-  setSortBy: (sort: SortOption) => void
+  setSelectedCategory: (id: number | null, skipFetch?: boolean) => void
+  toggleAttributeFilter: (attributeCode: string, optionId: number, skipFetch?: boolean) => void
+  setPriceRange: (range: PriceRange, skipFetch?: boolean) => void
+  toggleAlcoholBucket: (bucket: AlcoholBucket, skipFetch?: boolean) => void
+  setSortBy: (sort: SortOption, skipFetch?: boolean) => void
   loadMore: () => Promise<void>
 }
 
@@ -132,6 +131,8 @@ const mapProductToWine = (product: ProductListItem): Wine => {
   }
 }
 
+// Memoized search to avoid recomputing on every render
+// Only recomputes when items array or query actually changes
 const applySearch = (items: Wine[], query: string): Wine[] => {
   const normalized = query.trim().toLowerCase()
   if (!normalized) {
@@ -205,21 +206,12 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
     params.q = normalizedSearch
   }
 
-  if (filters.brandIds.length > 0) {
-    params["terms[brand][]"] = filters.brandIds
-  }
-
-  if (filters.countryIds.length > 0) {
-    params["terms[origin][country][]"] = filters.countryIds
-  }
-
-  if (filters.regionIds.length > 0) {
-    params["terms[origin][region][]"] = filters.regionIds
-  }
-
-  if (filters.grapeIds.length > 0) {
-    params["terms[grape][]"] = filters.grapeIds
-  }
+  // Dynamic attribute filters
+  Object.entries(filters.attributeSelections).forEach(([code, ids]) => {
+    if (ids.length > 0) {
+      params[`terms[${code}][]`] = ids
+    }
+  })
 
   if (filters.categoryId) {
     params["category[]"] = [filters.categoryId]
@@ -239,18 +231,20 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
 
 const transformOptions = (payload: {
   categories: FilterOption[]
-  brands: FilterOption[]
-  grapes: FilterOption[]
-  countries: CountryFilterOption[]
   price: { min: number; max: number }
   alcohol: { min: number; max: number }
+  attribute_filters: Array<{
+    code: string
+    name: string
+    filter_type: string
+    display_config: Record<string, any>
+    options: FilterOption[]
+  }>
 }): FilterOptionsState => {
   const priceRange: PriceRange = [
     Math.max(0, payload.price.min ?? 0),
     Math.max(payload.price.max ?? 0, DEFAULT_PRICE_MAX),
   ]
-
-  const regions: FilterOption[] = payload.countries.flatMap((country) => country.regions)
 
   const alcoholRange: PriceRange = [
     Math.max(0, payload.alcohol.min ?? DEFAULT_ALCOHOL_RANGE[0]),
@@ -259,37 +253,28 @@ const transformOptions = (payload: {
 
   return {
     categories: payload.categories,
-    brands: payload.brands,
-    grapes: payload.grapes,
-    countries: payload.countries,
-    regions,
     priceRange,
     alcoholRange,
+    attributeFilters: payload.attribute_filters,
   }
 }
 
 const initialState: WineStoreState = {
   options: {
     categories: [],
-    brands: [],
-    grapes: [],
-    countries: [],
-    regions: [],
     priceRange: [0, DEFAULT_PRICE_MAX],
     alcoholRange: DEFAULT_ALCOHOL_RANGE,
+    attributeFilters: [],
   },
   filters: {
     categoryId: null,
-    brandIds: [],
-    grapeIds: [],
-    countryIds: [],
-    regionIds: [],
     priceRange: [0, DEFAULT_PRICE_MAX],
     alcoholBuckets: [],
     sortBy: "name-asc",
     searchQuery: "",
     page: 1,
     perPage: DEFAULT_PER_PAGE,
+    attributeSelections: {},
   },
   products: [],
   wines: [],
@@ -342,8 +327,11 @@ export const useWineStore = create<WineStore>((set, get) => ({
     }
 
     try {
-      const response = await fetchProductList(buildQueryParams(filters))
+      // Build query params once
+      const queryParams = buildQueryParams(filters)
+      const response = await fetchProductList(queryParams)
       const mapped = response.data.map(mapProductToWine)
+      
       set((state) => {
         let nextProducts = mapped
 
@@ -379,19 +367,16 @@ export const useWineStore = create<WineStore>((set, get) => ({
       filters: {
         ...state.filters,
         categoryId: null,
-        brandIds: [],
-        grapeIds: [],
-        countryIds: [],
-        regionIds: [],
         priceRange: options.priceRange,
         alcoholBuckets: [],
         page: 1,
         sortBy: "name-asc",
         searchQuery: "",
+        attributeSelections: {},
       },
     }))
 
-    get().fetchProducts()
+    void get().fetchProducts()
   },
   setViewMode: (mode) => {
     set({ viewMode: mode })
@@ -413,7 +398,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
       void get().fetchProducts()
     }
   },
-  setSelectedCategory: (id) => {
+  setSelectedCategory: (id, skipFetch = false) => {
     set((state) => ({
       filters: {
         ...state.filters,
@@ -421,49 +406,31 @@ export const useWineStore = create<WineStore>((set, get) => ({
         page: 1,
       },
     }))
-    get().fetchProducts()
+    if (!skipFetch) {
+      void get().fetchProducts()
+    }
   },
-  toggleBrand: (id) => {
-    set((state) => ({
-      filters: {
-        ...state.filters,
-        brandIds: toggleIdInList(state.filters.brandIds, id),
-        page: 1,
-      },
-    }))
-    get().fetchProducts()
+  toggleAttributeFilter: (attributeCode, optionId, skipFetch = false) => {
+    set((state) => {
+      const currentSelections = state.filters.attributeSelections[attributeCode] || []
+      const newSelections = toggleIdInList(currentSelections, optionId)
+      
+      return {
+        filters: {
+          ...state.filters,
+          attributeSelections: {
+            ...state.filters.attributeSelections,
+            [attributeCode]: newSelections,
+          },
+          page: 1,
+        },
+      }
+    })
+    if (!skipFetch) {
+      void get().fetchProducts()
+    }
   },
-  toggleGrape: (id) => {
-    set((state) => ({
-      filters: {
-        ...state.filters,
-        grapeIds: toggleIdInList(state.filters.grapeIds, id),
-        page: 1,
-      },
-    }))
-    get().fetchProducts()
-  },
-  toggleCountry: (id) => {
-    set((state) => ({
-      filters: {
-        ...state.filters,
-        countryIds: toggleIdInList(state.filters.countryIds, id),
-        page: 1,
-      },
-    }))
-    get().fetchProducts()
-  },
-  toggleRegion: (id) => {
-    set((state) => ({
-      filters: {
-        ...state.filters,
-        regionIds: toggleIdInList(state.filters.regionIds, id),
-        page: 1,
-      },
-    }))
-    get().fetchProducts()
-  },
-  setPriceRange: (range) => {
+  setPriceRange: (range, skipFetch = false) => {
     set((state) => ({
       filters: {
         ...state.filters,
@@ -471,9 +438,11 @@ export const useWineStore = create<WineStore>((set, get) => ({
         page: 1,
       },
     }))
-    get().fetchProducts()
+    if (!skipFetch) {
+      void get().fetchProducts()
+    }
   },
-  toggleAlcoholBucket: (bucket) => {
+  toggleAlcoholBucket: (bucket, skipFetch = false) => {
     set((state) => {
       const exists = state.filters.alcoholBuckets.includes(bucket)
       const next = exists
@@ -488,9 +457,11 @@ export const useWineStore = create<WineStore>((set, get) => ({
         },
       }
     })
-    get().fetchProducts()
+    if (!skipFetch) {
+      void get().fetchProducts()
+    }
   },
-  setSortBy: (sort) => {
+  setSortBy: (sort, skipFetch = false) => {
     set((state) => ({
       filters: {
         ...state.filters,
@@ -498,7 +469,9 @@ export const useWineStore = create<WineStore>((set, get) => ({
         page: 1,
       },
     }))
-    get().fetchProducts()
+    if (!skipFetch) {
+      void get().fetchProducts()
+    }
   },
   loadMore: async () => {
     const { filters, meta, initialized, loading, loadingMore } = get()

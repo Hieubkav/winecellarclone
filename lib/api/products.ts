@@ -161,16 +161,17 @@ export interface ProductFilterOption {
   slug: string;
 }
 
-export interface CountryFilterOption extends ProductFilterOption {
-  regions: ProductFilterOption[];
+export interface AttributeFilter {
+  code: string;
+  name: string;
+  filter_type: string;
+  display_config: Record<string, any>;
+  options: ProductFilterOption[];
 }
 
 export interface ProductFiltersPayload {
   categories: ProductFilterOption[];
   types: ProductFilterOption[];
-  brands: ProductFilterOption[];
-  grapes: ProductFilterOption[];
-  countries: CountryFilterOption[];
   price: {
     min: number;
     max: number;
@@ -179,6 +180,7 @@ export interface ProductFiltersPayload {
     min: number;
     max: number;
   };
+  attribute_filters: AttributeFilter[];
 }
 
 interface ProductFiltersResponse {

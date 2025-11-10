@@ -34,7 +34,10 @@ export function FilterSidebar() {
     options,
     filters,
     setPriceRange,
-    toggleAttributeFilter,
+    toggleCountry,
+    toggleGrape,
+    toggleRegion,
+    toggleBrand,
     toggleAlcoholBucket,
     setSelectedCategory,
     resetFilters,
@@ -43,7 +46,10 @@ export function FilterSidebar() {
       options: state.options,
       filters: state.filters,
       setPriceRange: state.setPriceRange,
-      toggleAttributeFilter: state.toggleAttributeFilter,
+      toggleCountry: state.toggleCountry,
+      toggleGrape: state.toggleGrape,
+      toggleRegion: state.toggleRegion,
+      toggleBrand: state.toggleBrand,
       toggleAlcoholBucket: state.toggleAlcoholBucket,
       setSelectedCategory: state.setSelectedCategory,
       resetFilters: state.resetFilters,
@@ -74,7 +80,6 @@ export function FilterSidebar() {
         </Button>
       </div>
 
-      {/* Categories (Built-in filter) */}
       <div>
         <h3 className="mb-3 font-semibold">Danh mục liên quan</h3>
         <RadioGroup value={categoryValue} onValueChange={handleCategoryChange}>
@@ -102,51 +107,94 @@ export function FilterSidebar() {
 
       <Separator />
 
-      {/* Dynamic Attribute Filters */}
-      {options.attributeFilters.map((attributeFilter) => {
-        const selectedIds = filters.attributeSelections[attributeFilter.code] || []
-        
-        return (
-          <div key={attributeFilter.code}>
-            <div>
-              <h3 className="mb-3 font-semibold">{attributeFilter.name}</h3>
-              <div className="max-h-48 space-y-3 overflow-y-auto">
-                {attributeFilter.options.map((option) => (
-                  <div key={option.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${attributeFilter.code}-${option.id}`}
-                      checked={selectedIds.includes(option.id)}
-                      onCheckedChange={() => toggleAttributeFilter(attributeFilter.code, option.id)}
-                    />
-                    <Label
-                      htmlFor={`${attributeFilter.code}-${option.id}`}
-                      className="cursor-pointer text-sm font-normal"
-                    >
-                      {option.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+      <div>
+        <h3 className="mb-3 font-semibold">Quốc gia</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {options.countries.map((country) => (
+            <div key={country.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`country-${country.id}`}
+                checked={filters.countryIds.includes(country.id)}
+                onCheckedChange={() => toggleCountry(country.id)}
+              />
+              <Label htmlFor={`country-${country.id}`} className="cursor-pointer text-sm font-normal">
+                {country.name}
+              </Label>
             </div>
-            <Separator className="mt-6" />
-          </div>
-        )
-      })}
+          ))}
+        </div>
+      </div>
 
-      {/* Price Filter (Built-in) */}
+      <Separator />
+
+      <div>
+        <h3 className="mb-3 font-semibold">Giống nho</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {options.grapes.map((grape) => (
+            <div key={grape.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`grape-${grape.id}`}
+                checked={filters.grapeIds.includes(grape.id)}
+                onCheckedChange={() => toggleGrape(grape.id)}
+              />
+              <Label htmlFor={`grape-${grape.id}`} className="cursor-pointer text-sm font-normal">
+                {grape.name}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <h3 className="mb-3 font-semibold">Vùng</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {options.regions.map((region) => (
+            <div key={region.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`region-${region.id}`}
+                checked={filters.regionIds.includes(region.id)}
+                onCheckedChange={() => toggleRegion(region.id)}
+              />
+              <Label htmlFor={`region-${region.id}`} className="cursor-pointer text-sm font-normal">
+                {region.name}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <h3 className="mb-3 font-semibold">Thương hiệu</h3>
+        <div className="max-h-48 space-y-3 overflow-y-auto">
+          {options.brands.map((brand) => (
+            <div key={brand.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`brand-${brand.id}`}
+                checked={filters.brandIds.includes(brand.id)}
+                onCheckedChange={() => toggleBrand(brand.id)}
+              />
+              <Label htmlFor={`brand-${brand.id}`} className="cursor-pointer text-sm font-normal">
+                {brand.name}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
       <div>
         <h3 className="mb-3 font-semibold">Giá</h3>
         <div className="space-y-4">
           <Slider
             value={filters.priceRange}
-            onValueChange={(value) => {
-              // Update local state immediately for smooth UI
-              setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], true)
-            }}
-            onValueCommit={(value) => {
-              // Only trigger API call when user releases the slider
-              setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], false)
-            }}
+            onValueChange={(value) =>
+              setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]])
+            }
             min={options.priceRange[0]}
             max={options.priceRange[1]}
             step={50_000}
@@ -162,7 +210,6 @@ export function FilterSidebar() {
 
       <Separator />
 
-      {/* Alcohol Filter (Built-in) */}
       <div>
         <h3 className="mb-3 font-semibold">Nồng độ</h3>
         <div className="space-y-3">
