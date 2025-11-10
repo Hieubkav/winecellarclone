@@ -6,6 +6,7 @@ import Speedial from "@/components/layouts/Speedial";
 import AgeGate from "@/components/layouts/AgeGate";
 import { fetchHomeComponents, type SpeedDialConfig } from "@/lib/api/home";
 import { adaptSpeedDialProps } from "@/components/home/adapters";
+import { fetchMenus } from "@/lib/api/menus";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -30,6 +31,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch menu data từ API
+  let menuItems = undefined;
+  try {
+    menuItems = await fetchMenus();
+  } catch (error) {
+    console.error("Failed to fetch menu items:", error);
+    // Fallback to default hardcoded data in Header component
+  }
+
   // Fetch speedial component từ API
   let speedialProps = undefined;
   try {
@@ -48,7 +58,7 @@ export default async function RootLayout({
     <html lang="vi">
       <body className={`${montserrat.variable} font-sans antialiased bg-white text-[#1C1C1C]`}>
         <AgeGate />
-        <Header />
+        <Header menuItems={menuItems} />
         <Speedial {...speedialProps} />
         {children}
       </body>

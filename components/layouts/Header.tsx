@@ -15,12 +15,12 @@ DialogTitle,
 import {
   BRAND_COLORS,
   languageOptions,
-  menuItems,
   trendingKeywords,
   type MenuItemWithChildren,
   type NavLeaf,
   type NavNode,
 } from "./header.data"
+import type { MenuItem } from "@/lib/api/menus"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -29,7 +29,25 @@ const montserrat = Montserrat({
 
 const { base: BRAND_BASE, accent: BRAND_ACCENT, highlight: BRAND_HIGHLIGHT } = BRAND_COLORS
 
-export default function Header() {
+interface HeaderProps {
+  menuItems?: MenuItem[];
+}
+
+export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
+  // Chuyển đổi API menu items sang format cũ để tương thích với UI hiện tại
+  const convertedMenuItems = apiMenuItems ? apiMenuItems.map(item => ({
+    label: item.label,
+    href: item.href,
+    children: item.children?.map(block => ({
+      label: block.label,
+      children: block.children.map(leaf => ({
+        label: leaf.label,
+        href: leaf.href,
+        isHot: leaf.isHot,
+      }))
+    }))
+  })) : [];
+
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
       try {
@@ -45,13 +63,13 @@ export default function Header() {
       className={`${montserrat.className} sticky top-0 z-40 w-full bg-white text-sm text-[#1C1C1C] shadow-[0_12px_30px_rgba(28,28,28,0.08)]`}
       style={{ color: BRAND_BASE }}
     >
-      <MainBar />
-      <NavBar />
+      <MainBar menuItems={convertedMenuItems.length > 0 ? convertedMenuItems : undefined} />
+      <NavBar menuItems={convertedMenuItems.length > 0 ? convertedMenuItems : undefined} />
     </header>
   )
 }
 
-function MainBar() {
+function MainBar({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
   return (
     <div className="border-b border-[#e8e8e8] bg-white">
       <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 pb-2 md:gap-4">
@@ -75,7 +93,7 @@ function MainBar() {
         {/* Mobile buttons */}
         <div className="col-span-6 flex justify-end gap-2 md:hidden">
           <SearchMobile />
-          <MobileTrigger />
+          <MobileTrigger menuItems={menuItems} />
         </div>
 
         {/* Search */}
@@ -181,12 +199,16 @@ function ContactButton() {
     </Link>
   )
 }
-function NavBar() {
+function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren[] }) {
+  // Import menuItems từ header.data.ts làm fallback
+  const { menuItems: fallbackMenuItems } = require("./header.data");
+  const items: MenuItemWithChildren[] = propMenuItems || fallbackMenuItems;
+
   return (
     <div className="border-b border-[#751826] bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
         <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
-          {menuItems.map((item) => {
+          {items.map((item) => {
             const isMega = item.label === "Rượu vang" || item.label === "Rượu mạnh"
             return (
               <div
@@ -211,7 +233,6 @@ function NavBar() {
         </nav>
         <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[#1C1C1C]/25 to-transparent" />
       </div>
-      <MobileNav />
     </div>
   )
 }
@@ -258,8 +279,7 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
   )
 }
 
-const MobileNav = () => <div className="lg:hidden" />
-function MobileTrigger() {
+function MobileTrigger({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -272,12 +292,16 @@ function MobileTrigger() {
       >
         <Menu size={20} />
       </button>
-      {open && <MobileDrawer onClose={() => setOpen(false)} />}
+      {open && <MobileDrawer onClose={() => setOpen(false)} menuItems={menuItems} />}
     </>
   )
 }
 
-function MobileDrawer({ onClose }: { onClose: () => void }) {
+function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => void; menuItems?: MenuItemWithChildren[] }) {
+  // Import menuItems từ header.data.ts làm fallback
+  const { menuItems: fallbackMenuItems } = require("./header.data");
+  const menuItems: MenuItemWithChildren[] = propMenuItems || fallbackMenuItems;
+
   const [activeMenu, setActiveMenu] = useState<MenuItemWithChildren | null>(null)
   const [activeSection, setActiveSection] = useState<NavNode | null>(null)
 
@@ -410,13 +434,14 @@ function MobileDrawer({ onClose }: { onClose: () => void }) {
 
 export function __selfTest(): boolean {
   try {
+    const { menuItems } = require("./header.data");
     console.assert(Array.isArray(languageOptions) && languageOptions.length >= 2, "languageOptions missing")
     console.assert(Array.isArray(trendingKeywords), "trendingKeywords not array")
     console.assert(
-      menuItems.every((m) => typeof m.label === "string" && typeof m.href === "string"),
+      menuItems.every((m: MenuItemWithChildren) => typeof m.label === "string" && typeof m.href === "string"),
       "menuItems shape",
     )
-    const firstMenu = menuItems.find((m) => m.children)
+    const firstMenu = menuItems.find((m: MenuItemWithChildren) => m.children)
     if (firstMenu?.children) {
       console.assert(Array.isArray(firstMenu.children[0].children), "nested children shape")
     }
@@ -429,6 +454,7 @@ export function __selfTest(): boolean {
 }
 
 export function __runTests() {
+  const { menuItems } = require("./header.data");
   const results = {
     selfTest: __selfTest(),
     hasLanguageDropdown: typeof languageOptions[0]?.label === "string",
