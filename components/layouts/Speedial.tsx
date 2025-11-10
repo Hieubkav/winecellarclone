@@ -9,11 +9,22 @@ import { BRAND_COLORS } from "./header.data";
 type SpeedDialAction = {
   id: string;
   label: string;
-  description: string;
+  description?: string;
   href: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  iconUrl?: string | null;
   isInternal?: boolean;
   newTab?: boolean;
+};
+
+export type SpeedDialProps = {
+  items?: Array<{
+    iconType: "home" | "phone" | "zalo" | "messenger" | "custom";
+    iconUrl: string | null;
+    label: string;
+    href: string;
+    target: "_self" | "_blank";
+  }>;
 };
 
 const montserrat = Montserrat({
@@ -71,27 +82,52 @@ const BRAND_ICON_PATH: Partial<Record<SpeedDialAction["id"], string>> = {
   messenger: "/icons/messenger.png",
 };
 
-export default function Speedial() {
+const ICON_TYPE_TO_LUCIDE: Record<string, LucideIcon> = {
+  home: Home,
+  phone: Phone,
+  zalo: MessageSquareText,
+  messenger: MessageCircle,
+};
+
+function transformApiItemsToActions(items: SpeedDialProps["items"]): SpeedDialAction[] {
+  if (!items || items.length === 0) return [];
+
+  return items.map((item, index) => ({
+    id: `api-item-${index}`,
+    label: item.label,
+    href: item.href,
+    icon: ICON_TYPE_TO_LUCIDE[item.iconType],
+    iconUrl: item.iconType === "custom" ? item.iconUrl : undefined,
+    newTab: item.target === "_blank",
+    isInternal: item.href.startsWith("/"),
+  }));
+}
+
+export default function Speedial({ items }: SpeedDialProps) {
+  // Nếu có data từ API, dùng data đó. Nếu không, dùng fallback
+  const actions = items && items.length > 0
+    ? transformApiItemsToActions(items)
+    : DESKTOP_ORDER.map((id) => ACTION_LIBRARY[id]);
+
   return (
     <>
-      <DesktopSpeedDial />
-      <MobileBottomNav />
+      <DesktopSpeedDial actions={actions} />
+      <MobileBottomNav actions={actions} />
     </>
   );
 }
 
-function DesktopSpeedDial() {
+function DesktopSpeedDial({ actions }: { actions: SpeedDialAction[] }) {
   return (
     <nav
       aria-label="Liên hệ nhanh Thiên Kim Wine"
       className={`${montserrat.className} pointer-events-none fixed right-4 bottom-4 z-30 hidden w-14 flex-col lg:flex`}
     >
       <ul className="pointer-events-auto flex flex-col gap-0">
-        {DESKTOP_ORDER.map((id, index) => {
-          const action = ACTION_LIBRARY[id];
+        {actions.map((action, index) => {
           const isFirstChild = index === 0;
-          const isLastChild = index === DESKTOP_ORDER.length - 1;
-          return <DesktopAction key={id} action={action} isFirstChild={isFirstChild} isLastChild={isLastChild} />;
+          const isLastChild = index === actions.length - 1;
+          return <DesktopAction key={action.id} action={action} isFirstChild={isFirstChild} isLastChild={isLastChild} />;
         })}
       </ul>
     </nav>
@@ -121,8 +157,9 @@ function DesktopAction({ action, isFirstChild, isLastChild }: { action: SpeedDia
   );
 }
 
-function MobileBottomNav() {
+function MobileBottomNav({ actions }: { actions: SpeedDialAction[] }) {
   const { base } = BRAND_COLORS;
+  const gridCols = actions.length === 4 ? "grid-cols-4" : actions.length === 3 ? "grid-cols-3" : "grid-cols-2";
 
   return (
     <nav
@@ -130,11 +167,10 @@ function MobileBottomNav() {
       className={`${montserrat.className} fixed inset-x-0 bottom-0 z-30 rounded-t-2xl bg-[#9B2C3B] shadow-[0_-4px_20px_rgba(0,0,0,0.1)] lg:hidden`}
       style={{ color: base }}
     >
-      <ul className="grid grid-cols-4 divide-x divide-[#ECAA4D]/50 text-center text-xs font-medium">
-        {MOBILE_ORDER.map((id) => {
-          const action = ACTION_LIBRARY[id];
+      <ul className={`grid ${gridCols} divide-x divide-[#ECAA4D]/50 text-center text-xs font-medium`}>
+        {actions.map((action) => {
           return (
-            <li key={id} className="flex">
+            <li key={action.id} className="flex">
               <LinkWrapper
                 action={action}
                 className="flex w-full flex-col items-center gap-px px-2 py-2 text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-white transition hover:text-[#ECAA4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-[#9B2C3B]"
@@ -151,8 +187,22 @@ function MobileBottomNav() {
 }
 
 function ActionSymbol({ action, size, className = "" }: { action: SpeedDialAction; size: number; className?: string }) {
-  const asset = BRAND_ICON_PATH[action.id];
+  // Ưu tiên custom iconUrl từ API
+  if (action.iconUrl) {
+    return (
+      <Image
+        src={action.iconUrl}
+        alt=""
+        width={size}
+        height={size}
+        className={`object-contain ${className}`}
+        aria-hidden
+      />
+    );
+  }
 
+  // Fallback sang brand icon path
+  const asset = BRAND_ICON_PATH[action.id];
   if (asset) {
     return (
       <Image
@@ -166,8 +216,14 @@ function ActionSymbol({ action, size, className = "" }: { action: SpeedDialActio
     );
   }
 
-  const Icon = action.icon;
-  return <Icon aria-hidden strokeWidth={2} style={{ width: size, height: size }} className={className} />;
+  // Fallback sang Lucide icon
+  if (action.icon) {
+    const Icon = action.icon;
+    return <Icon aria-hidden strokeWidth={2} style={{ width: size, height: size }} className={className} />;
+  }
+
+  // Default fallback
+  return <Home aria-hidden strokeWidth={2} style={{ width: size, height: size }} className={className} />;
 }
 
 function LinkWrapper({

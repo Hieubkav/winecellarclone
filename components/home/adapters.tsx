@@ -7,6 +7,7 @@ import type {
   BrandShowcaseConfig,
   CategoryGridConfig,
   FooterConfig,
+  SpeedDialConfig,
   ApiProduct,
   ApiArticle,
 } from "@/lib/api/home";
@@ -136,5 +137,17 @@ export function adaptFooterProps(config: FooterConfig) {
     phone: config.phone || undefined,
     address: config.address || undefined,
     socialLinks: config.social_links || [],
+  };
+}
+
+export function adaptSpeedDialProps(config: SpeedDialConfig) {
+  return {
+    items: config.items.map((item) => ({
+      iconType: item.icon_type,
+      iconUrl: item.icon_url,
+      label: item.label,
+      href: item.href,
+      target: item.target,
+    })),
   };
 }

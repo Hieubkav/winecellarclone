@@ -118,6 +118,18 @@ export interface FooterConfig {
   social_links: FooterSocialLink[];
 }
 
+export interface SpeedDialItem {
+  icon_type: "home" | "phone" | "zalo" | "messenger" | "custom";
+  icon_url: string | null;
+  label: string;
+  href: string;
+  target: "_self" | "_blank";
+}
+
+export interface SpeedDialConfig {
+  items: SpeedDialItem[];
+}
+
 // Union type cho tất cả component types
 export type HomeComponentConfig =
   | HeroCarouselConfig
@@ -127,7 +139,8 @@ export type HomeComponentConfig =
   | BrandShowcaseConfig
   | CollectionShowcaseConfig
   | EditorialSpotlightConfig
-  | FooterConfig;
+  | FooterConfig
+  | SpeedDialConfig;
 
 export interface HomeComponent {
   id: number;
@@ -139,7 +152,8 @@ export interface HomeComponent {
     | "brand_showcase"
     | "collection_showcase"
     | "editorial_spotlight"
-    | "footer";
+    | "footer"
+    | "speed_dial";
   order: number;
   config: HomeComponentConfig;
 }

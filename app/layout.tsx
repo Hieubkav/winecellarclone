@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/components/layouts/Header";
 import Speedial from "@/components/layouts/Speedial";
 import AgeGate from "@/components/layouts/AgeGate";
+import { fetchHomeComponents, type SpeedDialConfig } from "@/lib/api/home";
+import { adaptSpeedDialProps } from "@/components/home/adapters";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -23,17 +25,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch speedial component từ API
+  let speedialProps = undefined;
+  try {
+    const components = await fetchHomeComponents();
+    const speedialComponent = components.find((c) => c.type === "speed_dial");
+    
+    if (speedialComponent) {
+      speedialProps = adaptSpeedDialProps(speedialComponent.config as SpeedDialConfig);
+    }
+  } catch (error) {
+    console.error("Failed to fetch speedial component:", error);
+    // Fallback to default hardcoded data
+  }
+
   return (
     <html lang="vi">
       <body className={`${montserrat.variable} font-sans antialiased bg-white text-[#1C1C1C]`}>
         <AgeGate />
         <Header />
-        <Speedial />
+        <Speedial {...speedialProps} />
         {children}
       </body>
     </html>
