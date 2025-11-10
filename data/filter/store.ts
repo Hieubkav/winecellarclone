@@ -7,6 +7,7 @@ import {
   type ProductListItem,
   type ProductListMeta,
 } from "@/lib/api/products"
+import { matchesSearch } from "@/lib/utils/text-normalization"
 
 const DEFAULT_PRICE_MAX = 10_000_000
 const DEFAULT_ALCOHOL_RANGE: [number, number] = [0, 100]
@@ -133,23 +134,22 @@ const mapProductToWine = (product: ProductListItem): Wine => {
 
 // Memoized search to avoid recomputing on every render
 // Only recomputes when items array or query actually changes
+// Uses Vietnamese text normalization for flexible matching
 const applySearch = (items: Wine[], query: string): Wine[] => {
-  const normalized = query.trim().toLowerCase()
-  if (!normalized) {
+  if (!query.trim()) {
     return items
   }
 
   return items.filter((wine) => {
-    const haystack = [
+    const searchableText = [
       wine.name,
       wine.brand ?? "",
       wine.producer ?? "",
       wine.country ?? "",
-    ]
-      .join(" ")
-      .toLowerCase()
+      wine.wineType ?? "",
+    ].join(" ")
 
-    return haystack.includes(normalized)
+    return matchesSearch(searchableText, query)
   })
 }
 
@@ -308,7 +308,8 @@ export const useWineStore = create<WineStore>((set, get) => ({
         initialized: true,
       }))
 
-      await get().fetchProducts()
+      // Don't fetch products here - let useFilterUrlSync handle it after applying URL params
+      set({ loading: false })
     } catch (error) {
       const message = error instanceof Error ? error.message : "Khong the tai tuy chon loc."
       set({ error: message, loading: false, loadingMore: false })
@@ -316,6 +317,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
   },
   fetchProducts: async (append = false) => {
     const { filters, initialized } = get()
+    
     if (!initialized) {
       return false
     }
@@ -327,7 +329,6 @@ export const useWineStore = create<WineStore>((set, get) => ({
     }
 
     try {
-      // Build query params once
       const queryParams = buildQueryParams(filters)
       const response = await fetchProductList(queryParams)
       const mapped = response.data.map(mapProductToWine)

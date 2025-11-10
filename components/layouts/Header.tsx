@@ -1,9 +1,10 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Montserrat } from "next/font/google"
 import { ChevronDown, Menu, SearchIcon, X } from "lucide-react"
+import type React from "react"
 
 import {
 Dialog,
@@ -110,23 +111,9 @@ function MainBar({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
   )
 }
 function SearchDesktop() {
-const [focus, setFocus] = useState(false)
-
 return (
 <div className="hidden md:block relative z-20 mx-auto w-full max-w-[520px]">
-<SearchForm onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} />
-{focus && (
-<div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-[#ECAA4D]/35 bg-white p-3 text-xs text-[#1C1C1C]/85 shadow-[0_18px_40px_rgba(28,28,28,0.12)]">
-<span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#9B2C3B]">Trending</span>
-<div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-{trendingKeywords.map((item) => (
-<Link key={item.label} href={item.href} className="text-xs text-[#1C1C1C]/70 transition hover:text-[#9B2C3B]">
-{item.label}
-</Link>
-))}
-</div>
-</div>
-)}
+<SearchForm />
 </div>
 )
 }
@@ -147,45 +134,129 @@ function SearchMobile() {
       <DialogContent className="sm:max-w-[425px] p-6">
       <DialogTitle className="sr-only">Tìm kiếm sản phẩm</DialogTitle>
       <div className="relative z-20 mx-auto w-full max-w-[520px]">
-      <SearchForm onFocus={() => {}} onBlur={() => {}} />
-      <div className="mt-4 rounded-md border border-[#ECAA4D]/35 bg-white p-3 text-xs text-[#1C1C1C]/85 shadow-[0_18px_40px_rgba(28,28,28,0.12)]">
-      <span className="text-[0.75rem] font-bold uppercase tracking-[0.16em] text-[#9B2C3B]">Trending</span>
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-      {trendingKeywords.map((item) => (
-      <Link key={item.label} href={item.href} className="text-xs text-[#1C1C1C]/70 transition hover:text-[#9B2C3B]" onClick={() => setOpen(false)}>
-        {item.label}
-        </Link>
-        ))}
-        </div>
-        </div>
+      <SearchForm />
         </div>
       </DialogContent>
     </Dialog>
   )
 }
-function SearchForm({ onFocus, onBlur }: { onFocus?: () => void; onBlur?: () => void }) {
+function SearchForm() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [suggestions, setSuggestions] = useState<Array<{id: number, name: string, slug: string}>>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const handleInputChange = async (value: string) => {
+    setSearchQuery(value)
+    
+    // Clear previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    // Don't fetch if query is too short
+    if (value.trim().length < 2) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    // Faster debounce for better UX (150ms instead of 300ms)
+    setIsLoading(true)
+    timeoutRef.current = setTimeout(async () => {
+      try {
+        const { fetchProductSuggestions } = await import("@/lib/api/products")
+        const response = await fetchProductSuggestions(value, { limit: 6 })
+        setSuggestions(response.data.slice(0, 6))
+        setShowSuggestions(true)
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error)
+        setSuggestions([])
+      } finally {
+        setIsLoading(false)
+      }
+    }, 150)
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const query = searchQuery.trim()
+    setShowSuggestions(false)
+    if (query) {
+      window.location.href = `/filter?q=${encodeURIComponent(query)}`
+    } else {
+      window.location.href = `/filter`
+    }
+  }
+
+  const handleSuggestionClick = (slug: string) => {
+    setShowSuggestions(false)
+    window.location.href = `/products/${slug}`
+  }
+
+  const handleFocus = () => {
+    if (suggestions.length > 0) {
+      setShowSuggestions(true)
+    }
+  }
+
+  const handleBlur = () => {
+    // Delay to allow click on suggestions
+    setTimeout(() => {
+      setShowSuggestions(false)
+    }, 200)
+  }
+
   return (
-    <form action="/" method="get" className="relative w-full" role="search" aria-label="Tìm kiếm sản phẩm">
-      <input
-        type="search"
-        name="s"
-        placeholder="Tìm kiếm rượu vang, rượu mạnh..."
-        className="w-full rounded-full border border-[#d9d9d9] bg-white py-1.5 pl-9 pr-16 text-sm text-[#1C1C1C] placeholder-[#1C1C1C]/45 transition focus:border-[#9B2C3B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ECAA4D]/30"
-        autoComplete="off"
-        onFocus={onFocus}
-        onBlur={onBlur}
-      />
-      <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-[#9B2C3B]">
-        <SearchIcon size={17} />
-      </span>
-      <button
-        type="submit"
-        className="absolute inset-y-0 right-0 flex items-center justify-center rounded-r-full bg-[#ECAA4D] px-4 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-[#1C1C1C] transition hover:brightness-110"
-        aria-label="Tìm kiếm"
-      >
-        Tìm
-      </button>
-    </form>
+    <div className="relative w-full">
+      <form onSubmit={handleSubmit} className="relative w-full" role="search" aria-label="Tìm kiếm sản phẩm">
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => handleInputChange(e.target.value)}
+          placeholder="Tìm kiếm rượu vang, rượu mạnh..."
+          className="w-full rounded-full border border-[#d9d9d9] bg-white py-1.5 pl-9 pr-16 text-sm text-[#1C1C1C] placeholder-[#1C1C1C]/45 transition focus:border-[#9B2C3B] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#ECAA4D]/30"
+          autoComplete="off"
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+        />
+        <span className="pointer-events-none absolute inset-y-0 left-0 grid w-9 place-items-center text-[#9B2C3B]">
+          <SearchIcon size={17} />
+        </span>
+        <button
+          type="submit"
+          className="absolute inset-y-0 right-0 flex items-center justify-center rounded-r-full bg-[#ECAA4D] px-4 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-[#1C1C1C] transition hover:brightness-110"
+          aria-label="Tìm kiếm"
+        >
+          Tìm
+        </button>
+      </form>
+
+      {/* Suggestions Dropdown */}
+      {showSuggestions && (
+        <div className="absolute left-0 top-full z-30 mt-2 w-full rounded-md border border-[#ECAA4D]/35 bg-white shadow-[0_18px_40px_rgba(28,28,28,0.12)]">
+          {isLoading ? (
+            <div className="px-4 py-3 text-center text-xs text-[#1C1C1C]/60">Đang tìm...</div>
+          ) : suggestions.length > 0 ? (
+            <ul className="py-2">
+              {suggestions.map((item) => (
+                <li key={item.id}>
+                  <button
+                    onClick={() => handleSuggestionClick(item.slug)}
+                    className="w-full px-4 py-2 text-left text-sm text-[#1C1C1C]/80 transition hover:bg-[#ECAA4D]/10 hover:text-[#1C1C1C]"
+                  >
+                    {item.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="px-4 py-3 text-center text-xs text-[#1C1C1C]/60">Không tìm thấy kết quả</div>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 function ContactButton() {

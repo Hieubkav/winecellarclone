@@ -40,7 +40,11 @@ export function useFilterUrlSync() {
 
   // Read URL params on initial mount and apply to store
   useEffect(() => {
-    if (!initialized || !isInitialMount.current) {
+    if (!isInitialMount.current) {
+      return
+    }
+
+    if (!initialized) {
       return
     }
 
@@ -53,20 +57,17 @@ export function useFilterUrlSync() {
       if (categoryParam) {
         const categoryId = parseInt(categoryParam, 10)
         if (!isNaN(categoryId)) {
-          setSelectedCategory(categoryId)
+          setSelectedCategory(categoryId, true) // Skip fetch for now
         }
       }
 
-      // Search query
+      // Search query - set directly to avoid triggering Effect 2
       const searchParam = searchParams.get("q")
-      if (searchParam) {
-        setSearchQuery(searchParam)
-      }
 
       // Sort
       const sortParam = searchParams.get("sort")
       if (sortParam && ["name-asc", "name-desc", "price-asc", "price-desc"].includes(sortParam)) {
-        setSortBy(sortParam as any)
+        setSortBy(sortParam as any, true) // Skip fetch
       }
 
       // Price range
@@ -76,7 +77,7 @@ export function useFilterUrlSync() {
         const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
         const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
         if (!isNaN(priceMin) && !isNaN(priceMax)) {
-          setPriceRange([priceMin, priceMax])
+          setPriceRange([priceMin, priceMax], true) // Skip fetch
         }
       }
 
@@ -86,7 +87,7 @@ export function useFilterUrlSync() {
         const buckets = alcoholParam.split(",")
         buckets.forEach((bucket) => {
           if (["10", "10-12", "12-14", "14-16", "over16"].includes(bucket)) {
-            toggleAlcoholBucket(bucket as any)
+            toggleAlcoholBucket(bucket as any, true) // Skip fetch
           }
         })
       }
@@ -102,24 +103,30 @@ export function useFilterUrlSync() {
         }
       })
 
-      // After applying all URL params, fetch products once
-      const hasFilters = categoryParam || searchParam || sortParam || priceMinParam || priceMaxParam || alcoholParam ||
-        options.attributeFilters.some((attr) => searchParams.get(attr.code))
-      
-      if (hasFilters) {
-        // Give store a tick to update before fetching
-        setTimeout(() => {
-          useWineStore.getState().fetchProducts()
-        }, 0)
+      // Apply search query directly to store state without triggering actions
+      if (searchParam) {
+        useWineStore.setState((state) => ({
+          filters: {
+            ...state.filters,
+            searchQuery: searchParam.trim(),
+          }
+        }))
       }
-    } finally {
+
+      // Now fetch products once with all filters applied
+      setTimeout(() => {
+        isApplyingUrlParams.current = false
+        useWineStore.getState().fetchProducts()
+      }, 0)
+    } catch (error) {
       isApplyingUrlParams.current = false
+      throw error
     }
   }, [initialized, searchParams, options.attributeFilters, options.priceRange])
 
   // Sync filters to URL whenever they change
   useEffect(() => {
-    if (!initialized || isApplyingUrlParams.current) {
+    if (!initialized || isApplyingUrlParams.current || isInitialMount.current) {
       return
     }
 

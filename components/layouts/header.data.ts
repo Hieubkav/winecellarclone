@@ -30,14 +30,14 @@ export const languageOptions = [
 ] as const
 
 export const trendingKeywords: NavLeaf[] = [
-  { label: "vang pháp", href: "/" },
-  { label: "vang ý", href: "/" },
-  { label: "rượu mạnh", href: "/" },
-  { label: "bia", href: "/" },
-  { label: "ly rượu vang", href: "/" },
-  { label: "bánh quy", href: "/" },
-  { label: "trà anh quốc", href: "/" },
-  { label: "nước khoáng", href: "/" },
+  { label: "vang pháp", href: "/filter?q=vang+ph%C3%A1p" },
+  { label: "vang ý", href: "/filter?q=vang+%C3%BD" },
+  { label: "rượu mạnh", href: "/filter?q=r%C6%B0%E1%BB%A3u+m%E1%BA%A1nh" },
+  { label: "bia", href: "/filter?q=bia" },
+  { label: "ly rượu vang", href: "/filter?q=ly+r%C6%B0%E1%BB%A3u+vang" },
+  { label: "bánh quy", href: "/filter?q=b%C3%A1nh+quy" },
+  { label: "trà anh quốc", href: "/filter?q=tr%C3%A0+anh+qu%E1%BB%91c" },
+  { label: "nước khoáng", href: "/filter?q=n%C6%B0%E1%BB%9Bc+kho%C3%A1ng" },
 ]
 
 export const menuItems: MenuItemWithChildren[] = [

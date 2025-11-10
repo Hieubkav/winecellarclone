@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -16,18 +16,28 @@ interface FilterSearchBarProps {
 export function FilterSearchBar({ value, onChange, disabled, placeholder = "Tim" }: FilterSearchBarProps) {
   const [term, setTerm] = useState<string>(value);
   const debouncedTerm = useDebounce(term, 300);
+  const isExternalChange = useRef(false);
 
+  // Sync local term with external value changes
   useEffect(() => {
-    setTerm(value);
-  }, [value]);
+    if (value !== term) {
+      isExternalChange.current = true;
+      setTerm(value);
+    }
+  }, [value, term]);
 
+  // Only call onChange when user types, not when syncing from external value
   useEffect(() => {
-    const next = debouncedTerm;
-    if (next === value) {
+    if (isExternalChange.current) {
+      isExternalChange.current = false;
+      return;
+    }
+    
+    if (debouncedTerm === value) {
       return;
     }
 
-    onChange(next);
+    onChange(debouncedTerm);
   }, [debouncedTerm, onChange, value]);
 
   return (
