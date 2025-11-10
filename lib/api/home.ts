@@ -160,9 +160,16 @@ export interface HomeComponent {
 
 export interface HomeComponentsResponse {
   data: HomeComponent[];
+  meta: {
+    cache_version: number;
+  };
 }
 
 export async function fetchHomeComponents(): Promise<HomeComponent[]> {
-  const response = await apiFetch<HomeComponentsResponse>("v1/home");
+  const response = await apiFetch<HomeComponentsResponse>("v1/home", {
+    // Revalidate mỗi 10 giây - balance giữa freshness và performance
+    // Backend có cache version + on-demand revalidation để update nhanh hơn
+    next: { revalidate: 10 },
+  });
   return response.data;
 }

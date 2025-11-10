@@ -25,11 +25,17 @@ export interface MenuItem {
 
 export interface MenusResponse {
   data: MenuItem[];
+  meta: {
+    cache_version: number;
+  };
 }
 
 export async function fetchMenus(): Promise<MenuItem[]> {
   const response = await apiFetch<MenusResponse>("v1/menus", {
-    next: { revalidate: 3600 }, // Cache 1 giờ vì menu ít thay đổi
+    // Revalidate mỗi 10 giây - balance giữa freshness và performance
+    // Backend có cache version + on-demand revalidation để update nhanh hơn
+    next: { revalidate: 10 },
   });
+  
   return response.data;
 }
