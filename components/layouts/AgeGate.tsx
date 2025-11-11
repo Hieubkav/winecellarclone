@@ -22,13 +22,13 @@ export default function AgeGate() {
       return false;
     }
 
-    return window.localStorage.getItem(STORAGE_KEY) !== "true";
+    return window.sessionStorage.getItem(STORAGE_KEY) !== "true";
   });
   const [showWarning, setShowWarning] = useState(false);
 
   const handleApprove = () => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, "true");
+      window.sessionStorage.setItem(STORAGE_KEY, "true");
     }
     setShowWarning(false);
     setOpen(false);
