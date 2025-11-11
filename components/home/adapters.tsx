@@ -48,7 +48,7 @@ export function transformApiArticle(article: ApiArticle): HomeEditorial {
     id: article.id.toString(),
     title: article.title,
     summary: article.excerpt || "",
-    href: `/articles/${article.slug}`,
+    href: `/bai-viet/${article.slug}`,
     image: article.cover_image_url || "/placeholder.jpg",
     readingTime: article.reading_time ? `${article.reading_time} phút đọc` : "",
     highlight: "",
