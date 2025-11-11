@@ -32,7 +32,7 @@ interface ContactMapProps {
  */
 export default function ContactMap({ mapEmbedUrl }: ContactMapProps) {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isVisible, setIsVisible] = useState(true); // TEMPORARY: Set to true to bypass lazy loading
+  const [isVisible, setIsVisible] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
   // Extract src URL from iframe HTML if needed
@@ -130,12 +130,12 @@ export default function ContactMap({ mapEmbedUrl }: ContactMapProps) {
   return (
     <div
       ref={mapRef}
-      className="overflow-hidden rounded-lg border-2 border-[#ECAA4D]/30"
+      className="relative overflow-hidden rounded-lg border-2 border-[#ECAA4D]/30"
       style={{ minHeight: "400px" }}
     >
-      {/* Loading Skeleton */}
-      {!isLoaded && (
-        <div className="flex h-[400px] w-full items-center justify-center bg-gray-100">
+      {/* Loading Skeleton - Show while iframe is loading */}
+      {isVisible && !isLoaded && (
+        <div className="absolute inset-0 flex h-[400px] w-full items-center justify-center bg-gray-100">
           <div className="text-center">
             <MapPin className="mx-auto mb-2 h-8 w-8 animate-pulse text-[#ECAA4D]" />
             <p className={`${montserrat.className} text-sm text-gray-500`}>
@@ -146,7 +146,7 @@ export default function ContactMap({ mapEmbedUrl }: ContactMapProps) {
       )}
 
       {/* Google Maps Iframe (Lazy Loaded) */}
-      {isVisible ? (
+      {isVisible && (
         <iframe
           src={iframeUrl}
           width="100%"
@@ -164,10 +164,7 @@ export default function ContactMap({ mapEmbedUrl }: ContactMapProps) {
           onError={(e) => {
             console.error('[ContactMap] Iframe load error:', e);
           }}
-          className={isLoaded ? "block" : "hidden"}
         />
-      ) : (
-        console.log('[ContactMap] isVisible is false, showing loading skeleton')
       )}
     </div>
   );
