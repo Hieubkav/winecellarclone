@@ -22,6 +22,7 @@ import {
   type NavNode,
 } from "./header.data"
 import type { MenuItem } from "@/lib/api/menus"
+import { useSettingsStore } from "@/lib/stores/settingsStore"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -71,22 +72,29 @@ export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
 }
 
 function MainBar({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
+  const settings = useSettingsStore((state) => state.settings);
+  const hasHydrated = useSettingsStore((state) => state._hasHydrated);
+
+  // Fallback values nếu chưa hydrate hoặc settings null
+  const logoUrl = hasHydrated && settings?.logo_url ? settings.logo_url : "/media/logo.webp";
+  const siteName = hasHydrated && settings?.site_name ? settings.site_name : "Thiên Kim Wine";
+
   return (
     <div className="border-b border-[#e8e8e8] bg-white">
       <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 pb-2 md:gap-4">
         {/* Logo */}
         <div className="col-span-6 flex items-center md:col-span-3 md:justify-start">
-          <Link href="/" className="flex items-center gap-3" aria-label="Thiên Kim Wine - Trang chủ">
+          <Link href="/" className="flex items-center gap-3" aria-label={`${siteName} - Trang chủ`}>
             <Image
-              src="/media/logo.webp"
-              alt="Thiên Kim Wine logo"
+              src={logoUrl}
+              alt={`${siteName} logo`}
               width={72}
               height={72}
               priority
               className="h-16 w-16 object-contain"
             />
             <span className="hidden text-xs font-bold uppercase tracking-[0.32em] text-[#ECAA4D] md:inline md:text-sm">
-              Thiên Kim Wine
+              {siteName}
             </span>
           </Link>
         </div>
