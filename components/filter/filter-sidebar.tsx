@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
-import { RotateCcw } from "lucide-react"
+import { RotateCcw, ChevronDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useWineStore } from "@/data/filter/store"
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
@@ -29,6 +30,138 @@ const ALCOHOL_FILTERS = [
 ] as const
 
 type AlcoholFilterId = (typeof ALCOHOL_FILTERS)[number]["id"]
+
+const COLLAPSE_THRESHOLD = 6
+
+interface CollapsibleFilterSectionProps {
+  title: string
+  items: { id: number; name: string }[]
+  selectedIds: number[]
+  onToggle: (id: number) => void
+  code: string
+}
+
+function CollapsibleFilterSection({ 
+  title, 
+  items, 
+  selectedIds, 
+  onToggle, 
+  code 
+}: CollapsibleFilterSectionProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const selectedCount = selectedIds.length
+  const shouldCollapse = items.length > COLLAPSE_THRESHOLD
+  const visibleItems = shouldCollapse && !isOpen ? items.slice(0, COLLAPSE_THRESHOLD) : items
+  const hiddenCount = items.length - COLLAPSE_THRESHOLD
+
+  if (shouldCollapse) {
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+            {title}
+          </h3>
+          {selectedCount > 0 && (
+            <span 
+              className="inline-flex items-center justify-center min-w-[18px] h-4 px-1 text-xs font-semibold text-white bg-[#ECAA4D] rounded-full"
+              aria-label={`${selectedCount} ${title} đã chọn`}
+            >
+              {selectedCount}
+            </span>
+          )}
+        </div>
+        
+        <div className="space-y-2.5" role="group" aria-label={`Lọc theo ${title}`}>
+          {visibleItems.map((option) => (
+            <div key={option.id} className="flex items-center space-x-3 group">
+              <Checkbox
+                id={`${code}-${option.id}`}
+                checked={selectedIds.includes(option.id)}
+                onCheckedChange={() => onToggle(option.id)}
+                className="transition-colors"
+              />
+              <Label
+                htmlFor={`${code}-${option.id}`}
+                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+              >
+                {option.name}
+              </Label>
+            </div>
+          ))}
+        </div>
+
+        <CollapsibleContent className="space-y-2.5 animate-in slide-in-from-top-2 duration-200">
+          {items.slice(COLLAPSE_THRESHOLD).map((option) => (
+            <div key={option.id} className="flex items-center space-x-3 group">
+              <Checkbox
+                id={`${code}-${option.id}`}
+                checked={selectedIds.includes(option.id)}
+                onCheckedChange={() => onToggle(option.id)}
+                className="transition-colors"
+              />
+              <Label
+                htmlFor={`${code}-${option.id}`}
+                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+              >
+                {option.name}
+              </Label>
+            </div>
+          ))}
+        </CollapsibleContent>
+
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full flex items-center justify-center gap-2 text-xs font-medium text-[#9B2C3B] hover:text-[#1C1C1C] hover:bg-[#ECAA4D]/10 transition-all mt-2"
+          >
+            <span>{isOpen ? 'Thu gọn' : `Xem thêm ${hiddenCount}`}</span>
+            <ChevronDown 
+              className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+            />
+          </Button>
+        </CollapsibleTrigger>
+      </Collapsible>
+    )
+  }
+
+  // Non-collapsible version for short lists
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+          {title}
+        </h3>
+        {selectedCount > 0 && (
+          <span 
+            className="inline-flex items-center justify-center min-w-[18px] h-4 px-1 text-xs font-semibold text-white bg-[#ECAA4D] rounded-full"
+            aria-label={`${selectedCount} ${title} đã chọn`}
+          >
+            {selectedCount}
+          </span>
+        )}
+      </div>
+      <div className="space-y-2.5" role="group" aria-label={`Lọc theo ${title}`}>
+        {items.map((option) => (
+          <div key={option.id} className="flex items-center space-x-3 group">
+            <Checkbox
+              id={`${code}-${option.id}`}
+              checked={selectedIds.includes(option.id)}
+              onCheckedChange={() => onToggle(option.id)}
+              className="transition-colors"
+            />
+            <Label
+              htmlFor={`${code}-${option.id}`}
+              className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+            >
+              {option.name}
+            </Label>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function FilterSidebar() {
   const {
@@ -205,45 +338,16 @@ export function FilterSidebar() {
       {/* Dynamic Attribute Filters */}
       {options.attributeFilters.map((attributeFilter) => {
         const selectedIds = filters.attributeSelections[attributeFilter.code] || []
-        const selectedCount = selectedIds.length
         
         return (
-          <div key={attributeFilter.code} className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
-                {attributeFilter.name}
-              </h3>
-              {selectedCount > 0 && (
-                <span 
-                  className="inline-flex items-center justify-center min-w-[18px] h-4 px-1 text-xs font-semibold text-white bg-[#ECAA4D] rounded-full"
-                  aria-label={`${selectedCount} ${attributeFilter.name} đã chọn`}
-                >
-                  {selectedCount}
-                </span>
-              )}
-            </div>
-            <div 
-              className="max-h-48 space-y-2.5 overflow-y-auto pr-1 filter-scrollbar"
-              role="group"
-              aria-label={`Lọc theo ${attributeFilter.name}`}
-            >
-              {attributeFilter.options.map((option) => (
-                <div key={option.id} className="flex items-center space-x-3 group">
-                  <Checkbox
-                    id={`${attributeFilter.code}-${option.id}`}
-                    checked={selectedIds.includes(option.id)}
-                    onCheckedChange={() => toggleAttributeFilter(attributeFilter.code, option.id)}
-                    className="transition-colors"
-                  />
-                  <Label
-                    htmlFor={`${attributeFilter.code}-${option.id}`}
-                    className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
-                  >
-                    {option.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
+          <div key={attributeFilter.code}>
+            <CollapsibleFilterSection
+              title={attributeFilter.name}
+              items={attributeFilter.options}
+              selectedIds={selectedIds}
+              onToggle={(id) => toggleAttributeFilter(attributeFilter.code, id)}
+              code={attributeFilter.code}
+            />
             <Separator className="bg-[#ECAA4D]/20 mt-6" />
           </div>
         )
