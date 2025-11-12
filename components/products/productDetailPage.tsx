@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,6 +13,7 @@ import {
   Percent,
   ChevronDown,
 } from "lucide-react";
+import { useTracking } from "@/hooks/use-tracking";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -90,6 +91,19 @@ function MetaRow({ icon: Icon, label, filterUrl }: MetaRowProps) {
 }
 
 export default function ProductDetailPage({ product }: ProductDetailPageProps) {
+  const { trackProductView, trackCTAContact } = useTracking();
+
+  // Track product view when component mounts
+  useEffect(() => {
+    if (product?.id) {
+      trackProductView(product.id, {
+        product_name: product.name,
+        category: product.category?.name || product.type?.name,
+        price: product.price,
+      });
+    }
+  }, [product?.id, product.name, product.category, product.type, product.price, trackProductView]);
+
   const imageSources = useMemo(() => {
     const galleryUrls = (product.gallery ?? [])
       .map((image) => image.url)
@@ -360,6 +374,12 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             <Button 
               asChild
               className="h-12 sm:h-14 w-full text-base sm:text-lg font-semibold bg-[#ECAA4D] text-white hover:bg-[#d9973a] transition-colors shadow-lg hover:shadow-xl"
+              onClick={() => trackCTAContact({
+                button: 'contact_order',
+                placement: 'product_detail',
+                product_id: product.id,
+                product_name: product.name,
+              })}
             >
               <Link href="/contact" target="_blank" rel="noopener noreferrer">
                 Liên hệ đặt hàng

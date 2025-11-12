@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { Calendar, User, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +10,7 @@ import ArticleJsonLd from "./ArticleJsonLd";
 import RelatedArticles from "./RelatedArticles";
 import type { ArticleDetail } from "@/lib/api/articles";
 import { processArticleContent } from "@/lib/utils/article-content";
+import { useTracking } from "@/hooks/use-tracking";
 
 interface ArticleDetailPageProps {
   article: ArticleDetail;
@@ -28,6 +30,19 @@ const formatDate = (dateString: string): string => {
 };
 
 export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
+  const { trackArticleView, trackCTAContact } = useTracking();
+
+  // Track article view when component mounts
+  useEffect(() => {
+    if (article?.id) {
+      trackArticleView(article.id, {
+        article_title: article.title,
+        author: article.author?.name,
+        published_at: article.published_at,
+      });
+    }
+  }, [article?.id, article.title, article.author, article.published_at, trackArticleView]);
+
   const coverImage = article.cover_image_url || "/placeholder/article.svg";
   const processedContent = processArticleContent(article.content);
 
@@ -152,7 +167,17 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
             <p className="text-gray-600 mb-6">
               Tìm hiểu thêm về rượu vang, cocktail và nghệ thuật thưởng thức
             </p>
-            <Button asChild size="lg" className="bg-[#9B2C3B] hover:bg-[#7A2230]">
+            <Button 
+              asChild 
+              size="lg" 
+              className="bg-[#9B2C3B] hover:bg-[#7A2230]"
+              onClick={() => trackCTAContact({
+                button: 'view_all_articles',
+                placement: 'article_footer',
+                article_id: article.id,
+                article_title: article.title,
+              })}
+            >
               <Link href="/bai-viet">Xem tất cả bài viết</Link>
             </Button>
           </div>

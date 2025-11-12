@@ -14,7 +14,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             staleTime: 5 * 60 * 1000, // 5 minutes
             
             // Data stays in cache for 10 minutes
-            cacheTime: 10 * 60 * 1000, // 10 minutes
+            gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
             
             // Don't refetch on window focus (reduces unnecessary requests)
             refetchOnWindowFocus: false,
@@ -24,9 +24,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             
             // Retry failed queries once
             retry: 1,
-            
-            // Stale-while-revalidate: show cached data while fetching fresh data
-            keepPreviousData: true,
           },
         },
       }),

@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Montserrat } from "next/font/google";
 import type { LucideIcon } from "lucide-react";
 import { Gift, Home, MessageCircle, MessageSquareText, Phone } from "lucide-react";
+import { useTracking } from "@/hooks/use-tracking";
 
 import { BRAND_COLORS } from "./header.data";
 
@@ -235,9 +238,24 @@ function LinkWrapper({
   className: string;
   children: React.ReactNode;
 }) {
+  const { trackCTAContact } = useTracking();
+
+  const handleClick = () => {
+    // Track CTA contact for contact-related actions
+    if (["hotline", "zalo", "messenger"].includes(action.id)) {
+      trackCTAContact({
+        button: action.id,
+        placement: "speedial",
+        label: action.label,
+        href: action.href,
+      });
+    }
+  };
+
   const sharedProps = {
     className: `${className} group`,
     "aria-label": action.description ? `${action.label} - ${action.description}` : action.label,
+    onClick: handleClick,
   };
 
   if (action.isInternal) {
