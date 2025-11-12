@@ -202,3 +202,34 @@
     display: none; /* Ẩn thanh cuộn trên Webkit (Chrome, Safari, Edge) */
   }
 }
+
+/* Custom scrollbar for filter sidebar */
+.filter-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 170, 77, 0.2) transparent;
+}
+
+.filter-scrollbar:hover {
+  scrollbar-color: rgba(236, 170, 77, 0.4) transparent;
+}
+
+.filter-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.filter-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(236, 170, 77, 0.2);
+  border-radius: 3px;
+}
+
+.filter-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(236, 170, 77, 0.4);
+}
+
+.filter-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(236, 170, 77, 0.6);
+}
