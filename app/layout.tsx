@@ -11,6 +11,7 @@ import { fetchMenus } from "@/lib/api/menus";
 import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { fetchSocialLinks } from "@/lib/api/socialLinks";
 import { SettingsProvider } from "@/components/providers/SettingsProvider";
+import { QueryProvider } from "@/lib/query-client";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -96,13 +97,15 @@ export default async function RootLayout({
   return (
     <html lang="vi">
       <body className={`${montserrat.variable} font-sans antialiased bg-white text-[#1C1C1C]`}>
-        <SettingsProvider settings={settings}>
-          <AgeGate />
-          <Header menuItems={menuItems} />
-          <Speedial {...speedialProps} />
-          {children}
-          <Footer socialLinks={socialLinks} />
-        </SettingsProvider>
+        <QueryProvider>
+          <SettingsProvider settings={settings}>
+            <AgeGate />
+            <Header menuItems={menuItems} />
+            <Speedial {...speedialProps} />
+            {children}
+            <Footer socialLinks={socialLinks} />
+          </SettingsProvider>
+        </QueryProvider>
       </body>
     </html>
   );

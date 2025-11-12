@@ -88,7 +88,7 @@ export default function WineList() {
           requestMore()
         }
       },
-      { rootMargin: "600px 0px" },
+      { rootMargin: "100px 0px" }, // Reduced from 600px to prevent aggressive pre-loading
     )
 
     observer.observe(node)
