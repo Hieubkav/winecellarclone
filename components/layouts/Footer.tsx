@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Montserrat } from "next/font/google"
-import { Facebook, Instagram, Youtube, Linkedin, Twitter } from "lucide-react"
+import { Facebook, Instagram, Youtube, Linkedin, Twitter, ArrowUp } from "lucide-react"
 
 import { BRAND_COLORS } from "./header.data"
 import { useSettingsStore } from "@/lib/stores/settingsStore"
@@ -49,6 +49,14 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
 
   // Format phone number cho href (loại bỏ spaces, dấu ngoặc)
   const hotlineHref = `tel:+84${hotline.replace(/\D/g, '').slice(-9)}`;
+
+  // Smooth scroll to top
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   return (
     <footer
@@ -138,6 +146,22 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
         </div>
 
         <FooterNote siteName={siteName} />
+
+        {/* Back to Top Button */}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={scrollToTop}
+            aria-label="Quay lại đầu trang"
+            className="flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-offset-2"
+            style={{
+              backgroundColor: NOIR_BASE,
+              borderColor: WINE_HIGHLIGHT,
+              color: WINE_HIGHLIGHT,
+            }}
+          >
+            <ArrowUp className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </footer>
   )
