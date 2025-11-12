@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ChevronLeft,
@@ -10,6 +11,7 @@ import {
   Wine as WineIcon,
   Globe,
   Percent,
+  ChevronDown,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,7 @@ import RelatedProductsSection from "./RelatedProducts";
 interface MetaItem {
   icon: React.ElementType;
   label: string;
+  filterUrl?: string;
 }
 
 interface ProductDetailPageProps {
@@ -54,13 +57,34 @@ const formatOriginalPrice = (product: ProductDetail): string | null => {
   return currencyFormatter.format(product.original_price);
 };
 
-function MetaRow({ icon: Icon, label }: MetaItem) {
+interface MetaRowProps extends MetaItem {
+  filterUrl?: string;
+}
+
+function MetaRow({ icon: Icon, label, filterUrl }: MetaRowProps) {
   if (!label) return null;
 
+  const content = (
+    <>
+      <Icon className="h-5 w-5 shrink-0 text-[#9B2C3B]" strokeWidth={1.5} />
+      <span className="text-sm sm:text-base leading-relaxed">{label}</span>
+    </>
+  );
+
+  if (filterUrl) {
+    return (
+      <a 
+        href={filterUrl}
+        className="flex items-center gap-3 text-[#1C1C1C] hover:text-[#9B2C3B] transition-colors group"
+      >
+        {content}
+      </a>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-3 text-sm text-[#1C1C1C] font-medium">
-      <Icon className="h-5 w-5 text-[#9B2C3B]" strokeWidth={2} />
-      <span className="text-sm leading-snug">{label}</span>
+    <div className="flex items-center gap-3 text-[#1C1C1C]">
+      {content}
     </div>
   );
 }
@@ -112,15 +136,47 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     ? `${product.alcohol_percent}% ABV`
     : "";
 
+  // Build filter URLs
+  const grapeFilterUrl = useMemo(() => {
+    if (!product.grape_terms || product.grape_terms.length === 0) return undefined;
+    const grapeIds = product.grape_terms.map(t => t.id).join(',');
+    return `/filter?grape=${grapeIds}`;
+  }, [product.grape_terms]);
+
+  const typeFilterUrl = product.type?.id 
+    ? `/filter?type=${product.type.id}` 
+    : product.category?.id 
+    ? `/filter?category=${product.category.id}` 
+    : undefined;
+
+  const brandFilterUrl = product.brand_term?.id 
+    ? `/filter?brand=${product.brand_term.id}` 
+    : undefined;
+
+  const countryFilterUrl = product.country_term?.id 
+    ? `/filter?origin=${product.country_term.id}` 
+    : undefined;
+
+  const alcoholFilterUrl = useMemo(() => {
+    if (typeof product.alcohol_percent !== "number") return undefined;
+    const abv = product.alcohol_percent;
+    if (abv < 10) return '/filter?alcohol=under10';
+    if (abv < 12) return '/filter?alcohol=10-12';
+    if (abv < 14) return '/filter?alcohol=12-14';
+    if (abv < 16) return '/filter?alcohol=14-16';
+    return '/filter?alcohol=over16';
+  }, [product.alcohol_percent]);
+
   const metaItems: MetaItem[] = [
-    { icon: Grape, label: grapeLabel },
-    { icon: WineIcon, label: product.type?.name ?? product.category?.name ?? "" },
-    { icon: Building2, label: product.brand_term?.name ?? "" },
-    { icon: Globe, label: countryLabel },
-    { icon: Percent, label: alcoholLabel },
+    { icon: Grape, label: grapeLabel, filterUrl: grapeFilterUrl },
+    { icon: WineIcon, label: product.type?.name ?? product.category?.name ?? "", filterUrl: typeFilterUrl },
+    { icon: Building2, label: product.brand_term?.name ?? "", filterUrl: brandFilterUrl },
+    { icon: Globe, label: countryLabel, filterUrl: countryFilterUrl },
+    { icon: Percent, label: alcoholLabel, filterUrl: alcoholFilterUrl },
   ];
 
   const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const goToPreviousImage = () => {
     setMainImageIndex((prevIndex) =>
@@ -147,31 +203,35 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const originalPriceLabel = formatOriginalPrice(product);
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-8">
-      <div className="flex items-start justify-between">
-        <div className="grid gap-2">
-          <div className="text-sm text-[#1C1C1C] font-medium">{categoryLabel}</div>
-          <h1 className="text-[32px] md:text-[48px] font-bold leading-[1.2] tracking-[-0.5px] md:tracking-[-1px] text-[#1C1C1C] font-montserrat">
-            {product.name}
-          </h1>
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+      {/* Header Section */}
+      <div className="mb-6 sm:mb-8">
+        <div className="text-xs sm:text-sm text-gray-600 mb-2 uppercase tracking-wider font-medium">
+          {categoryLabel}
         </div>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-[#1C1C1C]">
+          {product.name}
+        </h1>
       </div>
-      <Separator className="bg-gray-300" />
-      <div className="grid items-start gap-6 md:gap-12 md:grid-cols-2">
+
+      <Separator className="mb-6 sm:mb-8 bg-gray-200" />
+
+      {/* Main Content: Mobile-first, Desktop 40/60 split */}
+      <div className="grid gap-8 lg:grid-cols-[40%_1fr] lg:gap-12 xl:gap-16">
         {/* Image Gallery Section */}
         <div className="space-y-4">
-          {/* Main Product Image */}
-          <div className="relative aspect-[4/3] w-full">
+          {/* Main Product Image - Portrait 3:4 for wine bottles */}
+          <div className="relative aspect-[3/4] w-full bg-gray-50 rounded-lg overflow-hidden">
             <Image
               src={imageSources[mainImageIndex]}
               alt={product.name}
               fill
-              className="rounded-lg border object-contain object-center"
-              sizes="(max-width: 768px) 100vw, 560px"
+              className="object-contain object-center p-4"
+              sizes="(max-width: 1024px) 100vw, 40vw"
               priority
             />
             {badgeText && (
-              <div className="absolute top-4 left-4 rounded-full bg-[#9B2C3B] px-3 py-1 text-xs font-medium text-white">
+              <div className="absolute top-3 left-3 rounded-full bg-[#9B2C3B] px-3 py-1.5 text-xs font-semibold text-white shadow-md">
                 {badgeText}
               </div>
             )}
@@ -180,46 +240,46 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/80 hover:bg-white text-[#1C1C1C]"
+                  className="absolute top-1/2 left-2 sm:left-4 -translate-y-1/2 rounded-full bg-white/90 hover:bg-white shadow-lg"
                   onClick={goToPreviousImage}
+                  aria-label="Previous image"
                 >
-                  <ChevronLeft className="h-5 w-5" />
-                  <span className="sr-only">Previous image</span>
+                  <ChevronLeft className="h-5 w-5 text-gray-700" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/80 hover:bg-white text-[#1C1C1C]"
+                  className="absolute top-1/2 right-2 sm:right-4 -translate-y-1/2 rounded-full bg-white/90 hover:bg-white shadow-lg"
                   onClick={goToNextImage}
+                  aria-label="Next image"
                 >
-                  <ChevronRight className="h-5 w-5" />
-                  <span className="sr-only">Next image</span>
+                  <ChevronRight className="h-5 w-5 text-gray-700" />
                 </Button>
               </>
             )}
           </div>
 
-          {/* Thumbnail Images */}
+          {/* Thumbnail Images - Elegant minimal design */}
           {imageSources.length > 1 && (
-            <div className="flex flex-row gap-2 overflow-x-auto pb-2">
+            <div className="flex flex-row gap-2 justify-center sm:justify-start">
               {imageSources.map((thumbnail, index) => (
                 <button
                   key={thumbnail + index}
-                  className={`relative flex-shrink-0 w-16 h-16 overflow-hidden rounded-lg border transition-colors ${
+                  className={`relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 overflow-hidden rounded-md transition-all border-2 ${
                     index === mainImageIndex
-                      ? "border-[#ECAA4D]"
-                      : "border-gray-200 hover:border-[#1C1C1C]"
-                  } dark:hover:border-gray-50`}
+                      ? "border-[#ECAA4D] shadow-sm"
+                      : "border-gray-200 hover:border-gray-300 opacity-60 hover:opacity-100"
+                  }`}
                   onClick={() => selectImage(index)}
+                  aria-label={`Xem ảnh ${index + 1}`}
                 >
                   <Image
                     src={thumbnail}
-                    alt={`Product thumbnail ${index + 1}`}
+                    alt={`Ảnh sản phẩm ${index + 1}`}
                     fill
-                    className="object-contain object-center"
+                    className="object-cover"
                     sizes="64px"
                   />
-                  <span className="sr-only">View Image {index + 1}</span>
                 </button>
               ))}
             </div>
@@ -227,84 +287,111 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         </div>
 
         {/* Product Details Section */}
-        <div className="grid gap-8">
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-[#1C1C1C] font-montserrat">{priceLabel}</span>
+        <div className="flex flex-col gap-6 lg:gap-8">
+          {/* Price */}
+          <div className="flex items-baseline gap-3">
+            <span className="text-3xl sm:text-4xl font-bold text-[#1C1C1C]">
+              {priceLabel}
+            </span>
             {originalPriceLabel && (
-              <span className="text-lg text-gray-500 line-through font-montserrat">
+              <span className="text-xl text-gray-400 line-through">
                 {originalPriceLabel}
               </span>
             )}
           </div>
 
-          <div className="grid gap-4">
-            <div className="grid gap-3">
-              <div className="pb-2">
-                <h3 className="text-[13px] sm:text-[14px] font-light uppercase tracking-[2.8px] sm:tracking-[3.2px] text-[#1C1C1C]">
-                  Mô tả
-                </h3>
-              </div>
-              {processedDescription ? (
+          {/* Wine Information Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+              Thông tin sản phẩm
+            </h3>
+            <div className="grid gap-3 sm:gap-4">
+              {metaItems.map((item, index) => (
+                <MetaRow key={`${item.label}-${index}`} {...item} />
+              ))}
+            </div>
+          </div>
+
+          <Separator className="bg-gray-200" />
+
+          {/* Description Section with Read More */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+              Mô tả sản phẩm
+            </h3>
+            {processedDescription ? (
+              <div className="relative">
                 <div
-                  className="prose prose-sm max-w-none
-                    prose-p:text-[16px] sm:prose-p:text-[18px] prose-p:leading-[1.65] sm:prose-p:leading-[1.70] 
-                    prose-p:text-[#1C1C1C] prose-p:font-montserrat prose-p:mb-4
-                    prose-headings:text-[#1C1C1C] prose-headings:font-bold
+                  className={`prose prose-sm max-w-none overflow-hidden transition-all duration-300
+                    prose-p:text-sm sm:prose-p:text-base prose-p:leading-relaxed 
+                    prose-p:text-gray-700 prose-p:mb-3
+                    prose-headings:text-[#1C1C1C] prose-headings:font-semibold prose-headings:mb-2
                     prose-strong:text-[#1C1C1C] prose-strong:font-semibold
-                    prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
-                    prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
-                    prose-li:text-[#1C1C1C] prose-li:mb-2
-                  "
+                    prose-ul:list-disc prose-ul:pl-5 prose-ul:mb-3
+                    prose-ol:list-decimal prose-ol:pl-5 prose-ol:mb-3
+                    prose-li:text-gray-700 prose-li:mb-1.5
+                    ${!isDescriptionExpanded ? 'max-h-32' : 'max-h-none'}
+                  `}
                   dangerouslySetInnerHTML={{ __html: processedDescription }}
                 />
-              ) : (
-                <p className="text-[16px] sm:text-[18px] leading-[1.65] sm:leading-[1.70] text-gray-500 font-montserrat italic">
-                  Nội dung sản phẩm đang cập nhật.
-                </p>
-              )}
-            </div>
-
-            {/* Wine Information Section */}
-            <div className="grid gap-3">
-              <div className="pb-2">
-                <h3 className="text-[13px] sm:text-[14px] font-light uppercase tracking-[2.8px] sm:tracking-[3.2px] text-[#1C1C1C]">
-                  Thông tin rượu
-                </h3>
+                {!isDescriptionExpanded && processedDescription.length > 300 && (
+                  <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                )}
+                {processedDescription.length > 300 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="relative z-10 mt-2 flex items-center gap-1 text-sm font-medium text-[#9B2C3B] hover:text-[#7a2330] transition-colors cursor-pointer"
+                    type="button"
+                  >
+                    {isDescriptionExpanded ? 'Thu gọn' : 'Xem thêm'}
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isDescriptionExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {metaItems.map((item, index) => (
-                  <MetaRow key={`${item.label}-${index}`} {...item} />
-                ))}
-              </div>
-            </div>
+            ) : (
+              <p className="text-sm sm:text-base text-gray-500 italic">
+                Nội dung sản phẩm đang cập nhật.
+              </p>
+            )}
+          </div>
 
-            <div className="pt-2">
-              <Button className="h-12 w-full text-lg bg-[#ECAA4D] text-white hover:bg-[#d9973a]">
-                Liên hệ
-              </Button>
-            </div>
+          {/* CTA Button - Sticky on Mobile */}
+          <div className="sticky bottom-0 left-0 right-0 bg-white pt-4 pb-4 lg:static lg:pt-6 lg:pb-0 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 border-t lg:border-t-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] lg:shadow-none">
+            <Button 
+              asChild
+              className="h-12 sm:h-14 w-full text-base sm:text-lg font-semibold bg-[#ECAA4D] text-white hover:bg-[#d9973a] transition-colors shadow-lg hover:shadow-xl"
+            >
+              <Link href="/contact" target="_blank" rel="noopener noreferrer">
+                Liên hệ đặt hàng
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Section 1: Same Type Products */}
+      {/* Related Products Sections */}
       {product.same_type_products && product.same_type_products.products.length > 0 && (
-        <RelatedProductsSection
-          title={`Cùng loại ${product.type?.name || 'sản phẩm'}`}
-          products={product.same_type_products.products}
-          viewAllHref={product.same_type_products.view_all_url || undefined}
-          viewAllLabel="Xem thêm"
-        />
+        <div className="mt-12 lg:mt-16">
+          <Separator className="mb-8 lg:mb-12 bg-gray-200" />
+          <RelatedProductsSection
+            title={`Cùng loại ${product.type?.name || 'sản phẩm'}`}
+            products={product.same_type_products.products}
+            viewAllHref={product.same_type_products.view_all_url || undefined}
+            viewAllLabel="Xem thêm"
+          />
+        </div>
       )}
 
-      {/* Section 2: Related by Attributes */}
       {product.related_by_attributes && product.related_by_attributes.products.length > 0 && (
-        <RelatedProductsSection
-          title="Sản phẩm liên quan"
-          products={product.related_by_attributes.products}
-          viewAllHref={product.related_by_attributes.view_all_url || undefined}
-          viewAllLabel="Xem thêm"
-        />
+        <div className="mt-12 lg:mt-16">
+          <Separator className="mb-8 lg:mb-12 bg-gray-200" />
+          <RelatedProductsSection
+            title="Sản phẩm liên quan"
+            products={product.related_by_attributes.products}
+            viewAllHref={product.related_by_attributes.view_all_url || undefined}
+            viewAllLabel="Xem thêm"
+          />
+        </div>
       )}
     </div>
   );

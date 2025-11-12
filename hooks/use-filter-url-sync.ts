@@ -6,6 +6,11 @@ import { useWineStore } from "@/data/filter/store"
 /**
  * Hook to synchronize filter state with URL query parameters
  * Enables deep linking and shareable filter URLs
+ * 
+ * Strategy: 
+ * - Effect 1: Read URL params on mount and apply to store
+ * - Effect 2: Sync store filters to URL on user interactions
+ * - Race condition fix: Prevent clearing URL params during initialization
  */
 export function useFilterUrlSync() {
   const router = useRouter()
@@ -13,6 +18,7 @@ export function useFilterUrlSync() {
   const searchParams = useSearchParams()
   const isInitialMount = useRef(true)
   const isApplyingUrlParams = useRef(false)
+  const previousUrlParams = useRef<string>("")
 
   const {
     filters,
@@ -103,7 +109,7 @@ export function useFilterUrlSync() {
         })
       }
 
-      // Dynamic attribute filters (e.g., brand=1,2,3&grape=4,5)
+      // Dynamic attribute filters (e.g., brand=1,2,3&grape=4,5, origin=160)
       options.attributeFilters.forEach((attrFilter) => {
         const attrParam = searchParams.get(attrFilter.code)
         if (attrParam) {
@@ -187,11 +193,24 @@ export function useFilterUrlSync() {
     // Update URL without adding to history (replace instead of push)
     const queryString = params.toString()
     const newUrl = queryString ? `${pathname}?${queryString}` : pathname
-
-    // Only update if URL actually changed
     const currentUrl = `${pathname}${window.location.search}`
+    
+    // CRITICAL FIX: Prevent clearing URL params during initialization
+    // If current URL has params but filters state is empty, don't replace
+    // This prevents race condition where URL params are being applied to store
+    const currentHasParams = window.location.search.length > 0
+    const newHasParams = queryString.length > 0
+    
+    // Don't clear URL if:
+    // 1. Current URL has params but new URL doesn't (race condition)
+    // 2. Unless this is an explicit user action (previous URL was already synced)
+    if (currentHasParams && !newHasParams && previousUrlParams.current !== "") {
+      return
+    }
+    
     if (newUrl !== currentUrl) {
       router.replace(newUrl, { scroll: false })
+      previousUrlParams.current = queryString
     }
   }, [
     filters,

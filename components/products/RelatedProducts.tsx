@@ -20,13 +20,12 @@ const convertToWine = (product: ProductListItem): Wine => ({
   originalPrice: product.original_price,
   discountPercent: product.discount_percent,
   showContactCta: product.show_contact_cta,
-  imageUrl: product.main_image_url || "/placeholder/wine-bottle.svg",
-  badge: product.badges?.[0] || (product.discount_percent ? `Giảm ${product.discount_percent}%` : undefined),
+  image: product.main_image_url || "/placeholder/wine-bottle.svg",
+  badges: product.badges ? [product.badges[0]] : (product.discount_percent ? [`Giảm ${product.discount_percent}%`] : undefined),
   brand: product.brand_term?.name,
-  origin: product.country_term?.name,
-  category: product.category?.name,
-  type: product.type?.name,
-  alcoholPercent: product.alcohol_percent,
+  country: product.country_term?.name,
+  wineType: product.type?.name,
+  alcoholContent: product.alcohol_percent,
 });
 
 export default function RelatedProductsSection({ 
