@@ -37,6 +37,7 @@ export function FilterSidebar() {
     toggleAttributeFilter,
     toggleAlcoholBucket,
     setSelectedCategory,
+    setSelectedProductType,
     resetFilters,
   } = useWineStore(
     useShallow((state) => ({
@@ -46,15 +47,21 @@ export function FilterSidebar() {
       toggleAttributeFilter: state.toggleAttributeFilter,
       toggleAlcoholBucket: state.toggleAlcoholBucket,
       setSelectedCategory: state.setSelectedCategory,
+      setSelectedProductType: state.setSelectedProductType,
       resetFilters: state.resetFilters,
     })),
   )
 
   const sliderDisabled = options.priceRange[1] <= options.priceRange[0]
   const categoryValue = filters.categoryId ? String(filters.categoryId) : "all"
+  const productTypeValue = filters.productTypeId ? String(filters.productTypeId) : "all"
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value === "all" ? null : Number(value))
+  }
+
+  const handleProductTypeChange = (value: string) => {
+    setSelectedProductType(value === "all" ? null : Number(value))
   }
 
   return (
@@ -101,6 +108,38 @@ export function FilterSidebar() {
       </div>
 
       <Separator />
+
+      {/* Product Types (Built-in filter) */}
+      {options.productTypes.length > 0 && (
+        <>
+          <div>
+            <h3 className="mb-3 font-semibold">Loại sản phẩm</h3>
+            <RadioGroup value={productTypeValue} onValueChange={handleProductTypeChange}>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="type-all" />
+                  <Label htmlFor="type-all" className="cursor-pointer text-sm font-normal">
+                    Tất cả
+                  </Label>
+                </div>
+                {options.productTypes.map((type) => (
+                  <div key={type.id} className="flex items-center space-x-2">
+                    <RadioGroupItem value={String(type.id)} id={`type-${type.id}`} />
+                    <Label
+                      htmlFor={`type-${type.id}`}
+                      className="cursor-pointer text-sm font-normal"
+                    >
+                      {type.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </RadioGroup>
+          </div>
+
+          <Separator />
+        </>
+      )}
 
       {/* Dynamic Attribute Filters */}
       {options.attributeFilters.map((attributeFilter) => {

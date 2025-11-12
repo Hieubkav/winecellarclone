@@ -18,6 +18,7 @@ export function useFilterUrlSync() {
     filters,
     initialized,
     setSelectedCategory,
+    setSelectedProductType,
     toggleAttributeFilter,
     setPriceRange,
     toggleAlcoholBucket,
@@ -29,6 +30,7 @@ export function useFilterUrlSync() {
       filters: state.filters,
       initialized: state.initialized,
       setSelectedCategory: state.setSelectedCategory,
+      setSelectedProductType: state.setSelectedProductType,
       toggleAttributeFilter: state.toggleAttributeFilter,
       setPriceRange: state.setPriceRange,
       toggleAlcoholBucket: state.toggleAlcoholBucket,
@@ -58,6 +60,15 @@ export function useFilterUrlSync() {
         const categoryId = parseInt(categoryParam, 10)
         if (!isNaN(categoryId)) {
           setSelectedCategory(categoryId, true) // Skip fetch for now
+        }
+      }
+
+      // Product Type
+      const typeParam = searchParams.get("type")
+      if (typeParam) {
+        const typeId = parseInt(typeParam, 10)
+        if (!isNaN(typeId)) {
+          setSelectedProductType(typeId, true) // Skip fetch for now
         }
       }
 
@@ -135,6 +146,11 @@ export function useFilterUrlSync() {
     // Category
     if (filters.categoryId) {
       params.set("category", String(filters.categoryId))
+    }
+
+    // Product Type
+    if (filters.productTypeId) {
+      params.set("type", String(filters.productTypeId))
     }
 
     // Search query

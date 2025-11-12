@@ -64,6 +64,7 @@ interface AttributeFilter {
 
 interface FilterOptionsState {
   categories: FilterOption[]
+  productTypes: FilterOption[]
   priceRange: PriceRange
   alcoholRange: PriceRange
   attributeFilters: AttributeFilter[]
@@ -71,6 +72,7 @@ interface FilterOptionsState {
 
 interface FiltersState {
   categoryId: number | null
+  productTypeId: number | null
   priceRange: PriceRange
   alcoholBuckets: AlcoholBucket[]
   sortBy: SortOption
@@ -101,6 +103,7 @@ interface WineStoreActions {
   setViewMode: (mode: "grid" | "list") => void
   setSearchQuery: (query: string) => void
   setSelectedCategory: (id: number | null, skipFetch?: boolean) => void
+  setSelectedProductType: (id: number | null, skipFetch?: boolean) => void
   toggleAttributeFilter: (attributeCode: string, optionId: number, skipFetch?: boolean) => void
   setPriceRange: (range: PriceRange, skipFetch?: boolean) => void
   toggleAlcoholBucket: (bucket: AlcoholBucket, skipFetch?: boolean) => void
@@ -217,6 +220,10 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
     params["category[]"] = [filters.categoryId]
   }
 
+  if (filters.productTypeId) {
+    params["type[]"] = [filters.productTypeId]
+  }
+
   const alcoholRange = computeAlcoholRange(filters.alcoholBuckets)
   if (alcoholRange.min !== null) {
     params.alcohol_min = alcoholRange.min
@@ -231,6 +238,7 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
 
 const transformOptions = (payload: {
   categories: FilterOption[]
+  types: FilterOption[]
   price: { min: number; max: number }
   alcohol: { min: number; max: number }
   attribute_filters: Array<{
@@ -253,6 +261,7 @@ const transformOptions = (payload: {
 
   return {
     categories: payload.categories,
+    productTypes: payload.types || [],
     priceRange,
     alcoholRange,
     attributeFilters: payload.attribute_filters,
@@ -262,12 +271,14 @@ const transformOptions = (payload: {
 const initialState: WineStoreState = {
   options: {
     categories: [],
+    productTypes: [],
     priceRange: [0, DEFAULT_PRICE_MAX],
     alcoholRange: DEFAULT_ALCOHOL_RANGE,
     attributeFilters: [],
   },
   filters: {
     categoryId: null,
+    productTypeId: null,
     priceRange: [0, DEFAULT_PRICE_MAX],
     alcoholBuckets: [],
     sortBy: "name-asc",
@@ -368,6 +379,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
       filters: {
         ...state.filters,
         categoryId: null,
+        productTypeId: null,
         priceRange: options.priceRange,
         alcoholBuckets: [],
         page: 1,
@@ -404,6 +416,18 @@ export const useWineStore = create<WineStore>((set, get) => ({
       filters: {
         ...state.filters,
         categoryId: id,
+        page: 1,
+      },
+    }))
+    if (!skipFetch) {
+      void get().fetchProducts()
+    }
+  },
+  setSelectedProductType: (id, skipFetch = false) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        productTypeId: id,
         page: 1,
       },
     }))
