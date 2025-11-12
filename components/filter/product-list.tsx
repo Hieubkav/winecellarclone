@@ -106,14 +106,15 @@ export default function WineList() {
         </aside>
 
         <main className="flex-1">
-          <div className="mb-4 flex flex-col gap-4 sm:mb-6">
+          <div className="mb-4 flex flex-col gap-4 sm:mb-6 relative z-30">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-1 items-center gap-4 sm:flex-none">
                 <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                   <SheetTrigger asChild className="lg:hidden">
                     <Button
                       variant="outline"
-                      className="flex items-center gap-2 border-[#ECAA4D] text-[#ECAA4D]"
+                      className="flex items-center gap-2 border-[#ECAA4D] text-[#ECAA4D] hover:bg-[#ECAA4D] hover:text-white transition-colors"
+                      aria-label="Mở bộ lọc"
                     >
                       <Filter className="h-4 w-4" />
                       Bộ lọc
@@ -127,7 +128,7 @@ export default function WineList() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute right-4 top-3 text-[#1C1C1C]"
+                        className="absolute right-4 top-3 text-[#1C1C1C] hover:bg-[#1C1C1C]/10"
                         onClick={() => setMobileFiltersOpen(false)}
                         aria-label="Đóng bộ lọc"
                       >
@@ -142,8 +143,15 @@ export default function WineList() {
                   </SheetContent>
                 </Sheet>
 
-                <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                  {loading ? "Đợi..." : `${totalProducts} sp`}
+                <div className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                      Đang tải...
+                    </span>
+                  ) : (
+                    <span>{totalProducts} sản phẩm</span>
+                  )}
                 </div>
               </div>
 
@@ -151,20 +159,21 @@ export default function WineList() {
                 <select
                   value={filters.sortBy}
                   onChange={(event) => setSortBy(event.target.value as SortOption)}
-                  className="border rounded px-2 py-1 text-sm"
+                  className="border border-[#ECAA4D]/60 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#ECAA4D] focus:border-[#ECAA4D] transition-colors bg-white text-[#1C1C1C] cursor-pointer hover:border-[#ECAA4D]"
+                  aria-label="Sắp xếp sản phẩm"
                 >
-                  <option value="name-asc">A-Z</option>
-                  <option value="name-desc">Z-A</option>
-                  <option value="price-asc">Giá thấp lên cao</option>
-                  <option value="price-desc">Giá cao xuống thấp</option>
+                  <option value="name-asc">Tên: A-Z</option>
+                  <option value="name-desc">Tên: Z-A</option>
+                  <option value="price-asc">Giá: Thấp đến cao</option>
+                  <option value="price-desc">Giá: Cao đến thấp</option>
                 </select>
 
                 <div className="hidden sm:block">
                   <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
-                    <ToggleGroupItem value="grid" aria-label="Grid view">
+                    <ToggleGroupItem value="grid" aria-label="Hiển thị dạng lưới" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
                       <Grid3X3 className="h-4 w-4" />
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="list" aria-label="List view">
+                    <ToggleGroupItem value="list" aria-label="Hiển thị dạng danh sách" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
                       <List className="h-4 w-4" />
                     </ToggleGroupItem>
                   </ToggleGroup>
@@ -181,10 +190,10 @@ export default function WineList() {
 
               <div className="sm:hidden">
                 <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
-                  <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
+                  <ToggleGroupItem value="grid" aria-label="Hiển thị dạng lưới" size="sm" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
                     <Grid3X3 className="h-4 w-4" />
                   </ToggleGroupItem>
-                  <ToggleGroupItem value="list" aria-label="List view" size="sm">
+                  <ToggleGroupItem value="list" aria-label="Hiển thị dạng danh sách" size="sm" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
                     <List className="h-4 w-4" />
                   </ToggleGroupItem>
                 </ToggleGroup>
@@ -193,28 +202,41 @@ export default function WineList() {
           </div>
 
           {error ? (
-            <div className="py-12 text-center text-destructive">{error}</div>
+            <div className="py-12 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-600 border border-red-200">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm font-medium">{error}</span>
+              </div>
+            </div>
           ) : (
-            <div className="relative">
-              {/* Loading overlay with backdrop */}
+            <div className="relative z-10">
+              {/* Loading overlay with backdrop - only covers products area */}
               {loading && (
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg min-h-[400px]">
                   <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="h-8 w-8 animate-spin text-[#ECAA4D]" />
-                    <p className="text-sm text-muted-foreground">Đang tìm kiếm...</p>
+                    <Loader2 className="h-10 w-10 animate-spin text-[#ECAA4D]" />
+                    <p className="text-sm text-muted-foreground font-medium">Đang tải sản phẩm...</p>
                   </div>
                 </div>
               )}
 
               {/* Products grid with smooth transition */}
               <div
-                className={`grid gap-6 transition-opacity duration-200 ${
+                className={`grid gap-4 sm:gap-6 transition-opacity duration-300 ${
                   viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
                 } ${loading ? "opacity-50" : "opacity-100"}`}
               >
                 {wines.length === 0 && !loading ? (
-                  <div className="col-span-full py-12 text-center text-muted-foreground">
-                    Không tìm thấy sản phẩm phù hợp.
+                  <div className="col-span-full py-16 text-center">
+                    <div className="inline-flex flex-col items-center gap-3 px-6 py-8 rounded-lg bg-gray-50">
+                      <svg className="h-16 w-16 text-muted-foreground/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <p className="text-muted-foreground font-medium">Không tìm thấy sản phẩm phù hợp</p>
+                      <p className="text-sm text-muted-foreground/70">Vui lòng thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                    </div>
                   </div>
                 ) : loading && wines.length === 0 ? (
                   // Show skeletons on first load
