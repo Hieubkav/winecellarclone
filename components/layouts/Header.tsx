@@ -200,7 +200,7 @@ function SearchForm() {
 
   const handleSuggestionClick = (slug: string) => {
     setShowSuggestions(false)
-    window.location.href = `/products/${slug}`
+    window.location.href = `/san-pham/${slug}`
   }
 
   const handleFocus = () => {

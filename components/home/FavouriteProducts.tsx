@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 
 import type { HomeShowcaseProduct } from "@/data/homeCollections";
@@ -24,23 +23,10 @@ export default function FavouriteProducts({ title, products }: FavouriteProducts
     <section className="py-6 md:py-8 bg-white">
       <div className="mx-auto w-full max-w-6xl px-4">
         {/* Heading */}
-        <header className="mb-4 flex items-center justify-between md:mb-5">
+        <header className="mb-4 md:mb-5">
           <h2 className="font-brand text-lg font-bold text-[#1C1C1C] tracking-tight md:text-xl">
             {title}
           </h2>
-
-          <Link
-            href="/san-pham-yeu-thich"
-            className="flex items-center gap-1 text-xs font-medium text-[#ECAA4D] font-body"
-          >
-            <span>
-              Xem tất cả
-            </span>
-            <ArrowRight
-              className="size-3.5"
-              strokeWidth={2}
-            />
-          </Link>
         </header>
 
         {/* Scroll row */}

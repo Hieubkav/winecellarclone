@@ -25,7 +25,7 @@ export function transformApiProduct(product: ApiProduct): HomeShowcaseProduct {
   return {
     id: product.id.toString(),
     name: product.name,
-    href: `/products/${product.slug}`,
+    href: `/san-pham/${product.slug}`,
     image: product.cover_image_url || "/placeholder.jpg",
     country: product.country_term?.name || "",
     style: product.type?.name || "",
@@ -64,7 +64,7 @@ export function adaptCollectionShowcaseProps(config: CollectionShowcaseConfig) {
     subtitle: config.subtitle || undefined,
     description: config.description || undefined,
     ctaLabel: config.ctaLabel || undefined,
-    ctaHref: config.ctaHref || "/products",
+    ctaHref: config.ctaHref || "/san-pham",
     products: config.products.map((item: any) => transformApiProduct(item.product)),
     tone: (config.tone || "wine") as "wine" | "spirit",
   };

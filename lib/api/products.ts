@@ -66,6 +66,11 @@ export interface Breadcrumb {
   href: string;
 }
 
+export interface RelatedProductsSection {
+  products: ProductListItem[];
+  view_all_url: string | null;
+}
+
 export interface ProductDetail {
   id: number;
   name: string;
@@ -91,6 +96,8 @@ export interface ProductDetail {
     title: string | null;
     description: string | null;
   };
+  same_type_products?: RelatedProductsSection | null;
+  related_by_attributes?: RelatedProductsSection | null;
 }
 
 interface ProductDetailResponse {

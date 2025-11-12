@@ -111,8 +111,8 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
             />
           )}
 
-          {/* Gallery */}
-          {article.gallery && article.gallery.length > 0 && (
+          {/* Gallery - Only show if more than 1 image (first image is cover) */}
+          {article.gallery && article.gallery.length > 1 && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-[#1C1C1C] mb-6">Hình ảnh</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -105,7 +105,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({ wine, v
                         </p>
 
                         <Button className="w-full sm:w-auto rounded-none sm:rounded-full bg-[#ECAA4D] py-0.5 text-xs font-semibold uppercase tracking-wide text-[#1C1C1C] hover:bg-[#d2923f] shadow-none border-0" asChild>
-                            <Link href={`/products/${wine.slug}`}>Xem</Link>
+                            <Link href={`/san-pham/${wine.slug}`}>Xem</Link>
                         </Button>
                     </div>
                 </div>

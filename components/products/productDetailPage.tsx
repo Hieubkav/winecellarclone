@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { ProductDetail } from "@/lib/api/products";
+import { processProductContent } from "@/lib/utils/article-content";
+import RelatedProductsSection from "./RelatedProducts";
 
 interface MetaItem {
   icon: React.ElementType;
@@ -137,7 +139,10 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   };
 
   const categoryLabel = product.category?.name ?? product.type?.name ?? "Sản phẩm";
-  const description = product.description ?? "Nội dung sản phẩm đang cập nhật.";
+  const processedDescription = useMemo(
+    () => processProductContent(product.description),
+    [product.description]
+  );
   const priceLabel = formatPrice(product);
   const originalPriceLabel = formatOriginalPrice(product);
 
@@ -239,9 +244,24 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                   Mô tả
                 </h3>
               </div>
-              <p className="text-[16px] sm:text-[18px] leading-[1.65] sm:leading-[1.70] text-[#1C1C1C] font-montserrat">
-                {description}
-              </p>
+              {processedDescription ? (
+                <div
+                  className="prose prose-sm max-w-none
+                    prose-p:text-[16px] sm:prose-p:text-[18px] prose-p:leading-[1.65] sm:prose-p:leading-[1.70] 
+                    prose-p:text-[#1C1C1C] prose-p:font-montserrat prose-p:mb-4
+                    prose-headings:text-[#1C1C1C] prose-headings:font-bold
+                    prose-strong:text-[#1C1C1C] prose-strong:font-semibold
+                    prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-4
+                    prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-4
+                    prose-li:text-[#1C1C1C] prose-li:mb-2
+                  "
+                  dangerouslySetInnerHTML={{ __html: processedDescription }}
+                />
+              ) : (
+                <p className="text-[16px] sm:text-[18px] leading-[1.65] sm:leading-[1.70] text-gray-500 font-montserrat italic">
+                  Nội dung sản phẩm đang cập nhật.
+                </p>
+              )}
             </div>
 
             {/* Wine Information Section */}
@@ -266,6 +286,26 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Section 1: Same Type Products */}
+      {product.same_type_products && product.same_type_products.products.length > 0 && (
+        <RelatedProductsSection
+          title={`Cùng loại ${product.type?.name || 'sản phẩm'}`}
+          products={product.same_type_products.products}
+          viewAllHref={product.same_type_products.view_all_url || undefined}
+          viewAllLabel="Xem thêm"
+        />
+      )}
+
+      {/* Section 2: Related by Attributes */}
+      {product.related_by_attributes && product.related_by_attributes.products.length > 0 && (
+        <RelatedProductsSection
+          title="Sản phẩm liên quan"
+          products={product.related_by_attributes.products}
+          viewAllHref={product.related_by_attributes.view_all_url || undefined}
+          viewAllLabel="Xem thêm"
+        />
+      )}
     </div>
   );
 }

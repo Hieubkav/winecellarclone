@@ -1,5 +1,5 @@
 /**
- * Process article content to convert relative storage URLs to absolute URLs
+ * Process article/product content to convert relative storage URLs to absolute URLs
  */
 
 const getBackendBaseUrl = (): string => {
@@ -25,6 +25,14 @@ export function processArticleContent(content: string | null): string {
   );
 
   return processedContent;
+}
+
+/**
+ * Process product description (same as article content)
+ * Can be used for any rich text content from backend
+ */
+export function processProductContent(content: string | null): string {
+  return processArticleContent(content);
 }
 
 /**

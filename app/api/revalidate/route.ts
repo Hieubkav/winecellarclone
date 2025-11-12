@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Backend sẽ gọi API này khi có data mới
  * 
  * POST /api/revalidate
- * Body: { secret: "...", paths: ["/", "/products"] }
+ * Body: { secret: "...", paths: ["/", "/san-pham"] }
  */
 export async function POST(request: NextRequest) {
   try {
