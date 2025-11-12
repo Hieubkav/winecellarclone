@@ -7,18 +7,20 @@ import { useWineStore } from "@/data/filter/store"
  * Hook to synchronize filter state with URL query parameters
  * Enables deep linking and shareable filter URLs
  * 
- * Strategy: 
- * - Effect 1: Read URL params on mount and apply to store
- * - Effect 2: Sync store filters to URL on user interactions
- * - Race condition fix: Prevent clearing URL params during initialization
+ * Best Practice: URL as Single Source of Truth
+ * - Effect 1 (URL → Store): ALWAYS syncs when URL changes (navigation, back/forward, direct link)
+ *   - Parses URL params or uses defaults if not present
+ *   - Ensures /filter?type=1 → /filter correctly resets filters
+ * - Effect 2 (Store → URL): Syncs filter changes to URL for shareable links
+ * - Loop prevention: previousUrlParams tracks changes, isApplyingUrlParams prevents Effect 2 during Effect 1
  */
 export function useFilterUrlSync() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const isInitialMount = useRef(true)
   const isApplyingUrlParams = useRef(false)
   const previousUrlParams = useRef<string>("")
+  const previousPathname = useRef<string>("")
 
   const {
     filters,
@@ -46,91 +48,86 @@ export function useFilterUrlSync() {
     }))
   )
 
-  // Read URL params on initial mount and apply to store
+  // Effect 1: URL → Store (ALWAYS sync when URL changes, not just on mount)
+  // This ensures /filter?type=1 → /filter correctly resets filters
   useEffect(() => {
-    if (!isInitialMount.current) {
-      return
-    }
-
     if (!initialized) {
       return
     }
 
-    isInitialMount.current = false
+    // Detect if URL or pathname changed
+    const currentUrlString = searchParams.toString()
+    const pathnameChanged = pathname !== previousPathname.current
+    
+    // Skip only if BOTH URL and pathname haven't changed
+    // CRITICAL: Don't skip if pathname changed (fresh navigation to /filter)
+    if (!pathnameChanged && currentUrlString === previousUrlParams.current) {
+      return
+    }
+
+    // Mark that we're syncing FROM URL TO store (prevents Effect 2 from running)
     isApplyingUrlParams.current = true
+    previousUrlParams.current = currentUrlString
+    previousPathname.current = pathname
 
     try {
-      // Category
+      // Parse all URL params - if not present, use null/default values
+      // This ensures filters are cleared when navigating from /filter?type=1 to /filter
+      
       const categoryParam = searchParams.get("category")
-      if (categoryParam) {
-        const categoryId = parseInt(categoryParam, 10)
-        if (!isNaN(categoryId)) {
-          setSelectedCategory(categoryId, true) // Skip fetch for now
-        }
-      }
-
-      // Product Type
+      const categoryId = categoryParam ? parseInt(categoryParam, 10) : null
+      
       const typeParam = searchParams.get("type")
-      if (typeParam) {
-        const typeId = parseInt(typeParam, 10)
-        if (!isNaN(typeId)) {
-          setSelectedProductType(typeId, true) // Skip fetch for now
-        }
-      }
-
-      // Search query - set directly to avoid triggering Effect 2
+      const typeId = typeParam ? parseInt(typeParam, 10) : null
+      
       const searchParam = searchParams.get("q")
-
-      // Sort
+      const searchQuery = searchParam?.trim() || ""
+      
       const sortParam = searchParams.get("sort")
-      if (sortParam && ["name-asc", "name-desc", "price-asc", "price-desc"].includes(sortParam)) {
-        setSortBy(sortParam as any, true) // Skip fetch
-      }
-
-      // Price range
+      const sortBy = (sortParam && ["name-asc", "name-desc", "price-asc", "price-desc"].includes(sortParam)) 
+        ? sortParam as any 
+        : "name-asc"
+      
       const priceMinParam = searchParams.get("price_min")
       const priceMaxParam = searchParams.get("price_max")
-      if (priceMinParam || priceMaxParam) {
-        const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
-        const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
-        if (!isNaN(priceMin) && !isNaN(priceMax)) {
-          setPriceRange([priceMin, priceMax], true) // Skip fetch
-        }
-      }
-
-      // Alcohol buckets
+      const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
+      const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
+      
+      // Alcohol buckets - parse from URL or empty array
       const alcoholParam = searchParams.get("alcohol")
-      if (alcoholParam) {
-        const buckets = alcoholParam.split(",")
-        buckets.forEach((bucket) => {
-          if (["10", "10-12", "12-14", "14-16", "over16"].includes(bucket)) {
-            toggleAlcoholBucket(bucket as any, true) // Skip fetch
-          }
-        })
-      }
-
-      // Dynamic attribute filters (e.g., brand=1,2,3&grape=4,5, origin=160)
+      const alcoholBuckets = alcoholParam 
+        ? alcoholParam.split(",").filter(b => ["10", "10-12", "12-14", "14-16", "over16"].includes(b)) as any[]
+        : []
+      
+      // Dynamic attribute filters - parse from URL or empty object
+      const attributeSelections: Record<string, number[]> = {}
       options.attributeFilters.forEach((attrFilter) => {
         const attrParam = searchParams.get(attrFilter.code)
         if (attrParam) {
           const ids = attrParam.split(",").map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
-          ids.forEach((id) => {
-            toggleAttributeFilter(attrFilter.code, id, true) // Skip fetch for each individual toggle
-          })
+          if (ids.length > 0) {
+            attributeSelections[attrFilter.code] = ids
+          }
         }
       })
 
-      // Apply search query directly to store state without triggering actions
-      if (searchParam) {
-        useWineStore.setState((state) => ({
-          filters: {
-            ...state.filters,
-            searchQuery: searchParam.trim(),
-          }
-        }))
-      }
+      // Apply ALL filters at once directly to store (atomic update)
+      // This prevents partial state updates and is more predictable
+      useWineStore.setState((state) => ({
+        filters: {
+          ...state.filters,
+          categoryId: (categoryId && !isNaN(categoryId)) ? categoryId : null,
+          productTypeId: (typeId && !isNaN(typeId)) ? typeId : null,
+          priceRange: (!isNaN(priceMin) && !isNaN(priceMax)) ? [priceMin, priceMax] : options.priceRange,
+          alcoholBuckets,
+          sortBy,
+          searchQuery,
+          attributeSelections,
+          page: 1,
+        }
+      }))
 
-      // Now fetch products once with all filters applied
+      // Fetch products once with all filters applied
       setTimeout(() => {
         isApplyingUrlParams.current = false
         useWineStore.getState().fetchProducts()
@@ -139,11 +136,11 @@ export function useFilterUrlSync() {
       isApplyingUrlParams.current = false
       throw error
     }
-  }, [initialized, searchParams, options.attributeFilters, options.priceRange])
+  }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange])
 
-  // Sync filters to URL whenever they change
+  // Effect 2: Store → URL (sync filter changes to URL for shareable links)
   useEffect(() => {
-    if (!initialized || isApplyingUrlParams.current || isInitialMount.current) {
+    if (!initialized || isApplyingUrlParams.current) {
       return
     }
 
@@ -194,19 +191,6 @@ export function useFilterUrlSync() {
     const queryString = params.toString()
     const newUrl = queryString ? `${pathname}?${queryString}` : pathname
     const currentUrl = `${pathname}${window.location.search}`
-    
-    // CRITICAL FIX: Prevent clearing URL params during initialization
-    // If current URL has params but filters state is empty, don't replace
-    // This prevents race condition where URL params are being applied to store
-    const currentHasParams = window.location.search.length > 0
-    const newHasParams = queryString.length > 0
-    
-    // Don't clear URL if:
-    // 1. Current URL has params but new URL doesn't (race condition)
-    // 2. Unless this is an explicit user action (previous URL was already synced)
-    if (currentHasParams && !newHasParams && previousUrlParams.current !== "") {
-      return
-    }
     
     if (newUrl !== currentUrl) {
       router.replace(newUrl, { scroll: false })
