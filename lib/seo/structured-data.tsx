@@ -51,7 +51,7 @@ export function OrganizationSchema({
       id="organization-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      strategy="beforeInteractive"
+      strategy="afterInteractive"
     />
   )
 }
@@ -120,7 +120,7 @@ export function ProductSchema({
       id="product-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      strategy="beforeInteractive"
+      strategy="afterInteractive"
     />
   )
 }
@@ -180,7 +180,7 @@ export function ArticleSchema({
       id="article-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      strategy="beforeInteractive"
+      strategy="afterInteractive"
     />
   )
 }
@@ -211,7 +211,7 @@ export function BreadcrumbSchema({ items }: BreadcrumbSchemaProps) {
       id="breadcrumb-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      strategy="beforeInteractive"
+      strategy="afterInteractive"
     />
   )
 }
@@ -247,7 +247,7 @@ export function WebSiteSchema({
       id="website-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      strategy="beforeInteractive"
+      strategy="afterInteractive"
     />
   )
 }

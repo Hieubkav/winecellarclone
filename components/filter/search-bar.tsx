@@ -21,12 +21,15 @@ export function FilterSearchBar({ value, onChange, disabled, placeholder = "Tìm
   const lastEmittedValue = useRef<string>(value);
 
   // Sync with external value changes only when needed
+  // Using queueMicrotask to defer setState and avoid cascading renders
   useEffect(() => {
     if (value !== lastEmittedValue.current && value !== term) {
-      setTerm(value);
-      lastEmittedValue.current = value;
+      queueMicrotask(() => {
+        setTerm(value);
+        lastEmittedValue.current = value;
+      });
     }
-  }, [value]);
+  }, [value, term]);
 
   // Emit debounced changes
   useEffect(() => {

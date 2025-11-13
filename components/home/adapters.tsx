@@ -65,7 +65,7 @@ export function adaptCollectionShowcaseProps(config: CollectionShowcaseConfig) {
     description: config.description || undefined,
     ctaLabel: config.ctaLabel || undefined,
     ctaHref: config.ctaHref || "/san-pham",
-    products: config.products.map((item: any) => transformApiProduct(item.product)),
+    products: config.products.map((product) => transformApiProduct(product)),
     tone: (config.tone || "wine") as "wine" | "spirit",
   };
 }
@@ -75,7 +75,7 @@ export function adaptEditorialSpotlightProps(config: EditorialSpotlightConfig) {
     label: config.label || undefined,
     title: config.title,
     description: config.description || undefined,
-    articles: config.articles.map((item: any) => transformApiArticle(item.article)),
+    articles: config.articles.map((article) => transformApiArticle(article)),
   };
 }
 
@@ -83,7 +83,7 @@ export function adaptFavouriteProductsProps(config: FavouriteProductsConfig) {
   return {
     title: config.title,
     subtitle: config.subtitle || undefined,
-    products: config.products.map((item: any) => transformApiProduct(item.product)),
+    products: config.products.map((product) => transformApiProduct(product)),
   };
 }
 
@@ -120,11 +120,11 @@ export function adaptBrandShowcaseProps(config: BrandShowcaseConfig) {
 
 export function adaptCategoryGridProps(config: CategoryGridConfig) {
   return {
-    categories: config.categories.map((cat: any) => ({
-      title: cat.title,
-      href: cat.href,
-      image: cat.image?.url || null,
-      alt: cat.image?.alt || cat.title,
+    categories: config.categories.map((item) => ({
+      title: item.term.name,
+      href: `/filter?category=${item.term.id}`,
+      image: item.image?.url || null,
+      alt: item.image?.alt || item.term.name,
     })),
   };
 }

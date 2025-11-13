@@ -78,7 +78,6 @@ const ACTION_LIBRARY: Record<string, SpeedDialAction> = {
 };
 
 const DESKTOP_ORDER = ["home", "hotline", "zalo", "messenger"] as const;
-const MOBILE_ORDER = ["home", "hotline", "zalo", "messenger"] as const;
 
 const BRAND_ICON_PATH: Partial<Record<SpeedDialAction["id"], string>> = {
   zalo: "/icons/zalo.png",

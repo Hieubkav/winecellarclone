@@ -17,6 +17,7 @@ import {
   BRAND_COLORS,
   languageOptions,
   trendingKeywords,
+  menuItems as defaultMenuItems,
   type MenuItemWithChildren,
   type NavLeaf,
   type NavNode,
@@ -279,9 +280,8 @@ function ContactButton() {
   )
 }
 function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren[] }) {
-  // Import menuItems từ header.data.ts làm fallback
-  const { menuItems: fallbackMenuItems } = require("./header.data");
-  const items: MenuItemWithChildren[] = propMenuItems || fallbackMenuItems;
+  // Use default menuItems from header.data.ts as fallback
+  const items: MenuItemWithChildren[] = propMenuItems || defaultMenuItems;
 
   return (
     <div className="border-b border-[#751826] bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
@@ -377,9 +377,8 @@ function MobileTrigger({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
 }
 
 function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => void; menuItems?: MenuItemWithChildren[] }) {
-  // Import menuItems từ header.data.ts làm fallback
-  const { menuItems: fallbackMenuItems } = require("./header.data");
-  const menuItems: MenuItemWithChildren[] = propMenuItems || fallbackMenuItems;
+  // Use default menuItems from header.data.ts as fallback
+  const menuItems: MenuItemWithChildren[] = propMenuItems || defaultMenuItems;
 
   const [activeMenu, setActiveMenu] = useState<MenuItemWithChildren | null>(null)
   const [activeSection, setActiveSection] = useState<NavNode | null>(null)
@@ -513,14 +512,13 @@ function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => vo
 
 export function __selfTest(): boolean {
   try {
-    const { menuItems } = require("./header.data");
     console.assert(Array.isArray(languageOptions) && languageOptions.length >= 2, "languageOptions missing")
     console.assert(Array.isArray(trendingKeywords), "trendingKeywords not array")
     console.assert(
-      menuItems.every((m: MenuItemWithChildren) => typeof m.label === "string" && typeof m.href === "string"),
+      defaultMenuItems.every((m: MenuItemWithChildren) => typeof m.label === "string" && typeof m.href === "string"),
       "menuItems shape",
     )
-    const firstMenu = menuItems.find((m: MenuItemWithChildren) => m.children)
+    const firstMenu = defaultMenuItems.find((m: MenuItemWithChildren) => m.children)
     if (firstMenu?.children) {
       console.assert(Array.isArray(firstMenu.children[0].children), "nested children shape")
     }
@@ -533,12 +531,11 @@ export function __selfTest(): boolean {
 }
 
 export function __runTests() {
-  const { menuItems } = require("./header.data");
   const results = {
     selfTest: __selfTest(),
     hasLanguageDropdown: typeof languageOptions[0]?.label === "string",
     hasTrending: trendingKeywords.length > 0,
-    hasMenuItems: menuItems.length >= 4,
+    hasMenuItems: defaultMenuItems.length >= 4,
   }
   return results
 }

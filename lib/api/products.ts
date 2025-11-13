@@ -172,7 +172,7 @@ export interface AttributeFilter {
   code: string;
   name: string;
   filter_type: string;
-  display_config: Record<string, any>;
+  display_config: Record<string, unknown>;
   options: ProductFilterOption[];
 }
 

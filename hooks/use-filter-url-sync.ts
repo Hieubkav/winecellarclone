@@ -25,25 +25,11 @@ export function useFilterUrlSync() {
   const {
     filters,
     initialized,
-    setSelectedCategory,
-    setSelectedProductType,
-    toggleAttributeFilter,
-    setPriceRange,
-    toggleAlcoholBucket,
-    setSortBy,
-    setSearchQuery,
     options,
   } = useWineStore(
     useShallow((state) => ({
       filters: state.filters,
       initialized: state.initialized,
-      setSelectedCategory: state.setSelectedCategory,
-      setSelectedProductType: state.setSelectedProductType,
-      toggleAttributeFilter: state.toggleAttributeFilter,
-      setPriceRange: state.setPriceRange,
-      toggleAlcoholBucket: state.toggleAlcoholBucket,
-      setSortBy: state.setSortBy,
-      setSearchQuery: state.setSearchQuery,
       options: state.options,
     }))
   )
@@ -85,7 +71,7 @@ export function useFilterUrlSync() {
       
       const sortParam = searchParams.get("sort")
       const sortBy = (sortParam && ["name-asc", "name-desc", "price-asc", "price-desc"].includes(sortParam)) 
-        ? sortParam as any 
+        ? (sortParam as "name-asc" | "name-desc" | "price-asc" | "price-desc")
         : "name-asc"
       
       const priceMinParam = searchParams.get("price_min")
@@ -96,7 +82,7 @@ export function useFilterUrlSync() {
       // Alcohol buckets - parse from URL or empty array
       const alcoholParam = searchParams.get("alcohol")
       const alcoholBuckets = alcoholParam 
-        ? alcoholParam.split(",").filter(b => ["10", "10-12", "12-14", "14-16", "over16"].includes(b)) as any[]
+        ? (alcoholParam.split(",").filter(b => ["10", "10-12", "12-14", "14-16", "over16"].includes(b)) as Array<"10" | "10-12" | "12-14" | "14-16" | "over16">)
         : []
       
       // Dynamic attribute filters - parse from URL or empty object
