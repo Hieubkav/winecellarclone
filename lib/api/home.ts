@@ -62,8 +62,9 @@ export interface DualBannerConfig {
 }
 
 export interface CategoryGridItem {
-  term: ApiTerm;
-  image: ApiImage | null;
+  title: string;
+  href: string;
+  image: ApiImage;
 }
 
 export interface CategoryGridConfig {
