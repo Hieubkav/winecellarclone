@@ -90,10 +90,27 @@ const nextConfig: NextConfig = {
           {
             key: 'Link',
             value: [
+              // Preconnect to external domains
+              '<https://fonts.googleapis.com>; rel=preconnect; crossorigin',
+              '<https://fonts.gstatic.com>; rel=preconnect; crossorigin',
               '<https://winecellar.vn>; rel=preconnect; crossorigin',
               '<https://images.unsplash.com>; rel=preconnect; crossorigin',
               '<https://placehold.co>; rel=preconnect; crossorigin',
+              // Preload critical assets
+              '</media/logo.webp>; rel=preload; as=image; type=image/webp',
             ].join(', '),
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
           },
         ],
       },

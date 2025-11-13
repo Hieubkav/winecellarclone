@@ -16,12 +16,27 @@ import ContactSocial from "@/components/contact/ContactSocial";
  * - Performance optimized (lazy load map)
  */
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
   title: "Liên hệ - Thiên Kim Wine",
   description: "Liên hệ với Thiên Kim Wine. Chúng tôi luôn sẵn sàng hỗ trợ bạn với các câu hỏi về rượu vang và dịch vụ.",
+  keywords: "liên hệ mua rượu vang, hotline rượu vang, địa chỉ cửa hàng rượu vang",
+  alternates: {
+    canonical: `${SITE_URL}/contact`,
+  },
   openGraph: {
     title: "Liên hệ - Thiên Kim Wine",
     description: "Liên hệ với Thiên Kim Wine. Hotline, địa chỉ, giờ mở cửa.",
+    url: `${SITE_URL}/contact`,
+    images: [
+      {
+        url: `${SITE_URL}/media/logo.webp`,
+        width: 1200,
+        height: 630,
+        alt: "Thiên Kim Wine - Liên hệ",
+      }
+    ],
   },
 };
 

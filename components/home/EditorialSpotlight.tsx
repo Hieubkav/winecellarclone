@@ -84,7 +84,7 @@ function ArticleCard({ article }: ArticleCardProps) {
             href={article.href}
             className="flex items-center gap-1 text-xs font-semibold text-[#ECAA4D] transition-colors hover:text-[#1C1C1C]"
           >
-            <span>Kham pha</span>
+            <span>Đọc ngay</span>
             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
