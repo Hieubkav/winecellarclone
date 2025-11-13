@@ -79,9 +79,6 @@ const nextConfig: NextConfig = {
     unoptimized: !isProduction,
   },
   compress: true,
-  experimental: {
-    optimizeCss: true,
-  },
   async headers() {
     return [
       {
