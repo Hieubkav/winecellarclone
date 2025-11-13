@@ -68,10 +68,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns,
     formats: ['image/webp', 'image/avif'],
-    // Allow localhost/127.0.0.1 in development
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
-    // Disable optimization for localhost images in dev to bypass private IP check
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    // Disable image optimization in development to fix 404 errors with localhost backend
+    // In production: Enable if backend domain is in NEXT_PUBLIC_MEDIA_HOSTS and has proper CORS
+    // Or set unoptimized: true to disable optimization entirely for simplicity
     unoptimized: !isProduction,
   },
   compress: true,
