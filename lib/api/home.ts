@@ -73,7 +73,11 @@ export interface CategoryGridConfig {
 export interface FavouriteProductsConfig {
   title: string;
   subtitle: string | null;
-  products: ApiProduct[];
+  products: Array<{
+    product: ApiProduct;
+    badge: string | null;
+    href: string;
+  }>;
 }
 
 export interface BrandShowcaseItem {
@@ -94,14 +98,21 @@ export interface CollectionShowcaseConfig {
   ctaLabel: string | null;
   ctaHref: string | null;
   tone: "wine" | "spirit" | "default";
-  products: ApiProduct[];
+  products: Array<{
+    product: ApiProduct;
+    badge: string | null;
+    href: string;
+  }>;
 }
 
 export interface EditorialSpotlightConfig {
   label: string | null;
   title: string;
   description: string | null;
-  articles: ApiArticle[];
+  articles: Array<{
+    article: ApiArticle;
+    href: string;
+  }>;
 }
 
 export interface FooterSocialLink {

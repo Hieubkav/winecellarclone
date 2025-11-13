@@ -66,8 +66,8 @@ export function adaptCollectionShowcaseProps(config: CollectionShowcaseConfig) {
     ctaLabel: config.ctaLabel || undefined,
     ctaHref: config.ctaHref || "/san-pham",
     products: (config.products || [])
-      .filter((product) => product && product.id && product.slug)
-      .map((product) => transformApiProduct(product)),
+      .filter((item) => item && item.product && item.product.id && item.product.slug)
+      .map((item) => transformApiProduct(item.product)),
     tone: (config.tone || "wine") as "wine" | "spirit",
   };
 }
@@ -78,8 +78,8 @@ export function adaptEditorialSpotlightProps(config: EditorialSpotlightConfig) {
     title: config.title,
     description: config.description || undefined,
     articles: (config.articles || [])
-      .filter((article) => article && article.id && article.slug)
-      .map((article) => transformApiArticle(article)),
+      .filter((item) => item && item.article && item.article.id && item.article.slug)
+      .map((item) => transformApiArticle(item.article)),
   };
 }
 
@@ -88,8 +88,8 @@ export function adaptFavouriteProductsProps(config: FavouriteProductsConfig) {
     title: config.title,
     subtitle: config.subtitle || undefined,
     products: (config.products || [])
-      .filter((product) => product && product.id && product.slug)
-      .map((product) => transformApiProduct(product)),
+      .filter((item) => item && item.product && item.product.id && item.product.slug)
+      .map((item) => transformApiProduct(item.product)),
   };
 }
 
