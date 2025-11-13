@@ -65,7 +65,9 @@ export function adaptCollectionShowcaseProps(config: CollectionShowcaseConfig) {
     description: config.description || undefined,
     ctaLabel: config.ctaLabel || undefined,
     ctaHref: config.ctaHref || "/san-pham",
-    products: config.products.map((product) => transformApiProduct(product)),
+    products: (config.products || [])
+      .filter((product) => product && product.id && product.slug)
+      .map((product) => transformApiProduct(product)),
     tone: (config.tone || "wine") as "wine" | "spirit",
   };
 }
@@ -75,7 +77,9 @@ export function adaptEditorialSpotlightProps(config: EditorialSpotlightConfig) {
     label: config.label || undefined,
     title: config.title,
     description: config.description || undefined,
-    articles: config.articles.map((article) => transformApiArticle(article)),
+    articles: (config.articles || [])
+      .filter((article) => article && article.id && article.slug)
+      .map((article) => transformApiArticle(article)),
   };
 }
 
@@ -83,49 +87,59 @@ export function adaptFavouriteProductsProps(config: FavouriteProductsConfig) {
   return {
     title: config.title,
     subtitle: config.subtitle || undefined,
-    products: config.products.map((product) => transformApiProduct(product)),
+    products: (config.products || [])
+      .filter((product) => product && product.id && product.slug)
+      .map((product) => transformApiProduct(product)),
   };
 }
 
 export function adaptHeroCarouselProps(config: HeroCarouselConfig) {
   return {
-    slides: config.slides.map((slide) => ({
-      image: slide.image.url,
-      alt: slide.alt || slide.image.alt || "",
-      href: slide.href,
-    })),
+    slides: (config.slides || [])
+      .filter((slide) => slide?.image?.url)
+      .map((slide) => ({
+        image: slide.image.url,
+        alt: slide.alt || slide.image.alt || "",
+        href: slide.href,
+      })),
   };
 }
 
 export function adaptDualBannerProps(config: DualBannerConfig) {
   return {
-    banners: config.banners.map((banner) => ({
-      image: banner.image.url,
-      alt: banner.alt || banner.image.alt || "",
-      href: banner.href,
-    })),
+    banners: (config.banners || [])
+      .filter((banner) => banner?.image?.url)
+      .map((banner) => ({
+        image: banner.image.url,
+        alt: banner.alt || banner.image.alt || "",
+        href: banner.href,
+      })),
   };
 }
 
 export function adaptBrandShowcaseProps(config: BrandShowcaseConfig) {
   return {
     title: config.title,
-    brands: config.brands.map((brand) => ({
-      image: brand.image.url,
-      alt: brand.alt || brand.image.alt || "",
-      href: brand.href,
-    })),
+    brands: (config.brands || [])
+      .filter((brand) => brand?.image?.url)
+      .map((brand) => ({
+        image: brand.image.url,
+        alt: brand.alt || brand.image.alt || "",
+        href: brand.href,
+      })),
   };
 }
 
 export function adaptCategoryGridProps(config: CategoryGridConfig) {
   return {
-    categories: config.categories.map((item) => ({
-      title: item.term.name,
-      href: `/filter?category=${item.term.id}`,
-      image: item.image?.url || null,
-      alt: item.image?.alt || item.term.name,
-    })),
+    categories: (config.categories || [])
+      .filter((item) => item?.term) // Filter out items without term
+      .map((item) => ({
+        title: item.term.name,
+        href: `/filter?category=${item.term.id}`,
+        image: item.image?.url || null,
+        alt: item.image?.alt || item.term.name,
+      })),
   };
 }
 
@@ -142,12 +156,14 @@ export function adaptFooterProps(config: FooterConfig) {
 
 export function adaptSpeedDialProps(config: SpeedDialConfig) {
   return {
-    items: config.items.map((item) => ({
-      iconType: item.icon_type,
-      iconUrl: item.icon_url,
-      label: item.label,
-      href: item.href,
-      target: item.target,
-    })),
+    items: (config.items || [])
+      .filter((item) => item && item.label && item.href)
+      .map((item) => ({
+        iconType: item.icon_type,
+        iconUrl: item.icon_url,
+        label: item.label,
+        href: item.href,
+        target: item.target,
+      })),
   };
 }
