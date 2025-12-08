@@ -44,6 +44,11 @@ export interface Wine {
   showContactCta?: boolean
   categories?: Array<{ id: number; name: string; slug: string }>
   extraAttrs?: Record<string, ExtraAttr>
+  attributes?: Array<{
+    group_code: string
+    group_name: string
+    terms: Array<{ id: number; name: string; slug: string }>
+  }>
 }
 
 interface AttributeFilter {
@@ -130,6 +135,7 @@ const mapProductToWine = (product: ProductListItem): Wine => {
     showContactCta: product.show_contact_cta,
     categories: product.categories ?? [],
     extraAttrs: product.extra_attrs ?? {},
+    attributes: product.attributes ?? [],
   }
 }
 

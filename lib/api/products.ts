@@ -46,6 +46,7 @@ export interface ProductListItem {
   category: ApiTerm | null;
   type: ApiTerm | null;
   extra_attrs: Record<string, ExtraAttr>;
+  attributes?: ProductAttribute[];
 }
 
 export interface ProductListMeta {

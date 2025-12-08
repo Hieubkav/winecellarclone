@@ -42,26 +42,31 @@ function MetaRow({ label, value }: MetaItem) {
 }
 
 export const FilterProductCard = React.memo(function FilterProductCard({ wine, viewMode, priority = false }: ProductCardProps) {
-    const baseMetaItems: MetaItem[] = [
-        { label: "Loại sản phẩm", value: wine.wineType ?? "" },
-        { label: "Thương hiệu", value: wine.brand || wine.producer || "" },
-        { label: "Quốc gia", value: wine.country ?? "" },
-        {
-            label: "Nồng độ",
-            value: typeof wine.alcoholContent === "number" ? `${wine.alcoholContent}% ABV` : "",
-        },
-        {
-            label: "Dung tích",
-            value: typeof wine.volume === "number" ? `${wine.volume} ml` : "",
-        },
-    ];
+    // Combine attributes (terms) + extra_attrs
+    const metaItems: MetaItem[] = [];
 
-    const extraAttrItems: MetaItem[] = Object.entries(wine.extraAttrs ?? {}).map(([, attr]) => ({
-        label: attr.label,
-        value: `${attr.value}`,
-    }));
+    // Add attributes from terms (catalog groups)
+    if (wine.attributes && wine.attributes.length > 0) {
+        wine.attributes.forEach((attrGroup) => {
+            attrGroup.terms.forEach((term) => {
+                metaItems.push({
+                    label: attrGroup.group_name,
+                    value: term.name,
+                });
+            });
+        });
+    }
 
-    const metaItems = [...baseMetaItems, ...extraAttrItems].filter(item => item.value);
+    // Add extra_attrs (nhập tay)
+    Object.entries(wine.extraAttrs ?? {}).forEach(([, attr]) => {
+        metaItems.push({
+            label: attr.label,
+            value: `${attr.value}`,
+        });
+    });
+
+    // Filter empty values
+    const filteredMetaItems = metaItems.filter(item => item.value);
 
     // Grid View Layout (Responsive: Dọc mobile với spacing rộng, Ngang desktop)
     if (viewMode === "grid") {
@@ -100,7 +105,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({ wine, v
 
                         {/* Meta Items - Single Column on Mobile, Grid 2 Columns on Desktop */}
                         <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-x-3 sm:gap-y-2 flex-1">
-                            {metaItems.map((item, idx) => (
+                            {filteredMetaItems.map((item, idx) => (
                                 <MetaRow key={`${item.label}-${idx}`} {...item} />
                             ))}
                         </div>
@@ -161,7 +166,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({ wine, v
 
                         {/* Meta Info */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1">
-                            {metaItems.map((item, idx) => (
+                            {filteredMetaItems.map((item, idx) => (
                                 <MetaRow key={`${item.label}-${idx}`} {...item} />
                             ))}
                         </div>
