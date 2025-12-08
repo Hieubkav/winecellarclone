@@ -11,7 +11,8 @@ import {
     Percent,
     Globe,
     Wine as WineIcon,
-    Package
+    Package,
+    Info
 } from "lucide-react";
 import type { Wine } from "@/data/filter/store";
 
@@ -51,7 +52,7 @@ function MetaRow({ icon: Icon, label }: MetaItem) {
 }
 
 export const FilterProductCard = React.memo(function FilterProductCard({ wine, viewMode, priority = false }: ProductCardProps) {
-    const metaItems: MetaItem[] = [
+    const baseMetaItems: MetaItem[] = [
         { icon: WineIcon, label: wine.wineType ?? "" },
         { icon: Building2, label: wine.producer || wine.brand || "" },
         { icon: Globe, label: wine.country ?? "" },
@@ -63,7 +64,14 @@ export const FilterProductCard = React.memo(function FilterProductCard({ wine, v
             icon: Package,
             label: typeof wine.volume === "number" ? `${wine.volume}ml` : "",
         },
-    ].filter(item => item.label);
+    ];
+
+    const extraAttrItems: MetaItem[] = Object.entries(wine.extraAttrs ?? {}).map(([, attr]) => ({
+        icon: Info,
+        label: `${attr.label}: ${attr.value}`,
+    }));
+
+    const metaItems = [...baseMetaItems, ...extraAttrItems].filter(item => item.label);
 
     // Grid View Layout (Responsive: Dọc mobile với spacing rộng, Ngang desktop)
     if (viewMode === "grid") {

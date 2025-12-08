@@ -15,6 +15,18 @@ export interface ApiImage {
   order: number | null;
 }
 
+export interface ExtraAttr {
+  label: string;
+  value: string | number;
+  type: 'text' | 'number';
+}
+
+export interface ProductAttribute {
+  group_code: string;
+  group_name: string;
+  terms: ApiTerm[];
+}
+
 export interface ProductListItem {
   id: number;
   name: string;
@@ -30,8 +42,10 @@ export interface ProductListItem {
   alcohol_percent: number | null;
   volume_ml: number | null;
   badges: string[];
+  categories: ApiTerm[];
   category: ApiTerm | null;
   type: ApiTerm | null;
+  extra_attrs: Record<string, ExtraAttr>;
 }
 
 export interface ProductListMeta {
@@ -89,8 +103,11 @@ export interface ProductDetail {
   alcohol_percent: number | null;
   volume_ml: number | null;
   badges: string[];
+  categories: ApiTerm[];
   category: ApiTerm | null;
   type: ApiTerm | null;
+  extra_attrs: Record<string, ExtraAttr>;
+  attributes: ProductAttribute[];
   breadcrumbs: Breadcrumb[];
   meta: {
     title: string | null;
@@ -172,6 +189,7 @@ export interface AttributeFilter {
   code: string;
   name: string;
   filter_type: string;
+  input_type?: string;
   display_config: Record<string, unknown>;
   options: ProductFilterOption[];
 }

@@ -21,19 +21,9 @@ const currencyFormatter = new Intl.NumberFormat("vi-VN", {
 
 const formatCurrency = (value: number) => currencyFormatter.format(value)
 
-const ALCOHOL_FILTERS = [
-  { id: "10", label: "Dưới 10%" },
-  { id: "10-12", label: "10% - 12%" },
-  { id: "12-14", label: "12% - 14%" },
-  { id: "14-16", label: "14% - 16%" },
-  { id: "over16", label: "Trên 16%" },
-] as const
-
-type AlcoholFilterId = (typeof ALCOHOL_FILTERS)[number]["id"]
-
 const COLLAPSE_THRESHOLD = 6
 
-interface CollapsibleFilterSectionProps {
+interface CollapsibleCheckboxSectionProps {
   title: string
   items: { id: number; name: string }[]
   selectedIds: number[]
@@ -41,13 +31,13 @@ interface CollapsibleFilterSectionProps {
   code: string
 }
 
-function CollapsibleFilterSection({ 
+function CollapsibleCheckboxSection({ 
   title, 
   items, 
   selectedIds, 
   onToggle, 
   code 
-}: CollapsibleFilterSectionProps) {
+}: CollapsibleCheckboxSectionProps) {
   const [isOpen, setIsOpen] = useState(false)
   const selectedCount = selectedIds.length
   const shouldCollapse = items.length > COLLAPSE_THRESHOLD
@@ -125,7 +115,6 @@ function CollapsibleFilterSection({
     )
   }
 
-  // Non-collapsible version for short lists
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -163,13 +152,157 @@ function CollapsibleFilterSection({
   )
 }
 
+interface RadioFilterSectionProps {
+  title: string
+  items: { id: number; name: string }[]
+  selectedId: number | null
+  onSelect: (id: number | null) => void
+  code: string
+}
+
+function RadioFilterSection({
+  title,
+  items,
+  selectedId,
+  onSelect,
+  code,
+}: RadioFilterSectionProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const shouldCollapse = items.length > COLLAPSE_THRESHOLD
+  const visibleItems = shouldCollapse && !isOpen ? items.slice(0, COLLAPSE_THRESHOLD) : items
+  const hiddenCount = items.length - COLLAPSE_THRESHOLD
+
+  const handleChange = (value: string) => {
+    onSelect(value === "all" ? null : Number(value))
+  }
+
+  if (shouldCollapse) {
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
+        <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+          {title}
+        </h3>
+        
+        <RadioGroup
+          value={selectedId !== null ? String(selectedId) : "all"}
+          onValueChange={handleChange}
+          aria-label={`Lọc theo ${title}`}
+        >
+          <div className="space-y-2.5">
+            <div className="flex items-center space-x-3 group">
+              <RadioGroupItem value="all" id={`${code}-all`} className="transition-colors" />
+              <Label
+                htmlFor={`${code}-all`}
+                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+              >
+                Tất cả
+              </Label>
+            </div>
+            {visibleItems.map((option) => (
+              <div key={option.id} className="flex items-center space-x-3 group">
+                <RadioGroupItem
+                  value={String(option.id)}
+                  id={`${code}-${option.id}`}
+                  className="transition-colors"
+                />
+                <Label
+                  htmlFor={`${code}-${option.id}`}
+                  className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                >
+                  {option.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
+
+        <CollapsibleContent className="space-y-2.5 animate-in slide-in-from-top-2 duration-200">
+          <RadioGroup
+            value={selectedId !== null ? String(selectedId) : "all"}
+            onValueChange={handleChange}
+          >
+            {items.slice(COLLAPSE_THRESHOLD).map((option) => (
+              <div key={option.id} className="flex items-center space-x-3 group">
+                <RadioGroupItem
+                  value={String(option.id)}
+                  id={`${code}-${option.id}`}
+                  className="transition-colors"
+                />
+                <Label
+                  htmlFor={`${code}-${option.id}`}
+                  className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                >
+                  {option.name}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </CollapsibleContent>
+
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full flex items-center justify-center gap-2 text-xs font-medium text-[#9B2C3B] hover:text-[#1C1C1C] hover:bg-[#ECAA4D]/10 transition-all mt-2"
+          >
+            <span>{isOpen ? 'Thu gọn' : `Xem thêm ${hiddenCount}`}</span>
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            />
+          </Button>
+        </CollapsibleTrigger>
+      </Collapsible>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+        {title}
+      </h3>
+      <RadioGroup
+        value={selectedId !== null ? String(selectedId) : "all"}
+        onValueChange={handleChange}
+        aria-label={`Lọc theo ${title}`}
+      >
+        <div className="space-y-2.5">
+          <div className="flex items-center space-x-3 group">
+            <RadioGroupItem value="all" id={`${code}-all`} className="transition-colors" />
+            <Label
+              htmlFor={`${code}-all`}
+              className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+            >
+              Tất cả
+            </Label>
+          </div>
+          {items.map((option) => (
+            <div key={option.id} className="flex items-center space-x-3 group">
+              <RadioGroupItem
+                value={String(option.id)}
+                id={`${code}-${option.id}`}
+                className="transition-colors"
+              />
+              <Label
+                htmlFor={`${code}-${option.id}`}
+                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+              >
+                {option.name}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </RadioGroup>
+    </div>
+  )
+}
+
 export function FilterSidebar() {
   const {
     options,
     filters,
     setPriceRange,
     toggleAttributeFilter,
-    toggleAlcoholBucket,
+    setAttributeSelection,
     setSelectedCategory,
     setSelectedProductType,
     resetFilters,
@@ -179,7 +312,7 @@ export function FilterSidebar() {
       filters: state.filters,
       setPriceRange: state.setPriceRange,
       toggleAttributeFilter: state.toggleAttributeFilter,
-      toggleAlcoholBucket: state.toggleAlcoholBucket,
+      setAttributeSelection: state.setAttributeSelection,
       setSelectedCategory: state.setSelectedCategory,
       setSelectedProductType: state.setSelectedProductType,
       resetFilters: state.resetFilters,
@@ -190,12 +323,10 @@ export function FilterSidebar() {
   const categoryValue = filters.categoryId ? String(filters.categoryId) : "all"
   const productTypeValue = filters.productTypeId ? String(filters.productTypeId) : "all"
 
-  // Count active filters for badge
   const activeFilterCount = useMemo(() => {
     let count = 0
     if (filters.categoryId) count++
     if (filters.productTypeId) count++
-    if (filters.alcoholBuckets.length > 0) count += filters.alcoholBuckets.length
     Object.values(filters.attributeSelections).forEach(selections => {
       count += selections.length
     })
@@ -211,6 +342,66 @@ export function FilterSidebar() {
 
   const handleProductTypeChange = (value: string) => {
     setSelectedProductType(value === "all" ? null : Number(value))
+  }
+
+  const renderDynamicFilter = (attributeFilter: {
+    code: string
+    name: string
+    filter_type: string
+    input_type?: string
+    options: { id: number; name: string; slug: string }[]
+  }) => {
+    const selectedIds = filters.attributeSelections[attributeFilter.code] || []
+    const selectedId = selectedIds.length > 0 ? selectedIds[0] : null
+
+    switch (attributeFilter.filter_type) {
+      case 'chon_don':
+        return (
+          <RadioFilterSection
+            title={attributeFilter.name}
+            items={attributeFilter.options}
+            selectedId={selectedId}
+            onSelect={(id) => setAttributeSelection(attributeFilter.code, id)}
+            code={attributeFilter.code}
+          />
+        )
+
+      case 'chon_nhieu':
+        return (
+          <CollapsibleCheckboxSection
+            title={attributeFilter.name}
+            items={attributeFilter.options}
+            selectedIds={selectedIds}
+            onToggle={(id) => toggleAttributeFilter(attributeFilter.code, id)}
+            code={attributeFilter.code}
+          />
+        )
+
+      case 'nhap_tay':
+        if (attributeFilter.input_type === 'text' && attributeFilter.options.length > 0) {
+          return (
+            <RadioFilterSection
+              title={attributeFilter.name}
+              items={attributeFilter.options}
+              selectedId={selectedId}
+              onSelect={(id) => setAttributeSelection(attributeFilter.code, id)}
+              code={attributeFilter.code}
+            />
+          )
+        }
+        return null
+
+      default:
+        return (
+          <CollapsibleCheckboxSection
+            title={attributeFilter.name}
+            items={attributeFilter.options}
+            selectedIds={selectedIds}
+            onToggle={(id) => toggleAttributeFilter(attributeFilter.code, id)}
+            code={attributeFilter.code}
+          />
+        )
+    }
   }
 
   return (
@@ -241,7 +432,56 @@ export function FilterSidebar() {
         </Button>
       </div>
 
-      {/* Categories (Built-in filter) */}
+      {/* Product Types - ĐƯA LÊN ĐẦU */}
+      {options.productTypes.length > 0 && (
+        <>
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+              Phân loại sp
+            </h3>
+            <RadioGroup 
+              value={productTypeValue} 
+              onValueChange={handleProductTypeChange}
+              aria-label="Chọn phân loại sản phẩm"
+            >
+              <div className="space-y-2.5">
+                <div className="flex items-center space-x-3 group">
+                  <RadioGroupItem 
+                    value="all" 
+                    id="type-all"
+                    className="transition-colors"
+                  />
+                  <Label 
+                    htmlFor="type-all" 
+                    className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                  >
+                    Tất cả
+                  </Label>
+                </div>
+                {options.productTypes.map((type) => (
+                  <div key={type.id} className="flex items-center space-x-3 group">
+                    <RadioGroupItem 
+                      value={String(type.id)} 
+                      id={`type-${type.id}`}
+                      className="transition-colors"
+                    />
+                    <Label
+                      htmlFor={`type-${type.id}`}
+                      className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                    >
+                      {type.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </RadioGroup>
+          </div>
+
+          <Separator className="bg-[#ECAA4D]/20" />
+        </>
+      )}
+
+      {/* Categories - XUỐNG SAU */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
           Danh mục
@@ -286,74 +526,20 @@ export function FilterSidebar() {
 
       <Separator className="bg-[#ECAA4D]/20" />
 
-      {/* Product Types (Built-in filter) */}
-      {options.productTypes.length > 0 && (
-        <>
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
-              Loại sản phẩm
-            </h3>
-            <RadioGroup 
-              value={productTypeValue} 
-              onValueChange={handleProductTypeChange}
-              aria-label="Chọn loại sản phẩm"
-            >
-              <div className="space-y-2.5">
-                <div className="flex items-center space-x-3 group">
-                  <RadioGroupItem 
-                    value="all" 
-                    id="type-all"
-                    className="transition-colors"
-                  />
-                  <Label 
-                    htmlFor="type-all" 
-                    className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
-                  >
-                    Tất cả
-                  </Label>
-                </div>
-                {options.productTypes.map((type) => (
-                  <div key={type.id} className="flex items-center space-x-3 group">
-                    <RadioGroupItem 
-                      value={String(type.id)} 
-                      id={`type-${type.id}`}
-                      className="transition-colors"
-                    />
-                    <Label
-                      htmlFor={`type-${type.id}`}
-                      className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
-                    >
-                      {type.name}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </RadioGroup>
-          </div>
-
-          <Separator className="bg-[#ECAA4D]/20" />
-        </>
-      )}
-
-      {/* Dynamic Attribute Filters */}
+      {/* Dynamic Attribute Filters - Render theo filter_type */}
       {options.attributeFilters.map((attributeFilter) => {
-        const selectedIds = filters.attributeSelections[attributeFilter.code] || []
+        const filterUI = renderDynamicFilter(attributeFilter)
+        if (!filterUI) return null
         
         return (
           <div key={attributeFilter.code}>
-            <CollapsibleFilterSection
-              title={attributeFilter.name}
-              items={attributeFilter.options}
-              selectedIds={selectedIds}
-              onToggle={(id) => toggleAttributeFilter(attributeFilter.code, id)}
-              code={attributeFilter.code}
-            />
+            {filterUI}
             <Separator className="bg-[#ECAA4D]/20 mt-6" />
           </div>
         )
       })}
 
-      {/* Price Filter (Built-in) */}
+      {/* Price Filter */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
           Khoảng giá
@@ -362,11 +548,9 @@ export function FilterSidebar() {
           <Slider
             value={filters.priceRange}
             onValueChange={(value) => {
-              // Update local state immediately for smooth UI
               setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], true)
             }}
             onValueCommit={(value) => {
-              // Only trigger API call when user releases the slider
               setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], false)
             }}
             min={options.priceRange[0]}
@@ -385,47 +569,6 @@ export function FilterSidebar() {
               {formatCurrency(filters.priceRange[1])}
             </div>
           </div>
-        </div>
-      </div>
-
-      <Separator className="bg-[#ECAA4D]/20" />
-
-      {/* Alcohol Filter (Built-in) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
-            Nồng độ cồn
-          </h3>
-          {filters.alcoholBuckets.length > 0 && (
-            <span 
-              className="inline-flex items-center justify-center min-w-[18px] h-4 px-1 text-xs font-semibold text-white bg-[#ECAA4D] rounded-full"
-              aria-label={`${filters.alcoholBuckets.length} mức độ đã chọn`}
-            >
-              {filters.alcoholBuckets.length}
-            </span>
-          )}
-        </div>
-        <div 
-          className="space-y-2.5"
-          role="group"
-          aria-label="Lọc theo nồng độ cồn"
-        >
-          {ALCOHOL_FILTERS.map((item) => (
-            <div key={item.id} className="flex items-center space-x-3 group">
-              <Checkbox
-                id={`alcohol-${item.id}`}
-                checked={filters.alcoholBuckets.includes(item.id)}
-                onCheckedChange={() => toggleAlcoholBucket(item.id as AlcoholFilterId)}
-                className="transition-colors"
-              />
-              <Label 
-                htmlFor={`alcohol-${item.id}`} 
-                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
-              >
-                {item.label}
-              </Label>
-            </div>
-          ))}
         </div>
       </div>
     </div>

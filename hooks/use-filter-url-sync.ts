@@ -79,12 +79,6 @@ export function useFilterUrlSync() {
       const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
       const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
       
-      // Alcohol buckets - parse from URL or empty array
-      const alcoholParam = searchParams.get("alcohol")
-      const alcoholBuckets = alcoholParam 
-        ? (alcoholParam.split(",").filter(b => ["10", "10-12", "12-14", "14-16", "over16"].includes(b)) as Array<"10" | "10-12" | "12-14" | "14-16" | "over16">)
-        : []
-      
       // Dynamic attribute filters - parse from URL or empty object
       const attributeSelections: Record<string, number[]> = {}
       options.attributeFilters.forEach((attrFilter) => {
@@ -105,7 +99,6 @@ export function useFilterUrlSync() {
           categoryId: (categoryId && !isNaN(categoryId)) ? categoryId : null,
           productTypeId: (typeId && !isNaN(typeId)) ? typeId : null,
           priceRange: (!isNaN(priceMin) && !isNaN(priceMax)) ? [priceMin, priceMax] : options.priceRange,
-          alcoholBuckets,
           sortBy,
           searchQuery,
           attributeSelections,
@@ -159,11 +152,6 @@ export function useFilterUrlSync() {
     if (isPriceChanged) {
       params.set("price_min", String(filters.priceRange[0]))
       params.set("price_max", String(filters.priceRange[1]))
-    }
-
-    // Alcohol buckets
-    if (filters.alcoholBuckets.length > 0) {
-      params.set("alcohol", filters.alcoholBuckets.join(","))
     }
 
     // Dynamic attribute filters

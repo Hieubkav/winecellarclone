@@ -3,6 +3,7 @@ import { create } from "zustand"
 import {
   fetchProductFilters,
   fetchProductList,
+  type ExtraAttr,
   type ProductFilterOption,
   type ProductListItem,
   type ProductListMeta,
@@ -10,7 +11,6 @@ import {
 import { matchesSearch } from "@/lib/utils/text-normalization"
 
 const DEFAULT_PRICE_MAX = 10_000_000
-const DEFAULT_ALCOHOL_RANGE: [number, number] = [0, 100]
 const DEFAULT_PER_PAGE = 24
 
 export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc"
@@ -18,16 +18,6 @@ export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc"
 type FilterOption = ProductFilterOption
 
 type PriceRange = [number, number]
-
-type AlcoholBucket = "10" | "10-12" | "12-14" | "14-16" | "over16"
-
-const ALCOHOL_BUCKETS: Record<AlcoholBucket, { min: number | null; max: number | null }> = {
-  "10": { min: null, max: 10 },
-  "10-12": { min: 10, max: 12 },
-  "12-14": { min: 12, max: 14 },
-  "14-16": { min: 14, max: 16 },
-  over16: { min: 16, max: null },
-}
 
 const SORT_TO_API: Record<SortOption, string> = {
   "name-asc": "name",
@@ -52,12 +42,15 @@ export interface Wine {
   alcoholContent?: number | null
   volume?: number | null
   showContactCta?: boolean
+  categories?: Array<{ id: number; name: string; slug: string }>
+  extraAttrs?: Record<string, ExtraAttr>
 }
 
 interface AttributeFilter {
   code: string
   name: string
   filter_type: string
+  input_type?: string
   display_config: Record<string, unknown>
   options: FilterOption[]
 }
@@ -66,7 +59,6 @@ interface FilterOptionsState {
   categories: FilterOption[]
   productTypes: FilterOption[]
   priceRange: PriceRange
-  alcoholRange: PriceRange
   attributeFilters: AttributeFilter[]
 }
 
@@ -74,7 +66,6 @@ interface FiltersState {
   categoryId: number | null
   productTypeId: number | null
   priceRange: PriceRange
-  alcoholBuckets: AlcoholBucket[]
   sortBy: SortOption
   searchQuery: string
   page: number
@@ -105,8 +96,8 @@ interface WineStoreActions {
   setSelectedCategory: (id: number | null, skipFetch?: boolean) => void
   setSelectedProductType: (id: number | null, skipFetch?: boolean) => void
   toggleAttributeFilter: (attributeCode: string, optionId: number, skipFetch?: boolean) => void
+  setAttributeSelection: (attributeCode: string, optionId: number | null, skipFetch?: boolean) => void
   setPriceRange: (range: PriceRange, skipFetch?: boolean) => void
-  toggleAlcoholBucket: (bucket: AlcoholBucket, skipFetch?: boolean) => void
   setSortBy: (sort: SortOption, skipFetch?: boolean) => void
   loadMore: () => Promise<void>
 }
@@ -132,6 +123,8 @@ const mapProductToWine = (product: ProductListItem): Wine => {
     badges: product.badges,
     wineType: product.type?.name ?? product.category?.name ?? null,
     showContactCta: product.show_contact_cta,
+    categories: product.categories ?? [],
+    extraAttrs: product.extra_attrs ?? {},
   }
 }
 
@@ -174,27 +167,6 @@ const toggleIdInList = (list: number[], id: number): number[] => {
   return list.includes(id) ? list.filter((value) => value !== id) : [...list, id]
 }
 
-const computeAlcoholRange = (buckets: AlcoholBucket[]): { min: number | null; max: number | null } => {
-  if (buckets.length === 0) {
-    return { min: null, max: null }
-  }
-
-  let min: number | null = null
-  let max: number | null = null
-
-  buckets.forEach((bucket) => {
-    const config = ALCOHOL_BUCKETS[bucket]
-    if (config.min !== null) {
-      min = min === null ? config.min : Math.min(min, config.min)
-    }
-    if (config.max !== null) {
-      max = max === null ? config.max : Math.max(max, config.max)
-    }
-  })
-
-  return { min, max }
-}
-
 const buildQueryParams = (filters: FiltersState): Record<string, string | number | Array<string | number> | undefined> => {
   const params: Record<string, string | number | Array<string | number> | undefined> = {
     page: filters.page,
@@ -224,15 +196,6 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
     params["type[]"] = [filters.productTypeId]
   }
 
-  const alcoholRange = computeAlcoholRange(filters.alcoholBuckets)
-  if (alcoholRange.min !== null) {
-    params.alcohol_min = alcoholRange.min
-  }
-
-  if (alcoholRange.max !== null) {
-    params.alcohol_max = alcoholRange.max
-  }
-
   return params
 }
 
@@ -240,11 +203,11 @@ const transformOptions = (payload: {
   categories: FilterOption[]
   types: FilterOption[]
   price: { min: number; max: number }
-  alcohol: { min: number; max: number }
   attribute_filters: Array<{
     code: string
     name: string
     filter_type: string
+    input_type?: string
     display_config: Record<string, unknown>
     options: FilterOption[]
   }>
@@ -254,16 +217,10 @@ const transformOptions = (payload: {
     Math.max(payload.price.max ?? 0, DEFAULT_PRICE_MAX),
   ]
 
-  const alcoholRange: PriceRange = [
-    Math.max(0, payload.alcohol.min ?? DEFAULT_ALCOHOL_RANGE[0]),
-    Math.max(payload.alcohol.max ?? DEFAULT_ALCOHOL_RANGE[1], DEFAULT_ALCOHOL_RANGE[1]),
-  ]
-
   return {
     categories: payload.categories,
     productTypes: payload.types || [],
     priceRange,
-    alcoholRange,
     attributeFilters: payload.attribute_filters,
   }
 }
@@ -273,14 +230,12 @@ const initialState: WineStoreState = {
     categories: [],
     productTypes: [],
     priceRange: [0, DEFAULT_PRICE_MAX],
-    alcoholRange: DEFAULT_ALCOHOL_RANGE,
     attributeFilters: [],
   },
   filters: {
     categoryId: null,
     productTypeId: null,
     priceRange: [0, DEFAULT_PRICE_MAX],
-    alcoholBuckets: [],
     sortBy: "name-asc",
     searchQuery: "",
     page: 1,
@@ -381,7 +336,6 @@ export const useWineStore = create<WineStore>((set, get) => ({
         categoryId: null,
         productTypeId: null,
         priceRange: options.priceRange,
-        alcoholBuckets: [],
         page: 1,
         sortBy: "name-asc",
         searchQuery: "",
@@ -467,21 +421,17 @@ export const useWineStore = create<WineStore>((set, get) => ({
       void get().fetchProducts()
     }
   },
-  toggleAlcoholBucket: (bucket, skipFetch = false) => {
-    set((state) => {
-      const exists = state.filters.alcoholBuckets.includes(bucket)
-      const next = exists
-        ? state.filters.alcoholBuckets.filter((item) => item !== bucket)
-        : [...state.filters.alcoholBuckets, bucket]
-
-      return {
-        filters: {
-          ...state.filters,
-          alcoholBuckets: next,
-          page: 1,
+  setAttributeSelection: (attributeCode, optionId, skipFetch = false) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        attributeSelections: {
+          ...state.filters.attributeSelections,
+          [attributeCode]: optionId !== null ? [optionId] : [],
         },
-      }
-    })
+        page: 1,
+      },
+    }))
     if (!skipFetch) {
       void get().fetchProducts()
     }
