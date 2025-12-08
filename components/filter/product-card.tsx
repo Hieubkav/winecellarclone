@@ -29,14 +29,20 @@ interface ProductCardProps {
 interface MetaItem {
     label: string;
     value: string;
+    iconUrl?: string | null;
 }
 
-function MetaRow({ label, value }: MetaItem) {
+function MetaRow({ label, value, iconUrl }: MetaItem) {
     if (!value) return null;
 
     return (
-        <p className="text-xs sm:text-sm leading-relaxed text-[#1C1C1C]/85 whitespace-normal break-words">
-            <span className="font-semibold text-[#1C1C1C]">{label}:</span> {value}
+        <p className="text-xs sm:text-sm leading-relaxed text-[#1C1C1C]/85 whitespace-normal break-words flex items-center gap-1">
+            {iconUrl ? (
+                <Image src={iconUrl} alt={label} width={16} height={16} className="inline-block flex-shrink-0" />
+            ) : (
+                <span className="font-semibold text-[#1C1C1C]">{label}:</span>
+            )}
+            {' '}{value}
         </p>
     );
 }
@@ -52,6 +58,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({ wine, v
                 metaItems.push({
                     label: attrGroup.group_name,
                     value: term.name,
+                    iconUrl: attrGroup.icon_url,
                 });
             });
         });

@@ -24,6 +24,7 @@ export interface ExtraAttr {
 export interface ProductAttribute {
   group_code: string;
   group_name: string;
+  icon_url?: string | null;
   terms: ApiTerm[];
 }
 

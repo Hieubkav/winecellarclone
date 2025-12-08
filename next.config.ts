@@ -65,6 +65,10 @@ const remotePatterns: RemotePattern = [
 const isProduction = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
+  // Hiển thị lại Route Indicator của Next.js App Router Dev Tools trong môi trường dev
+  devIndicators: {
+    buildActivityPosition: 'bottom-right',
+  },
   images: {
     remotePatterns,
     formats: ['image/webp', 'image/avif'],
