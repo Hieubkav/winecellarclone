@@ -2,25 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react"
 import { useShallow } from "zustand/react/shallow"
-import { Grid3X3, List, Filter, Loader2, X } from "lucide-react"
+import { LayoutGrid, List, Filter, Loader2, ArrowUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useWineStore, type SortOption, type Wine } from "@/data/filter/store"
 import { useFilterUrlSync } from "@/hooks/use-filter-url-sync"
-const FilterSidebar = lazy(() => import("./filter-sidebar").then(mod => ({ default: mod.FilterSidebar })))
-const FilterProductCard = lazy(() => import("./product-card").then(mod => ({ default: mod.FilterProductCard })))
 import { FilterSearchBar } from "./search-bar"
 import { ProductSkeleton } from "./product-skeleton"
 
-
+const FilterSidebar = lazy(() => import("./filter-sidebar").then(mod => ({ default: mod.FilterSidebar })))
+const FilterProductCard = lazy(() => import("./product-card").then(mod => ({ default: mod.FilterProductCard })))
 
 export default function WineList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   
-  // Sync filters with URL for shareable links
   useFilterUrlSync()
+  
   const {
     wines,
     loading,
@@ -70,13 +68,11 @@ export default function WineList() {
     if (!canLoadMore || loading || loadingMore) {
       return
     }
-
     void loadMore()
   }, [canLoadMore, loadMore, loading, loadingMore])
 
   useEffect(() => {
     const node = sentinelRef.current
-
     if (!node || !canLoadMore) {
       return
     }
@@ -84,190 +80,215 @@ export default function WineList() {
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           requestMore()
         }
       },
-      { rootMargin: "100px 0px" }, // Reduced from 600px to prevent aggressive pre-loading
+      { rootMargin: "100px 0px" },
     )
 
     observer.observe(node)
-
     return () => observer.disconnect()
   }, [canLoadMore, requestMore])
 
   return (
-    <div className="bg-white text-[#1C1C1C]">
-      <div className="mx-auto flex flex-col gap-10 px-4 py-8 lg:flex-row lg:py-12">
-        <aside className="hidden w-full max-w-[300px] space-y-6 lg:block">
-        <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
-            <FilterSidebar />
-          </Suspense>
-        </aside>
+    <div className="flex flex-col font-sans text-stone-800 bg-stone-50 min-h-screen">
+      
+      <main className="container mx-auto flex-1 px-4 py-6 md:py-8">
+        {/* Page Title & Search (Desktop) */}
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:mb-8">
+          <div>
+            <h1 className="font-serif text-2xl md:text-3xl font-bold text-[#9B2C3B]">Sản phẩm của chúng tôi</h1>
+          </div>
+          <div className="hidden w-full max-w-xs md:block">
+            <FilterSearchBar
+              value={filters.searchQuery}
+              onChange={setSearchQuery}
+              disabled={!initialized}
+            />
+          </div>
+        </div>
 
-        <main className="flex-1">
-          <div className="mb-4 flex flex-col gap-4 sm:mb-6 relative z-30">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-1 items-center gap-4 sm:flex-none">
-                <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-                  <SheetTrigger asChild className="lg:hidden">
-                    <Button
-                      variant="outline"
-                      className="flex items-center gap-2 border-[#ECAA4D] text-[#ECAA4D] hover:bg-[#ECAA4D] hover:text-white transition-colors"
-                      aria-label="Mở bộ lọc"
-                    >
-                      <Filter className="h-4 w-4" />
-                      Bộ lọc
-                      </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-80 sm:w-96 overflow-y-auto">
-                    <SheetHeader className="sticky top-0 z-10 bg-[#ECAA4D] py-4 px-6">
-                      <SheetTitle className="text-center text-base font-semibold text-[#1C1C1C]">
-                      Bộ lọc
-                      </SheetTitle>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-4 top-3 text-[#1C1C1C] hover:bg-[#1C1C1C]/10"
-                        onClick={() => setMobileFiltersOpen(false)}
-                        aria-label="Đóng bộ lọc"
+        <div className="flex flex-col lg:flex-row lg:gap-8">
+          
+          {/* Desktop Sidebar */}
+          <div className="hidden w-64 flex-none lg:block">
+            <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
+              <FilterSidebar />
+            </Suspense>
+          </div>
+
+          {/* Product Grid Area */}
+          <div className="flex-1">
+            {/* Toolbar - Sticky on Mobile */}
+            <div className="sticky top-0 z-30 -mx-4 mb-4 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-md transition-all sm:static sm:mx-0 sm:mb-6 sm:rounded-lg sm:border sm:border-stone-100/50 sm:bg-white sm:p-4 sm:shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                {/* Filter Button (Mobile) & Count */}
+                <div className="flex items-center gap-3">
+                  <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                    <SheetTrigger asChild className="lg:hidden">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 bg-stone-50 border-stone-200 text-stone-700 h-9"
                       >
-                        <X className="h-5 w-5" />
+                        <Filter size={15} /> <span className="text-xs font-medium">Bộ lọc</span>
                       </Button>
-                    </SheetHeader>
-                    <div className="py-4 px-6">
-                    <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
-                        <FilterSidebar />
-                      </Suspense>
-                    </div>
-                  </SheetContent>
-                </Sheet>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80 sm:w-96 overflow-y-auto">
+                      <SheetHeader className="sticky top-0 z-10 bg-stone-50 -mx-6 mb-6 px-6 py-4">
+                        <SheetTitle className="text-base font-semibold text-stone-900 flex items-center gap-2">
+                          <Filter size={18} /> Bộ lọc & Tìm kiếm
+                        </SheetTitle>
+                      </SheetHeader>
+                      <div className="space-y-6 px-6">
+                        <div>
+                          <label className="text-sm font-bold text-stone-900 mb-2 block">Tìm kiếm</label>
+                          <FilterSearchBar
+                            value={filters.searchQuery}
+                            onChange={setSearchQuery}
+                            disabled={!initialized}
+                          />
+                        </div>
+                        <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
+                          <FilterSidebar />
+                        </Suspense>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                  
+                  <div className="text-xs text-stone-500 sm:text-sm">
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Đang tải...
+                      </span>
+                    ) : (
+                      <>
+                        <strong className="text-stone-900">{totalProducts}</strong>
+                        <span> SP</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Controls (Sort & View) */}
+                <div className="flex items-center justify-end gap-2 sm:gap-3">
+                  <div className="relative">
+                    <select 
+                      value={filters.sortBy}
+                      onChange={(e) => setSortBy(e.target.value as SortOption)}
+                      className="h-9 appearance-none rounded-sm border border-stone-200 bg-stone-50 pl-3 pr-8 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#9B2C3B] cursor-pointer text-stone-700 hover:border-[#ECAA4D] sm:text-sm w-[110px] sm:w-auto truncate"
+                    >
+                      <option value="name-asc">Tên: A-Z</option>
+                      <option value="name-desc">Tên: Z-A</option>
+                      <option value="price-asc">Giá tăng dần</option>
+                      <option value="price-desc">Giá giảm dần</option>
+                    </select>
+                    <ArrowUpDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+                  </div>
 
-                <div className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-                      Đang tải...
-                    </span>
+                  <div className="hidden sm:flex items-center rounded-md border border-stone-200 p-1 bg-stone-50 shrink-0">
+                    <button 
+                      onClick={() => setViewMode('grid')}
+                      className={`rounded-sm p-1.5 transition-all ${viewMode === 'grid' ? 'bg-white text-[#9B2C3B] shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
+                      title="Lưới"
+                    >
+                      <LayoutGrid size={18} />
+                    </button>
+                    <button 
+                      onClick={() => setViewMode('list')}
+                      className={`rounded-sm p-1.5 transition-all ${viewMode === 'list' ? 'bg-white text-[#9B2C3B] shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
+                      title="Danh sách"
+                    >
+                      <List size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Error State */}
+            {error ? (
+              <div className="py-12 text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-600 border border-red-200">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm font-medium">{error}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="relative z-10">
+                {/* Loading overlay */}
+                {loading && (
+                  <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg min-h-[400px]">
+                    <div className="flex flex-col items-center gap-3">
+                      <Loader2 className="h-10 w-10 animate-spin text-[#ECAA4D]" />
+                      <p className="text-sm text-stone-500 font-medium">Đang tải sản phẩm...</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Products Grid */}
+                <div
+                  className={`grid transition-opacity duration-300 ${
+                    viewMode === "grid" 
+                      ? "grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 xl:grid-cols-4" 
+                      : "grid-cols-1 gap-4"
+                  } ${loading ? "opacity-50" : "opacity-100"}`}
+                >
+                  {wines.length === 0 && !loading ? (
+                    <div className="col-span-full py-16 text-center">
+                      <div className="inline-flex flex-col items-center gap-3 px-6 py-8 rounded-lg bg-stone-100">
+                        <svg className="h-16 w-16 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <p className="text-stone-600 font-medium">Không tìm thấy sản phẩm phù hợp</p>
+                        <p className="text-sm text-stone-500">Vui lòng thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                      </div>
+                    </div>
+                  ) : loading && wines.length === 0 ? (
+                    Array.from({ length: 8 }).map((_, index) => (
+                      <ProductSkeleton key={`skeleton-${index}`} />
+                    ))
                   ) : (
-                    <span>{totalProducts} sản phẩm</span>
+                    <Suspense fallback={
+                      Array.from({ length: 8 }).map((_, index) => (
+                        <ProductSkeleton key={`skeleton-suspense-${index}`} />
+                      ))
+                    }>
+                      {wines.map((wine: Wine, index) => (
+                        <FilterProductCard
+                          key={wine.id}
+                          wine={wine}
+                          viewMode={viewMode}
+                          priority={index < 4}
+                        />
+                      ))}
+                    </Suspense>
                   )}
                 </div>
               </div>
+            )}
 
-              <div className="flex items-center gap-3">
-                <select
-                  value={filters.sortBy}
-                  onChange={(event) => setSortBy(event.target.value as SortOption)}
-                  className="border border-[#ECAA4D]/60 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#ECAA4D] focus:border-[#ECAA4D] transition-colors bg-white text-[#1C1C1C] cursor-pointer hover:border-[#ECAA4D]"
-                  aria-label="Sắp xếp sản phẩm"
+            {/* Load More / Pagination */}
+            <div ref={sentinelRef} className="mt-8 flex justify-center pb-8 sm:mt-12">
+              {loadingMore ? (
+                <Loader2 className="h-6 w-6 animate-spin text-[#ECAA4D]" />
+              ) : canLoadMore ? (
+                <Button 
+                  variant="ghost" 
+                  onClick={requestMore}
+                  className="w-full sm:w-auto min-w-[200px] text-stone-500 hover:text-[#9B2C3B] hover:bg-stone-100 border border-stone-100 sm:border-0"
                 >
-                  <option value="name-asc">Tên: A-Z</option>
-                  <option value="name-desc">Tên: Z-A</option>
-                  <option value="price-asc">Giá: Thấp đến cao</option>
-                  <option value="price-desc">Giá: Cao đến thấp</option>
-                </select>
-
-                <div className="hidden sm:block">
-                  <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
-                    <ToggleGroupItem value="grid" aria-label="Hiển thị dạng lưới" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
-                      <Grid3X3 className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="list" aria-label="Hiển thị dạng danh sách" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
-                      <List className="h-4 w-4" />
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <FilterSearchBar
-                value={filters.searchQuery}
-                onChange={setSearchQuery}
-                disabled={!initialized}
-              />
-
-              <div className="sm:hidden">
-                <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as "grid" | "list")}>
-                  <ToggleGroupItem value="grid" aria-label="Hiển thị dạng lưới" size="sm" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
-                    <Grid3X3 className="h-4 w-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="list" aria-label="Hiển thị dạng danh sách" size="sm" className="hover:bg-[#ECAA4D]/10 data-[state=on]:bg-[#ECAA4D] data-[state=on]:text-white">
-                    <List className="h-4 w-4" />
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
+                  Xem thêm sản phẩm
+                </Button>
+              ) : null}
             </div>
           </div>
-
-          {error ? (
-            <div className="py-12 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-600 border border-red-200">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-sm font-medium">{error}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="relative z-10">
-              {/* Loading overlay with backdrop - only covers products area */}
-              {loading && (
-                <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg min-h-[400px]">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="h-10 w-10 animate-spin text-[#ECAA4D]" />
-                    <p className="text-sm text-muted-foreground font-medium">Đang tải sản phẩm...</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Products grid with smooth transition */}
-              <div
-                className={`grid gap-4 sm:gap-6 transition-opacity duration-300 ${
-                  viewMode === "grid" ? "grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-                } ${loading ? "opacity-50" : "opacity-100"}`}
-              >
-                {wines.length === 0 && !loading ? (
-                  <div className="col-span-full py-16 text-center">
-                    <div className="inline-flex flex-col items-center gap-3 px-6 py-8 rounded-lg bg-gray-50">
-                      <svg className="h-16 w-16 text-muted-foreground/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <p className="text-muted-foreground font-medium">Không tìm thấy sản phẩm phù hợp</p>
-                      <p className="text-sm text-muted-foreground/70">Vui lòng thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
-                    </div>
-                  </div>
-                ) : loading && wines.length === 0 ? (
-                  // Show skeletons on first load
-                  Array.from({ length: 6 }).map((_, index) => (
-                    <ProductSkeleton key={`skeleton-${index}`} />
-                  ))
-                ) : (
-                  <Suspense fallback={
-                    Array.from({ length: 6 }).map((_, index) => (
-                      <ProductSkeleton key={`skeleton-suspense-${index}`} />
-                    ))
-                  }>
-                    {wines.map((wine: Wine, index) => (
-                      <FilterProductCard
-                        key={wine.id}
-                        wine={wine}
-                        viewMode={viewMode}
-                        priority={index < 4}
-                      />
-                    ))}
-                  </Suspense>
-                )}
-              </div>
-            </div>
-          )}
-
-          <div ref={sentinelRef} className="flex justify-center py-10">
-            {loadingMore && <Loader2 className="h-6 w-6 animate-spin text-[#ECAA4D]" aria-hidden="true" />}
-          </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

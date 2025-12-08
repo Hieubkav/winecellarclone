@@ -3,209 +3,281 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Tag, MapPin, Sparkles, Hourglass, Droplets, Percent, Layers } from "lucide-react";
 import type { Wine } from "@/data/filter/store";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+  style: "currency",
+  currency: "VND",
+  maximumFractionDigits: 0,
 });
 
-const getDisplayPrice = (wine: Wine): string => {
-    if (wine.showContactCta || typeof wine.price !== "number" || wine.price <= 0) {
-        return "Liên hệ";
-    }
+const formatCurrency = (value: number) => numberFormatter.format(value);
 
-    return `${numberFormatter.format(wine.price)} VND`;
+const getDisplayPrice = (wine: Wine): string => {
+  if (wine.showContactCta || typeof wine.price !== "number" || wine.price <= 0) {
+    return "Liên hệ";
+  }
+  return formatCurrency(wine.price);
 };
 
 interface ProductCardProps {
-    wine: Wine;
-    viewMode: "grid" | "list";
-    priority?: boolean;
+  wine: Wine;
+  viewMode: "grid" | "list";
+  priority?: boolean;
 }
 
-interface MetaItem {
-    label: string;
-    value: string;
-    iconUrl?: string | null;
+interface AttributeItem {
+  icon: React.ReactNode;
+  iconUrl?: string | null;
+  label: string;
+  show: boolean;
 }
 
-function MetaRow({ label, value, iconUrl }: MetaItem) {
-    if (!value) return null;
+// Fallback icons based on group code
+const getFallbackIcon = (code?: string): React.ReactNode => {
+  if (!code) return <Sparkles size={14} />;
+  
+  const lowerCode = code.toLowerCase();
+  
+  if (lowerCode.includes('huong') || lowerCode.includes('flavor')) {
+    return <Sparkles size={14} />;
+  } else if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) {
+    return <Layers size={14} />;
+  } else if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) {
+    return <MapPin size={14} />;
+  } else if (lowerCode.includes('tuoi') || lowerCode.includes('age')) {
+    return <Hourglass size={14} />;
+  } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume')) {
+    return <Droplets size={14} />;
+  } else if (lowerCode.includes('nong_do') || lowerCode.includes('alcohol')) {
+    return <Percent size={14} />;
+  }
+  
+  return <Tag size={14} />;
+};
 
+// Icon renderer component
+const AttributeIcon = ({ url, fallbackIcon }: { url?: string | null; fallbackIcon: React.ReactNode }) => {
+  if (url) {
     return (
-        <p className="text-xs sm:text-sm leading-relaxed text-[#1C1C1C]/85 whitespace-normal break-words flex items-center gap-1">
-            {iconUrl ? (
-                <Image src={iconUrl} alt={label} width={16} height={16} className="inline-block flex-shrink-0" />
-            ) : (
-                <span className="font-semibold text-[#1C1C1C]">{label}:</span>
-            )}
-            {' '}{value}
-        </p>
+      <Image 
+        src={url} 
+        alt="attribute" 
+        width={14} 
+        height={14}
+        className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+      />
     );
-}
+  }
+  return <span className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">{fallbackIcon}</span>;
+};
 
-export const FilterProductCard = React.memo(function FilterProductCard({ wine, viewMode, priority = false }: ProductCardProps) {
-    // Combine attributes (terms) + extra_attrs
-    const metaItems: MetaItem[] = [];
+export const FilterProductCard = React.memo(function FilterProductCard({ 
+  wine, 
+  viewMode, 
+  priority = false 
+}: ProductCardProps) {
+  
+  const discountPercentage = wine.originalPrice && wine.originalPrice > (wine.price ?? 0)
+    ? Math.round(((wine.originalPrice - (wine.price ?? 0)) / wine.originalPrice) * 100)
+    : 0;
 
-    // Add attributes from terms (catalog groups)
-    if (wine.attributes && wine.attributes.length > 0) {
-        wine.attributes.forEach((attrGroup) => {
-            attrGroup.terms.forEach((term) => {
-                metaItems.push({
-                    label: attrGroup.group_name,
-                    value: term.name,
-                    iconUrl: attrGroup.icon_url,
-                });
-            });
-        });
+  // Build attributes list with icons - combine API attributes + extra attrs
+  const buildAttributes = (): AttributeItem[] => {
+    const attrs: AttributeItem[] = [];
+
+    // Brand/Type from API
+    if (wine.brand) {
+      attrs.push({ 
+        icon: <Tag size={14} />, 
+        label: wine.brand, 
+        show: true 
+      });
+    } else if (wine.wineType) {
+      attrs.push({ 
+        icon: <Tag size={14} />, 
+        label: wine.wineType, 
+        show: true 
+      });
     }
 
-    // Add extra_attrs (nhập tay)
-    Object.entries(wine.extraAttrs ?? {}).forEach(([, attr]) => {
-        metaItems.push({
-            label: attr.label,
-            value: `${attr.value}`,
+    // Origin/Country
+    if (wine.country) {
+      attrs.push({ 
+        icon: <MapPin size={14} />, 
+        label: wine.country, 
+        show: true 
+      });
+    }
+
+    // Attributes from API terms (catalog groups) - Use icon_url from API
+    if (wine.attributes && wine.attributes.length > 0) {
+      wine.attributes.forEach((attrGroup) => {
+        attrGroup.terms.forEach((term) => {
+          attrs.push({
+            icon: getFallbackIcon(attrGroup.group_code),
+            iconUrl: attrGroup.icon_url,
+            label: term.name,
+            show: true,
+          });
         });
+      });
+    }
+
+    // Extra attrs (nhập tay)
+    Object.entries(wine.extraAttrs ?? {}).forEach(([, attr]) => {
+      const fallbackIcon = getFallbackIcon(attr.label);
+
+      attrs.push({
+        icon: fallbackIcon,
+        label: `${attr.value}`,
+        show: true,
+      });
     });
 
-    // Filter empty values
-    const filteredMetaItems = metaItems.filter(item => item.value);
-
-    // Grid View Layout (Responsive: Dọc mobile với spacing rộng, Ngang desktop)
-    if (viewMode === "grid") {
-        return (
-            <Card className="group border border-[#F1E5D5] bg-white text-[#1C1C1C] shadow-none transition-all hover:border-[#ECAA4D]/40 hover:shadow-[0_8px_24px_rgba(236,170,77,0.15)] h-full flex flex-col rounded-lg overflow-hidden">
-                <CardContent className="flex flex-col sm:flex-row gap-5 p-5 sm:p-4 sm:gap-4 flex-grow">
-                    {/* Image - Top on Mobile (Bigger), Left on Desktop */}
-                    <Link 
-                        href={`/san-pham/${wine.slug}`}
-                        className="flex-shrink-0 mx-auto sm:mx-0"
-                    >
-                        <div className="relative h-56 w-28 sm:h-48 sm:w-24 transition-transform group-hover:scale-105">
-                            <Image
-                                src={wine.image || "/placeholder/wine-bottle.svg"}
-                                alt={wine.name}
-                                fill
-                                sizes="(max-width: 640px) 112px, 96px"
-                                className="object-contain"
-                                priority={priority}
-                                loading={priority ? "eager" : "lazy"}
-                                quality={75}
-                                placeholder="blur"
-                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-                            />
-                        </div>
-                    </Link>
-
-                    {/* Content - Below on Mobile, Right on Desktop */}
-                    <div className="flex-1 flex flex-col gap-4 sm:gap-3 min-w-0">
-                        {/* Product Name */}
-                        <Link href={`/san-pham/${wine.slug}`}>
-                            <h3 className="text-base sm:text-base font-bold tracking-tight text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors line-clamp-2 leading-snug text-center sm:text-left">
-                                {wine.name}
-                            </h3>
-                        </Link>
-
-                        {/* Meta Items - Single Column on Mobile, Grid 2 Columns on Desktop */}
-                        <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-x-3 sm:gap-y-2 flex-1">
-                            {filteredMetaItems.map((item, idx) => (
-                                <MetaRow key={`${item.label}-${idx}`} {...item} />
-                            ))}
-                        </div>
-
-                        {/* Price & Button - Stack on Mobile, Horizontal on Desktop */}
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 sm:pt-3 border-t border-[#F1E5D5] mt-auto">
-                            <p className="text-xl sm:text-lg font-bold text-[#9B2C3B] text-center sm:text-left">
-                                {getDisplayPrice(wine)}
-                            </p>
-
-                            <Button 
-                                className="w-full sm:w-auto rounded-full bg-[#ECAA4D] px-6 py-2.5 sm:px-5 sm:py-2 text-sm sm:text-xs font-semibold uppercase tracking-wide text-[#1C1C1C] hover:bg-[#d2923f] transition-colors shadow-none border-0" 
-                                asChild
-                            >
-                                <Link href={`/san-pham/${wine.slug}`}>Xem chi tiết</Link>
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        );
+    // Volume
+    if (wine.volume && wine.volume > 0) {
+      attrs.push({ 
+        icon: <Droplets size={14} />, 
+        label: `${wine.volume}ml`, 
+        show: true 
+      });
     }
 
-    // List View Layout (horizontal - Simple & Clean)
+    // Alcohol
+    if (wine.alcoholContent && wine.alcoholContent > 0) {
+      attrs.push({ 
+        icon: <Percent size={14} />, 
+        label: `${wine.alcoholContent}%`, 
+        show: true 
+      });
+    }
+
+    return attrs.filter(a => a.show);
+  };
+
+  const attributes = buildAttributes();
+
+  // List View
+  if (viewMode === "list") {
     return (
-        <Card className="group border border-[#F1E5D5] bg-white text-[#1C1C1C] shadow-none transition-all hover:border-[#ECAA4D]/40 hover:shadow-[0_8px_24px_rgba(236,170,77,0.15)] rounded-lg overflow-hidden">
-            <CardContent className="p-3 sm:p-4">
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch">
-                    {/* Image Section - Left */}
-                    <Link 
-                        href={`/san-pham/${wine.slug}`}
-                        className="flex-shrink-0 flex items-center justify-center"
-                    >
-                        <div className="relative h-40 w-20 sm:h-44 sm:w-22 transition-transform group-hover:scale-105">
-                            <Image
-                                src={wine.image || "/placeholder/wine-bottle.svg"}
-                                alt={wine.name}
-                                fill
-                                sizes="(max-width: 768px) 100px, 120px"
-                                className="object-contain"
-                                priority={priority}
-                                loading={priority ? "eager" : "lazy"}
-                                quality={75}
-                                placeholder="blur"
-                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+IRjWjBqO6O2mhP//Z"
-                            />
-                        </div>
-                    </Link>
-
-                    {/* Main Content - Flex 1 */}
-                    <div className="flex-1 flex flex-col gap-3 min-w-0">
-                        {/* Title */}
-                        <Link href={`/san-pham/${wine.slug}`}>
-                            <h3 className="text-base sm:text-lg font-bold tracking-tight text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors line-clamp-2">
-                                {wine.name}
-                            </h3>
-                        </Link>
-
-                        {/* Meta Info */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1">
-                            {filteredMetaItems.map((item, idx) => (
-                                <MetaRow key={`${item.label}-${idx}`} {...item} />
-                            ))}
-                        </div>
-
-                        {/* Price & Action - Mobile only (shows below content on mobile) */}
-                        <div className="flex sm:hidden items-center justify-between gap-3 pt-3 border-t border-[#F1E5D5]">
-                            <p className="text-xl font-bold text-[#9B2C3B]">
-                                {getDisplayPrice(wine)}
-                            </p>
-                            <Button 
-                                className="rounded-md bg-[#ECAA4D] px-6 py-2 text-xs font-semibold uppercase tracking-wide text-[#1C1C1C] hover:bg-[#d2923f] transition-colors shadow-none border-0" 
-                                asChild
-                            >
-                                <Link href={`/san-pham/${wine.slug}`}>Xem chi tiết</Link>
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Price & Action - Desktop only (shows on right side on desktop) */}
-                    <div className="hidden sm:flex flex-shrink-0 flex-col items-end justify-between gap-3 min-w-[140px]">
-                        <p className="text-2xl font-bold text-[#9B2C3B] whitespace-nowrap">
-                            {getDisplayPrice(wine)}
-                        </p>
-                        <Button 
-                            className="w-full rounded-md bg-[#ECAA4D] px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-[#1C1C1C] hover:bg-[#d2923f] transition-colors shadow-none border-0" 
-                            asChild
-                        >
-                            <Link href={`/san-pham/${wine.slug}`}>Xem chi tiết</Link>
-                        </Button>
-                    </div>
+      <div className="group relative flex w-full overflow-hidden rounded-md border border-stone-100 bg-white shadow-sm transition-all hover:shadow-md hover:border-[#ECAA4D]/50">
+        <Link 
+          href={`/san-pham/${wine.slug}`}
+          className="relative w-32 sm:w-48 shrink-0 overflow-hidden bg-stone-50"
+        >
+          {discountPercentage > 0 && (
+            <span className="absolute top-2 left-0 z-10 bg-[#9e1e2d] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm rounded-r-sm">
+              -{discountPercentage}%
+            </span>
+          )}
+          <Image
+            src={wine.image || "/placeholder/wine-bottle.svg"}
+            alt={wine.name}
+            fill
+            sizes="(max-width: 640px) 128px, 192px"
+            className="h-full w-full object-contain p-2 sm:p-4 transition-transform duration-500 group-hover:scale-110"
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+          />
+        </Link>
+        <div className="flex flex-1 flex-col justify-between p-3 sm:p-6">
+          <div>
+            <Link href={`/san-pham/${wine.slug}`}>
+              <h3 className="font-serif text-base sm:text-xl font-bold text-stone-900 group-hover:text-[#9B2C3B] transition-colors line-clamp-2">
+                {wine.name}
+              </h3>
+            </Link>
+            
+            <div className="mt-2 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-x-8 sm:gap-y-3">
+              {attributes.slice(0, 6).map((attr, index) => (
+                <div key={index} className="flex items-center gap-2 text-xs sm:text-sm text-stone-600">
+                  <span className="text-[#9B2C3B] shrink-0 flex items-center justify-center">
+                    <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.icon} />
+                  </span>
+                  <span className="truncate">{attr.label}</span>
                 </div>
-            </CardContent>
-        </Card>
+              ))}
+            </div>
+          </div>
+          
+          <div className="mt-3 sm:mt-6 flex flex-wrap items-baseline gap-2 sm:gap-3">
+            <span className="font-serif text-lg sm:text-2xl font-bold text-[#9B2C3B]">
+              {getDisplayPrice(wine)}
+            </span>
+            {wine.originalPrice && wine.originalPrice > (wine.price ?? 0) && (
+              <span className="text-xs sm:text-sm font-medium text-stone-400 line-through decoration-stone-400 decoration-1">
+                {formatCurrency(wine.originalPrice)}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
     );
+  }
+
+  // Grid View - Vertical layout like the design
+  return (
+    <div className="group relative flex flex-col overflow-hidden rounded-md border border-stone-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-stone-200/50">
+      
+      {/* Image Area with Zoom Effect */}
+      <Link 
+        href={`/san-pham/${wine.slug}`}
+        className="relative aspect-[4/5] overflow-hidden bg-white border-b border-stone-50"
+      >
+        {/* Discount Badge */}
+        {discountPercentage > 0 && (
+          <span className="absolute top-2 left-0 sm:top-4 z-10 bg-[#9e1e2d] px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-white shadow-sm rounded-r-md">
+            -{discountPercentage}%
+          </span>
+        )}
+        
+        <Image
+          src={wine.image || "/placeholder/wine-bottle.svg"}
+          alt={wine.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+          className="h-full w-full object-contain p-4 sm:p-8 transition-transform duration-700 group-hover:scale-110"
+          priority={priority}
+          loading={priority ? "eager" : "lazy"}
+        />
+      </Link>
+
+      {/* Content Area */}
+      <div className="flex flex-1 flex-col p-3 sm:p-5">
+        
+        {/* Title */}
+        <Link href={`/san-pham/${wine.slug}`}>
+          <h3 className="mb-2 sm:mb-3 font-serif text-sm sm:text-lg font-bold leading-tight text-stone-900 group-hover:text-[#9B2C3B] transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3.25rem]">
+            {wine.name}
+          </h3>
+        </Link>
+
+        {/* Dynamic Attributes List */}
+        <div className="mb-2 sm:mb-4 flex flex-col gap-1 sm:gap-2">
+          {attributes.slice(0, 4).map((attr, index) => (
+            <div key={index} className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-stone-600">
+              <span className="text-[#9B2C3B] shrink-0 w-4 sm:w-5 flex items-center justify-center">
+                <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.icon} />
+              </span>
+              <span className="truncate">{attr.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Price Section */}
+        <div className="mt-auto flex flex-col pt-2 sm:pt-3 border-t border-stone-100">
+          {wine.originalPrice && wine.originalPrice > (wine.price ?? 0) && (
+            <span className="text-[10px] sm:text-xs font-medium text-stone-400 line-through decoration-stone-400 decoration-1 mb-0.5 sm:mb-1">
+              {formatCurrency(wine.originalPrice)}
+            </span>
+          )}
+          <span className="font-serif text-base sm:text-xl font-bold text-[#9B2C3B]">
+            {getDisplayPrice(wine)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 });

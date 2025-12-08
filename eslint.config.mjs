@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Test files
     "test-performance-fixes.js",
     "performance-analysis.ts",
+    // Design template folder
+    "thien-kim-wine-redesign/**",
   ]),
 ]);
 
