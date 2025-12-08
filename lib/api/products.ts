@@ -19,6 +19,7 @@ export interface ExtraAttr {
   label: string;
   value: string | number;
   type: 'text' | 'number';
+  icon_url?: string | null;
 }
 
 export interface ProductAttribute {
@@ -194,6 +195,7 @@ export interface AttributeFilter {
   filter_type: string;
   input_type?: string;
   display_config: Record<string, unknown>;
+  icon_url?: string | null;
   options: ProductFilterOption[];
 }
 

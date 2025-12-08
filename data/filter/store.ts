@@ -44,6 +44,7 @@ export interface Wine {
   showContactCta?: boolean
   categories?: Array<{ id: number; name: string; slug: string }>
   extraAttrs?: Record<string, ExtraAttr>
+  extraAttrIcons?: Record<string, string | null>
   attributes?: Array<{
     group_code: string
     group_name: string
@@ -58,6 +59,7 @@ interface AttributeFilter {
   filter_type: string
   input_type?: string
   display_config: Record<string, unknown>
+  icon_url?: string | null
   options: FilterOption[]
   range?: { min: number; max: number }
 }
@@ -115,7 +117,19 @@ interface WineStoreActions {
 
 export interface WineStore extends WineStoreState, WineStoreActions {}
 
-const mapProductToWine = (product: ProductListItem): Wine => {
+const mapProductToWine = (product: ProductListItem, attributeFilters: AttributeFilter[]): Wine => {
+  const attributeIconMap: Record<string, string | null> = {};
+
+  (product.attributes ?? []).forEach((group) => {
+    attributeIconMap[group.group_code] = group.icon_url ?? null;
+  });
+
+  attributeFilters.forEach((group) => {
+    if (!(group.code in attributeIconMap)) {
+      attributeIconMap[group.code] = group.icon_url ?? null;
+    }
+  });
+
   const fallbackImage = product.gallery.find((image) => image.url)?.url ?? null
 
   return {
@@ -136,6 +150,7 @@ const mapProductToWine = (product: ProductListItem): Wine => {
     showContactCta: product.show_contact_cta,
     categories: product.categories ?? [],
     extraAttrs: product.extra_attrs ?? {},
+    extraAttrIcons: attributeIconMap,
     attributes: product.attributes ?? [],
   }
 }
@@ -329,7 +344,8 @@ export const useWineStore = create<WineStore>((set, get) => ({
     try {
       const queryParams = buildQueryParams(filters)
       const response = await fetchProductList(queryParams)
-      const mapped = response.data.map(mapProductToWine)
+      const options = get().options
+      const mapped = response.data.map((item) => mapProductToWine(item, options.attributeFilters))
       
       set((state) => {
         let nextProducts = mapped

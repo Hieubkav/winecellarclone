@@ -48,9 +48,15 @@ const getFallbackIcon = (code?: string): React.ReactNode => {
     return <MapPin size={14} />;
   } else if (lowerCode.includes('tuoi') || lowerCode.includes('age')) {
     return <Hourglass size={14} />;
-  } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume')) {
+  } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('the_tich') || lowerCode.includes('ml')) {
     return <Droplets size={14} />;
-  } else if (lowerCode.includes('nong_do') || lowerCode.includes('alcohol')) {
+  } else if (
+    lowerCode.includes('nong_do') ||
+    lowerCode.includes('alcohol') ||
+    lowerCode.includes('abv') ||
+    lowerCode.includes('phan_tram') ||
+    lowerCode.includes('percent')
+  ) {
     return <Percent size={14} />;
   }
   
@@ -87,17 +93,11 @@ export const FilterProductCard = React.memo(function FilterProductCard({
   const buildAttributes = (): AttributeItem[] => {
     const attrs: AttributeItem[] = [];
 
-    // Brand/Type from API
+    // Brand only (hide product type on card per request)
     if (wine.brand) {
       attrs.push({ 
         icon: <Tag size={14} />, 
         label: wine.brand, 
-        show: true 
-      });
-    } else if (wine.wineType) {
-      attrs.push({ 
-        icon: <Tag size={14} />, 
-        label: wine.wineType, 
         show: true 
       });
     }
@@ -125,12 +125,13 @@ export const FilterProductCard = React.memo(function FilterProductCard({
       });
     }
 
-    // Extra attrs (nhập tay)
-    Object.entries(wine.extraAttrs ?? {}).forEach(([, attr]) => {
-      const fallbackIcon = getFallbackIcon(attr.label);
+    // Extra attrs (nhập tay) - sử dụng icon_url từ API
+    Object.entries(wine.extraAttrs ?? {}).forEach(([key, attr]) => {
+      const fallbackIcon = getFallbackIcon(key);
 
       attrs.push({
         icon: fallbackIcon,
+        iconUrl: attr.icon_url ?? wine.extraAttrIcons?.[key],
         label: `${attr.value}`,
         show: true,
       });
@@ -185,7 +186,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
         <div className="flex flex-1 flex-col justify-between p-3 sm:p-6">
           <div>
             <Link href={`/san-pham/${wine.slug}`}>
-              <h3 className="font-serif text-base sm:text-xl font-bold text-stone-900 group-hover:text-[#9B2C3B] transition-colors line-clamp-2">
+              <h3 className="font-serif text-base sm:text-xl font-bold text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors line-clamp-2">
                 {wine.name}
               </h3>
             </Link>
@@ -249,7 +250,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
         
         {/* Title */}
         <Link href={`/san-pham/${wine.slug}`}>
-          <h3 className="mb-2 sm:mb-3 font-serif text-sm sm:text-lg font-bold leading-tight text-stone-900 group-hover:text-[#9B2C3B] transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3.25rem]">
+          <h3 className="mb-2 sm:mb-3 font-serif text-sm sm:text-lg font-bold leading-tight text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3.25rem]">
             {wine.name}
           </h3>
         </Link>
