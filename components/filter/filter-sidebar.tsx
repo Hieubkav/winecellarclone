@@ -25,10 +25,11 @@ const COLLAPSE_THRESHOLD = 6
 
 interface CollapsibleCheckboxSectionProps {
   title: string
-  items: { id: number; name: string }[]
+  items: { id: number; name: string; count?: number }[]
   selectedIds: number[]
   onToggle: (id: number) => void
   code: string
+  hideZeroCount?: boolean
 }
 
 function CollapsibleCheckboxSection({ 
@@ -36,13 +37,20 @@ function CollapsibleCheckboxSection({
   items, 
   selectedIds, 
   onToggle, 
-  code 
+  code,
+  hideZeroCount = true 
 }: CollapsibleCheckboxSectionProps) {
   const [isOpen, setIsOpen] = useState(false)
   const selectedCount = selectedIds.length
-  const shouldCollapse = items.length > COLLAPSE_THRESHOLD
-  const visibleItems = shouldCollapse && !isOpen ? items.slice(0, COLLAPSE_THRESHOLD) : items
-  const hiddenCount = items.length - COLLAPSE_THRESHOLD
+  
+  // Lọc bỏ items có count = 0 nếu hideZeroCount = true
+  const filteredItems = hideZeroCount 
+    ? items.filter(item => item.count === undefined || item.count > 0)
+    : items
+  
+  const shouldCollapse = filteredItems.length > COLLAPSE_THRESHOLD
+  const visibleItems = shouldCollapse && !isOpen ? filteredItems.slice(0, COLLAPSE_THRESHOLD) : filteredItems
+  const hiddenCount = filteredItems.length - COLLAPSE_THRESHOLD
 
   if (shouldCollapse) {
     return (
@@ -72,16 +80,19 @@ function CollapsibleCheckboxSection({
               />
               <Label
                 htmlFor={`${code}-${option.id}`}
-                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1 flex items-center justify-between"
               >
-                {option.name}
+                <span>{option.name}</span>
+                {option.count !== undefined && (
+                  <span className="text-xs text-[#1C1C1C]/50">({option.count})</span>
+                )}
               </Label>
             </div>
           ))}
         </div>
 
         <CollapsibleContent className="space-y-2.5 animate-in slide-in-from-top-2 duration-200">
-          {items.slice(COLLAPSE_THRESHOLD).map((option) => (
+          {filteredItems.slice(COLLAPSE_THRESHOLD).map((option) => (
             <div key={option.id} className="flex items-center space-x-3 group">
               <Checkbox
                 id={`${code}-${option.id}`}
@@ -91,9 +102,12 @@ function CollapsibleCheckboxSection({
               />
               <Label
                 htmlFor={`${code}-${option.id}`}
-                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1 flex items-center justify-between"
               >
-                {option.name}
+                <span>{option.name}</span>
+                {option.count !== undefined && (
+                  <span className="text-xs text-[#1C1C1C]/50">({option.count})</span>
+                )}
               </Label>
             </div>
           ))}
@@ -115,6 +129,11 @@ function CollapsibleCheckboxSection({
     )
   }
 
+  // Nếu không có items sau khi filter → không render
+  if (filteredItems.length === 0) {
+    return null
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -131,7 +150,7 @@ function CollapsibleCheckboxSection({
         )}
       </div>
       <div className="space-y-2.5" role="group" aria-label={`Lọc theo ${title}`}>
-        {items.map((option) => (
+        {filteredItems.map((option) => (
           <div key={option.id} className="flex items-center space-x-3 group">
             <Checkbox
               id={`${code}-${option.id}`}
@@ -141,9 +160,12 @@ function CollapsibleCheckboxSection({
             />
             <Label
               htmlFor={`${code}-${option.id}`}
-              className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+              className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1 flex items-center justify-between"
             >
-              {option.name}
+              <span>{option.name}</span>
+              {option.count !== undefined && (
+                <span className="text-xs text-[#1C1C1C]/50">({option.count})</span>
+              )}
             </Label>
           </div>
         ))}
@@ -154,10 +176,73 @@ function CollapsibleCheckboxSection({
 
 interface RadioFilterSectionProps {
   title: string
-  items: { id: number; name: string }[]
+  items: { id: number; name: string; count?: number }[]
   selectedId: number | null
   onSelect: (id: number | null) => void
   code: string
+  hideZeroCount?: boolean
+}
+
+interface RangeSliderSectionProps {
+  title: string
+  min: number
+  max: number
+  currentMin: number
+  currentMax: number
+  onRangeChange: (min: number, max: number, skipFetch?: boolean) => void
+  step?: number
+  unit?: string
+}
+
+function RangeSliderSection({
+  title,
+  min,
+  max,
+  currentMin,
+  currentMax,
+  onRangeChange,
+  step = 1,
+  unit = "",
+}: RangeSliderSectionProps) {
+  const sliderDisabled = max <= min
+
+  const formatValue = (value: number) => {
+    return unit ? `${value}${unit}` : String(value)
+  }
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+        {title}
+      </h3>
+      <div className="space-y-4">
+        <Slider
+          value={[currentMin, currentMax]}
+          onValueChange={(value) => {
+            onRangeChange(value[0] ?? min, value[1] ?? max, true)
+          }}
+          onValueCommit={(value) => {
+            onRangeChange(value[0] ?? min, value[1] ?? max, false)
+          }}
+          min={min}
+          max={max}
+          step={step}
+          disabled={sliderDisabled}
+          className="w-full"
+          aria-label={`Chọn khoảng ${title}`}
+        />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1 px-3 py-2 text-xs font-medium text-center bg-[#ECAA4D]/10 text-[#1C1C1C] rounded-md border border-[#ECAA4D]/20">
+            {formatValue(currentMin)}
+          </div>
+          <span className="text-[#1C1C1C]/40 text-xs">-</span>
+          <div className="flex-1 px-3 py-2 text-xs font-medium text-center bg-[#ECAA4D]/10 text-[#1C1C1C] rounded-md border border-[#ECAA4D]/20">
+            {formatValue(currentMax)}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function RadioFilterSection({
@@ -166,11 +251,18 @@ function RadioFilterSection({
   selectedId,
   onSelect,
   code,
+  hideZeroCount = true,
 }: RadioFilterSectionProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const shouldCollapse = items.length > COLLAPSE_THRESHOLD
-  const visibleItems = shouldCollapse && !isOpen ? items.slice(0, COLLAPSE_THRESHOLD) : items
-  const hiddenCount = items.length - COLLAPSE_THRESHOLD
+  
+  // Lọc bỏ items có count = 0 nếu hideZeroCount = true
+  const filteredItems = hideZeroCount 
+    ? items.filter(item => item.count === undefined || item.count > 0)
+    : items
+  
+  const shouldCollapse = filteredItems.length > COLLAPSE_THRESHOLD
+  const visibleItems = shouldCollapse && !isOpen ? filteredItems.slice(0, COLLAPSE_THRESHOLD) : filteredItems
+  const hiddenCount = filteredItems.length - COLLAPSE_THRESHOLD
 
   const handleChange = (value: string) => {
     onSelect(value === "all" ? null : Number(value))
@@ -207,9 +299,12 @@ function RadioFilterSection({
                 />
                 <Label
                   htmlFor={`${code}-${option.id}`}
-                  className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                  className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1 flex items-center justify-between"
                 >
-                  {option.name}
+                  <span>{option.name}</span>
+                  {option.count !== undefined && (
+                    <span className="text-xs text-[#1C1C1C]/50">({option.count})</span>
+                  )}
                 </Label>
               </div>
             ))}
@@ -221,7 +316,7 @@ function RadioFilterSection({
             value={selectedId !== null ? String(selectedId) : "all"}
             onValueChange={handleChange}
           >
-            {items.slice(COLLAPSE_THRESHOLD).map((option) => (
+            {filteredItems.slice(COLLAPSE_THRESHOLD).map((option) => (
               <div key={option.id} className="flex items-center space-x-3 group">
                 <RadioGroupItem
                   value={String(option.id)}
@@ -230,9 +325,12 @@ function RadioFilterSection({
                 />
                 <Label
                   htmlFor={`${code}-${option.id}`}
-                  className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                  className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1 flex items-center justify-between"
                 >
-                  {option.name}
+                  <span>{option.name}</span>
+                  {option.count !== undefined && (
+                    <span className="text-xs text-[#1C1C1C]/50">({option.count})</span>
+                  )}
                 </Label>
               </div>
             ))}
@@ -255,6 +353,11 @@ function RadioFilterSection({
     )
   }
 
+  // Nếu không có items sau khi filter → không render
+  if (filteredItems.length === 0) {
+    return null
+  }
+
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
@@ -275,7 +378,7 @@ function RadioFilterSection({
               Tất cả
             </Label>
           </div>
-          {items.map((option) => (
+          {filteredItems.map((option) => (
             <div key={option.id} className="flex items-center space-x-3 group">
               <RadioGroupItem
                 value={String(option.id)}
@@ -284,9 +387,12 @@ function RadioFilterSection({
               />
               <Label
                 htmlFor={`${code}-${option.id}`}
-                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1 flex items-center justify-between"
               >
-                {option.name}
+                <span>{option.name}</span>
+                {option.count !== undefined && (
+                  <span className="text-xs text-[#1C1C1C]/50">({option.count})</span>
+                )}
               </Label>
             </div>
           ))}
@@ -301,6 +407,7 @@ export function FilterSidebar() {
     options,
     filters,
     setPriceRange,
+    setRangeFilter,
     toggleAttributeFilter,
     setAttributeSelection,
     setSelectedCategory,
@@ -311,6 +418,7 @@ export function FilterSidebar() {
       options: state.options,
       filters: state.filters,
       setPriceRange: state.setPriceRange,
+      setRangeFilter: state.setRangeFilter,
       toggleAttributeFilter: state.toggleAttributeFilter,
       setAttributeSelection: state.setAttributeSelection,
       setSelectedCategory: state.setSelectedCategory,
@@ -333,8 +441,15 @@ export function FilterSidebar() {
     const isPriceFiltered = filters.priceRange[0] !== options.priceRange[0] || 
                            filters.priceRange[1] !== options.priceRange[1]
     if (isPriceFiltered) count++
+    // Đếm range filters (nhap_tay number)
+    Object.entries(filters.rangeFilters).forEach(([code, range]) => {
+      const bounds = options.rangeFilterBounds[code]
+      if (bounds && (range.min !== bounds.min || range.max !== bounds.max)) {
+        count++
+      }
+    })
     return count
-  }, [filters, options.priceRange])
+  }, [filters, options.priceRange, options.rangeFilterBounds])
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value === "all" ? null : Number(value))
@@ -350,6 +465,7 @@ export function FilterSidebar() {
     filter_type: string
     input_type?: string
     options: { id: number; name: string; slug: string }[]
+    range?: { min: number; max: number }
   }) => {
     const selectedIds = filters.attributeSelections[attributeFilter.code] || []
     const selectedId = selectedIds.length > 0 ? selectedIds[0] : null
@@ -378,6 +494,30 @@ export function FilterSidebar() {
         )
 
       case 'nhap_tay':
+        // Nếu là number và có range → hiển thị Range Slider
+        if (attributeFilter.input_type === 'number' && attributeFilter.range) {
+          const bounds = options.rangeFilterBounds[attributeFilter.code] || attributeFilter.range
+          const currentRange = filters.rangeFilters[attributeFilter.code]
+          
+          // Xác định unit dựa trên code (ví dụ: nong_do → %)
+          const unit = attributeFilter.code === 'nong_do' ? '%' : ''
+          const step = attributeFilter.code === 'nong_do' ? 0.5 : 1
+          
+          return (
+            <RangeSliderSection
+              title={attributeFilter.name}
+              min={bounds.min}
+              max={bounds.max}
+              currentMin={currentRange?.min ?? bounds.min}
+              currentMax={currentRange?.max ?? bounds.max}
+              onRangeChange={(min, max, skipFetch) => setRangeFilter(attributeFilter.code, min, max, skipFetch)}
+              step={step}
+              unit={unit}
+            />
+          )
+        }
+        
+        // Nếu là text và có options → Radio
         if (attributeFilter.input_type === 'text' && attributeFilter.options.length > 0) {
           return (
             <RadioFilterSection
@@ -475,6 +615,14 @@ export function FilterSidebar() {
                 ))}
               </div>
             </RadioGroup>
+            
+            {/* Hint khi chưa chọn phân loại */}
+            {!filters.productTypeId && (
+              <div className="mt-3 text-xs text-[#9B2C3B] bg-[#9B2C3B]/5 px-3 py-2 rounded-md flex items-center gap-2">
+                <span>💡</span>
+                <span>Chọn phân loại để xem thêm bộ lọc chi tiết</span>
+              </div>
+            )}
           </div>
 
           <Separator className="bg-[#ECAA4D]/20" />
@@ -527,17 +675,23 @@ export function FilterSidebar() {
       <Separator className="bg-[#ECAA4D]/20" />
 
       {/* Dynamic Attribute Filters - Render theo filter_type */}
-      {options.attributeFilters.map((attributeFilter) => {
-        const filterUI = renderDynamicFilter(attributeFilter)
-        if (!filterUI) return null
-        
-        return (
-          <div key={attributeFilter.code}>
-            {filterUI}
-            <Separator className="bg-[#ECAA4D]/20 mt-6" />
-          </div>
-        )
-      })}
+      {/* Animation wrapper cho filters mới xuất hiện khi chọn type */}
+      <div className="space-y-6 transition-all duration-300 ease-in-out">
+        {options.attributeFilters.map((attributeFilter) => {
+          const filterUI = renderDynamicFilter(attributeFilter)
+          if (!filterUI) return null
+          
+          return (
+            <div 
+              key={attributeFilter.code}
+              className="animate-in fade-in slide-in-from-top-2 duration-300"
+            >
+              {filterUI}
+              <Separator className="bg-[#ECAA4D]/20 mt-6" />
+            </div>
+          )
+        })}
+      </div>
 
       {/* Price Filter */}
       <div className="space-y-3">

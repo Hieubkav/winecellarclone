@@ -183,6 +183,7 @@ export interface ProductFilterOption {
   id: number;
   name: string;
   slug: string;
+  count?: number;
 }
 
 export interface AttributeFilter {
@@ -212,8 +213,9 @@ interface ProductFiltersResponse {
   data: ProductFiltersPayload;
 }
 
-export async function fetchProductFilters(): Promise<ProductFiltersPayload> {
-  const response = await apiFetch<ProductFiltersResponse>(`v1/san-pham/filters/options`);
+export async function fetchProductFilters(typeId?: number | null): Promise<ProductFiltersPayload> {
+  const query = typeId ? `?type_id=${typeId}` : '';
+  const response = await apiFetch<ProductFiltersResponse>(`v1/san-pham/filters/options${query}`);
 
   return response.data;
 }

@@ -5,15 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-    Building2,
-    LucideIcon,
-    Percent,
-    Globe,
-    Wine as WineIcon,
-    Package,
-    Info
-} from "lucide-react";
 import type { Wine } from "@/data/filter/store";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN", {
@@ -36,42 +27,41 @@ interface ProductCardProps {
 }
 
 interface MetaItem {
-    icon: LucideIcon;
     label: string;
+    value: string;
 }
 
-function MetaRow({ icon: Icon, label }: MetaItem) {
-    if (!label) return null;
+function MetaRow({ label, value }: MetaItem) {
+    if (!value) return null;
 
     return (
-        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[#1C1C1C]/80">
-            <Icon className="h-4 w-4 text-[#ECAA4D] flex-shrink-0" strokeWidth={2} />
-            <span className="leading-relaxed truncate">{label}</span>
-        </div>
+        <p className="text-xs sm:text-sm leading-relaxed text-[#1C1C1C]/85 whitespace-normal break-words">
+            <span className="font-semibold text-[#1C1C1C]">{label}:</span> {value}
+        </p>
     );
 }
 
 export const FilterProductCard = React.memo(function FilterProductCard({ wine, viewMode, priority = false }: ProductCardProps) {
     const baseMetaItems: MetaItem[] = [
-        { icon: WineIcon, label: wine.wineType ?? "" },
-        { icon: Building2, label: wine.producer || wine.brand || "" },
-        { icon: Globe, label: wine.country ?? "" },
+        { label: "Loại sản phẩm", value: wine.wineType ?? "" },
+        { label: "Thương hiệu", value: wine.brand || wine.producer || "" },
+        { label: "Quốc gia", value: wine.country ?? "" },
         {
-            icon: Percent,
-            label: typeof wine.alcoholContent === "number" ? `${wine.alcoholContent}% ABV` : "",
+            label: "Nồng độ",
+            value: typeof wine.alcoholContent === "number" ? `${wine.alcoholContent}% ABV` : "",
         },
         {
-            icon: Package,
-            label: typeof wine.volume === "number" ? `${wine.volume}ml` : "",
+            label: "Dung tích",
+            value: typeof wine.volume === "number" ? `${wine.volume} ml` : "",
         },
     ];
 
     const extraAttrItems: MetaItem[] = Object.entries(wine.extraAttrs ?? {}).map(([, attr]) => ({
-        icon: Info,
-        label: `${attr.label}: ${attr.value}`,
+        label: attr.label,
+        value: `${attr.value}`,
     }));
 
-    const metaItems = [...baseMetaItems, ...extraAttrItems].filter(item => item.label);
+    const metaItems = [...baseMetaItems, ...extraAttrItems].filter(item => item.value);
 
     // Grid View Layout (Responsive: Dọc mobile với spacing rộng, Ngang desktop)
     if (viewMode === "grid") {

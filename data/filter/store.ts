@@ -53,6 +53,7 @@ interface AttributeFilter {
   input_type?: string
   display_config: Record<string, unknown>
   options: FilterOption[]
+  range?: { min: number; max: number }
 }
 
 interface FilterOptionsState {
@@ -60,6 +61,7 @@ interface FilterOptionsState {
   productTypes: FilterOption[]
   priceRange: PriceRange
   attributeFilters: AttributeFilter[]
+  rangeFilterBounds: Record<string, { min: number; max: number }>
 }
 
 interface FiltersState {
@@ -72,6 +74,8 @@ interface FiltersState {
   perPage: number
   // Dynamic attribute filter selections (e.g., { brand: [1,2], grape: [3,4] })
   attributeSelections: Record<string, number[]>
+  // Range filters for nhap_tay number (e.g., { nong_do: { min: 0, max: 50 } })
+  rangeFilters: Record<string, { min: number; max: number }>
 }
 
 interface WineStoreState {
@@ -90,14 +94,15 @@ interface WineStoreState {
 interface WineStoreActions {
   initialize: () => Promise<void>
   fetchProducts: (append?: boolean) => Promise<boolean>
-  resetFilters: () => void
+  resetFilters: () => Promise<void>
   setViewMode: (mode: "grid" | "list") => void
   setSearchQuery: (query: string) => void
   setSelectedCategory: (id: number | null, skipFetch?: boolean) => void
-  setSelectedProductType: (id: number | null, skipFetch?: boolean) => void
+  setSelectedProductType: (id: number | null, skipFetch?: boolean) => Promise<void>
   toggleAttributeFilter: (attributeCode: string, optionId: number, skipFetch?: boolean) => void
   setAttributeSelection: (attributeCode: string, optionId: number | null, skipFetch?: boolean) => void
   setPriceRange: (range: PriceRange, skipFetch?: boolean) => void
+  setRangeFilter: (code: string, min: number, max: number, skipFetch?: boolean) => void
   setSortBy: (sort: SortOption, skipFetch?: boolean) => void
   loadMore: () => Promise<void>
 }
@@ -188,6 +193,14 @@ const buildQueryParams = (filters: FiltersState): Record<string, string | number
     }
   })
 
+  // Range filters (nhap_tay number)
+  Object.entries(filters.rangeFilters).forEach(([code, range]) => {
+    if (range) {
+      params[`range[${code}][min]`] = range.min
+      params[`range[${code}][max]`] = range.max
+    }
+  })
+
   if (filters.categoryId) {
     params["category[]"] = [filters.categoryId]
   }
@@ -210,6 +223,7 @@ const transformOptions = (payload: {
     input_type?: string
     display_config: Record<string, unknown>
     options: FilterOption[]
+    range?: { min: number; max: number }
   }>
 }): FilterOptionsState => {
   const priceRange: PriceRange = [
@@ -217,11 +231,20 @@ const transformOptions = (payload: {
     Math.max(payload.price.max ?? 0, DEFAULT_PRICE_MAX),
   ]
 
+  // Extract range bounds for nhap_tay number filters
+  const rangeFilterBounds: Record<string, { min: number; max: number }> = {}
+  payload.attribute_filters.forEach((filter) => {
+    if (filter.filter_type === 'nhap_tay' && filter.input_type === 'number' && filter.range) {
+      rangeFilterBounds[filter.code] = filter.range
+    }
+  })
+
   return {
     categories: payload.categories,
     productTypes: payload.types || [],
     priceRange,
     attributeFilters: payload.attribute_filters,
+    rangeFilterBounds,
   }
 }
 
@@ -231,6 +254,7 @@ const initialState: WineStoreState = {
     productTypes: [],
     priceRange: [0, DEFAULT_PRICE_MAX],
     attributeFilters: [],
+    rangeFilterBounds: {},
   },
   filters: {
     categoryId: null,
@@ -241,6 +265,7 @@ const initialState: WineStoreState = {
     page: 1,
     perPage: DEFAULT_PER_PAGE,
     attributeSelections: {},
+    rangeFilters: {},
   },
   products: [],
   wines: [],
@@ -324,7 +349,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
       return false
     }
   },
-  resetFilters: () => {
+  resetFilters: async () => {
     const { options, initialized } = get()
     if (!initialized) {
       return
@@ -340,8 +365,26 @@ export const useWineStore = create<WineStore>((set, get) => ({
         sortBy: "name-asc",
         searchQuery: "",
         attributeSelections: {},
+        rangeFilters: {},
       },
     }))
+
+    // Refresh filters về trạng thái ban đầu (common attributes)
+    try {
+      const payload = await fetchProductFilters(null)
+      const newOptions = transformOptions(payload)
+      
+      set((state) => ({
+        options: {
+          ...state.options,
+          attributeFilters: newOptions.attributeFilters,
+          rangeFilterBounds: newOptions.rangeFilterBounds,
+          categories: newOptions.categories,
+        },
+      }))
+    } catch (error) {
+      console.error('Failed to refresh filters:', error)
+    }
 
     void get().fetchProducts()
   },
@@ -377,14 +420,35 @@ export const useWineStore = create<WineStore>((set, get) => ({
       void get().fetchProducts()
     }
   },
-  setSelectedProductType: (id, skipFetch = false) => {
+  setSelectedProductType: async (id, skipFetch = false) => {
+    // Reset attribute selections và range filters khi đổi type
     set((state) => ({
       filters: {
         ...state.filters,
         productTypeId: id,
         page: 1,
+        attributeSelections: {},
+        rangeFilters: {},
       },
     }))
+
+    // Fetch filter options mới cho type này
+    try {
+      const payload = await fetchProductFilters(id)
+      const newOptions = transformOptions(payload)
+      
+      set((state) => ({
+        options: {
+          ...state.options,
+          attributeFilters: newOptions.attributeFilters,
+          rangeFilterBounds: newOptions.rangeFilterBounds,
+          categories: newOptions.categories,
+        },
+      }))
+    } catch (error) {
+      console.error('Failed to fetch type-specific filters:', error)
+    }
+
     if (!skipFetch) {
       void get().fetchProducts()
     }
@@ -414,6 +478,21 @@ export const useWineStore = create<WineStore>((set, get) => ({
       filters: {
         ...state.filters,
         priceRange: ensureRangeWithinBounds(range, state.options.priceRange),
+        page: 1,
+      },
+    }))
+    if (!skipFetch) {
+      void get().fetchProducts()
+    }
+  },
+  setRangeFilter: (code, min, max, skipFetch = false) => {
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        rangeFilters: {
+          ...state.filters.rangeFilters,
+          [code]: { min, max },
+        },
         page: 1,
       },
     }))
