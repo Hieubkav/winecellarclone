@@ -38,18 +38,30 @@ interface HeaderProps {
 
 export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
   // Chuyển đổi API menu items sang format cũ để tương thích với UI hiện tại
-  const convertedMenuItems = apiMenuItems ? apiMenuItems.map(item => ({
-    label: item.label,
-    href: item.href,
-    children: item.children?.map(block => ({
-      label: block.label,
-      children: block.children.map(leaf => ({
-        label: leaf.label,
-        href: leaf.href,
-        isHot: leaf.isHot,
-      }))
-    }))
-  })) : [];
+  // Defensive: handle null/undefined/empty arrays gracefully
+  const convertedMenuItems: MenuItemWithChildren[] = apiMenuItems?.length
+    ? apiMenuItems
+        .filter(item => item.label) // Bỏ qua menu không có label
+        .map(item => ({
+          label: item.label || '',
+          href: item.href || '#',
+          children: item.children?.length
+            ? item.children
+                .filter(block => block.label && block.children?.length) // Bỏ qua block rỗng
+                .map(block => ({
+                  label: block.label || '',
+                  children: (block.children || [])
+                    .filter(leaf => leaf.label) // Bỏ qua item không có label
+                    .map(leaf => ({
+                      label: leaf.label || '',
+                      href: leaf.href || '#',
+                      isHot: leaf.isHot,
+                    }))
+                }))
+                .filter(block => block.children.length > 0) // Bỏ qua block không còn children
+            : undefined
+        }))
+    : [];
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") {
@@ -288,7 +300,9 @@ function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
         <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
           {items.map((item) => {
-            const isMega = item.label === "Rượu vang" || item.label === "Rượu mạnh"
+            // Mega menu nếu có children với nhiều blocks (>1 cột)
+            const hasValidChildren = item.children && item.children.length > 0
+            const isMega = hasValidChildren && item.children!.length > 1
             return (
               <div
                 key={item.label}
@@ -299,12 +313,12 @@ function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren
                   className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[#1C1C1C]/80 transition-all hover:bg-[#1C1C1C]/10 hover:text-[#1C1C1C]"
                 >
                   <span>{item.label}</span>
-                  {item.children && (
+                  {hasValidChildren && (
                     <ChevronDown size={14} className="text-[#1C1C1C]/70 transition-transform group-hover:rotate-180" />
                   )}
                 </Link>
-                {item.children && (
-                  <MegaMenu menu={item.children} isFull={isMega} />
+                {hasValidChildren && (
+                  <MegaMenu menu={item.children!} isFull={isMega} />
                 )}
               </div>
             )
@@ -316,43 +330,55 @@ function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren
   )
 }
 function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
+  // Guard: không render nếu menu rỗng
+  if (!menu || menu.length === 0) return null
+
   const containerClasses = isFull
     ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#ECAA4D]/35 bg-white px-8 py-7 shadow-[0_28px_60px_rgba(28,28,28,0.12)]"
     : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-[#ECAA4D]/35 bg-white px-6 py-5 shadow-[0_24px_48px_rgba(28,28,28,0.1)]"
 
-  const gridClasses = isFull ? "grid-cols-1 gap-8 md:grid-cols-4" : "grid-cols-1 gap-4"
+  // Dynamic grid columns based on number of sections (max 4)
+  const colCount = Math.min(menu.length, 4)
+  const gridClasses = isFull 
+    ? `grid-cols-1 gap-8 md:grid-cols-${colCount}` 
+    : "grid-cols-1 gap-4"
 
   return (
     <div
       className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
     >
-      <div className={`mx-auto grid max-w-7xl ${gridClasses}`}>
-        {menu.map((section, idx) => (
-          <div key={section.label} className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-[#ECAA4D]/25 md:pl-6" : ""}`}>
-            <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
-            <ul className="space-y-2">
-              {section.children.map((child) => (
-                <li key={child.label}>
-                  <Link
-                    href={child.href}
-                    className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
-                      child.isHot
-                        ? "font-semibold text-[#9B2C3B]"
-                        : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
-                    }`}
-                  >
-                    {child.isHot && (
-                      <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
-                        HOT
-                      </span>
-                    )}
-                    {child.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <div className={`mx-auto grid max-w-7xl ${gridClasses}`} style={isFull ? { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` } : undefined}>
+        {menu.map((section, idx) => {
+          // Skip sections without children
+          if (!section.children || section.children.length === 0) return null
+          
+          return (
+            <div key={section.label || idx} className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-[#ECAA4D]/25 md:pl-6" : ""}`}>
+              <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
+              <ul className="space-y-2">
+                {section.children.map((child, childIdx) => (
+                  <li key={child.label || childIdx}>
+                    <Link
+                      href={child.href || '#'}
+                      className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
+                        child.isHot
+                          ? "font-semibold text-[#9B2C3B]"
+                          : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
+                      }`}
+                    >
+                      {child.isHot && (
+                        <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
+                          HOT
+                        </span>
+                      )}
+                      {child.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
