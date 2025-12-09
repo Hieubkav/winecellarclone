@@ -40,6 +40,7 @@
   ],
   "exclude": [
     "node_modules",
-    "thien-kim-wine-redesign"
+    "thien-kim-wine-redesign",
+    "luxury-liquor-store"
   ]
 }
