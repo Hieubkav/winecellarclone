@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -32,8 +32,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Tags support (for future use)
-    // Next.js 16 có thể không support revalidateTag trong App Router
+    // Revalidate tags nếu được cung cấp
+    if (tags && Array.isArray(tags)) {
+      for (const tag of tags) {
+        revalidateTag(tag);
+      }
+    }
 
     return NextResponse.json({
       success: true,

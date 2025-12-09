@@ -5,6 +5,7 @@ import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 
 import type { HomeShowcaseProduct } from "@/data/homeCollections";
+import { ProductImage } from "@/components/ui/product-image";
 
 type FavouriteProductsProps = {
   title: string;
@@ -59,7 +60,7 @@ function ProductCard({ product }: ProductCardProps) {
     >
       {/* Hình ảnh */}
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg">
-        <Image
+        <ProductImage
           src={product.image}
           alt={product.name}
           fill
@@ -67,7 +68,7 @@ function ProductCard({ product }: ProductCardProps) {
           className="object-cover"
         />
         {product.badge && (
-          <span className="absolute left-2 top-2 rounded-full bg-[#9B2C3B] px-1.5 py-0.5 text-[9px] font-bold text-white font-brand">
+          <span className="absolute left-2 top-2 rounded-full bg-[#9B2C3B] px-1.5 py-0.5 text-[9px] font-bold text-white font-brand z-20">
             {product.badge}
           </span>
         )}

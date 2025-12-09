@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRef, useState, type MouseEvent } from "react";
 import { ArrowRight, Globe, Droplets, FlaskConical, Award, Tag } from "lucide-react";
 import type { ProductListItem } from "@/lib/api/products";
+import { ProductImage } from "@/components/ui/product-image";
 
 interface RelatedProductsSectionProps {
   title: string;
@@ -125,7 +126,7 @@ export default function RelatedProductsSection({
                   </span>
                 )}
                 <div className="relative w-full h-full">
-                  <Image 
+                  <ProductImage 
                     src={product.main_image_url || "/placeholder/wine-bottle.svg"} 
                     alt={product.name}
                     fill

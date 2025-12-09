@@ -1,6 +1,9 @@
 import { apiFetch } from "./client";
 
 // TypeScript types matching Laravel API response structure
+export type WatermarkPosition = 'none' | 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
+export type WatermarkSize = '64x64' | '96x96' | '128x128' | '160x160' | '192x192';
+
 export interface SettingsResponse {
   data: {
     logo_url: string | null;
@@ -11,6 +14,9 @@ export interface SettingsResponse {
     hours: string | null;
     email: string | null;
     google_map_embed: string | null;
+    product_watermark_url: string | null;
+    product_watermark_position: WatermarkPosition | null;
+    product_watermark_size: WatermarkSize | null;
     meta_defaults: {
       title: string;
       description: string;
@@ -29,6 +35,9 @@ export interface Settings {
   hours: string | null;
   email: string | null;
   google_map_embed: string | null;
+  product_watermark_url: string | null;
+  product_watermark_position: WatermarkPosition | null;
+  product_watermark_size: WatermarkSize | null;
   meta_defaults: {
     title: string;
     description: string;
@@ -62,6 +71,9 @@ export const FALLBACK_SETTINGS: Settings = {
   hours: "09:00 - 21:00 (T2-CN)",
   email: null,
   google_map_embed: null,
+  product_watermark_url: null,
+  product_watermark_position: 'none',
+  product_watermark_size: '128x128',
   meta_defaults: {
     title: "Thiên Kim Wine",
     description: "Thiên Kim Wine - Bộ sưu tập rượu vang cao cấp cho mọi dịp.",

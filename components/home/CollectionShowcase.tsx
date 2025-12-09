@@ -9,6 +9,7 @@ import type { HomeShowcaseProduct } from "@/data/homeCollections"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ProductImage } from "@/components/ui/product-image"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -95,7 +96,7 @@ function ProductTile({ product, accent }: ProductTileProps) {
       className="group flex h-full flex-col rounded-2xl border border-[#eeeeee] bg-white p-2.5 shadow-[0_14px_30px_rgba(28,28,28,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(28,28,28,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/70 bg-[#fafafa]">
-        <Image
+        <ProductImage
           src={product.image}
           alt={product.name}
           fill
@@ -104,7 +105,7 @@ function ProductTile({ product, accent }: ProductTileProps) {
         />
         {product.badge && (
           <span
-            className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-white"
+            className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-white z-20"
             style={{ backgroundColor: accent }}
           >
             {product.badge}

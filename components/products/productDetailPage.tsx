@@ -19,6 +19,7 @@ import {
   Award,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
+import { ProductImage } from "@/components/ui/product-image";
 
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
@@ -241,7 +242,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
               </span>
             )}
             <div className="relative w-full h-full">
-              <Image
+              <ProductImage
                 src={imageSources[selectedImage]}
                 alt={product.name}
                 fill
@@ -264,7 +265,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                       : 'border-transparent hover:border-gray-200'
                   }`}
                 >
-                  <Image 
+                  <ProductImage 
                     src={img} 
                     alt={`Thumbnail ${idx + 1}`} 
                     fill 

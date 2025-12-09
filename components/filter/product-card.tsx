@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Tag, MapPin, Sparkles, Hourglass, Droplets, Percent, Layers } from "lucide-react";
+import { ProductImage } from "@/components/ui/product-image";
 import type { Wine } from "@/data/filter/store";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN", {
@@ -173,7 +174,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
               -{discountPercentage}%
             </span>
           )}
-          <Image
+          <ProductImage
             src={wine.image || "/placeholder/wine-bottle.svg"}
             alt={wine.name}
             fill
@@ -234,7 +235,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
           </span>
         )}
         
-        <Image
+        <ProductImage
           src={wine.image || "/placeholder/wine-bottle.svg"}
           alt={wine.name}
           fill
