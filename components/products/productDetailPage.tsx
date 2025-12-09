@@ -6,11 +6,13 @@ import { useMemo, useState, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Building2,
-  Grape,
-  Wine as WineIcon,
-  Globe,
+  Tag,
+  MapPin,
+  Sparkles,
+  Hourglass,
+  Droplets,
   Percent,
+  Layers,
   ChevronDown,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
@@ -21,8 +23,9 @@ import type { ProductDetail } from "@/lib/api/products";
 import { processProductContent } from "@/lib/utils/article-content";
 import RelatedProductsSection from "./RelatedProducts";
 
-interface MetaItem {
-  icon: React.ElementType;
+interface AttributeDisplayItem {
+  iconUrl?: string | null;
+  fallbackIcon: React.ReactNode;
   label: string;
   filterUrl?: string;
 }
@@ -58,16 +61,59 @@ const formatOriginalPrice = (product: ProductDetail): string | null => {
   return currencyFormatter.format(product.original_price);
 };
 
-interface MetaRowProps extends MetaItem {
-  filterUrl?: string;
+// Fallback icons based on group code (same as FilterProductCard)
+const getFallbackIcon = (code?: string): React.ReactNode => {
+  if (!code) return <Sparkles size={20} />;
+  
+  const lowerCode = code.toLowerCase();
+  
+  if (lowerCode.includes('huong') || lowerCode.includes('flavor') || lowerCode.includes('grape')) {
+    return <Sparkles size={20} />;
+  } else if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) {
+    return <Layers size={20} />;
+  } else if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) {
+    return <MapPin size={20} />;
+  } else if (lowerCode.includes('tuoi') || lowerCode.includes('age')) {
+    return <Hourglass size={20} />;
+  } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('the_tich') || lowerCode.includes('ml')) {
+    return <Droplets size={20} />;
+  } else if (
+    lowerCode.includes('nong_do') ||
+    lowerCode.includes('alcohol') ||
+    lowerCode.includes('abv') ||
+    lowerCode.includes('phan_tram') ||
+    lowerCode.includes('percent')
+  ) {
+    return <Percent size={20} />;
+  } else if (lowerCode.includes('brand')) {
+    return <Tag size={20} />;
+  }
+  
+  return <Tag size={20} />;
+};
+
+// Icon renderer component
+function AttributeIcon({ url, fallbackIcon }: { url?: string | null; fallbackIcon: React.ReactNode }) {
+  if (url) {
+    return (
+      <Image 
+        src={url} 
+        alt="attribute" 
+        width={20} 
+        height={20}
+        className="w-5 h-5 object-contain"
+      />
+    );
+  }
+  return <span className="w-5 h-5 flex items-center justify-center text-[#9B2C3B]">{fallbackIcon}</span>;
 }
 
-function MetaRow({ icon: Icon, label, filterUrl }: MetaRowProps) {
+function AttributeRow({ iconUrl, fallbackIcon, label, filterUrl }: AttributeDisplayItem) {
   if (!label) return null;
 
   const content = (
     <>
-      <Icon className="h-5 w-5 shrink-0 text-[#9B2C3B]" strokeWidth={1.5} />
+      <AttributeIcon url={iconUrl} fallbackIcon={fallbackIcon} />
       <span className="text-sm sm:text-base leading-relaxed">{label}</span>
     </>
   );
@@ -134,60 +180,68 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     return null;
   }, [product]);
 
-  const grapeLabel = useMemo(() => {
-    if (!product.grape_terms || product.grape_terms.length === 0) {
-      return "";
+  // Build dynamic attributes list from API (similar to FilterProductCard)
+  const attributeItems: AttributeDisplayItem[] = useMemo(() => {
+    const attrs: AttributeDisplayItem[] = [];
+
+    // Brand
+    if (product.brand_term) {
+      attrs.push({
+        fallbackIcon: getFallbackIcon('brand'),
+        label: product.brand_term.name,
+        filterUrl: `/filter?brand=${product.brand_term.id}`,
+      });
     }
 
-    return product.grape_terms.map((term) => term.name).join(", ");
+    // Origin/Country
+    if (product.country_term) {
+      attrs.push({
+        fallbackIcon: getFallbackIcon('origin'),
+        label: product.country_term.name,
+        filterUrl: `/filter?origin=${product.country_term.id}`,
+      });
+    }
+
+    // Attributes from API terms (catalog groups) - Use icon_url from API
+    if (product.attributes && product.attributes.length > 0) {
+      product.attributes.forEach((attrGroup) => {
+        // Skip brand and origin since we handle them separately above
+        if (attrGroup.group_code === 'brand' || attrGroup.group_code === 'origin') {
+          return;
+        }
+        
+        attrGroup.terms.forEach((term) => {
+          attrs.push({
+            fallbackIcon: getFallbackIcon(attrGroup.group_code),
+            iconUrl: attrGroup.icon_url,
+            label: term.name,
+            filterUrl: `/filter?${attrGroup.group_code}=${term.id}`,
+          });
+        });
+      });
+    }
+
+    // Extra attrs (nhập tay) - sử dụng icon_url từ API
+    if (product.extra_attrs) {
+      Object.entries(product.extra_attrs).forEach(([key, attr]) => {
+        attrs.push({
+          fallbackIcon: getFallbackIcon(key),
+          iconUrl: attr.icon_url,
+          label: `${attr.value}`,
+        });
+      });
+    }
+
+    // Volume
+    if (product.volume_ml && product.volume_ml > 0) {
+      attrs.push({
+        fallbackIcon: getFallbackIcon('volume'),
+        label: `${product.volume_ml}ml`,
+      });
+    }
+
+    return attrs;
   }, [product]);
-
-  const countryLabel = product.country_term?.name
-    ? `Vang ${product.country_term.name}`
-    : "";
-
-  const alcoholLabel = typeof product.alcohol_percent === "number"
-    ? `${product.alcohol_percent}% ABV`
-    : "";
-
-  // Build filter URLs
-  const grapeFilterUrl = useMemo(() => {
-    if (!product.grape_terms || product.grape_terms.length === 0) return undefined;
-    const grapeIds = product.grape_terms.map(t => t.id).join(',');
-    return `/filter?grape=${grapeIds}`;
-  }, [product.grape_terms]);
-
-  const typeFilterUrl = product.type?.id 
-    ? `/filter?type=${product.type.id}` 
-    : product.category?.id 
-    ? `/filter?category=${product.category.id}` 
-    : undefined;
-
-  const brandFilterUrl = product.brand_term?.id 
-    ? `/filter?brand=${product.brand_term.id}` 
-    : undefined;
-
-  const countryFilterUrl = product.country_term?.id 
-    ? `/filter?origin=${product.country_term.id}` 
-    : undefined;
-
-  const alcoholFilterUrl = useMemo(() => {
-    if (typeof product.alcohol_percent !== "number") return undefined;
-    const abv = product.alcohol_percent;
-    if (abv < 10) return '/filter?alcohol=under10';
-    if (abv < 12) return '/filter?alcohol=10-12';
-    if (abv < 14) return '/filter?alcohol=12-14';
-    if (abv < 16) return '/filter?alcohol=14-16';
-    return '/filter?alcohol=over16';
-  }, [product.alcohol_percent]);
-
-  const metaItems: MetaItem[] = [
-    { icon: Grape, label: grapeLabel, filterUrl: grapeFilterUrl },
-    { icon: WineIcon, label: product.type?.name ?? product.category?.name ?? "", filterUrl: typeFilterUrl },
-    { icon: Building2, label: product.brand_term?.name ?? "", filterUrl: brandFilterUrl },
-    { icon: Globe, label: countryLabel, filterUrl: countryFilterUrl },
-    { icon: Percent, label: alcoholLabel, filterUrl: alcoholFilterUrl },
-  ];
 
   const [mainImageIndex, setMainImageIndex] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -320,8 +374,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
               Thông tin sản phẩm
             </h3>
             <div className="grid gap-3 sm:gap-4">
-              {metaItems.map((item, index) => (
-                <MetaRow key={`${item.label}-${index}`} {...item} />
+              {attributeItems.map((item, index) => (
+                <AttributeRow key={`${item.label}-${index}`} {...item} />
               ))}
             </div>
           </div>

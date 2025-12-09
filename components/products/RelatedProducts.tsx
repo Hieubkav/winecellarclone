@@ -26,6 +26,9 @@ const convertToWine = (product: ProductListItem): Wine => ({
   country: product.country_term?.name,
   wineType: product.type?.name,
   alcoholContent: product.alcohol_percent,
+  volume: product.volume_ml,
+  attributes: product.attributes,
+  extraAttrs: product.extra_attrs,
 });
 
 export default function RelatedProductsSection({ 
