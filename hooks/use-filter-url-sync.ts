@@ -2,6 +2,23 @@ import { useEffect, useRef } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useShallow } from "zustand/react/shallow"
 import { useWineStore } from "@/data/filter/store"
+import type { ProductFilterOption } from "@/lib/api/products"
+
+/**
+ * Helper: Find ID by slug from options array
+ */
+const findIdBySlug = (options: ProductFilterOption[], slug: string): number | null => {
+  const option = options.find((opt) => opt.slug === slug)
+  return option?.id ?? null
+}
+
+/**
+ * Helper: Find slug by ID from options array
+ */
+const findSlugById = (options: ProductFilterOption[], id: number): string | null => {
+  const option = options.find((opt) => opt.id === id)
+  return option?.slug ?? null
+}
 
 /**
  * Hook to synchronize filter state with URL query parameters
@@ -9,9 +26,9 @@ import { useWineStore } from "@/data/filter/store"
  * 
  * Best Practice: URL as Single Source of Truth
  * - Effect 1 (URL → Store): ALWAYS syncs when URL changes (navigation, back/forward, direct link)
- *   - Parses URL params or uses defaults if not present
- *   - Ensures /filter?type=1 → /filter correctly resets filters
- * - Effect 2 (Store → URL): Syncs filter changes to URL for shareable links
+ *   - Parses URL params (slug) and converts to ID for store
+ *   - Ensures /filter?type=vang-do → /filter correctly resets filters
+ * - Effect 2 (Store → URL): Syncs filter changes to URL (converts ID to slug)
  * - Loop prevention: previousUrlParams tracks changes, isApplyingUrlParams prevents Effect 2 during Effect 1
  */
 export function useFilterUrlSync() {
@@ -57,14 +74,30 @@ export function useFilterUrlSync() {
     previousPathname.current = pathname
 
     try {
-      // Parse all URL params - if not present, use null/default values
-      // This ensures filters are cleared when navigating from /filter?type=1 to /filter
+      // Parse all URL params (slug-based) - convert to IDs for store
+      // This ensures filters are cleared when navigating from /filter?type=vang-do to /filter
       
       const categoryParam = searchParams.get("category")
-      const categoryId = categoryParam ? parseInt(categoryParam, 10) : null
+      let categoryId: number | null = null
+      if (categoryParam) {
+        // Try as slug first, fallback to ID for backward compatibility
+        categoryId = findIdBySlug(options.categories, categoryParam)
+        if (categoryId === null) {
+          const parsed = parseInt(categoryParam, 10)
+          categoryId = !isNaN(parsed) ? parsed : null
+        }
+      }
       
       const typeParam = searchParams.get("type")
-      const typeId = typeParam ? parseInt(typeParam, 10) : null
+      let typeId: number | null = null
+      if (typeParam) {
+        // Try as slug first, fallback to ID for backward compatibility
+        typeId = findIdBySlug(options.productTypes, typeParam)
+        if (typeId === null) {
+          const parsed = parseInt(typeParam, 10)
+          typeId = !isNaN(parsed) ? parsed : null
+        }
+      }
       
       const searchParam = searchParams.get("q")
       const searchQuery = searchParam?.trim() || ""
@@ -79,12 +112,26 @@ export function useFilterUrlSync() {
       const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
       const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
       
-      // Dynamic attribute filters - parse from URL or empty object
+      // Dynamic attribute filters - parse slug from URL, convert to IDs
       const attributeSelections: Record<string, number[]> = {}
       options.attributeFilters.forEach((attrFilter) => {
         const attrParam = searchParams.get(attrFilter.code)
         if (attrParam) {
-          const ids = attrParam.split(",").map((id) => parseInt(id, 10)).filter((id) => !isNaN(id))
+          const slugs = attrParam.split(",")
+          const ids: number[] = []
+          slugs.forEach((slugOrId) => {
+            // Try as slug first
+            const idFromSlug = findIdBySlug(attrFilter.options, slugOrId)
+            if (idFromSlug !== null) {
+              ids.push(idFromSlug)
+            } else {
+              // Fallback to ID for backward compatibility
+              const parsed = parseInt(slugOrId, 10)
+              if (!isNaN(parsed)) {
+                ids.push(parsed)
+              }
+            }
+          })
           if (ids.length > 0) {
             attributeSelections[attrFilter.code] = ids
           }
@@ -115,9 +162,9 @@ export function useFilterUrlSync() {
       isApplyingUrlParams.current = false
       throw error
     }
-  }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange])
+  }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange, options.categories, options.productTypes])
 
-  // Effect 2: Store → URL (sync filter changes to URL for shareable links)
+  // Effect 2: Store → URL (sync filter changes to URL with slug for SEO-friendly URLs)
   useEffect(() => {
     if (!initialized || isApplyingUrlParams.current) {
       return
@@ -125,14 +172,16 @@ export function useFilterUrlSync() {
 
     const params = new URLSearchParams()
 
-    // Category
+    // Category - use slug instead of ID
     if (filters.categoryId) {
-      params.set("category", String(filters.categoryId))
+      const categorySlug = findSlugById(options.categories, filters.categoryId)
+      params.set("category", categorySlug ?? String(filters.categoryId))
     }
 
-    // Product Type
+    // Product Type - use slug instead of ID
     if (filters.productTypeId) {
-      params.set("type", String(filters.productTypeId))
+      const typeSlug = findSlugById(options.productTypes, filters.productTypeId)
+      params.set("type", typeSlug ?? String(filters.productTypeId))
     }
 
     // Search query
@@ -154,10 +203,19 @@ export function useFilterUrlSync() {
       params.set("price_max", String(filters.priceRange[1]))
     }
 
-    // Dynamic attribute filters
+    // Dynamic attribute filters - use slug instead of ID
     Object.entries(filters.attributeSelections).forEach(([code, ids]) => {
       if (ids.length > 0) {
-        params.set(code, ids.join(","))
+        const attrFilter = options.attributeFilters.find((f) => f.code === code)
+        if (attrFilter) {
+          const slugs = ids.map((id) => {
+            const slug = findSlugById(attrFilter.options, id)
+            return slug ?? String(id)
+          })
+          params.set(code, slugs.join(","))
+        } else {
+          params.set(code, ids.join(","))
+        }
       }
     })
 
@@ -176,5 +234,8 @@ export function useFilterUrlSync() {
     pathname,
     router,
     options.priceRange,
+    options.categories,
+    options.productTypes,
+    options.attributeFilters,
   ])
 }

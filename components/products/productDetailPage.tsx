@@ -158,7 +158,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         fallbackIcon: getFallbackIcon('brand'),
         label: "Thương hiệu",
         value: product.brand_term.name,
-        filterUrl: `/filter?brand=${product.brand_term.id}`,
+        filterUrl: `/filter?brand=${product.brand_term.slug}`,
       });
     }
 
@@ -167,7 +167,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         fallbackIcon: getFallbackIcon('origin'),
         label: "Xuất xứ",
         value: product.country_term.name,
-        filterUrl: `/filter?origin=${product.country_term.id}`,
+        filterUrl: `/filter?origin=${product.country_term.slug}`,
       });
     }
 
@@ -183,7 +183,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             iconUrl: attrGroup.icon_url,
             label: attrGroup.group_name || attrGroup.group_code,
             value: term.name,
-            filterUrl: `/filter?${attrGroup.group_code}=${term.id}`,
+            filterUrl: `/filter?${attrGroup.group_code}=${term.slug}`,
           });
         });
       });

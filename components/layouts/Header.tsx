@@ -339,15 +339,15 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
 
   // Dynamic grid columns based on number of sections (max 4)
   const colCount = Math.min(menu.length, 4)
-  const gridClasses = isFull 
-    ? `grid-cols-1 gap-8 md:grid-cols-${colCount}` 
-    : "grid-cols-1 gap-4"
 
   return (
     <div
       className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
     >
-      <div className={`mx-auto grid max-w-7xl ${gridClasses}`} style={isFull ? { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` } : undefined}>
+      <div 
+        className={`mx-auto grid max-w-7xl ${isFull ? "gap-8" : "grid-cols-1 gap-4"}`} 
+        style={isFull ? { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` } : undefined}
+      >
         {menu.map((section, idx) => {
           // Skip sections without children
           if (!section.children || section.children.length === 0) return null
