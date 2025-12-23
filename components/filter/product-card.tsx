@@ -33,6 +33,9 @@ interface AttributeItem {
   iconUrl?: string | null;
   label: string;
   show: boolean;
+  filterCode?: string | null;
+  filterSlug?: string | null;
+  typeSlug?: string | null;
 }
 
 // Fallback icons based on group code
@@ -80,6 +83,38 @@ const AttributeIcon = ({ url, fallbackIcon }: { url?: string | null; fallbackIco
   return <span className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">{fallbackIcon}</span>;
 };
 
+// Build filter URL for attribute
+const buildFilterUrl = (attr: AttributeItem): string | null => {
+  if (!attr.filterCode || !attr.filterSlug) return null;
+  
+  const params = new URLSearchParams();
+  if (attr.typeSlug) {
+    params.set("type", attr.typeSlug);
+  }
+  params.set(attr.filterCode, attr.filterSlug);
+  
+  return `/filter?${params.toString()}`;
+};
+
+// Clickable attribute label
+const AttributeLabel = ({ attr }: { attr: AttributeItem }) => {
+  const filterUrl = buildFilterUrl(attr);
+  
+  if (filterUrl) {
+    return (
+      <Link 
+        href={filterUrl}
+        className="truncate hover:text-[#9B2C3B] hover:underline transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {attr.label}
+      </Link>
+    );
+  }
+  
+  return <span className="truncate">{attr.label}</span>;
+};
+
 export const FilterProductCard = React.memo(function FilterProductCard({ 
   wine, 
   viewMode, 
@@ -99,7 +134,10 @@ export const FilterProductCard = React.memo(function FilterProductCard({
       attrs.push({ 
         icon: <Tag size={14} />, 
         label: wine.brand, 
-        show: true 
+        show: true,
+        filterCode: "thuong_hieu",
+        filterSlug: wine.brandSlug,
+        typeSlug: wine.wineTypeSlug,
       });
     }
 
@@ -108,7 +146,10 @@ export const FilterProductCard = React.memo(function FilterProductCard({
       attrs.push({ 
         icon: <MapPin size={14} />, 
         label: wine.country, 
-        show: true 
+        show: true,
+        filterCode: "xuat_xu",
+        filterSlug: wine.countrySlug,
+        typeSlug: wine.wineTypeSlug,
       });
     }
 
@@ -121,6 +162,9 @@ export const FilterProductCard = React.memo(function FilterProductCard({
             iconUrl: attrGroup.icon_url,
             label: term.name,
             show: true,
+            filterCode: attrGroup.group_code,
+            filterSlug: term.slug,
+            typeSlug: wine.wineTypeSlug,
           });
         });
       });
@@ -198,7 +242,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
                   <span className="text-[#9B2C3B] shrink-0 flex items-center justify-center">
                     <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.icon} />
                   </span>
-                  <span className="truncate">{attr.label}</span>
+                  <AttributeLabel attr={attr} />
                 </div>
               ))}
             </div>
@@ -263,7 +307,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
               <span className="text-[#9B2C3B] shrink-0 w-4 sm:w-5 flex items-center justify-center">
                 <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.icon} />
               </span>
-              <span className="truncate">{attr.label}</span>
+              <AttributeLabel attr={attr} />
             </div>
           ))}
         </div>

@@ -37,8 +37,11 @@ export interface Wine {
   image?: string | null
   badges?: string[]
   wineType?: string | null
+  wineTypeSlug?: string | null
   brand?: string | null
+  brandSlug?: string | null
   country?: string | null
+  countrySlug?: string | null
   alcoholContent?: number | null
   volume?: number | null
   showContactCta?: boolean
@@ -141,12 +144,15 @@ const mapProductToWine = (product: ProductListItem, attributeFilters: AttributeF
     discountPercent: product.discount_percent,
     producer: product.brand_term?.name ?? null,
     brand: product.brand_term?.name ?? null,
+    brandSlug: product.brand_term?.slug ?? null,
     country: product.country_term?.name ?? null,
+    countrySlug: product.country_term?.slug ?? null,
     alcoholContent: product.alcohol_percent,
     volume: product.volume_ml,
     image: product.main_image_url ?? fallbackImage,
     badges: product.badges,
     wineType: product.type?.name ?? product.category?.name ?? null,
+    wineTypeSlug: product.type?.slug ?? null,
     showContactCta: product.show_contact_cta,
     categories: product.categories ?? [],
     extraAttrs: product.extra_attrs ?? {},

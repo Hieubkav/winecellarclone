@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useShallow } from "zustand/react/shallow"
 import { useWineStore } from "@/data/filter/store"
-import type { ProductFilterOption } from "@/lib/api/products"
+import { fetchProductFilters, type ProductFilterOption } from "@/lib/api/products"
 
 /**
  * Helper: Find ID by slug from options array
@@ -73,95 +73,136 @@ export function useFilterUrlSync() {
     previousUrlParams.current = currentUrlString
     previousPathname.current = pathname
 
-    try {
-      // Parse all URL params (slug-based) - convert to IDs for store
-      // This ensures filters are cleared when navigating from /filter?type=vang-do to /filter
-      
-      const categoryParam = searchParams.get("category")
-      let categoryId: number | null = null
-      if (categoryParam) {
-        // Try as slug first, fallback to ID for backward compatibility
-        categoryId = findIdBySlug(options.categories, categoryParam)
-        if (categoryId === null) {
-          const parsed = parseInt(categoryParam, 10)
-          categoryId = !isNaN(parsed) ? parsed : null
-        }
-      }
-      
-      const typeParam = searchParams.get("type")
-      let typeId: number | null = null
-      if (typeParam) {
-        // Try as slug first, fallback to ID for backward compatibility
-        typeId = findIdBySlug(options.productTypes, typeParam)
-        if (typeId === null) {
-          const parsed = parseInt(typeParam, 10)
-          typeId = !isNaN(parsed) ? parsed : null
-        }
-      }
-      
-      const searchParam = searchParams.get("q")
-      const searchQuery = searchParam?.trim() || ""
-      
-      const sortParam = searchParams.get("sort")
-      const sortBy = (sortParam && ["name-asc", "name-desc", "price-asc", "price-desc"].includes(sortParam)) 
-        ? (sortParam as "name-asc" | "name-desc" | "price-asc" | "price-desc")
-        : "name-asc"
-      
-      const priceMinParam = searchParams.get("price_min")
-      const priceMaxParam = searchParams.get("price_max")
-      const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
-      const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
-      
-      // Dynamic attribute filters - parse slug from URL, convert to IDs
-      const attributeSelections: Record<string, number[]> = {}
-      options.attributeFilters.forEach((attrFilter) => {
-        const attrParam = searchParams.get(attrFilter.code)
-        if (attrParam) {
-          const slugs = attrParam.split(",")
-          const ids: number[] = []
-          slugs.forEach((slugOrId) => {
-            // Try as slug first
-            const idFromSlug = findIdBySlug(attrFilter.options, slugOrId)
-            if (idFromSlug !== null) {
-              ids.push(idFromSlug)
-            } else {
-              // Fallback to ID for backward compatibility
-              const parsed = parseInt(slugOrId, 10)
-              if (!isNaN(parsed)) {
-                ids.push(parsed)
-              }
-            }
-          })
-          if (ids.length > 0) {
-            attributeSelections[attrFilter.code] = ids
+    const applyUrlFilters = async () => {
+      try {
+        // Parse all URL params (slug-based) - convert to IDs for store
+        // This ensures filters are cleared when navigating from /filter?type=vang-do to /filter
+        
+        const categoryParam = searchParams.get("category")
+        let categoryId: number | null = null
+        if (categoryParam) {
+          // Try as slug first, fallback to ID for backward compatibility
+          categoryId = findIdBySlug(options.categories, categoryParam)
+          if (categoryId === null) {
+            const parsed = parseInt(categoryParam, 10)
+            categoryId = !isNaN(parsed) ? parsed : null
           }
         }
-      })
-
-      // Apply ALL filters at once directly to store (atomic update)
-      // This prevents partial state updates and is more predictable
-      useWineStore.setState((state) => ({
-        filters: {
-          ...state.filters,
-          categoryId: (categoryId && !isNaN(categoryId)) ? categoryId : null,
-          productTypeId: (typeId && !isNaN(typeId)) ? typeId : null,
-          priceRange: (!isNaN(priceMin) && !isNaN(priceMax)) ? [priceMin, priceMax] : options.priceRange,
-          sortBy,
-          searchQuery,
-          attributeSelections,
-          page: 1,
+        
+        const typeParam = searchParams.get("type")
+        let typeId: number | null = null
+        if (typeParam) {
+          // Try as slug first, fallback to ID for backward compatibility
+          typeId = findIdBySlug(options.productTypes, typeParam)
+          if (typeId === null) {
+            const parsed = parseInt(typeParam, 10)
+            typeId = !isNaN(parsed) ? parsed : null
+          }
         }
-      }))
+        
+        const searchParam = searchParams.get("q")
+        const searchQuery = searchParam?.trim() || ""
+        
+        const sortParam = searchParams.get("sort")
+        const sortBy = (sortParam && ["name-asc", "name-desc", "price-asc", "price-desc"].includes(sortParam)) 
+          ? (sortParam as "name-asc" | "name-desc" | "price-asc" | "price-desc")
+          : "name-asc"
+        
+        const priceMinParam = searchParams.get("price_min")
+        const priceMaxParam = searchParams.get("price_max")
+        const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
+        const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
+        
+        // If type changed, fetch type-specific filters FIRST before parsing attribute params
+        let attributeFiltersToUse = options.attributeFilters
+        const currentTypeId = useWineStore.getState().filters.productTypeId
+        
+        if (typeId && typeId !== currentTypeId) {
+          try {
+            const payload = await fetchProductFilters(typeId)
+            attributeFiltersToUse = payload.attribute_filters
+            
+            // Update options in store with new filters
+            useWineStore.setState((state) => ({
+              options: {
+                ...state.options,
+                attributeFilters: payload.attribute_filters,
+                categories: payload.categories,
+              },
+            }))
+          } catch (error) {
+            console.error('Failed to fetch type-specific filters:', error)
+          }
+        } else if (!typeId && currentTypeId) {
+          // Type was cleared, fetch common filters
+          try {
+            const payload = await fetchProductFilters(null)
+            attributeFiltersToUse = payload.attribute_filters
+            
+            useWineStore.setState((state) => ({
+              options: {
+                ...state.options,
+                attributeFilters: payload.attribute_filters,
+                categories: payload.categories,
+              },
+            }))
+          } catch (error) {
+            console.error('Failed to fetch common filters:', error)
+          }
+        }
+        
+        // Dynamic attribute filters - parse slug from URL, convert to IDs
+        // Now using the correct attributeFilters for the selected type
+        const attributeSelections: Record<string, number[]> = {}
+        attributeFiltersToUse.forEach((attrFilter) => {
+          const attrParam = searchParams.get(attrFilter.code)
+          if (attrParam) {
+            const slugs = attrParam.split(",")
+            const ids: number[] = []
+            slugs.forEach((slugOrId) => {
+              // Try as slug first
+              const idFromSlug = findIdBySlug(attrFilter.options, slugOrId)
+              if (idFromSlug !== null) {
+                ids.push(idFromSlug)
+              } else {
+                // Fallback to ID for backward compatibility
+                const parsed = parseInt(slugOrId, 10)
+                if (!isNaN(parsed)) {
+                  ids.push(parsed)
+                }
+              }
+            })
+            if (ids.length > 0) {
+              attributeSelections[attrFilter.code] = ids
+            }
+          }
+        })
 
-      // Fetch products once with all filters applied
-      setTimeout(() => {
+        // Apply ALL filters at once directly to store (atomic update)
+        // This prevents partial state updates and is more predictable
+        useWineStore.setState((state) => ({
+          filters: {
+            ...state.filters,
+            categoryId: (categoryId && !isNaN(categoryId)) ? categoryId : null,
+            productTypeId: (typeId && !isNaN(typeId)) ? typeId : null,
+            priceRange: (!isNaN(priceMin) && !isNaN(priceMax)) ? [priceMin, priceMax] : options.priceRange,
+            sortBy,
+            searchQuery,
+            attributeSelections,
+            page: 1,
+          }
+        }))
+
+        // Fetch products once with all filters applied
+        await useWineStore.getState().fetchProducts()
+      } catch (error) {
+        console.error('Error applying URL filters:', error)
+      } finally {
         isApplyingUrlParams.current = false
-        useWineStore.getState().fetchProducts()
-      }, 0)
-    } catch (error) {
-      isApplyingUrlParams.current = false
-      throw error
+      }
     }
+
+    applyUrlFilters()
   }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange, options.categories, options.productTypes])
 
   // Effect 2: Store → URL (sync filter changes to URL with slug for SEO-friendly URLs)
