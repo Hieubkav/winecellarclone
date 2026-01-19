@@ -6,12 +6,14 @@ export interface MenuLeaf {
   href: string;
   isHot?: boolean;
   badge?: string;
+  isViewAll?: boolean;
 }
 
 // Menu block (nhóm các links)
 export interface MenuBlock {
   label: string;
   children: MenuLeaf[];
+  isViewAll?: boolean;
 }
 
 // Menu item chính

@@ -2,11 +2,13 @@ export interface NavLeaf {
   label: string
   href: string
   isHot?: boolean
+  isViewAll?: boolean
 }
 
 export interface NavNode {
   label: string
   children: NavLeaf[]
+  isViewAll?: boolean
 }
 
 export interface MenuItemBase {

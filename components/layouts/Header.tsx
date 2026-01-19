@@ -333,27 +333,44 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
   // Guard: không render nếu menu rỗng
   if (!menu || menu.length === 0) return null
 
+  // Separate "View All" section from regular sections
+  const viewAllSection = menu.find(section => section.isViewAll)
+  const regularSections = menu.filter(section => !section.isViewAll)
+
   const containerClasses = isFull
     ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#ECAA4D]/35 bg-white px-8 py-7 shadow-[0_28px_60px_rgba(28,28,28,0.12)]"
     : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-[#ECAA4D]/35 bg-white px-6 py-5 shadow-[0_24px_48px_rgba(28,28,28,0.1)]"
 
   // Dynamic grid columns based on number of sections (max 4)
-  const colCount = Math.min(menu.length, 4)
+  const colCount = Math.min(regularSections.length, 4)
 
   return (
     <div
       className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
     >
+      {/* View All link - Best Practice: đặt ở đầu mega menu */}
+      {viewAllSection && viewAllSection.children?.[0] && (
+        <div className="mb-4 border-b border-[#ECAA4D]/20 pb-4">
+          <Link
+            href={viewAllSection.children[0].href || '#'}
+            className="inline-flex items-center gap-2 rounded-full bg-[#ECAA4D] px-4 py-2 text-[0.78rem] font-bold uppercase tracking-[0.12em] text-[#1C1C1C] transition-all hover:bg-[#d99a3d] hover:shadow-md"
+          >
+            <span>→</span>
+            <span>{viewAllSection.children[0].label}</span>
+          </Link>
+        </div>
+      )}
+
       <div 
         className={`mx-auto grid max-w-7xl ${isFull ? "gap-8" : "grid-cols-1 gap-4"}`} 
         style={isFull ? { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` } : undefined}
       >
-        {menu.map((section, idx) => {
+        {regularSections.map((section, idx) => {
           // Skip sections without children
           if (!section.children || section.children.length === 0) return null
           
           return (
-            <div key={section.label || idx} className={`min-w-[180px] ${isFull && idx > 0 ? "md:border-l md:border-[#ECAA4D]/25 md:pl-6" : ""}`}>
+            <div key={section.label || idx} className={`min-w-[180px] ${isFull && idx > 0 ? "border-l border-[#ECAA4D]/25 pl-6" : ""}`}>
               <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
               <ul className="space-y-2">
                 {section.children.map((child, childIdx) => (
@@ -361,7 +378,9 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
                     <Link
                       href={child.href || '#'}
                       className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
-                        child.isHot
+                        child.isViewAll
+                          ? "font-semibold text-[#ECAA4D] hover:bg-[#ECAA4D]/12"
+                          : child.isHot
                           ? "font-semibold text-[#9B2C3B]"
                           : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
                       }`}
@@ -494,7 +513,28 @@ function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => vo
 
           {activeMenu && !activeSection && (
             <div className="space-y-1">
-              {activeMenu.children?.map((section) => (
+              {/* Best Practice: "Xem tất cả" link ở đầu - từ API hoặc từ href của menu cha */}
+              {activeMenu.children?.find(s => s.isViewAll)?.children?.[0] ? (
+                <Link
+                  href={activeMenu.children.find(s => s.isViewAll)?.children?.[0]?.href || activeMenu.href}
+                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2.5 text-sm font-bold uppercase tracking-[0.1em] text-[#1C1C1C] shadow-sm transition hover:bg-white/90"
+                  onClick={onClose}
+                >
+                  <span>→</span>
+                  <span>{activeMenu.children.find(s => s.isViewAll)?.children?.[0]?.label || `Xem tất cả ${activeMenu.label}`}</span>
+                </Link>
+              ) : activeMenu.href && activeMenu.href !== '#' && activeMenu.href !== '/' ? (
+                <Link
+                  href={activeMenu.href}
+                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2.5 text-sm font-bold uppercase tracking-[0.1em] text-[#1C1C1C] shadow-sm transition hover:bg-white/90"
+                  onClick={onClose}
+                >
+                  <span>→</span>
+                  <span>Xem tất cả {activeMenu.label}</span>
+                </Link>
+              ) : null}
+
+              {activeMenu.children?.filter(s => !s.isViewAll).map((section) => (
                 <button
                   key={section.label}
                   onClick={() => handleSelectSection(section)}
