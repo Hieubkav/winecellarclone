@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSettingsStore } from "@/lib/stores/settingsStore";
-import type { WatermarkPosition, WatermarkSize } from "@/lib/api/settings";
+import type { WatermarkPosition, WatermarkSize, WatermarkTextSize, WatermarkTextPosition } from "@/lib/api/settings";
 
 interface ProductImageProps {
   src: string;
@@ -48,6 +48,34 @@ const getSizeValue = (size: WatermarkSize | null | undefined): number => {
   }
 };
 
+const getTextSizeClasses = (size: WatermarkTextSize | null | undefined): string => {
+  switch (size) {
+    case 'small':
+      return 'text-lg sm:text-xl';
+    case 'medium':
+      return 'text-xl sm:text-2xl';
+    case 'large':
+      return 'text-2xl sm:text-4xl';
+    case 'xlarge':
+      return 'text-3xl sm:text-5xl';
+    default:
+      return 'text-xl sm:text-2xl';
+  }
+};
+
+const getTextPositionClasses = (position: WatermarkTextPosition | null | undefined): string => {
+  switch (position) {
+    case 'top':
+      return 'top-4 left-1/2 -translate-x-1/2';
+    case 'center':
+      return 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2';
+    case 'bottom':
+      return 'bottom-4 left-1/2 -translate-x-1/2';
+    default:
+      return 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2';
+  }
+};
+
 export function ProductImage({
   src,
   alt,
@@ -64,13 +92,19 @@ export function ProductImage({
   const watermarkUrl = settings?.product_watermark_url;
   const watermarkPosition = settings?.product_watermark_position;
   const watermarkSize = settings?.product_watermark_size;
+  const watermarkType = settings?.product_watermark_type ?? 'image';
+  const watermarkText = settings?.product_watermark_text;
+  const watermarkTextSize = settings?.product_watermark_text_size;
+  const watermarkTextPosition = settings?.product_watermark_text_position;
+  const watermarkTextOpacity = settings?.product_watermark_text_opacity ?? 50;
   
-  const showWatermark = watermarkUrl && watermarkPosition && watermarkPosition !== 'none';
+  const showImageWatermark = watermarkType === 'image' && watermarkUrl && watermarkPosition && watermarkPosition !== 'none';
+  const showTextWatermark = watermarkType === 'text' && watermarkText;
+  
   const positionClasses = getPositionClasses(watermarkPosition);
   const sizeValue = getSizeValue(watermarkSize);
-  
-  // Responsive size: smaller on mobile
-  const responsiveSizeClass = `w-[${Math.round(sizeValue * 0.5)}px] h-[${Math.round(sizeValue * 0.5)}px] sm:w-[${sizeValue}px] sm:h-[${sizeValue}px]`;
+  const textSizeClasses = getTextSizeClasses(watermarkTextSize);
+  const textPositionClasses = getTextPositionClasses(watermarkTextPosition);
 
   if (fill) {
     return (
@@ -84,7 +118,7 @@ export function ProductImage({
           priority={priority}
           loading={loading}
         />
-        {showWatermark && (
+        {showImageWatermark && (
           <div 
             className={`absolute ${positionClasses} z-10 pointer-events-none opacity-70`}
             style={{ 
@@ -99,6 +133,21 @@ export function ProductImage({
               className="object-contain max-sm:scale-50 max-sm:origin-top-left"
               sizes={`${sizeValue}px`}
             />
+          </div>
+        )}
+        {showTextWatermark && (
+          <div 
+            className={`absolute ${textPositionClasses} z-10 pointer-events-none whitespace-nowrap`}
+            style={{ opacity: watermarkTextOpacity / 100 }}
+          >
+            <span 
+              className={`${textSizeClasses} font-bold text-white drop-shadow-lg`}
+              style={{ 
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+              }}
+            >
+              {watermarkText}
+            </span>
           </div>
         )}
       </div>
@@ -117,7 +166,7 @@ export function ProductImage({
         priority={priority}
         loading={loading}
       />
-      {showWatermark && (
+      {showImageWatermark && (
         <div 
           className={`absolute ${positionClasses} z-10 pointer-events-none opacity-70`}
           style={{ 
@@ -132,6 +181,21 @@ export function ProductImage({
             className="object-contain max-sm:scale-50 max-sm:origin-top-left"
             sizes={`${sizeValue}px`}
           />
+        </div>
+      )}
+      {showTextWatermark && (
+        <div 
+          className={`absolute ${textPositionClasses} z-10 pointer-events-none whitespace-nowrap`}
+          style={{ opacity: watermarkTextOpacity / 100 }}
+        >
+          <span 
+            className={`${textSizeClasses} font-bold text-white drop-shadow-lg`}
+            style={{ 
+              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+            }}
+          >
+            {watermarkText}
+          </span>
         </div>
       )}
     </div>

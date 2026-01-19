@@ -3,6 +3,9 @@ import { apiFetch } from "./client";
 // TypeScript types matching Laravel API response structure
 export type WatermarkPosition = 'none' | 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
 export type WatermarkSize = '64x64' | '96x96' | '128x128' | '160x160' | '192x192';
+export type WatermarkType = 'image' | 'text';
+export type WatermarkTextSize = 'small' | 'medium' | 'large' | 'xlarge';
+export type WatermarkTextPosition = 'top' | 'center' | 'bottom';
 
 export interface SettingsResponse {
   data: {
@@ -17,6 +20,11 @@ export interface SettingsResponse {
     product_watermark_url: string | null;
     product_watermark_position: WatermarkPosition | null;
     product_watermark_size: WatermarkSize | null;
+    product_watermark_type: WatermarkType;
+    product_watermark_text: string | null;
+    product_watermark_text_size: WatermarkTextSize;
+    product_watermark_text_position: WatermarkTextPosition;
+    product_watermark_text_opacity: number;
     meta_defaults: {
       title: string;
       description: string;
@@ -38,6 +46,11 @@ export interface Settings {
   product_watermark_url: string | null;
   product_watermark_position: WatermarkPosition | null;
   product_watermark_size: WatermarkSize | null;
+  product_watermark_type: WatermarkType;
+  product_watermark_text: string | null;
+  product_watermark_text_size: WatermarkTextSize;
+  product_watermark_text_position: WatermarkTextPosition;
+  product_watermark_text_opacity: number;
   meta_defaults: {
     title: string;
     description: string;
@@ -74,6 +87,11 @@ export const FALLBACK_SETTINGS: Settings = {
   product_watermark_url: null,
   product_watermark_position: 'none',
   product_watermark_size: '128x128',
+  product_watermark_type: 'image',
+  product_watermark_text: null,
+  product_watermark_text_size: 'medium',
+  product_watermark_text_position: 'center',
+  product_watermark_text_opacity: 50,
   meta_defaults: {
     title: "Thiên Kim Wine",
     description: "Thiên Kim Wine - Bộ sưu tập rượu vang cao cấp cho mọi dịp.",
