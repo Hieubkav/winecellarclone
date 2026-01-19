@@ -4,7 +4,7 @@ import { apiFetch } from "./client";
 export type WatermarkPosition = 'none' | 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
 export type WatermarkSize = '64x64' | '96x96' | '128x128' | '160x160' | '192x192';
 export type WatermarkType = 'image' | 'text';
-export type WatermarkTextSize = 'small' | 'medium' | 'large' | 'xlarge';
+export type WatermarkTextSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | 'xxlarge';
 export type WatermarkTextPosition = 'top' | 'center' | 'bottom';
 
 export interface SettingsResponse {

@@ -50,6 +50,10 @@ const getSizeValue = (size: WatermarkSize | null | undefined): number => {
 
 const getTextSizeClasses = (size: WatermarkTextSize | null | undefined): string => {
   switch (size) {
+    case 'xxsmall':
+      return 'text-xs sm:text-sm';
+    case 'xsmall':
+      return 'text-sm sm:text-base';
     case 'small':
       return 'text-lg sm:text-xl';
     case 'medium':
@@ -58,6 +62,8 @@ const getTextSizeClasses = (size: WatermarkTextSize | null | undefined): string 
       return 'text-2xl sm:text-4xl';
     case 'xlarge':
       return 'text-3xl sm:text-5xl';
+    case 'xxlarge':
+      return 'text-4xl sm:text-6xl';
     default:
       return 'text-xl sm:text-2xl';
   }
