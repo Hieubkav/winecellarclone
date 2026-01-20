@@ -1,4 +1,4 @@
- import { useQuery } from '@tanstack/react-query';
+ import { useQuery, keepPreviousData } from '@tanstack/react-query';
  import {
    fetchDashboardStats,
    fetchTrafficChart,
@@ -11,13 +11,15 @@
  } from '@/lib/api/admin';
  
  const REFETCH_INTERVAL = 30 * 1000; // 30 seconds
+const STALE_TIME = 20 * 1000; // 20 seconds - data considered fresh
  
  export function useDashboardStats() {
    return useQuery<DashboardStats>({
      queryKey: ['dashboard', 'stats'],
      queryFn: fetchDashboardStats,
      refetchInterval: REFETCH_INTERVAL,
-     staleTime: 10 * 1000, // Consider stale after 10s
+    staleTime: STALE_TIME,
+    placeholderData: keepPreviousData,
    });
  }
  
@@ -26,7 +28,8 @@
      queryKey: ['dashboard', 'traffic-chart', days],
      queryFn: () => fetchTrafficChart(days),
      refetchInterval: REFETCH_INTERVAL,
-     staleTime: 10 * 1000,
+    staleTime: STALE_TIME,
+    placeholderData: keepPreviousData,
    });
  }
  
@@ -35,7 +38,8 @@
      queryKey: ['dashboard', 'top-products', days, limit],
      queryFn: () => fetchTopProducts(days, limit),
      refetchInterval: REFETCH_INTERVAL,
-     staleTime: 10 * 1000,
+    staleTime: STALE_TIME,
+    placeholderData: keepPreviousData,
    });
  }
  
@@ -44,6 +48,7 @@
      queryKey: ['dashboard', 'recent-events', limit],
      queryFn: () => fetchRecentEvents(limit),
      refetchInterval: REFETCH_INTERVAL,
-     staleTime: 10 * 1000,
+    staleTime: STALE_TIME,
+    placeholderData: keepPreviousData,
    });
  }

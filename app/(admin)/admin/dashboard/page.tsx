@@ -75,12 +75,17 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend, co
 export default function DashboardPage() {
   const [chartDays, setChartDays] = useState(7);
 
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: trafficChart = [], isLoading: chartLoading } = useTrafficChart(chartDays);
-  const { data: topProducts = [], isLoading: productsLoading } = useTopProducts(7, 5);
-  const { data: recentEvents = [], isLoading: eventsLoading } = useRecentEvents(10);
+  const { data: stats, isLoading: statsLoading, isPlaceholderData: statsPlaceholder } = useDashboardStats();
+  const { data: trafficChart = [], isLoading: chartLoading, isPlaceholderData: chartPlaceholder } = useTrafficChart(chartDays);
+  const { data: topProducts = [], isLoading: productsLoading, isPlaceholderData: productsPlaceholder } = useTopProducts(7, 5);
+  const { data: recentEvents = [], isLoading: eventsLoading, isPlaceholderData: eventsPlaceholder } = useRecentEvents(10);
 
-  const isLoading = statsLoading || chartLoading || productsLoading || eventsLoading;
+  // Only show skeleton on initial load (no placeholder data available)
+  const statsInitialLoading = statsLoading && !statsPlaceholder;
+  const chartInitialLoading = chartLoading && !chartPlaceholder;
+  const productsInitialLoading = productsLoading && !productsPlaceholder;
+  const eventsInitialLoading = eventsLoading && !eventsPlaceholder;
+
   const statCards = [
     {
       title: 'Tổng sản phẩm',
@@ -125,7 +130,7 @@ export default function DashboardPage() {
  
        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {statCards.map((stat) => (
-          <StatCard key={stat.title} {...stat} isLoading={isLoading} />
+          <StatCard key={stat.title} {...stat} isLoading={statsInitialLoading} />
          ))}
        </div>
  
@@ -151,7 +156,7 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        {isLoading ? (
+        {chartInitialLoading ? (
           <Skeleton className="h-48 w-full" />
         ) : (
           <div className="space-y-4">
@@ -214,7 +219,7 @@ export default function DashboardPage() {
             <Link href="/admin/products" className="text-sm text-blue-600 hover:text-blue-700">Xem tất cả</Link>
           </div>
            <div className="space-y-4">
-            {isLoading ? (
+            {productsInitialLoading ? (
               [1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex items-center gap-4 p-3">
                   <Skeleton className="w-12 h-12 rounded-lg" />
@@ -265,7 +270,7 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Hoạt động gần đây</h2>
           </div>
           <div className="space-y-3 max-h-[400px] overflow-y-auto admin-scrollbar">
-            {isLoading ? (
+            {eventsInitialLoading ? (
               [1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex items-center gap-3 p-2">
                   <Skeleton className="w-8 h-8 rounded-full" />
