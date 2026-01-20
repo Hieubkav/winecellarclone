@@ -11,6 +11,14 @@ import { API_BASE_URL } from '@/lib/api/client';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../components/LexicalEditor';
 
+const formatNumberInput = (value: string) => {
+  const digits = value.replace(/[^0-9]/g, '');
+  if (!digits) return '';
+  return new Intl.NumberFormat('en-US').format(Number(digits));
+};
+
+const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, '')) : null);
+
  export default function ProductCreatePage() {
    const router = useRouter();
    const [isLoading, setIsLoading] = useState(true);
@@ -269,8 +277,8 @@ import { LexicalEditor } from '../../components/LexicalEditor';
        const data = {
          name: name.trim(),
          slug: slug.trim() || generateSlug(name),
-         price: price ? Number(price) : null,
-         original_price: originalPrice ? Number(originalPrice) : null,
+        price: parseNumberValue(price),
+        original_price: parseNumberValue(originalPrice),
         volume_ml: volumeMl ? Number(volumeMl) : null,
         alcohol_percent: alcoholPercent ? Number(alcoholPercent) : null,
          type_id: typeId ? Number(typeId) : null,
@@ -486,19 +494,23 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                <div className="space-y-2">
                  <Label>Giá bán (VND)</Label>
                  <Input
-                   type="number"
+                   type="text"
+                   inputMode="numeric"
+                   pattern="[0-9,]*"
                    placeholder="0"
                    value={price}
-                   onChange={(e) => setPrice(e.target.value)}
+                   onChange={(e) => setPrice(formatNumberInput(e.target.value))}
                  />
                </div>
                <div className="space-y-2">
                  <Label>Giá gốc (VND)</Label>
                  <Input
-                   type="number"
+                   type="text"
+                   inputMode="numeric"
+                   pattern="[0-9,]*"
                    placeholder="0"
                    value={originalPrice}
-                   onChange={(e) => setOriginalPrice(e.target.value)}
+                   onChange={(e) => setOriginalPrice(formatNumberInput(e.target.value))}
                  />
                </div>
              </div>

@@ -99,6 +99,10 @@
    slug: string;
    price: number | null;
    original_price: number | null;
+  volume_ml?: number | null;
+  alcohol_percent?: number | null;
+  extra_attrs?: Record<string, { label: string; value: string | number; type: string }> | null;
+  term_ids?: number[];
    active: boolean;
    type_id: number | null;
    type_name: string | null;
@@ -106,6 +110,18 @@
    cover_image_url: string | null;
    created_at: string;
  }
+
+export interface AdminProductImage {
+  id?: number;
+  url?: string | null;
+  path?: string | null;
+}
+
+export interface AdminProductDetail extends AdminProduct {
+  description: string | null;
+  category_ids: number[];
+  images?: AdminProductImage[];
+}
  
  export interface AdminProductsResponse {
    data: AdminProduct[];
@@ -124,7 +140,7 @@
    return apiFetch<AdminProductsResponse>(`v1/admin/products${query}`);
  }
  
- export async function fetchAdminProduct(id: number): Promise<{ data: AdminProduct & { description: string; category_ids: number[] } }> {
+export async function fetchAdminProduct(id: number): Promise<{ data: AdminProductDetail }> {
    return apiFetch(`v1/admin/products/${id}`);
  }
  
@@ -207,6 +223,58 @@
      method: "DELETE",
    });
  }
+
+// Admin Product Types
+export interface AdminProductType {
+  id: number;
+  name: string;
+  slug: string;
+  order: number | null;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdminProductTypesResponse {
+  data: AdminProductType[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminProductTypes(params?: Record<string, string | number>): Promise<AdminProductTypesResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminProductTypesResponse>(`v1/admin/product-types${query}`);
+}
+
+export async function fetchAdminProductType(id: number): Promise<{ data: AdminProductType }> {
+  return apiFetch(`v1/admin/product-types/${id}`);
+}
+
+export async function createProductType(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/product-types', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateProductType(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-types/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteProductType(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-types/${id}`, {
+    method: 'DELETE',
+  });
+}
  
  export async function bulkDeleteArticles(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
    return apiFetch("v1/admin/articles/bulk-delete", {
