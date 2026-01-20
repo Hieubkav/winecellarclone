@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
@@ -9,10 +9,11 @@ import { fetchAdminProductType, updateProductType } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function ProductTypeEditPage({ params }: PageProps) {
+  const { id } = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -26,7 +27,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
     async function loadType() {
       setIsLoading(true);
       try {
-        const res = await fetchAdminProductType(Number(params.id));
+        const res = await fetchAdminProductType(Number(id));
         const type = res.data;
         setName(type.name);
         setSlug(type.slug);
@@ -44,7 +45,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
     }
 
     loadType();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +56,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
 
     setIsSubmitting(true);
     try {
-      await updateProductType(Number(params.id), {
+      await updateProductType(Number(id), {
         name: name.trim(),
         order: order ? Number(order) : null,
         active: active === 'true',
