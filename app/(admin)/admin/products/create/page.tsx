@@ -35,6 +35,7 @@ import { LexicalEditor } from '../../components/LexicalEditor';
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
+  const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
    useEffect(() => {
      async function loadFilters() {
        try {
@@ -56,10 +57,12 @@ import { LexicalEditor } from '../../components/LexicalEditor';
          setCategories(filters.categories);
         setAttributeFilters(filters.attribute_filters || []);
         setSelectedTermIds({});
+        setManualAttributes({});
        });
     } else {
       setAttributeFilters([]);
       setSelectedTermIds({});
+      setManualAttributes({});
      }
    }, [typeId]);
  
@@ -166,6 +169,10 @@ import { LexicalEditor } from '../../components/LexicalEditor';
     });
   };
 
+  const handleManualAttributeChange = (groupCode: string, value: string) => {
+    setManualAttributes(prev => ({ ...prev, [groupCode]: value }));
+  };
+
    const generateSlug = (text: string) => {
      return text
        .toLowerCase()
@@ -194,6 +201,22 @@ import { LexicalEditor } from '../../components/LexicalEditor';
  
      setIsSubmitting(true);
      try {
+       const extraAttrs = attributeFilters
+         .filter(group => group.filter_type === 'nhap_tay')
+         .reduce<Record<string, { label: string; value: string | number; type: string }>>((acc, group) => {
+           const value = manualAttributes[group.code];
+           if (value === undefined || value === '') {
+             return acc;
+           }
+           const type = group.input_type || 'text';
+           acc[group.code] = {
+             label: group.name,
+             value: type === 'number' ? Number(value) : value,
+             type,
+           };
+           return acc;
+         }, {});
+
        const data = {
          name: name.trim(),
          slug: slug.trim() || generateSlug(name),
@@ -206,6 +229,7 @@ import { LexicalEditor } from '../../components/LexicalEditor';
          description: description.trim(),
          active,
         image_paths: galleryImages.map(image => image.path),
+        extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
         term_ids: Object.values(selectedTermIds).flat(),
        };
  
@@ -472,25 +496,34 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                           <span className="text-xs text-slate-400">(chọn 1)</span>
                         )}
                       </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {group.options.map(option => {
-                          const isSelected = (selectedTermIds[group.code] || []).includes(option.id);
-                          return (
-                            <button
-                              key={option.id}
-                              type="button"
-                              onClick={() => handleTermChange(group.code, option.id, group.filter_type)}
-                              className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                                isSelected
-                                  ? 'bg-blue-500 text-white border-blue-500'
-                                  : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
-                              }`}
-                            >
-                              {option.name}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {group.filter_type === 'nhap_tay' ? (
+                        <Input
+                          type={group.input_type === 'number' ? 'number' : 'text'}
+                          placeholder={group.input_type === 'number' ? '0' : 'Nhập giá trị'}
+                          value={manualAttributes[group.code] || ''}
+                          onChange={(e) => handleManualAttributeChange(group.code, e.target.value)}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {group.options.map(option => {
+                            const isSelected = (selectedTermIds[group.code] || []).includes(option.id);
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => handleTermChange(group.code, option.id, group.filter_type)}
+                                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                  isSelected
+                                    ? 'bg-blue-500 text-white border-blue-500'
+                                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
+                                }`}
+                              >
+                                {option.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
