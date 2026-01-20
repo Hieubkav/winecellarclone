@@ -5,6 +5,11 @@ const resolveDefaultBaseUrl = (): string => {
     return fromEnv;
   }
 
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname || "localhost";
+    return `http://${hostname}:8000/api`;
+  }
+
   return "http://127.0.0.1:8000/api";
 };
 
@@ -48,7 +53,7 @@ const resolveApiBaseUrl = (): string => {
   return DEFAULT_API_BASE_URL;
 };
 
-const API_BASE_URL = coerceLoopbackHostname(resolveApiBaseUrl());
+export const API_BASE_URL = coerceLoopbackHostname(resolveApiBaseUrl());
 
 export class ApiError extends Error {
   public readonly status: number;

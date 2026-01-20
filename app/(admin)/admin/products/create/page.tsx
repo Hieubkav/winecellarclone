@@ -5,12 +5,11 @@ import React, { useState, useEffect, useCallback } from 'react';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
- import { createProduct } from '@/lib/api/admin';
+import { createProduct } from '@/lib/api/admin';
+import { API_BASE_URL } from '@/lib/api/client';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../components/LexicalEditor';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
- 
  export default function ProductCreatePage() {
    const router = useRouter();
    const [isLoading, setIsLoading] = useState(true);
