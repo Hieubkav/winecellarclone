@@ -3,10 +3,11 @@
  import React, { useState, useEffect } from 'react';
  import Link from 'next/link';
  import { useRouter } from 'next/navigation';
- import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
  import { createProduct } from '@/lib/api/admin';
  import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
+import { LexicalEditor } from '../../components/LexicalEditor';
  
  export default function ProductCreatePage() {
    const router = useRouter();
@@ -23,6 +24,7 @@
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
    const [description, setDescription] = useState('');
    const [active, setActive] = useState(true);
+  const [showSlugEditor, setShowSlugEditor] = useState(false);
  
    useEffect(() => {
      async function loadFilters() {
@@ -141,15 +143,45 @@
                    onChange={(e) => handleNameChange(e.target.value)}
                  />
                </div>
-               <div className="space-y-2">
-                 <Label>Slug</Label>
-                 <Input
-                   placeholder="ten-san-pham"
-                   value={slug}
-                   onChange={(e) => setSlug(e.target.value)}
-                 />
-               </div>
              </div>
+
+            {/* Slug - hidden by default */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-slate-500 text-xs">Slug:</Label>
+                {showSlugEditor ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      className="h-8 text-sm flex-1"
+                      placeholder="ten-san-pham"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSlugEditor(false)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 font-mono">
+                      {slug || generateSlug(name) || 'ten-san-pham'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSlugEditor(true)}
+                      className="text-slate-400 hover:text-blue-600"
+                      title="Chỉnh sửa slug"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
  
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div className="space-y-2">
@@ -206,11 +238,11 @@
  
              <div className="space-y-2">
                <Label>Mô tả</Label>
-               <textarea
-                 className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                 placeholder="Nhập mô tả sản phẩm..."
-                 value={description}
-                 onChange={(e) => setDescription(e.target.value)}
+              <LexicalEditor
+                onChange={setDescription}
+                initialContent={description}
+                folder="products"
+                placeholder="Nhập mô tả sản phẩm..."
                />
              </div>
  

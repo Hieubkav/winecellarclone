@@ -3,10 +3,11 @@
  import React, { useState, useEffect, use } from 'react';
  import Link from 'next/link';
  import { useRouter } from 'next/navigation';
- import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
  import { fetchAdminProduct, updateProduct } from '@/lib/api/admin';
  import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
+import { LexicalEditor } from '../../../components/LexicalEditor';
  
  export default function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
    const { id } = use(params);
@@ -25,6 +26,8 @@
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
    const [description, setDescription] = useState('');
    const [active, setActive] = useState(true);
+  const [showSlugEditor, setShowSlugEditor] = useState(false);
+  const [initialDescription, setInitialDescription] = useState('');
  
    useEffect(() => {
      async function loadData() {
@@ -42,6 +45,7 @@
          setTypeId(product.type_id?.toString() || '');
          setCategoryIds(product.category_ids || []);
          setDescription(product.description || '');
+        setInitialDescription(product.description || '');
          setActive(product.active);
  
          setTypes(filtersRes.types);
@@ -159,15 +163,45 @@
                    onChange={(e) => setName(e.target.value)}
                  />
                </div>
-               <div className="space-y-2">
-                 <Label>Slug</Label>
-                 <Input
-                   placeholder="ten-san-pham"
-                   value={slug}
-                   onChange={(e) => setSlug(e.target.value)}
-                 />
-               </div>
              </div>
+
+            {/* Slug - hidden by default */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-slate-500 text-xs">Slug:</Label>
+                {showSlugEditor ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      className="h-8 text-sm flex-1"
+                      placeholder="ten-san-pham"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSlugEditor(false)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 font-mono">
+                      {slug || 'ten-san-pham'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSlugEditor(true)}
+                      className="text-slate-400 hover:text-blue-600"
+                      title="Chỉnh sửa slug"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
  
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div className="space-y-2">
@@ -224,11 +258,11 @@
  
              <div className="space-y-2">
                <Label>Mô tả</Label>
-               <textarea
-                 className="w-full min-h-[120px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                 placeholder="Nhập mô tả sản phẩm..."
-                 value={description}
-                 onChange={(e) => setDescription(e.target.value)}
+              <LexicalEditor
+                onChange={setDescription}
+                initialContent={initialDescription}
+                folder="products"
+                placeholder="Nhập mô tả sản phẩm..."
                />
              </div>
  
