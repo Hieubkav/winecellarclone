@@ -22,15 +22,18 @@ import { LexicalEditor } from '../../components/LexicalEditor';
    const [slug, setSlug] = useState('');
    const [price, setPrice] = useState('');
    const [originalPrice, setOriginalPrice] = useState('');
+  const [volumeMl, setVolumeMl] = useState('');
+  const [alcoholPercent, setAlcoholPercent] = useState('');
    const [typeId, setTypeId] = useState('');
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
    const [description, setDescription] = useState('');
    const [active, setActive] = useState(true);
   const [showSlugEditor, setShowSlugEditor] = useState(false);
  
-  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
-  const [coverImagePath, setCoverImagePath] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<{ url: string; path: string }[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
    useEffect(() => {
      async function loadFilters() {
@@ -60,33 +63,38 @@ import { LexicalEditor } from '../../components/LexicalEditor';
      }
    }, [typeId]);
  
-  const handleImageUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Vui long chon file hinh anh');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Kich thuoc file khong duoc vuot qua 5MB');
-      return;
-    }
+  const handleGalleryUpload = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
 
     setIsUploadingImage(true);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('folder', 'products');
+      const uploads = Array.from(files).map(async (file) => {
+        if (!file.type.startsWith('image/')) return null;
+        if (file.size > 5 * 1024 * 1024) return null;
 
-      const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
-        method: 'POST',
-        body: formData,
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('folder', 'products');
+
+        const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error('Upload failed');
+
+        const result = await response.json();
+        if (result.success && result.data) {
+          return { url: result.data.url as string, path: result.data.path as string };
+        }
+
+        return null;
       });
 
-      if (!response.ok) throw new Error('Upload failed');
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        setCoverImageUrl(result.data.url);
-        setCoverImagePath(result.data.path);
+      const results = await Promise.all(uploads);
+      const nextImages = results.filter((item): item is { url: string; path: string } => Boolean(item));
+      if (nextImages.length > 0) {
+        setGalleryImages(prev => [...prev, ...nextImages]);
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -95,6 +103,55 @@ import { LexicalEditor } from '../../components/LexicalEditor';
       setIsUploadingImage(false);
     }
   }, []);
+
+  const handleUrlUpload = useCallback(async () => {
+    const url = imageUrlInput.trim();
+    if (!url) return;
+
+    setIsUploadingImage(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, folder: 'products' }),
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setGalleryImages(prev => [...prev, { url: result.data.url, path: result.data.path }]);
+        setImageUrlInput('');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Khong the tai anh tu URL');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }, [imageUrlInput]);
+
+  const handleDropFiles = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (event.dataTransfer.files?.length) {
+      handleGalleryUpload(event.dataTransfer.files);
+    }
+  }, [handleGalleryUpload]);
+
+  const handleReorder = useCallback((targetIndex: number) => {
+    if (dragIndex === null || dragIndex === targetIndex) {
+      setDragIndex(null);
+      return;
+    }
+
+    setGalleryImages(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIndex, 1);
+      next.splice(targetIndex, 0, moved);
+      return next;
+    });
+    setDragIndex(null);
+  }, [dragIndex]);
 
   const handleTermChange = (groupCode: string, termId: number, filterType: string) => {
     setSelectedTermIds(prev => {
@@ -142,11 +199,13 @@ import { LexicalEditor } from '../../components/LexicalEditor';
          slug: slug.trim() || generateSlug(name),
          price: price ? Number(price) : null,
          original_price: originalPrice ? Number(originalPrice) : null,
+        volume_ml: volumeMl ? Number(volumeMl) : null,
+        alcohol_percent: alcoholPercent ? Number(alcoholPercent) : null,
          type_id: typeId ? Number(typeId) : null,
          category_ids: categoryIds,
          description: description.trim(),
          active,
-        cover_image_path: coverImagePath,
+        image_paths: galleryImages.map(image => image.path),
         term_ids: Object.values(selectedTermIds).flat(),
        };
  
@@ -208,42 +267,80 @@ import { LexicalEditor } from '../../components/LexicalEditor';
              </div>
 
             <div className="space-y-2">
-              <Label>Ảnh đại diện</Label>
-              <div className="flex items-center gap-4">
-                {coverImageUrl ? (
-                  <div className="relative group">
-                    <img
-                      src={coverImageUrl.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${coverImageUrl}` : coverImageUrl}
-                      alt="Cover"
-                      className="w-24 h-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => { setCoverImageUrl(null); setCoverImagePath(null); }}
-                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              <Label>Ảnh sản phẩm</Label>
+              <p className="text-xs text-slate-500">Kéo thả để sắp xếp. Ảnh đầu tiên là ảnh chính.</p>
+              <div
+                onDrop={handleDropFiles}
+                onDragOver={(e) => e.preventDefault()}
+                className="rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 p-3"
+              >
+                <div className="flex flex-wrap gap-3">
+                  {galleryImages.map((image, index) => (
+                    <div
+                      key={`${image.path}-${index}`}
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragEnd={() => setDragIndex(null)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        handleReorder(index);
+                      }}
+                      className="relative group cursor-move"
                     >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                      <img
+                        src={image.url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${image.url}` : image.url}
+                        alt={`Gallery ${index + 1}`}
+                        className="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                      />
+                      {index === 0 && (
+                        <span className="absolute left-1 top-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white">
+                          Ảnh chính
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setGalleryImages(prev => prev.filter((_, i) => i !== index))}
+                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="flex flex-col items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       className="hidden"
-                      onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
+                      onChange={(e) => handleGalleryUpload(e.target.files)}
                       disabled={isUploadingImage}
                     />
                     {isUploadingImage ? (
-                      <Loader2 size={24} className="animate-spin text-slate-400" />
+                      <Loader2 size={20} className="animate-spin text-slate-400" />
                     ) : (
                       <>
-                        <ImageIcon size={24} className="text-slate-400 mb-1" />
-                        <span className="text-xs text-slate-400">Upload</span>
+                        <ImageIcon size={20} className="text-slate-400 mb-1" />
+                        <span className="text-[10px] text-slate-400">Thêm</span>
                       </>
                     )}
                   </label>
-                )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Dán URL ảnh..."
+                  value={imageUrlInput}
+                  onChange={(e) => setImageUrlInput(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleUrlUpload}
+                  disabled={isUploadingImage || !imageUrlInput.trim()}
+                >
+                  Thêm URL
+                </Button>
               </div>
             </div>
 
@@ -305,6 +402,27 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                  />
                </div>
              </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Dung tích (ml)</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={volumeMl}
+                  onChange={(e) => setVolumeMl(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Nồng độ (%)</Label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={alcoholPercent}
+                  onChange={(e) => setAlcoholPercent(e.target.value)}
+                />
+              </div>
+            </div>
  
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div className="space-y-2">
