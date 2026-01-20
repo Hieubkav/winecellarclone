@@ -16,38 +16,40 @@
  }: {
    children: React.ReactNode;
  }) {
-   let settings = FALLBACK_SETTINGS;
-   try {
-     settings = await fetchSettings();
-   } catch (error) {
-     console.error("Failed to fetch settings:", error);
-   }
- 
-   let menuItems = undefined;
-   try {
-     menuItems = await fetchMenus();
-   } catch (error) {
-     console.error("Failed to fetch menu items:", error);
-   }
- 
-   let speedialProps = undefined;
-   try {
-     const components = await fetchHomeComponents();
-     const speedialComponent = components.find((c) => c.type === "speed_dial");
-     
-     if (speedialComponent) {
-       speedialProps = adaptSpeedDialProps(speedialComponent.config as SpeedDialConfig);
-     }
-   } catch (error) {
-     console.error("Failed to fetch speedial component:", error);
-   }
- 
-   let socialLinks: Awaited<ReturnType<typeof fetchSocialLinks>> = [];
-   try {
-     socialLinks = await fetchSocialLinks();
-   } catch (error) {
-     console.error("Failed to fetch social links:", error);
-   }
+  const [settingsResult, menusResult, homeComponentsResult, socialLinksResult] = await Promise.allSettled([
+    fetchSettings(),
+    fetchMenus(),
+    fetchHomeComponents(),
+    fetchSocialLinks(),
+  ]);
+
+  const settings =
+    settingsResult.status === "fulfilled" ? settingsResult.value : FALLBACK_SETTINGS;
+  if (settingsResult.status === "rejected") {
+    console.error("Failed to fetch settings:", settingsResult.reason);
+  }
+
+  const menuItems = menusResult.status === "fulfilled" ? menusResult.value : undefined;
+  if (menusResult.status === "rejected") {
+    console.error("Failed to fetch menu items:", menusResult.reason);
+  }
+
+  let speedialProps = undefined;
+  if (homeComponentsResult.status === "fulfilled") {
+    const speedialComponent = homeComponentsResult.value.find((c) => c.type === "speed_dial");
+
+    if (speedialComponent) {
+      speedialProps = adaptSpeedDialProps(speedialComponent.config as SpeedDialConfig);
+    }
+  } else {
+    console.error("Failed to fetch speedial component:", homeComponentsResult.reason);
+  }
+
+  const socialLinks: Awaited<ReturnType<typeof fetchSocialLinks>> =
+    socialLinksResult.status === "fulfilled" ? socialLinksResult.value : [];
+  if (socialLinksResult.status === "rejected") {
+    console.error("Failed to fetch social links:", socialLinksResult.reason);
+  }
  
    return (
      <SettingsProvider settings={settings}>
