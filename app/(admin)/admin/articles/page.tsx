@@ -2,45 +2,47 @@
  
  import React, { useState, useMemo, useEffect } from 'react';
  import Link from 'next/link';
-import { Search, FileText, ExternalLink, Calendar } from 'lucide-react';
+import { Search, FileText, ExternalLink, Calendar, Edit, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData } from '../components/TableUtilities';
+import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
  import { cn } from '@/lib/utils';
-import { fetchArticleList, type ArticleListItem } from '@/lib/api/articles';
- 
-interface DisplayArticle extends ArticleListItem {}
+import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticle } from '@/lib/api/admin';
  
  export default function ArticlesListPage() {
    const [isLoading, setIsLoading] = useState(true);
-  const [articles, setArticles] = useState<DisplayArticle[]>([]);
+  const [articles, setArticles] = useState<AdminArticle[]>([]);
   const [totalArticles, setTotalArticles] = useState(0);
    const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'published_at', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
  
-   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      try {
-        const params: Record<string, string | number> = {
-          per_page: 20,
-          page: currentPage,
-        };
-        
-        if (searchTerm) params.q = searchTerm;
+  const loadArticles = async () => {
+    setIsLoading(true);
+    try {
+      const params: Record<string, string | number> = {
+        per_page: 20,
+        page: currentPage,
+      };
+      
+      if (searchTerm) params.q = searchTerm;
 
-        const articlesRes = await fetchArticleList(params);
-        setArticles(articlesRes.data);
-        setTotalArticles(articlesRes.meta.pagination.total);
-        setHasMore(articlesRes.meta.pagination.has_more);
-      } catch (error) {
-        console.error('Failed to fetch articles:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      const articlesRes = await fetchAdminArticles(params);
+      setArticles(articlesRes.data);
+      setTotalArticles(articlesRes.meta.total);
+      setHasMore(currentPage < articlesRes.meta.last_page);
+    } catch (error) {
+      console.error('Failed to fetch articles:', error);
+    } finally {
+      setIsLoading(false);
     }
-    fetchData();
+  };
+
+   useEffect(() => {
+    loadArticles();
   }, [currentPage, searchTerm]);
  
    const handleSort = (key: string) => {
@@ -52,6 +54,35 @@ interface DisplayArticle extends ArticleListItem {}
  
   const sortedData = useSortableData(articles, sortConfig);
  
+  const toggleSelectAll = () => {
+    setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map(a => a.id));
+  };
+
+  const toggleSelectItem = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    
+    setIsDeleting(true);
+    try {
+      if (deleteConfirm.type === 'single' && deleteConfirm.id) {
+        await deleteArticle(deleteConfirm.id);
+      } else if (deleteConfirm.type === 'bulk') {
+        await bulkDeleteArticles(selectedIds);
+        setSelectedIds([]);
+      }
+      setDeleteConfirm(null);
+      loadArticles();
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Xóa thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
    const formatDate = (dateStr: string) => {
      return new Date(dateStr).toLocaleDateString('vi-VN', {
        day: '2-digit',
@@ -90,7 +121,21 @@ interface DisplayArticle extends ArticleListItem {}
             Quản lý nội dung bài viết và tin tức ({totalArticles} bài viết)
            </p>
          </div>
+      <Link href="/admin/articles/create">
+        <Button className="gap-2">
+          <Plus size={16} />
+          Thêm bài viết
+        </Button>
+      </Link>
        </div>
+
+    {selectedIds.length > 0 && (
+      <BulkActionBar 
+        selectedCount={selectedIds.length} 
+        onDelete={() => setDeleteConfirm({ type: 'bulk' })} 
+        onClearSelection={() => setSelectedIds([])} 
+      />
+    )}
  
        <Card>
          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4">
@@ -111,15 +156,26 @@ interface DisplayArticle extends ArticleListItem {}
          <Table>
            <TableHeader>
              <TableRow>
+              <TableHead className="w-[40px]">
+                <SelectCheckbox 
+                  checked={selectedIds.length === sortedData.length && sortedData.length > 0} 
+                  onChange={toggleSelectAll} 
+                  indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} 
+                />
+              </TableHead>
                <SortableHeader label="Tiêu đề" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                <TableHead className="hidden lg:table-cell">Mô tả ngắn</TableHead>
               <SortableHeader label="Ngày xuất bản" sortKey="published_at" sortConfig={sortConfig} onSort={handleSort} />
+              <TableHead>Trạng thái</TableHead>
                <TableHead className="text-right">Hành động</TableHead>
              </TableRow>
            </TableHeader>
            <TableBody>
              {sortedData.map(article => (
-              <TableRow key={article.id}>
+              <TableRow key={article.id} className={selectedIds.includes(article.id) ? 'bg-blue-500/5' : ''}>
+                <TableCell>
+                  <SelectCheckbox checked={selectedIds.includes(article.id)} onChange={() => toggleSelectItem(article.id)} />
+                </TableCell>
                  <TableCell>
                    <div className="flex items-center gap-3">
                     {article.cover_image_url ? (
@@ -137,10 +193,6 @@ interface DisplayArticle extends ArticleListItem {}
                        <p className="font-medium text-slate-900 dark:text-slate-100 truncate max-w-[250px]">
                          {article.title}
                        </p>
-                       <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                         <Calendar size={12} />
-                        {formatDate(article.published_at)}
-                       </p>
                      </div>
                    </div>
                  </TableCell>
@@ -150,7 +202,12 @@ interface DisplayArticle extends ArticleListItem {}
                    </p>
                  </TableCell>
                  <TableCell>
-                  <span className="text-sm text-slate-500">{formatDate(article.published_at)}</span>
+                  <span className="text-sm text-slate-500">{article.published_at ? formatDate(article.published_at) : '—'}</span>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={article.active ? 'success' : 'secondary'}>
+                    {article.active ? 'Hiển thị' : 'Ẩn'}
+                  </Badge>
                  </TableCell>
                  <TableCell className="text-right">
                    <div className="flex justify-end gap-2">
@@ -165,13 +222,27 @@ interface DisplayArticle extends ArticleListItem {}
                          <ExternalLink size={16} />
                        </Button>
                      </Link>
+                  <Link href={`/admin/articles/${article.id}/edit`}>
+                    <Button variant="ghost" size="icon" aria-label="Edit">
+                      <Edit size={16} />
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => setDeleteConfirm({ type: 'single', id: article.id })}
+                    aria-label="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                    </div>
                  </TableCell>
                </TableRow>
              ))}
              {sortedData.length === 0 && (
                <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+              <TableCell colSpan={6} className="text-center py-8 text-slate-500">
                   {searchTerm 
                      ? 'Không tìm thấy kết quả phù hợp' 
                      : 'Chưa có bài viết nào'}
@@ -198,6 +269,49 @@ interface DisplayArticle extends ArticleListItem {}
            </div>
          )}
        </Card>
+
+    {/* Delete Confirmation Modal */}
+    {deleteConfirm && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <Card className="p-6 max-w-md w-full mx-4">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+              <AlertTriangle className="text-red-600" size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Xác nhận xóa
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {deleteConfirm.type === 'bulk' 
+                  ? `Bạn có chắc chắn muốn xóa ${selectedIds.length} bài viết đã chọn?`
+                  : 'Bạn có chắc chắn muốn xóa bài viết này?'
+                }
+              </p>
+              <p className="text-xs text-red-500 mt-2">
+                Hành động này không thể hoàn tác.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteConfirm(null)}
+              disabled={isDeleting}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Đang xóa...' : 'Xóa'}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )}
      </div>
    );
  }

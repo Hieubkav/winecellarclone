@@ -2,20 +2,16 @@
  
  import React, { useState, useMemo, useEffect } from 'react';
  import Link from 'next/link';
- import { Plus, Edit, Trash2, ExternalLink, Search, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle } from 'lucide-react';
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
  import { cn } from '@/lib/utils';
-import { fetchProductList, fetchProductFilters, type ProductListItem, type ProductFilterOption } from '@/lib/api/products';
- 
-interface DisplayProduct extends ProductListItem {
-  categoryName: string;
-  typeName: string;
-}
+import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
+import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduct } from '@/lib/api/admin';
  
  export default function ProductsListPage() {
    const [isLoading, setIsLoading] = useState(true);
-  const [products, setProducts] = useState<DisplayProduct[]>([]);
+  const [products, setProducts] = useState<AdminProduct[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState<ProductFilterOption[]>([]);
   const [types, setTypes] = useState<ProductFilterOption[]>([]);
@@ -26,55 +22,53 @@ interface DisplayProduct extends ProductListItem {
    const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
  
    const columns = [
      { key: 'select', label: 'Chọn' },
      { key: 'image', label: 'Ảnh' },
      { key: 'name', label: 'Tên sản phẩm', required: true },
-    { key: 'typeName', label: 'Phân loại' },
-    { key: 'categoryName', label: 'Danh mục' },
+    { key: 'type_name', label: 'Phân loại' },
+    { key: 'category_name', label: 'Danh mục' },
      { key: 'price', label: 'Giá bán' },
+    { key: 'active', label: 'Trạng thái' },
      { key: 'actions', label: 'Hành động', required: true },
    ];
  
    const [visibleColumns, setVisibleColumns] = useState<string[]>(columns.map(c => c.key));
  
-   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true);
-      try {
-        const params: Record<string, string | number> = {
-          per_page: 20,
-          page: currentPage,
-        };
-        
-        if (searchTerm) params.q = searchTerm;
-        if (filterCategory) params['category[]'] = filterCategory;
-        if (filterType) params.type_id = filterType;
+  const loadProducts = async () => {
+    setIsLoading(true);
+    try {
+      const params: Record<string, string | number> = {
+        per_page: 20,
+        page: currentPage,
+      };
+      
+      if (searchTerm) params.q = searchTerm;
+      if (filterCategory) params.category_id = filterCategory;
+      if (filterType) params.type_id = filterType;
 
-        const [productsRes, filtersRes] = await Promise.all([
-          fetchProductList(params),
-          fetchProductFilters(filterType ? Number(filterType) : undefined),
-        ]);
+      const [productsRes, filtersRes] = await Promise.all([
+        fetchAdminProducts(params),
+        fetchProductFilters(filterType ? Number(filterType) : undefined),
+      ]);
 
-        const displayProducts: DisplayProduct[] = productsRes.data.map(p => ({
-          ...p,
-          categoryName: p.category?.name || p.categories?.[0]?.name || 'Không có',
-          typeName: p.type?.name || 'Không có',
-        }));
-
-        setProducts(displayProducts);
-        setTotalProducts(productsRes.meta.total);
-        setCategories(filtersRes.categories);
-        setTypes(filtersRes.types);
-        setHasMore(productsRes.data.length === 20);
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      setProducts(productsRes.data);
+      setTotalProducts(productsRes.meta.total);
+      setCategories(filtersRes.categories);
+      setTypes(filtersRes.types);
+      setHasMore(currentPage < productsRes.meta.last_page);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    } finally {
+      setIsLoading(false);
     }
-    fetchData();
+  };
+
+   useEffect(() => {
+    loadProducts();
   }, [currentPage, searchTerm, filterCategory, filterType]);
  
    const handleSort = (key: string) => {
@@ -100,6 +94,27 @@ interface DisplayProduct extends ProductListItem {
      setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
    };
  
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    
+    setIsDeleting(true);
+    try {
+      if (deleteConfirm.type === 'single' && deleteConfirm.id) {
+        await deleteProduct(deleteConfirm.id);
+      } else if (deleteConfirm.type === 'bulk') {
+        await bulkDeleteProducts(selectedIds);
+        setSelectedIds([]);
+      }
+      setDeleteConfirm(null);
+      loadProducts();
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      alert('Xóa thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const formatPrice = (price: number | null) => {
     if (!price) return 'Liên hệ';
      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
@@ -149,7 +164,7 @@ interface DisplayProduct extends ProductListItem {
       {selectedIds.length > 0 && (
         <BulkActionBar 
           selectedCount={selectedIds.length} 
-          onDelete={() => alert('Chức năng xóa cần API backend')} 
+          onDelete={() => setDeleteConfirm({ type: 'bulk' })} 
           onClearSelection={() => setSelectedIds([])} 
         />
       )}
@@ -212,15 +227,16 @@ interface DisplayProduct extends ProductListItem {
                {visibleColumns.includes('name') && (
                  <SortableHeader label="Tên sản phẩm" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
                )}
-              {visibleColumns.includes('typeName') && (
-                <SortableHeader label="Phân loại" sortKey="typeName" sortConfig={sortConfig} onSort={handleSort} />
+              {visibleColumns.includes('type_name') && (
+                <SortableHeader label="Phân loại" sortKey="type_name" sortConfig={sortConfig} onSort={handleSort} />
               )}
-               {visibleColumns.includes('categoryName') && (
-                 <SortableHeader label="Danh mục" sortKey="categoryName" sortConfig={sortConfig} onSort={handleSort} />
+              {visibleColumns.includes('category_name') && (
+                <SortableHeader label="Danh mục" sortKey="category_name" sortConfig={sortConfig} onSort={handleSort} />
                )}
                {visibleColumns.includes('price') && (
                  <SortableHeader label="Giá bán" sortKey="price" sortConfig={sortConfig} onSort={handleSort} />
                )}
+              {visibleColumns.includes('active') && <TableHead>Trạng thái</TableHead>}
                {visibleColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
              </TableRow>
            </TableHeader>
@@ -234,9 +250,9 @@ interface DisplayProduct extends ProductListItem {
                  )}
                  {visibleColumns.includes('image') && (
                    <TableCell>
-                  {product.main_image_url ? (
+                  {product.cover_image_url ? (
                     <img 
-                      src={product.main_image_url} 
+                      src={product.cover_image_url} 
                       alt={product.name}
                       className="w-10 h-10 object-cover rounded"
                     />
@@ -250,13 +266,13 @@ interface DisplayProduct extends ProductListItem {
                  {visibleColumns.includes('name') && (
                    <TableCell className="font-medium max-w-[200px] truncate">{product.name}</TableCell>
                  )}
-              {visibleColumns.includes('typeName') && (
+              {visibleColumns.includes('type_name') && (
                 <TableCell>
-                  <Badge variant="info">{product.typeName}</Badge>
+                  <Badge variant="info">{product.type_name || 'Không có'}</Badge>
                 </TableCell>
               )}
-                 {visibleColumns.includes('categoryName') && (
-                   <TableCell>{product.categoryName}</TableCell>
+                {visibleColumns.includes('category_name') && (
+                  <TableCell>{product.category_name || 'Không có'}</TableCell>
                  )}
                  {visibleColumns.includes('price') && (
                    <TableCell>
@@ -272,6 +288,13 @@ interface DisplayProduct extends ProductListItem {
                      </div>
                    </TableCell>
                  )}
+              {visibleColumns.includes('active') && (
+                <TableCell>
+                  <Badge variant={product.active ? 'success' : 'secondary'}>
+                    {product.active ? 'Hiển thị' : 'Ẩn'}
+                  </Badge>
+                </TableCell>
+              )}
                  {visibleColumns.includes('actions') && (
                    <TableCell className="text-right">
                      <div className="flex justify-end gap-2">
@@ -291,6 +314,15 @@ interface DisplayProduct extends ProductListItem {
                            <Edit size={16} />
                          </Button>
                        </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => setDeleteConfirm({ type: 'single', id: product.id })}
+                        aria-label="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
                      </div>
                    </TableCell>
                  )}
@@ -325,6 +357,49 @@ interface DisplayProduct extends ProductListItem {
            </div>
          )}
        </Card>
+
+    {/* Delete Confirmation Modal */}
+    {deleteConfirm && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <Card className="p-6 max-w-md w-full mx-4">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+              <AlertTriangle className="text-red-600" size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Xác nhận xóa
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                {deleteConfirm.type === 'bulk' 
+                  ? `Bạn có chắc chắn muốn xóa ${selectedIds.length} sản phẩm đã chọn?`
+                  : 'Bạn có chắc chắn muốn xóa sản phẩm này?'
+                }
+              </p>
+              <p className="text-xs text-red-500 mt-2">
+                Hành động này không thể hoàn tác.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteConfirm(null)}
+              disabled={isDeleting}
+            >
+              Hủy
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Đang xóa...' : 'Xóa'}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )}
      </div>
    );
  }
