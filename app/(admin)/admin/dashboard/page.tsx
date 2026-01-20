@@ -1,22 +1,18 @@
- 'use client';
- 
-import React, { useEffect, useState } from 'react';
-import { Package, FileText, FolderTree, Eye, TrendingUp, TrendingDown, Users, MousePointerClick, Activity } from 'lucide-react';
+'use client';
+
+import React, { useState } from 'react';
+import { Package, FileText, Eye, TrendingUp, TrendingDown, Users, MousePointerClick, Activity } from 'lucide-react';
 import { Card, Skeleton, Badge } from '../components/ui';
- import { cn } from '@/lib/utils';
-import { 
-  fetchDashboardStats, 
-  fetchTrafficChart, 
-  fetchTopProducts, 
-  fetchRecentEvents,
-  type DashboardStats,
-  type TrafficChartData,
-  type TopProduct,
-  type RecentEvent
-} from '@/lib/api/admin';
+import { cn } from '@/lib/utils';
+import {
+  useDashboardStats,
+  useTrafficChart,
+  useTopProducts,
+  useRecentEvents,
+} from './useDashboardData';
 import Link from 'next/link';
- 
- interface StatCardProps {
+
+interface StatCardProps {
    title: string;
    value: string | number;
    icon: React.ElementType;
@@ -26,87 +22,65 @@ import Link from 'next/link';
    };
    color: 'blue' | 'green' | 'amber' | 'purple';
    isLoading?: boolean;
- }
- 
- const colorVariants = {
-   blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-   green: 'bg-green-500/10 text-green-600 dark:text-green-400',
-   amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-   purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
- };
- 
- const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend, color, isLoading }) => {
+}
+
+const colorVariants = {
+  blue: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  green: 'bg-green-500/10 text-green-600 dark:text-green-400',
+  amber: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  purple: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+};
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend, color, isLoading }) => {
    if (isLoading) {
      return (
-       <Card className="p-6">
-         <div className="flex items-start justify-between">
-           <div className="space-y-3 flex-1">
-             <Skeleton className="h-4 w-24" />
-             <Skeleton className="h-8 w-16" />
-             <Skeleton className="h-4 w-20" />
-           </div>
-           <Skeleton className="h-12 w-12 rounded-lg" />
-         </div>
-       </Card>
+      <Card className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-3 flex-1">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-4 w-20" />
+          </div>
+          <Skeleton className="h-12 w-12 rounded-lg" />
+        </div>
+      </Card>
      );
    }
- 
-   return (
-     <Card className="p-6 hover:shadow-md transition-shadow duration-200">
-       <div className="flex items-start justify-between">
-         <div className="space-y-1">
-           <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
-           <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
-           {trend && (
-             <div className={cn(
-               "flex items-center gap-1 text-sm font-medium",
-               trend.isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-             )}>
-               {trend.isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-               <span>{trend.isPositive ? '+' : ''}{trend.value}%</span>
-               <span className="text-slate-400 font-normal">vs tháng trước</span>
-             </div>
-           )}
-         </div>
-         <div className={cn("p-3 rounded-lg", colorVariants[color])}>
-           <Icon size={24} />
-         </div>
-       </div>
-     </Card>
-   );
- };
- 
- export default function DashboardPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [trafficChart, setTrafficChart] = useState<TrafficChartData[]>([]);
-  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
-  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
+
+  return (
+    <Card className="p-6 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{value}</p>
+          {trend && (
+            <div className={cn(
+              "flex items-center gap-1 text-sm font-medium",
+              trend.isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+            )}>
+              {trend.isPositive ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+              <span>{trend.isPositive ? '+' : ''}{trend.value}%</span>
+              <span className="text-slate-400 font-normal">vs tháng trước</span>
+            </div>
+          )}
+        </div>
+        <div className={cn("p-3 rounded-lg", colorVariants[color])}>
+          <Icon size={24} />
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default function DashboardPage() {
   const [chartDays, setChartDays] = useState(7);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [statsRes, chartRes, topProductsRes, eventsRes] = await Promise.all([
-          fetchDashboardStats(),
-          fetchTrafficChart(chartDays),
-          fetchTopProducts(7, 5),
-          fetchRecentEvents(10),
-        ]);
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
+  const { data: trafficChart = [], isLoading: chartLoading } = useTrafficChart(chartDays);
+  const { data: topProducts = [], isLoading: productsLoading } = useTopProducts(7, 5);
+  const { data: recentEvents = [], isLoading: eventsLoading } = useRecentEvents(10);
 
-        setStats(statsRes);
-        setTrafficChart(chartRes);
-        setTopProducts(topProductsRes);
-        setRecentEvents(eventsRes);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchData();
-  }, [chartDays]);
-
+  const isLoading = statsLoading || chartLoading || productsLoading || eventsLoading;
   const statCards = [
     {
       title: 'Tổng sản phẩm',
