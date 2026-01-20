@@ -275,6 +275,12 @@ export async function deleteProductType(id: number): Promise<{ success: boolean;
     method: 'DELETE',
   });
 }
+
+export async function seedCatalogBaseline(): Promise<{ success: boolean; message: string }> {
+  return apiFetch('v1/admin/catalog/baseline/seed', {
+    method: 'POST',
+  });
+}
  
  export async function bulkDeleteArticles(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
    return apiFetch("v1/admin/articles/bulk-delete", {

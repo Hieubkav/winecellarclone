@@ -2,10 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Tag, Search, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag, Search, AlertTriangle, RotateCcw } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData } from '../components/TableUtilities';
-import { deleteProductType, fetchAdminProductTypes, type AdminProductType } from '@/lib/api/admin';
+import { deleteProductType, fetchAdminProductTypes, seedCatalogBaseline, type AdminProductType } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
 
 export default function ProductTypesPage() {
@@ -15,6 +15,8 @@ export default function ProductTypesPage() {
   const [filterActive, setFilterActive] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [seedConfirm, setSeedConfirm] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
 
   useEffect(() => {
@@ -71,6 +73,26 @@ export default function ProductTypesPage() {
     }
   };
 
+  const handleSeedBaseline = async () => {
+    setIsSeeding(true);
+    try {
+      const res = await seedCatalogBaseline();
+      alert(res.message);
+      const refreshed = await fetchAdminProductTypes({ per_page: 100, ...(filterActive ? { active: filterActive } : {}) });
+      setTypes(refreshed.data);
+      setSeedConfirm(false);
+    } catch (error) {
+      console.error('Failed to seed baseline:', error);
+      if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
+        alert(String((error.payload as { message?: string }).message ?? 'Khôi phục baseline thất bại.'));
+      } else {
+        alert('Khôi phục baseline thất bại. Vui lòng thử lại.');
+      }
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -101,12 +123,18 @@ export default function ProductTypesPage() {
             Quản lý phân loại ({types.length} phân loại)
           </p>
         </div>
-        <Link href="/admin/types/create">
-          <Button className="gap-2">
-            <Plus size={16} />
-            Thêm phân loại
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setSeedConfirm(true)}>
+            <RotateCcw size={16} />
+            Khôi phục baseline
           </Button>
-        </Link>
+          <Link href="/admin/types/create">
+            <Button className="gap-2">
+              <Plus size={16} />
+              Thêm phân loại
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -210,6 +238,30 @@ export default function ProductTypesPage() {
               </Button>
               <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                 {isDeleting ? 'Đang xóa...' : 'Xóa'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {seedConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertTriangle size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Khôi phục baseline</h3>
+                <p className="text-sm text-slate-500 mt-1">Thao tác này sẽ khôi phục nhóm thuộc tính và phân loại mặc định.</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="outline" onClick={() => setSeedConfirm(false)} disabled={isSeeding}>
+                Hủy
+              </Button>
+              <Button variant="secondary" onClick={handleSeedBaseline} disabled={isSeeding}>
+                {isSeeding ? 'Đang khôi phục...' : 'Khôi phục'}
               </Button>
             </div>
           </Card>
