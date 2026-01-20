@@ -1,11 +1,10 @@
  'use client';
  
- import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
  import Link from 'next/link';
 import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle } from 'lucide-react';
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
- import { cn } from '@/lib/utils';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduct } from '@/lib/api/admin';
  

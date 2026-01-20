@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useRef, useState, type MouseEvent } from "react";
-import { ArrowRight, Globe, Droplets, FlaskConical, Award, Tag } from "lucide-react";
+import { ArrowRight, Globe, Droplets, FlaskConical } from "lucide-react";
 import type { ProductListItem } from "@/lib/api/products";
 import { ProductImage } from "@/components/ui/product-image";
 
@@ -13,22 +12,6 @@ interface RelatedProductsSectionProps {
   viewAllHref?: string;
   viewAllLabel?: string;
 }
-
-const getFallbackIcon = (code?: string) => {
-  if (!code) return Tag;
-  const lowerCode = code.toLowerCase();
-  
-  if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) {
-    return Globe;
-  } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('ml')) {
-    return FlaskConical;
-  } else if (lowerCode.includes('nong_do') || lowerCode.includes('alcohol') || lowerCode.includes('abv')) {
-    return Droplets;
-  } else if (lowerCode.includes('brand')) {
-    return Award;
-  }
-  return Tag;
-};
 
 const formatPrice = (price: number | null | undefined): string => {
   if (!price || price <= 0) return "Liên hệ";

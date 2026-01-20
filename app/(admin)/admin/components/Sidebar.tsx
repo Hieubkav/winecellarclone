@@ -3,11 +3,11 @@
  import React, { useState, useEffect } from 'react';
  import Link from 'next/link';
  import { usePathname } from 'next/navigation';
- import { 
-   LayoutDashboard, Package, FolderTree, FileText, 
-   Globe, Settings, Image as ImageIcon, ChevronRight, X, LogOut,
-   ChevronsLeft, ChevronsRight, Menu as MenuIcon
- } from 'lucide-react';
+import { 
+  LayoutDashboard, Package, FileText, 
+  Globe, Settings, Image as ImageIcon, ChevronRight, X, LogOut,
+  ChevronsLeft, ChevronsRight
+} from 'lucide-react';
  import { cn } from '@/lib/utils';
  
  interface SidebarItemProps {

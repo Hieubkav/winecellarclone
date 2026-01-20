@@ -1,13 +1,15 @@
  'use client';
  
- import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
  import Link from 'next/link';
  import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft, Pencil, X } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
  import { createProduct } from '@/lib/api/admin';
- import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
+import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../components/LexicalEditor';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
  
  export default function ProductCreatePage() {
    const router = useRouter();
@@ -16,6 +18,7 @@ import { LexicalEditor } from '../../components/LexicalEditor';
    const [types, setTypes] = useState<ProductFilterOption[]>([]);
    const [categories, setCategories] = useState<ProductFilterOption[]>([]);
  
+  const [attributeFilters, setAttributeFilters] = useState<AttributeFilter[]>([]);
    const [name, setName] = useState('');
    const [slug, setSlug] = useState('');
    const [price, setPrice] = useState('');
@@ -26,6 +29,10 @@ import { LexicalEditor } from '../../components/LexicalEditor';
    const [active, setActive] = useState(true);
   const [showSlugEditor, setShowSlugEditor] = useState(false);
  
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [coverImagePath, setCoverImagePath] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
    useEffect(() => {
      async function loadFilters() {
        try {
@@ -45,10 +52,64 @@ import { LexicalEditor } from '../../components/LexicalEditor';
      if (typeId) {
        fetchProductFilters(Number(typeId)).then(filters => {
          setCategories(filters.categories);
+        setAttributeFilters(filters.attribute_filters || []);
+        setSelectedTermIds({});
        });
+    } else {
+      setAttributeFilters([]);
+      setSelectedTermIds({});
      }
    }, [typeId]);
  
+  const handleImageUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Vui long chon file hinh anh');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Kich thuoc file khong duoc vuot qua 5MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('folder', 'products');
+
+      const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setCoverImageUrl(result.data.url);
+        setCoverImagePath(result.data.path);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Khong the tai anh len');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }, []);
+
+  const handleTermChange = (groupCode: string, termId: number, filterType: string) => {
+    setSelectedTermIds(prev => {
+      const current = prev[groupCode] || [];
+      if (filterType === 'chon_don') {
+        return { ...prev, [groupCode]: current.includes(termId) ? [] : [termId] };
+      }
+      if (current.includes(termId)) {
+        return { ...prev, [groupCode]: current.filter(id => id !== termId) };
+      }
+      return { ...prev, [groupCode]: [...current, termId] };
+    });
+  };
+
    const generateSlug = (text: string) => {
      return text
        .toLowerCase()
@@ -86,6 +147,8 @@ import { LexicalEditor } from '../../components/LexicalEditor';
          category_ids: categoryIds,
          description: description.trim(),
          active,
+        cover_image_path: coverImagePath,
+        term_ids: Object.values(selectedTermIds).flat(),
        };
  
        const result = await createProduct(data);
@@ -144,6 +207,46 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                  />
                </div>
              </div>
+
+            <div className="space-y-2">
+              <Label>Ảnh đại diện</Label>
+              <div className="flex items-center gap-4">
+                {coverImageUrl ? (
+                  <div className="relative group">
+                    <img
+                      src={coverImageUrl.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${coverImageUrl}` : coverImageUrl}
+                      alt="Cover"
+                      className="w-24 h-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setCoverImageUrl(null); setCoverImagePath(null); }}
+                      className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
+                      disabled={isUploadingImage}
+                    />
+                    {isUploadingImage ? (
+                      <Loader2 size={24} className="animate-spin text-slate-400" />
+                    ) : (
+                      <>
+                        <ImageIcon size={24} className="text-slate-400 mb-1" />
+                        <span className="text-xs text-slate-400">Upload</span>
+                      </>
+                    )}
+                  </label>
+                )}
+              </div>
+            </div>
 
             {/* Slug - hidden by default */}
             <div className="space-y-2">
@@ -235,6 +338,47 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                  </select>
                </div>
              </div>
+
+            {/* Attribute Groups - show when type is selected */}
+            {attributeFilters.length > 0 && (
+              <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <Label className="text-base font-medium">Thuộc tính sản phẩm</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {attributeFilters.map(group => (
+                    <div key={group.code} className="space-y-2">
+                      <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                        {group.icon_url && (
+                          <img src={group.icon_url} alt="" className="w-4 h-4" />
+                        )}
+                        {group.name}
+                        {group.filter_type === 'chon_don' && (
+                          <span className="text-xs text-slate-400">(chọn 1)</span>
+                        )}
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {group.options.map(option => {
+                          const isSelected = (selectedTermIds[group.code] || []).includes(option.id);
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => handleTermChange(group.code, option.id, group.filter_type)}
+                              className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                isSelected
+                                  ? 'bg-blue-500 text-white border-blue-500'
+                                  : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
+                              }`}
+                            >
+                              {option.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
  
              <div className="space-y-2">
                <Label>Mô tả</Label>

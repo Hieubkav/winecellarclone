@@ -1,12 +1,11 @@
  'use client';
  
- import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
  import Link from 'next/link';
-import { Edit, Search, FolderTree } from 'lucide-react';
+import { Search, FolderTree } from 'lucide-react';
 import { Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData } from '../components/TableUtilities';
- import { cn } from '@/lib/utils';
-import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
+import { fetchProductFilters } from '@/lib/api/products';
  
  interface Category {
    id: number;

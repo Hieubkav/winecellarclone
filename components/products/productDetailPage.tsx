@@ -5,11 +5,9 @@ import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import {
   Tag,
-  MapPin,
   Sparkles,
   Hourglass,
   Droplets,
-  Percent,
   Layers,
   ChevronDown,
   ChevronUp,
