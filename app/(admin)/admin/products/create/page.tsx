@@ -66,34 +66,41 @@ import { LexicalEditor } from '../../components/LexicalEditor';
      }
    }, [typeId]);
  
+  const uploadSingleImage = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Vui long chon file hinh anh');
+      return null;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Kich thuoc file khong duoc vuot qua 5MB');
+      return null;
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', 'products');
+
+    const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Upload failed');
+
+    const result = await response.json();
+    if (result.success && result.data) {
+      return { url: result.data.url as string, path: result.data.path as string };
+    }
+
+    return null;
+  }, []);
+
   const handleGalleryUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     setIsUploadingImage(true);
     try {
-      const uploads = Array.from(files).map(async (file) => {
-        if (!file.type.startsWith('image/')) return null;
-        if (file.size > 5 * 1024 * 1024) return null;
-
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('folder', 'products');
-
-        const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) throw new Error('Upload failed');
-
-        const result = await response.json();
-        if (result.success && result.data) {
-          return { url: result.data.url as string, path: result.data.path as string };
-        }
-
-        return null;
-      });
-
+      const uploads = Array.from(files).map((file) => uploadSingleImage(file));
       const results = await Promise.all(uploads);
       const nextImages = results.filter((item): item is { url: string; path: string } => Boolean(item));
       if (nextImages.length > 0) {
@@ -105,7 +112,7 @@ import { LexicalEditor } from '../../components/LexicalEditor';
     } finally {
       setIsUploadingImage(false);
     }
-  }, []);
+  }, [uploadSingleImage]);
 
   const handleUrlUpload = useCallback(async () => {
     const url = imageUrlInput.trim();
@@ -133,6 +140,47 @@ import { LexicalEditor } from '../../components/LexicalEditor';
       setIsUploadingImage(false);
     }
   }, [imageUrlInput]);
+
+  const handleReplaceFromUrl = useCallback(async (index: number, url: string) => {
+    if (!url) return;
+
+    setIsUploadingImage(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, folder: 'products' }),
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        setGalleryImages(prev => prev.map((img, i) => (i === index ? result.data : img)));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Khong the tai anh tu URL');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }, []);
+
+  const handleReplaceFile = useCallback(async (index: number, file: File | null) => {
+    if (!file) return;
+    setIsUploadingImage(true);
+    try {
+      const uploaded = await uploadSingleImage(file);
+      if (uploaded) {
+        setGalleryImages(prev => prev.map((img, i) => (i === index ? uploaded : img)));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Khong the tai anh len');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }, [uploadSingleImage]);
 
   const handleDropFiles = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -322,6 +370,30 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                           Ảnh chính
                         </span>
                       )}
+                      <div className="absolute inset-x-1 bottom-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <label className="text-[10px] px-2 py-1 rounded bg-white/90 text-slate-700 cursor-pointer">
+                          Đổi ảnh
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleReplaceFile(index, e.target.files?.[0] || null)}
+                            disabled={isUploadingImage}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = window.prompt('Nhập URL ảnh mới');
+                            if (url) {
+                              handleReplaceFromUrl(index, url.trim());
+                            }
+                          }}
+                          className="text-[10px] px-2 py-1 rounded bg-white/90 text-slate-700"
+                        >
+                          Đổi URL
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => setGalleryImages(prev => prev.filter((_, i) => i !== index))}
