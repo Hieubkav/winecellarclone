@@ -294,8 +294,8 @@ import { LexicalEditor } from '../../components/LexicalEditor';
    };
  
    if (isLoading) {
-     return (
-       <div className="max-w-3xl mx-auto space-y-6">
+    return (
+      <div className="w-full max-w-6xl mx-auto space-y-6">
          <Skeleton className="h-8 w-48" />
          <Card>
            <CardContent className="p-6 space-y-4">
@@ -310,7 +310,7 @@ import { LexicalEditor } from '../../components/LexicalEditor';
    }
  
    return (
-     <div className="max-w-3xl mx-auto space-y-6 pb-20">
+    <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
        <div className="flex items-center gap-4">
          <Link href="/admin/products">
            <Button variant="ghost" size="icon">
