@@ -1,6 +1,6 @@
- 'use client';
- 
- import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
  import Link from 'next/link';
  import { usePathname } from 'next/navigation';
 import { 
@@ -119,15 +119,15 @@ import {
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
    const pathname = usePathname();
  
-   const isActive = (route: string) => pathname.startsWith(route);
+  const isActive = useCallback((route: string) => pathname.startsWith(route), [pathname]);
  
-   useEffect(() => {
-     if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/types')) {
-       setExpandedMenu('Sản phẩm');
-     } else if (isActive('/admin/menus') || isActive('/admin/home-components')) {
-       setExpandedMenu('Website');
-     }
-   }, [pathname]);
+  useEffect(() => {
+    if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/types')) {
+      setExpandedMenu('Sản phẩm');
+    } else if (isActive('/admin/menus') || isActive('/admin/home-components')) {
+      setExpandedMenu('Website');
+    }
+  }, [isActive]);
  
    const handleMenuToggle = (label: string) => {
      if (isCollapsed) {

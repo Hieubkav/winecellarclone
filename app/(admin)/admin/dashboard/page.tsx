@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Package, FileText, Eye, TrendingUp, TrendingDown, Users, MousePointerClick, Activity } from 'lucide-react';
 import { Card, Skeleton, Badge } from '../components/ui';
 import { cn } from '@/lib/utils';
@@ -240,9 +241,12 @@ export default function DashboardPage() {
                 >
                   <span className="w-6 text-center text-sm font-bold text-slate-400">#{index + 1}</span>
                   {product.image_url ? (
-                    <img 
-                      src={product.image_url} 
+                    <Image
+                      src={product.image_url}
                       alt={product.name}
+                      width={48}
+                      height={48}
+                      sizes="48px"
                       className="w-12 h-12 rounded-lg object-cover"
                     />
                   ) : (

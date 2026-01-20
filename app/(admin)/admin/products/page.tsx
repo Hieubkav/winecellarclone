@@ -1,7 +1,8 @@
- 'use client';
- 
-import React, { useState, useEffect } from 'react';
- import Link from 'next/link';
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle } from 'lucide-react';
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
@@ -37,7 +38,7 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
  
    const [visibleColumns, setVisibleColumns] = useState<string[]>(columns.map(c => c.key));
  
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = {
@@ -64,11 +65,11 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, filterCategory, filterType, searchTerm]);
 
-   useEffect(() => {
+  useEffect(() => {
     loadProducts();
-  }, [currentPage, searchTerm, filterCategory, filterType]);
+  }, [loadProducts]);
  
    const handleSort = (key: string) => {
      setSortConfig(prev => ({ 
@@ -250,9 +251,12 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
                  {visibleColumns.includes('image') && (
                    <TableCell>
                   {product.cover_image_url ? (
-                    <img 
-                      src={product.cover_image_url} 
+                    <Image
+                      src={product.cover_image_url}
                       alt={product.name}
+                      width={40}
+                      height={40}
+                      sizes="40px"
                       className="w-10 h-10 object-cover rounded"
                     />
                   ) : (

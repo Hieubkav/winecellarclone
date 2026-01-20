@@ -273,6 +273,7 @@
        className={`image-wrapper ${isFocused ? 'focused' : ''}`}
        style={{ display: 'inline-block', position: 'relative' }}
      >
+       {/* eslint-disable-next-line @next/next/no-img-element */}
        <img
          ref={imageRef}
          src={src}

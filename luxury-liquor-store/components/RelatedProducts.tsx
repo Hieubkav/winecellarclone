@@ -1,4 +1,5 @@
 import React, { useRef, useState, MouseEvent } from 'react';
+import Image from 'next/image';
 import { ArrowRight, Globe, Droplets, FlaskConical, Grape } from 'lucide-react';
 import { RelatedProduct } from '../types';
 
@@ -74,10 +75,12 @@ export const RelatedProducts: React.FC<RelatedProductsProps> = ({ title, product
                   -{product.discount}%
                 </span>
               )}
-              <img 
-                src={product.image} 
+              <Image
+                src={product.image}
                 alt={product.name}
-                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" 
+                fill
+                sizes="(min-width: 1024px) 22vw, (min-width: 768px) 30vw, 45vw"
+                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
               />
             </div>
 

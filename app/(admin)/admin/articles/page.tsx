@@ -1,7 +1,8 @@
- 'use client';
- 
-import React, { useState, useEffect } from 'react';
- import Link from 'next/link';
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Search, FileText, ExternalLink, Edit, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
@@ -19,7 +20,7 @@ import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticl
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
  
-  const loadArticles = async () => {
+  const loadArticles = useCallback(async () => {
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = {
@@ -38,11 +39,11 @@ import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticl
     } finally {
       setIsLoading(false);
     }
-  };
-
-   useEffect(() => {
-    loadArticles();
   }, [currentPage, searchTerm]);
+
+  useEffect(() => {
+    loadArticles();
+  }, [loadArticles]);
  
    const handleSort = (key: string) => {
      setSortConfig(prev => ({ 
@@ -178,9 +179,12 @@ import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticl
                  <TableCell>
                    <div className="flex items-center gap-3">
                     {article.cover_image_url ? (
-                      <img 
-                        src={article.cover_image_url} 
+                      <Image
+                        src={article.cover_image_url}
                         alt={article.title}
+                        width={40}
+                        height={40}
+                        sizes="40px"
                         className="w-10 h-10 rounded object-cover shrink-0"
                       />
                     ) : (

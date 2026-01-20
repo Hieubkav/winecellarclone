@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { MapPin, Droplets, FlaskConical, Globe, ShieldCheck, Phone, ChevronDown, ChevronUp } from 'lucide-react';
 import { Product } from '../types';
 import { Button } from './ui/Button';
@@ -39,9 +40,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product }) => {
                 -{discountPercentage}%
               </span>
             )}
-            <img 
-              src={product.images[selectedImage]} 
-              alt={product.name} 
+            <Image
+              src={product.images[selectedImage]}
+              alt={product.name}
+              fill
+              sizes="(min-width: 1024px) 60vw, 100vw"
               className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
             />
           </div>
@@ -54,7 +57,14 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product }) => {
                   selectedImage === idx ? 'border-brand-600 ring-2 ring-brand-100' : 'border-transparent hover:border-gray-200'
                 }`}
               >
-                <img src={img} alt={`Thumbnail ${idx}`} className="h-full w-full object-contain" />
+                <Image
+                  src={img}
+                  alt={`Thumbnail ${idx}`}
+                  width={80}
+                  height={80}
+                  sizes="80px"
+                  className="h-full w-full object-contain"
+                />
               </button>
             ))}
           </div>

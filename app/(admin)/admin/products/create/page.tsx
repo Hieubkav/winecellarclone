@@ -1,7 +1,8 @@
- 'use client';
- 
+'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
- import Link from 'next/link';
+import Image from 'next/image';
+import Link from 'next/link';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
@@ -360,9 +361,12 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                       }}
                       className="relative group cursor-move"
                     >
-                      <img
+                      <Image
                         src={image.url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${image.url}` : image.url}
                         alt={`Gallery ${index + 1}`}
+                        width={80}
+                        height={80}
+                        sizes="80px"
                         className="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                       />
                       {index === 0 && (
@@ -561,7 +565,7 @@ import { LexicalEditor } from '../../components/LexicalEditor';
                     <div key={group.code} className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                         {group.icon_url && (
-                          <img src={group.icon_url} alt="" className="w-4 h-4" />
+                          <Image src={group.icon_url} alt="" width={16} height={16} sizes="16px" className="w-4 h-4" />
                         )}
                         {group.name}
                         {group.filter_type === 'chon_don' && (
