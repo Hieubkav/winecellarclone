@@ -2,50 +2,46 @@
  
  import React, { useState, useMemo, useEffect } from 'react';
  import Link from 'next/link';
- import { Plus, Edit, Trash2, Search, FolderTree, ChevronRight } from 'lucide-react';
- import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
- import { SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
+import { Edit, Search, FolderTree } from 'lucide-react';
+import { Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { SortableHeader, useSortableData } from '../components/TableUtilities';
  import { cn } from '@/lib/utils';
+import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
  
  interface Category {
    id: number;
    name: string;
    slug: string;
-   parentId?: number;
-   parentName?: string;
-   productCount: number;
-   order: number;
-   active: boolean;
+  type_id?: number | null;
  }
  
- const mockCategories: Category[] = [
-   { id: 1, name: 'Rượu Vang Đỏ', slug: 'ruou-vang-do', productCount: 45, order: 1, active: true },
-   { id: 2, name: 'Rượu Vang Trắng', slug: 'ruou-vang-trang', productCount: 32, order: 2, active: true },
-   { id: 3, name: 'Champagne', slug: 'champagne', productCount: 18, order: 3, active: true },
-   { id: 4, name: 'Whisky', slug: 'whisky', productCount: 28, order: 4, active: true },
-   { id: 5, name: 'Cognac', slug: 'cognac', productCount: 15, order: 5, active: true },
-   { id: 6, name: 'Sake', slug: 'sake', productCount: 12, order: 6, active: false },
-   { id: 7, name: 'Vodka', slug: 'vodka', productCount: 20, order: 7, active: true },
-   { id: 8, name: 'Gin', slug: 'gin', productCount: 16, order: 8, active: true },
-   { id: 9, name: 'Bordeaux', slug: 'bordeaux', parentId: 1, parentName: 'Rượu Vang Đỏ', productCount: 22, order: 1, active: true },
-   { id: 10, name: 'Burgundy', slug: 'burgundy', parentId: 1, parentName: 'Rượu Vang Đỏ', productCount: 18, order: 2, active: true },
- ];
+interface ProductType {
+  id: number;
+  name: string;
+  slug: string;
+}
  
  export default function CategoriesListPage() {
    const [isLoading, setIsLoading] = useState(true);
    const [categories, setCategories] = useState<Category[]>([]);
+  const [types, setTypes] = useState<ProductType[]>([]);
    const [searchTerm, setSearchTerm] = useState('');
-   const [filterStatus, setFilterStatus] = useState('');
+  const [filterType, setFilterType] = useState('');
    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
-   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-   const [isDeleting, setIsDeleting] = useState(false);
  
    useEffect(() => {
-     const timer = setTimeout(() => {
-       setCategories(mockCategories);
-       setIsLoading(false);
-     }, 500);
-     return () => clearTimeout(timer);
+    async function fetchData() {
+      try {
+        const filtersRes = await fetchProductFilters();
+        setCategories(filtersRes.categories as Category[]);
+        setTypes(filtersRes.types as ProductType[]);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
    }, []);
  
    const handleSort = (key: string) => {
@@ -60,38 +56,19 @@
      if (searchTerm) {
        data = data.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
      }
-     if (filterStatus === 'active') {
-       data = data.filter(c => c.active);
-     } else if (filterStatus === 'inactive') {
-       data = data.filter(c => !c.active);
+    if (filterType) {
+      const typeId = Number(filterType);
+      data = data.filter(c => c.type_id === typeId || c.type_id === null);
      }
      return data;
-   }, [categories, searchTerm, filterStatus]);
+  }, [categories, searchTerm, filterType]);
  
    const sortedData = useSortableData(filteredData, sortConfig);
  
-   const toggleSelectAll = () => {
-     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map(c => c.id));
-   };
- 
-   const toggleSelectItem = (id: number) => {
-     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-   };
- 
-   const handleDelete = async (id: number) => {
-     if (confirm('Xóa danh mục này?')) {
-       setCategories(prev => prev.filter(c => c.id !== id));
-     }
-   };
- 
-   const handleBulkDelete = async () => {
-     if (confirm(`Xóa ${selectedIds.length} danh mục đã chọn?`)) {
-       setIsDeleting(true);
-       await new Promise(resolve => setTimeout(resolve, 500));
-       setCategories(prev => prev.filter(c => !selectedIds.includes(c.id)));
-       setSelectedIds([]);
-       setIsDeleting(false);
-     }
+  const getTypeName = (typeId: number | null | undefined) => {
+    if (!typeId) return 'Chung';
+    const type = types.find(t => t.id === typeId);
+    return type?.name || 'Không xác định';
    };
  
    if (isLoading) {
@@ -121,23 +98,10 @@
          <div>
            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Danh mục sản phẩm</h1>
            <p className="text-sm text-slate-500 dark:text-slate-400">
-             Quản lý danh mục và phân loại sản phẩm ({categories.length} danh mục)
+            Xem danh mục và phân loại sản phẩm ({categories.length} danh mục)
            </p>
          </div>
-         <Link href="/admin/categories/create">
-           <Button className="gap-2">
-             <Plus size={16} />
-             Thêm danh mục
-           </Button>
-         </Link>
        </div>
- 
-       <BulkActionBar 
-         selectedCount={selectedIds.length} 
-         onDelete={handleBulkDelete} 
-         onClearSelection={() => setSelectedIds([])} 
-         isLoading={isDeleting}
-       />
  
        <Card>
          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4">
@@ -152,39 +116,26 @@
            </div>
            <select 
              className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" 
-             value={filterStatus} 
-             onChange={(e) => setFilterStatus(e.target.value)}
+            value={filterType} 
+            onChange={(e) => setFilterType(e.target.value)}
            >
-             <option value="">Tất cả trạng thái</option>
-             <option value="active">Đang hoạt động</option>
-             <option value="inactive">Tạm ẩn</option>
+            <option value="">Tất cả phân loại</option>
+            {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
            </select>
          </div>
  
          <Table>
            <TableHeader>
              <TableRow>
-               <TableHead className="w-[40px]">
-                 <SelectCheckbox 
-                   checked={selectedIds.length === sortedData.length && sortedData.length > 0} 
-                   onChange={toggleSelectAll} 
-                   indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} 
-                 />
-               </TableHead>
                <SortableHeader label="Tên danh mục" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-               <TableHead>Danh mục cha</TableHead>
-               <SortableHeader label="Số sản phẩm" sortKey="productCount" sortConfig={sortConfig} onSort={handleSort} />
-               <SortableHeader label="Thứ tự" sortKey="order" sortConfig={sortConfig} onSort={handleSort} />
-               <TableHead>Trạng thái</TableHead>
+              <TableHead>Slug</TableHead>
+              <TableHead>Phân loại</TableHead>
                <TableHead className="text-right">Hành động</TableHead>
              </TableRow>
            </TableHeader>
            <TableBody>
              {sortedData.map(category => (
-               <TableRow key={category.id} className={selectedIds.includes(category.id) ? 'bg-blue-500/5' : ''}>
-                 <TableCell>
-                   <SelectCheckbox checked={selectedIds.includes(category.id)} onChange={() => toggleSelectItem(category.id)} />
-                 </TableCell>
+              <TableRow key={category.id}>
                  <TableCell>
                    <div className="flex items-center gap-2">
                      <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded flex items-center justify-center">
@@ -194,50 +145,28 @@
                    </div>
                  </TableCell>
                  <TableCell>
-                   {category.parentName ? (
-                     <div className="flex items-center gap-1 text-slate-500">
-                       <ChevronRight size={14} />
-                       <span>{category.parentName}</span>
-                     </div>
-                   ) : (
-                     <span className="text-slate-400">—</span>
-                   )}
+                  <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{category.slug}</code>
                  </TableCell>
                  <TableCell>
-                   <Badge variant="secondary">{category.productCount} sản phẩm</Badge>
-                 </TableCell>
-                 <TableCell>
-                   <span className="text-slate-500">{category.order}</span>
-                 </TableCell>
-                 <TableCell>
-                   <Badge variant={category.active ? 'success' : 'secondary'}>
-                     {category.active ? 'Hoạt động' : 'Tạm ẩn'}
+                  <Badge variant={category.type_id ? 'info' : 'secondary'}>
+                    {getTypeName(category.type_id)}
                    </Badge>
                  </TableCell>
                  <TableCell className="text-right">
-                   <div className="flex justify-end gap-2">
-                     <Link href={`/admin/categories/${category.id}/edit`}>
-                       <Button variant="ghost" size="icon" aria-label="Edit">
-                         <Edit size={16} />
-                       </Button>
-                     </Link>
-                     <Button 
-                       variant="ghost" 
-                       size="icon" 
-                       className="text-red-500 hover:text-red-600" 
-                       onClick={() => handleDelete(category.id)}
-                       aria-label="Delete"
-                     >
-                       <Trash2 size={16} />
-                     </Button>
-                   </div>
+                  <Link 
+                    href={`/filter?category=${category.slug}`} 
+                    target="_blank"
+                    className="text-blue-600 hover:text-blue-700 text-sm"
+                  >
+                    Xem sản phẩm
+                  </Link>
                  </TableCell>
                </TableRow>
              ))}
              {sortedData.length === 0 && (
                <TableRow>
-                 <TableCell colSpan={7} className="text-center py-8 text-slate-500">
-                   {searchTerm || filterStatus 
+                <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+                  {searchTerm || filterType 
                      ? 'Không tìm thấy kết quả phù hợp' 
                      : 'Chưa có danh mục nào'}
                  </TableCell>
@@ -254,6 +183,23 @@
            </div>
          )}
        </Card>
+
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Phân loại sản phẩm</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {types.map(type => (
+            <Link 
+              key={type.id} 
+              href={`/filter?type_id=${type.id}`}
+              target="_blank"
+              className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <p className="font-medium text-slate-900 dark:text-slate-100">{type.name}</p>
+              <p className="text-xs text-slate-500 mt-1">{type.slug}</p>
+            </Link>
+          ))}
+        </div>
+      </Card>
      </div>
    );
  }

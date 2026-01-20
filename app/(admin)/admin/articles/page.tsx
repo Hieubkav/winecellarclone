@@ -2,47 +2,46 @@
  
  import React, { useState, useMemo, useEffect } from 'react';
  import Link from 'next/link';
- import { Plus, Edit, Trash2, Search, FileText, ExternalLink, Calendar } from 'lucide-react';
- import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
- import { SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
+import { Search, FileText, ExternalLink, Calendar } from 'lucide-react';
+import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { SortableHeader, useSortableData } from '../components/TableUtilities';
  import { cn } from '@/lib/utils';
+import { fetchArticleList, type ArticleListItem } from '@/lib/api/articles';
  
- interface Article {
-   id: number;
-   title: string;
-   slug: string;
-   excerpt?: string;
-   image?: string;
-   status: 'published' | 'draft';
-   publishedAt?: string;
-   createdAt: string;
- }
- 
- const mockArticles: Article[] = [
-   { id: 1, title: 'Hướng dẫn chọn rượu vang cho người mới', slug: 'huong-dan-chon-ruou-vang', excerpt: 'Bài viết hướng dẫn chi tiết cách chọn rượu vang phù hợp...', status: 'published', publishedAt: '2024-01-15', createdAt: '2024-01-10' },
-   { id: 2, title: 'Top 10 loại Whisky được ưa chuộng nhất', slug: 'top-10-whisky', excerpt: 'Khám phá những loại whisky hàng đầu thế giới...', status: 'published', publishedAt: '2024-01-12', createdAt: '2024-01-08' },
-   { id: 3, title: 'Cách bảo quản rượu vang đúng cách', slug: 'cach-bao-quan-ruou-vang', excerpt: 'Những mẹo bảo quản rượu vang giữ nguyên hương vị...', status: 'draft', createdAt: '2024-01-05' },
-   { id: 4, title: 'Champagne vs Sparkling Wine: Sự khác biệt', slug: 'champagne-vs-sparkling-wine', excerpt: 'Phân biệt champagne và rượu vang sủi bọt...', status: 'published', publishedAt: '2024-01-01', createdAt: '2023-12-28' },
-   { id: 5, title: 'Nghệ thuật thưởng thức Cognac', slug: 'nghe-thuat-thuong-thuc-cognac', excerpt: 'Hướng dẫn cách thưởng thức cognac đúng chuẩn...', status: 'draft', createdAt: '2023-12-25' },
-   { id: 6, title: 'Sake Nhật Bản: Văn hóa và cách thưởng thức', slug: 'sake-nhat-ban', excerpt: 'Tìm hiểu về văn hóa sake và cách uống...', status: 'published', publishedAt: '2023-12-20', createdAt: '2023-12-15' },
- ];
+interface DisplayArticle extends ArticleListItem {}
  
  export default function ArticlesListPage() {
    const [isLoading, setIsLoading] = useState(true);
-   const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<DisplayArticle[]>([]);
+  const [totalArticles, setTotalArticles] = useState(0);
    const [searchTerm, setSearchTerm] = useState('');
-   const [filterStatus, setFilterStatus] = useState('');
-   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'createdAt', direction: 'desc' });
-   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-   const [isDeleting, setIsDeleting] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'published_at', direction: 'desc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
  
    useEffect(() => {
-     const timer = setTimeout(() => {
-       setArticles(mockArticles);
-       setIsLoading(false);
-     }, 500);
-     return () => clearTimeout(timer);
-   }, []);
+    async function fetchData() {
+      setIsLoading(true);
+      try {
+        const params: Record<string, string | number> = {
+          per_page: 20,
+          page: currentPage,
+        };
+        
+        if (searchTerm) params.q = searchTerm;
+
+        const articlesRes = await fetchArticleList(params);
+        setArticles(articlesRes.data);
+        setTotalArticles(articlesRes.meta.pagination.total);
+        setHasMore(articlesRes.meta.pagination.has_more);
+      } catch (error) {
+        console.error('Failed to fetch articles:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [currentPage, searchTerm]);
  
    const handleSort = (key: string) => {
      setSortConfig(prev => ({ 
@@ -51,42 +50,7 @@
      }));
    };
  
-   const filteredData = useMemo(() => {
-     let data = [...articles];
-     if (searchTerm) {
-       data = data.filter(a => a.title.toLowerCase().includes(searchTerm.toLowerCase()));
-     }
-     if (filterStatus) {
-       data = data.filter(a => a.status === filterStatus);
-     }
-     return data;
-   }, [articles, searchTerm, filterStatus]);
- 
-   const sortedData = useSortableData(filteredData, sortConfig);
- 
-   const toggleSelectAll = () => {
-     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map(a => a.id));
-   };
- 
-   const toggleSelectItem = (id: number) => {
-     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-   };
- 
-   const handleDelete = async (id: number) => {
-     if (confirm('Xóa bài viết này?')) {
-       setArticles(prev => prev.filter(a => a.id !== id));
-     }
-   };
- 
-   const handleBulkDelete = async () => {
-     if (confirm(`Xóa ${selectedIds.length} bài viết đã chọn?`)) {
-       setIsDeleting(true);
-       await new Promise(resolve => setTimeout(resolve, 500));
-       setArticles(prev => prev.filter(a => !selectedIds.includes(a.id)));
-       setSelectedIds([]);
-       setIsDeleting(false);
-     }
-   };
+  const sortedData = useSortableData(articles, sortConfig);
  
    const formatDate = (dateStr: string) => {
      return new Date(dateStr).toLocaleDateString('vi-VN', {
@@ -123,23 +87,10 @@
          <div>
            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Bài viết</h1>
            <p className="text-sm text-slate-500 dark:text-slate-400">
-             Quản lý nội dung bài viết và tin tức ({articles.length} bài viết)
+            Quản lý nội dung bài viết và tin tức ({totalArticles} bài viết)
            </p>
          </div>
-         <Link href="/admin/articles/create">
-           <Button className="gap-2">
-             <Plus size={16} />
-             Viết bài mới
-           </Button>
-         </Link>
        </div>
- 
-       <BulkActionBar 
-         selectedCount={selectedIds.length} 
-         onDelete={handleBulkDelete} 
-         onClearSelection={() => setSelectedIds([])} 
-         isLoading={isDeleting}
-       />
  
        <Card>
          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4">
@@ -149,55 +100,46 @@
                placeholder="Tìm bài viết..." 
                className="pl-9 w-48" 
                value={searchTerm} 
-               onChange={(e) => setSearchTerm(e.target.value)} 
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }} 
              />
            </div>
-           <select 
-             className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" 
-             value={filterStatus} 
-             onChange={(e) => setFilterStatus(e.target.value)}
-           >
-             <option value="">Tất cả trạng thái</option>
-             <option value="published">Đã xuất bản</option>
-             <option value="draft">Bản nháp</option>
-           </select>
          </div>
  
          <Table>
            <TableHeader>
              <TableRow>
-               <TableHead className="w-[40px]">
-                 <SelectCheckbox 
-                   checked={selectedIds.length === sortedData.length && sortedData.length > 0} 
-                   onChange={toggleSelectAll} 
-                   indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} 
-                 />
-               </TableHead>
                <SortableHeader label="Tiêu đề" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
                <TableHead className="hidden lg:table-cell">Mô tả ngắn</TableHead>
-               <TableHead>Trạng thái</TableHead>
-               <SortableHeader label="Ngày tạo" sortKey="createdAt" sortConfig={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Ngày xuất bản" sortKey="published_at" sortConfig={sortConfig} onSort={handleSort} />
                <TableHead className="text-right">Hành động</TableHead>
              </TableRow>
            </TableHeader>
            <TableBody>
              {sortedData.map(article => (
-               <TableRow key={article.id} className={selectedIds.includes(article.id) ? 'bg-blue-500/5' : ''}>
-                 <TableCell>
-                   <SelectCheckbox checked={selectedIds.includes(article.id)} onChange={() => toggleSelectItem(article.id)} />
-                 </TableCell>
+              <TableRow key={article.id}>
                  <TableCell>
                    <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center shrink-0">
-                       <FileText size={16} className="text-slate-400" />
-                     </div>
+                    {article.cover_image_url ? (
+                      <img 
+                        src={article.cover_image_url} 
+                        alt={article.title}
+                        className="w-10 h-10 rounded object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center shrink-0">
+                        <FileText size={16} className="text-slate-400" />
+                      </div>
+                    )}
                      <div className="min-w-0">
                        <p className="font-medium text-slate-900 dark:text-slate-100 truncate max-w-[250px]">
                          {article.title}
                        </p>
                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                          <Calendar size={12} />
-                         {article.publishedAt ? formatDate(article.publishedAt) : 'Chưa xuất bản'}
+                        {formatDate(article.published_at)}
                        </p>
                      </div>
                    </div>
@@ -208,16 +150,11 @@
                    </p>
                  </TableCell>
                  <TableCell>
-                   <Badge variant={article.status === 'published' ? 'success' : 'secondary'}>
-                     {article.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}
-                   </Badge>
-                 </TableCell>
-                 <TableCell>
-                   <span className="text-sm text-slate-500">{formatDate(article.createdAt)}</span>
+                  <span className="text-sm text-slate-500">{formatDate(article.published_at)}</span>
                  </TableCell>
                  <TableCell className="text-right">
                    <div className="flex justify-end gap-2">
-                     {article.status === 'published' && (
+                    <Link href={`/bai-viet/${article.slug}`} target="_blank">
                        <Button 
                          variant="ghost" 
                          size="icon" 
@@ -227,29 +164,15 @@
                        >
                          <ExternalLink size={16} />
                        </Button>
-                     )}
-                     <Link href={`/admin/articles/${article.id}/edit`}>
-                       <Button variant="ghost" size="icon" aria-label="Edit">
-                         <Edit size={16} />
-                       </Button>
                      </Link>
-                     <Button 
-                       variant="ghost" 
-                       size="icon" 
-                       className="text-red-500 hover:text-red-600" 
-                       onClick={() => handleDelete(article.id)}
-                       aria-label="Delete"
-                     >
-                       <Trash2 size={16} />
-                     </Button>
                    </div>
                  </TableCell>
                </TableRow>
              ))}
              {sortedData.length === 0 && (
                <TableRow>
-                 <TableCell colSpan={6} className="text-center py-8 text-slate-500">
-                   {searchTerm || filterStatus 
+                <TableCell colSpan={4} className="text-center py-8 text-slate-500">
+                  {searchTerm 
                      ? 'Không tìm thấy kết quả phù hợp' 
                      : 'Chưa có bài viết nào'}
                  </TableCell>
@@ -259,10 +182,19 @@
          </Table>
  
          {sortedData.length > 0 && (
-           <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
              <span className="text-sm text-slate-500">
-               Hiển thị {sortedData.length} / {articles.length} bài viết
+              Hiển thị {sortedData.length} / {totalArticles} bài viết
              </span>
+            {hasMore && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setCurrentPage(prev => prev + 1)}
+              >
+                Tải thêm
+              </Button>
+            )}
            </div>
          )}
        </Card>
