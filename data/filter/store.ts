@@ -12,6 +12,10 @@ import { matchesSearch } from "@/lib/utils/text-normalization"
 
 const DEFAULT_PRICE_MAX = 10_000_000
 const DEFAULT_PER_PAGE = 24
+const FILTER_OPTIONS_CACHE_KEY = "wincellar.filter.options.v1"
+const PRODUCT_LIST_CACHE_KEY = "wincellar.filter.products.v1"
+const FILTER_OPTIONS_TTL = 10 * 60 * 1000
+const PRODUCT_LIST_TTL = 2 * 60 * 1000
 
 export type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc"
 
@@ -54,6 +58,11 @@ export interface Wine {
     icon_url?: string | null
     terms: Array<{ id: number; name: string; slug: string }>
   }>
+}
+
+type CachePayload<T> = {
+  expiresAt: number
+  data: T
 }
 
 interface AttributeFilter {
@@ -161,6 +170,46 @@ const mapProductToWine = (product: ProductListItem, attributeFilters: AttributeF
   }
 }
 
+const readCache = <T>(key: string): T | null => {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) {
+      return null
+    }
+
+    const parsed = JSON.parse(raw) as CachePayload<T>
+    if (!parsed?.expiresAt || Date.now() > parsed.expiresAt) {
+      window.localStorage.removeItem(key)
+      return null
+    }
+
+    return parsed.data ?? null
+  } catch {
+    return null
+  }
+}
+
+const writeCache = <T>(key: string, data: T, ttlMs: number) => {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  try {
+    const payload: CachePayload<T> = {
+      data,
+      expiresAt: Date.now() + ttlMs,
+    }
+
+    window.localStorage.setItem(key, JSON.stringify(payload))
+  } catch {
+    // Ignore cache write failures
+  }
+}
+
 // Memoized search to avoid recomputing on every render
 // Only recomputes when items array or query actually changes
 // Uses Vietnamese text normalization for flexible matching
@@ -198,6 +247,24 @@ const ensureRangeWithinBounds = (range: PriceRange, bounds: PriceRange): PriceRa
 
 const toggleIdInList = (list: number[], id: number): number[] => {
   return list.includes(id) ? list.filter((value) => value !== id) : [...list, id]
+}
+
+const isDefaultFilters = (filters: FiltersState, options: FilterOptionsState): boolean => {
+  const isDefaultPrice =
+    filters.priceRange[0] === options.priceRange[0] &&
+    filters.priceRange[1] === options.priceRange[1]
+
+  return (
+    filters.categoryId === null &&
+    filters.productTypeId === null &&
+    isDefaultPrice &&
+    filters.sortBy === "name-asc" &&
+    filters.searchQuery === "" &&
+    filters.page === 1 &&
+    filters.perPage === DEFAULT_PER_PAGE &&
+    Object.keys(filters.attributeSelections).length === 0 &&
+    Object.keys(filters.rangeFilters).length === 0
+  )
 }
 
 const buildQueryParams = (filters: FiltersState): Record<string, string | number | Array<string | number> | undefined> => {
@@ -312,7 +379,22 @@ export const useWineStore = create<WineStore>((set, get) => ({
       return
     }
 
-    set({ loading: true, loadingMore: false, error: null })
+    const cachedOptions = readCache<FilterOptionsState>(FILTER_OPTIONS_CACHE_KEY)
+    if (cachedOptions) {
+      set((state) => ({
+        options: cachedOptions,
+        filters: {
+          ...state.filters,
+          priceRange: cachedOptions.priceRange,
+        },
+        initialized: true,
+        loading: false,
+        loadingMore: false,
+        error: null,
+      }))
+    } else {
+      set({ loading: true, loadingMore: false, error: null })
+    }
 
     try {
       const payload = await fetchProductFilters()
@@ -326,6 +408,8 @@ export const useWineStore = create<WineStore>((set, get) => ({
         },
         initialized: true,
       }))
+
+      writeCache(FILTER_OPTIONS_CACHE_KEY, options, FILTER_OPTIONS_TTL)
 
       // Don't fetch products here - let useFilterUrlSync handle it after applying URL params
       set({ loading: false })
@@ -341,9 +425,32 @@ export const useWineStore = create<WineStore>((set, get) => ({
       return false
     }
 
+    const shouldUseCache = !append && isDefaultFilters(filters, get().options)
+    let usedCache = false
+
+    if (shouldUseCache) {
+      const cached = readCache<{
+        products: Wine[]
+        meta: ProductListMeta
+        perPage: number
+      }>(PRODUCT_LIST_CACHE_KEY)
+
+      if (cached && cached.perPage === filters.perPage) {
+        usedCache = true
+        set(() => ({
+          products: cached.products,
+          wines: applySearch(cached.products, filters.searchQuery),
+          meta: cached.meta,
+          loading: false,
+          loadingMore: false,
+          error: null,
+        }))
+      }
+    }
+
     if (append) {
       set({ loadingMore: true, error: null })
-    } else {
+    } else if (!usedCache) {
       set({ loading: true, loadingMore: false, error: null })
     }
 
@@ -370,6 +477,14 @@ export const useWineStore = create<WineStore>((set, get) => ({
           loadingMore: false,
         }
       })
+
+      if (shouldUseCache) {
+        writeCache(
+          PRODUCT_LIST_CACHE_KEY,
+          { products: mapped, meta: response.meta, perPage: filters.perPage },
+          PRODUCT_LIST_TTL,
+        )
+      }
 
       return true
     } catch (error) {
