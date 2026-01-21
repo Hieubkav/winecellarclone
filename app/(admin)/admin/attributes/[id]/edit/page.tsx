@@ -4,7 +4,7 @@ import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Tag, Info } from 'lucide-react';
-import { Button, Card, CardContent, Input, Label, Skeleton, Badge } from '../../../../components/ui';
+import { Button, Card, CardContent, Input, Label, Skeleton, Badge } from '../../../components/ui';
 import { 
   fetchAdminCatalogAttributeGroup, 
   updateCatalogAttributeGroup,
@@ -33,7 +33,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
   const [iconPath, setIconPath] = useState('');
   
   const [terms, setTerms] = useState<Array<{ id: number; name: string; slug: string; position: number }>>([]);
-  const [productTypes, setProductTypes] = useState<Array<{ id: number; name: string; slug: string }>>([]);
+  const [productTypes, setProductTypes] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
     async function loadData() {
@@ -157,7 +157,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 placeholder="Ví dụ: Xuất xứ"
                 required
               />
@@ -203,7 +203,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
                   type="number"
                   min={0}
                   value={position}
-                  onChange={(e) => setPosition(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPosition(e.target.value)}
                   placeholder="0"
                 />
               </div>
@@ -213,7 +213,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
                 <Input
                   id="iconPath"
                   value={iconPath}
-                  onChange={(e) => setIconPath(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIconPath(e.target.value)}
                   placeholder="/icons/attribute.svg"
                 />
               </div>
