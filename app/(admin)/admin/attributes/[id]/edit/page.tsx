@@ -4,7 +4,9 @@ import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Tag, Info } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Button, Card, CardContent, Input, Label, Skeleton, Badge } from '../../../components/ui';
+import { IconPicker } from '../../../components/IconPicker';
 import { 
   fetchAdminCatalogAttributeGroup, 
   updateCatalogAttributeGroup,
@@ -196,13 +198,12 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="iconPath">Icon path</Label>
-              <Input
-                id="iconPath"
+              <Label htmlFor="iconPath">Icon</Label>
+              <IconPicker
                 value={iconPath}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIconPath(e.target.value)}
-                placeholder="/icons/attribute.svg"
+                onChange={setIconPath}
               />
+              <p className="text-xs text-slate-500">Chọn icon từ thư viện Lucide</p>
             </div>
 
             <div className="flex items-center gap-2">

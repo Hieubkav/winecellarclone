@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Edit, Trash2, Tag, Search, AlertTriangle, RotateCcw, Filter, Layers, ChevronDown, ChevronUp } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData } from '../components/TableUtilities';
 import { 
@@ -398,70 +399,80 @@ export default function ProductTypesPage() {
                   <TableHead>Mã</TableHead>
                   <TableHead>Loại filter</TableHead>
                   <TableHead>Số giá trị</TableHead>
+                  <TableHead>Số SP</TableHead>
                   <TableHead>Phân loại</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedAttributes.map(attr => (
-                  <TableRow key={attr.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded flex items-center justify-center">
-                          <Filter size={16} className="text-purple-600 dark:text-purple-400" />
+                {sortedAttributes.map(attr => {
+                  const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
+                    ? (LucideIcons as any)[attr.icon_path]
+                    : Filter;
+                  
+                  return (
+                    <TableRow key={attr.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded flex items-center justify-center">
+                            <IconComponent size={16} className="text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <span className="font-medium">{attr.name}</span>
                         </div>
-                        <span className="font-medium">{attr.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{attr.code}</code>
-                    </TableCell>
-                    <TableCell>{getFilterTypeBadge(attr.filter_type)}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{attr.terms_count}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {attr.product_types.length > 0 ? (
-                          attr.product_types.map(pt => (
-                            <Badge key={pt.id} variant="info" className="text-xs">
-                              {pt.name}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-xs text-slate-400">Chung</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={attr.is_filterable ? 'success' : 'secondary'}>
-                        {attr.is_filterable ? 'Có thể lọc' : 'Không lọc'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link href={`/admin/attributes/${attr.id}/edit`}>
-                          <Button variant="ghost" size="icon" aria-label="Edit">
-                            <Edit size={16} />
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{attr.code}</code>
+                      </TableCell>
+                      <TableCell>{getFilterTypeBadge(attr.filter_type)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{attr.terms_count}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{attr.products_count || 0}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {attr.product_types.length > 0 ? (
+                            attr.product_types.map(pt => (
+                              <Badge key={pt.id} variant="info" className="text-xs">
+                                {pt.name}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-xs text-slate-400">Chung</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={attr.is_filterable ? 'success' : 'secondary'}>
+                          {attr.is_filterable ? 'Có thể lọc' : 'Không lọc'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link href={`/admin/attributes/${attr.id}/edit`}>
+                            <Button variant="ghost" size="icon" aria-label="Edit">
+                              <Edit size={16} />
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-600 hover:text-red-700"
+                            aria-label="Delete"
+                            onClick={() => setDeleteConfirm({ type: 'attribute', id: attr.id })}
+                          >
+                            <Trash2 size={16} />
                           </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-600 hover:text-red-700"
-                          aria-label="Delete"
-                          onClick={() => setDeleteConfirm({ type: 'attribute', id: attr.id })}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {sortedAttributes.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={8} className="text-center py-8 text-slate-500">
                       {searchTerm ? 'Không tìm thấy thuộc tính phù hợp' : 'Chưa có thuộc tính nào'}
                     </TableCell>
                   </TableRow>

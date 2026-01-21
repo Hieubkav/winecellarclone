@@ -286,6 +286,7 @@ export interface AdminCatalogAttributeGroup {
   position: number | null;
   icon_path?: string | null;
   terms_count: number;
+  products_count: number;
   product_types: { id: number; name: string }[];
   created_at?: string;
   updated_at?: string;
