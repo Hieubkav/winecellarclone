@@ -134,9 +134,23 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
             <ArrowLeft size={20} />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm thuộc tính</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Chỉnh sửa thông tin nhóm thuộc tính</p>
+        <div className="flex items-center gap-3">
+          {iconPath && (LucideIcons as any)[iconPath] ? (
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+              {React.createElement((LucideIcons as any)[iconPath], {
+                size: 24,
+                className: 'text-red-600 dark:text-red-400'
+              })}
+            </div>
+          ) : (
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+              <Info size={24} className="text-red-600 dark:text-red-400" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm thuộc tính</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Chỉnh sửa thông tin nhóm thuộc tính</p>
+          </div>
         </div>
       </div>
 

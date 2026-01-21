@@ -10,13 +10,43 @@ interface IconPickerProps {
   onChange: (iconName: string) => void;
 }
 
-// Danh sách icons phổ biến cho attributes
+// Danh sách icons phổ biến cho attributes - mở rộng
 const COMMON_ICONS = [
-  'Wine', 'MapPin', 'Globe', 'Award', 'Star', 'Tag', 'Package',
-  'Droplet', 'Flame', 'Leaf', 'Mountain', 'Sun', 'Moon', 'Cloud',
-  'Heart', 'Shield', 'Crown', 'Gem', 'Sparkles', 'Zap', 'Target',
-  'Flag', 'Compass', 'Map', 'Navigation', 'Anchor', 'Feather',
-  'Box', 'Archive', 'Bookmark', 'Calendar', 'Clock', 'Filter',
+  // Đồ uống & Thực phẩm
+  'Wine', 'Beer', 'Coffee', 'Milk', 'Soup', 'Pizza', 'Cake', 'Cookie',
+  'Apple', 'Cherry', 'Grape', 'Lemon', 'Orange', 'Banana', 'Carrot',
+  
+  // Địa lý & Vị trí
+  'MapPin', 'Globe', 'Map', 'Navigation', 'Compass', 'Mountain', 'Palmtree',
+  'Flag', 'Landmark', 'Building', 'Home', 'Store', 'Warehouse',
+  
+  // Giải thưởng & Chất lượng
+  'Award', 'Star', 'Crown', 'Trophy', 'Medal', 'Shield', 'BadgeCheck',
+  'Gem', 'Diamond', 'Sparkles', 'Zap', 'Target', 'TrendingUp',
+  
+  // Thương hiệu & Nhãn
+  'Tag', 'Tags', 'Bookmark', 'Hash', 'AtSign', 'Percent', 'DollarSign',
+  
+  // Đóng gói & Vận chuyển
+  'Package', 'Box', 'Archive', 'ShoppingBag', 'ShoppingCart', 'Gift',
+  
+  // Tự nhiên & Môi trường
+  'Droplet', 'Flame', 'Leaf', 'Flower', 'TreePine', 'Sprout', 'Wind',
+  'Sun', 'Moon', 'Cloud', 'CloudRain', 'Snowflake', 'Waves',
+  
+  // Thời gian & Lịch
+  'Calendar', 'Clock', 'Timer', 'Hourglass', 'CalendarDays',
+  
+  // Công cụ & Thiết bị
+  'Filter', 'Settings', 'Wrench', 'Hammer', 'Scissors', 'Ruler',
+  
+  // Hình dạng & Biểu tượng
+  'Heart', 'Circle', 'Square', 'Triangle', 'Hexagon', 'Star',
+  'Feather', 'Anchor', 'Key', 'Lock', 'Unlock', 'Eye', 'EyeOff',
+  
+  // Khác
+  'Palette', 'Brush', 'Pen', 'Pencil', 'Image', 'Camera', 'Video',
+  'Music', 'Mic', 'Volume2', 'Bell', 'Lightbulb', 'Thermometer',
 ];
 
 export function IconPicker({ value, onChange }: IconPickerProps) {
@@ -69,7 +99,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
               />
             </div>
           </div>
-          <div className="grid grid-cols-6 gap-2">
+          <div className="grid grid-cols-8 gap-2">
             {filteredIcons.map(iconName => {
               const IconComponent = (LucideIcons as any)[iconName];
               if (!IconComponent) return null;
@@ -83,14 +113,14 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
                     setIsOpen(false);
                     setSearch('');
                   }}
-                  className={`p-3 rounded-lg border transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                  className={`p-2 rounded-lg border transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${
                     value === iconName
                       ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/20'
                       : 'border-slate-200 dark:border-slate-700'
                   }`}
                   title={iconName}
                 >
-                  <IconComponent size={20} className="mx-auto" />
+                  <IconComponent size={18} className="mx-auto" />
                 </button>
               );
             })}
