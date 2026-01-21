@@ -99,8 +99,6 @@
    slug: string;
    price: number | null;
    original_price: number | null;
-  volume_ml?: number | null;
-  alcohol_percent?: number | null;
   extra_attrs?: Record<string, { label: string; value: string | number; type: string }> | null;
   term_ids?: number[];
    active: boolean;

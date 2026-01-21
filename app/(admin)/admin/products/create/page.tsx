@@ -31,8 +31,6 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
    const [slug, setSlug] = useState('');
    const [price, setPrice] = useState('');
    const [originalPrice, setOriginalPrice] = useState('');
-  const [volumeMl, setVolumeMl] = useState('');
-  const [alcoholPercent, setAlcoholPercent] = useState('');
    const [typeId, setTypeId] = useState('');
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
    const [description, setDescription] = useState('');
@@ -279,8 +277,6 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
          slug: slug.trim() || generateSlug(name),
         price: parseNumberValue(price),
         original_price: parseNumberValue(originalPrice),
-        volume_ml: volumeMl ? Number(volumeMl) : null,
-        alcohol_percent: alcoholPercent ? Number(alcoholPercent) : null,
          type_id: typeId ? Number(typeId) : null,
          category_ids: categoryIds,
          description: description.trim(),
@@ -515,27 +511,6 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                </div>
              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Dung tích (ml)</Label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={volumeMl}
-                  onChange={(e) => setVolumeMl(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Nồng độ (%)</Label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={alcoholPercent}
-                  onChange={(e) => setAlcoholPercent(e.target.value)}
-                />
-              </div>
-            </div>
- 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div className="space-y-2">
                  <Label>Phân loại</Label>
