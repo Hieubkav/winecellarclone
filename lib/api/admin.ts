@@ -274,6 +274,63 @@ export async function deleteProductType(id: number): Promise<{ success: boolean;
   });
 }
 
+// Admin Catalog Attribute Groups
+export interface AdminCatalogAttributeGroup {
+  id: number;
+  code: string;
+  name: string;
+  filter_type: 'checkbox' | 'radio' | 'range' | 'color';
+  input_type?: 'select' | 'text' | 'number' | null;
+  is_filterable: boolean;
+  position: number | null;
+  icon_path?: string | null;
+  terms_count: number;
+  product_types: { id: number; name: string }[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdminCatalogAttributeGroupsResponse {
+  data: AdminCatalogAttributeGroup[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminCatalogAttributeGroups(params?: Record<string, string | number>): Promise<AdminCatalogAttributeGroupsResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminCatalogAttributeGroupsResponse>(`v1/admin/catalog-attribute-groups${query}`);
+}
+
+export async function fetchAdminCatalogAttributeGroup(id: number): Promise<{ data: AdminCatalogAttributeGroup & { terms: Array<{ id: number; name: string; slug: string; position: number }> } }> {
+  return apiFetch(`v1/admin/catalog-attribute-groups/${id}`);
+}
+
+export async function createCatalogAttributeGroup(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/catalog-attribute-groups', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCatalogAttributeGroup(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/catalog-attribute-groups/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteCatalogAttributeGroup(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/catalog-attribute-groups/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function seedCatalogBaseline(): Promise<{ success: boolean; message: string }> {
   return apiFetch('v1/admin/catalog/baseline/seed', {
     method: 'POST',
