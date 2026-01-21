@@ -51,7 +51,14 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         setInputType(attr.input_type || '');
         setIsFilterable(attr.is_filterable);
         setPosition(attr.position !== null && attr.position !== undefined ? String(attr.position) : '');
-        setIconPath(attr.icon_path || '');
+        
+        // Sanitize icon_path: only accept simple icon names, not SVG content
+        let iconValue = attr.icon_path || '';
+        if (iconValue && (iconValue.includes('<') || iconValue.includes('svg') || iconValue.length > 50)) {
+          console.warn('Invalid icon_path format, resetting to empty:', iconValue);
+          iconValue = '';
+        }
+        setIconPath(iconValue);
         
         const termsData = (attr as any).terms || [];
         setTerms(termsData);
