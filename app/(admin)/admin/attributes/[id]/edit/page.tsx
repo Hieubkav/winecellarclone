@@ -195,28 +195,14 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="position">Thứ tự hiển thị</Label>
-                <Input
-                  id="position"
-                  type="number"
-                  min={0}
-                  value={position}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPosition(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="iconPath">Icon path</Label>
-                <Input
-                  id="iconPath"
-                  value={iconPath}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIconPath(e.target.value)}
-                  placeholder="/icons/attribute.svg"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="iconPath">Icon path</Label>
+              <Input
+                id="iconPath"
+                value={iconPath}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIconPath(e.target.value)}
+                placeholder="/icons/attribute.svg"
+              />
             </div>
 
             <div className="flex items-center gap-2">
