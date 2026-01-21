@@ -204,9 +204,9 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                 {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </form>
 
       {/* Linked Attributes Section */}
       <Card>
