@@ -14,6 +14,7 @@ import {
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { TermsManager } from './TermsManager';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -34,7 +35,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
   const [position, setPosition] = useState('');
   const [iconPath, setIconPath] = useState('');
   
-  const [terms, setTerms] = useState<Array<{ id: number; name: string; slug: string; position: number }>>([]);
+  const [terms, setTerms] = useState<any[]>([]);
   const [productTypes, setProductTypes] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
@@ -52,8 +53,8 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         setPosition(attr.position !== null && attr.position !== undefined ? String(attr.position) : '');
         setIconPath(attr.icon_path || '');
         
-        // @ts-ignore - terms exists in detailed response
-        setTerms(attr.terms || []);
+        const termsData = (attr as any).terms || [];
+        setTerms(termsData);
         setProductTypes(attr.product_types || []);
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
@@ -68,6 +69,16 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
 
     loadData();
   }, [id]);
+  
+  const reloadTerms = async () => {
+    try {
+      const res = await fetchAdminCatalogAttributeGroup(Number(id));
+      const termsData = (res.data as any).terms || [];
+      setTerms(termsData);
+    } catch (error) {
+      console.error('Failed to reload terms:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,46 +274,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {/* Terms Section */}
-      <Card>
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Giá trị thuộc tính
-          </h2>
-          <p className="text-sm text-slate-500 mt-1">
-            {terms.length} giá trị
-          </p>
-        </div>
-        <CardContent className="p-4">
-          {terms.length > 0 ? (
-            <div className="space-y-2">
-              {terms.map((term, index) => (
-                <div 
-                  key={term.id}
-                  className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-slate-400 font-mono w-8">#{index + 1}</span>
-                    <div>
-                      <div className="font-medium text-sm">{term.name}</div>
-                      <code className="text-xs text-slate-500">{term.slug}</code>
-                    </div>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    Vị trí: {term.position}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6 text-slate-500">
-              <p className="text-sm">Chưa có giá trị nào</p>
-              <p className="text-xs mt-1">Quản lý giá trị trong Filament Admin</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
+      <TermsManager groupId={Number(id)} terms={terms} onTermsChange={reloadTerms} />
     </div>
   );
 }

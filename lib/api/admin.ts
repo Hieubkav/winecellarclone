@@ -338,6 +338,71 @@ export async function seedCatalogBaseline(): Promise<{ success: boolean; message
     method: 'POST',
   });
 }
+
+// Admin Catalog Terms
+export interface AdminCatalogTerm {
+  id: number;
+  group_id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  icon_type?: 'lucide' | 'color' | 'image' | null;
+  icon_value?: string | null;
+  metadata?: Record<string, unknown> | null;
+  is_active: boolean;
+  position: number;
+  group_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdminCatalogTermsResponse {
+  data: AdminCatalogTerm[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminCatalogTerms(params?: Record<string, string | number>): Promise<AdminCatalogTermsResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminCatalogTermsResponse>(`v1/admin/catalog-terms${query}`);
+}
+
+export async function fetchAdminCatalogTerm(id: number): Promise<{ data: AdminCatalogTerm }> {
+  return apiFetch(`v1/admin/catalog-terms/${id}`);
+}
+
+export async function createCatalogTerm(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/catalog-terms', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCatalogTerm(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/catalog-terms/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteCatalogTerm(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/catalog-terms/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function reorderCatalogTerms(items: Array<{ id: number; position: number }>): Promise<{ success: boolean; message: string }> {
+  return apiFetch('v1/admin/catalog-terms/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
  
  export async function bulkDeleteArticles(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
    return apiFetch("v1/admin/articles/bulk-delete", {
