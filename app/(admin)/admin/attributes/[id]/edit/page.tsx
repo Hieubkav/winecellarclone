@@ -89,10 +89,19 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
 
     setIsSubmitting(true);
     try {
-      await updateCatalogAttributeGroup(Number(id), {
+      console.log('Submitting data:', {
         name: name.trim(),
         filter_type: filterType,
         input_type: inputType || null,
+        is_filterable: isFilterable,
+        position: position ? Number(position) : null,
+        icon_path: iconPath.trim() || null,
+      });
+      
+      await updateCatalogAttributeGroup(Number(id), {
+        name: name.trim(),
+        filter_type: filterType,
+        input_type: inputType.trim() || null,
         is_filterable: isFilterable,
         position: position ? Number(position) : null,
         icon_path: iconPath.trim() || null,
