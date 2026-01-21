@@ -84,6 +84,27 @@ export async function apiFetch<TResponse>(
     next: { revalidate: 300, ...(init?.next ?? {}) },
   });
 
+  if (process.env.NODE_ENV === "development") {
+    let requestBody: unknown = undefined;
+    if (init?.body) {
+      if (typeof init.body === "string") {
+        try {
+          requestBody = JSON.parse(init.body);
+        } catch {
+          requestBody = init.body;
+        }
+      } else {
+        requestBody = init.body;
+      }
+    }
+
+    console.log("[API Request]", {
+      url,
+      method: init?.method ?? "GET",
+      body: requestBody,
+    });
+  }
+
   const contentType = response.headers.get("content-type");
   const payload =
     contentType && contentType.includes("application/json")
@@ -91,6 +112,13 @@ export async function apiFetch<TResponse>(
       : await response.text();
 
   if (!response.ok) {
+    console.error("[API Error]", {
+      url,
+      status: response.status,
+      statusText: response.statusText,
+      payload,
+      responseHeaders: Object.fromEntries(response.headers.entries()),
+    });
     throw new ApiError(
       `API request failed with status ${response.status}`,
       response.status,

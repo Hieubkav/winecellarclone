@@ -20,6 +20,33 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+const FILTER_TYPE_OPTIONS = ['checkbox', 'radio', 'range', 'color'] as const;
+type FilterType = (typeof FILTER_TYPE_OPTIONS)[number];
+
+const normalizeFilterTypeFromApi = (value?: string | null): FilterType => {
+  if (!value) {
+    return 'checkbox';
+  }
+
+  const legacyMap: Record<string, FilterType> = {
+    chon_nhieu: 'checkbox',
+    chon_don: 'radio',
+    nhap_tay: 'range',
+  };
+
+  const normalized = legacyMap[value] ?? value;
+  if (FILTER_TYPE_OPTIONS.includes(normalized as FilterType)) {
+    return normalized as FilterType;
+  }
+
+  console.warn('Unknown filter_type received from API:', value);
+  return 'checkbox';
+};
+
+const normalizeFilterTypeForApi = (value: string): FilterType => {
+  return normalizeFilterTypeFromApi(value);
+};
+
 export default function AttributeGroupEditPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
@@ -29,7 +56,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
   
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
-  const [filterType, setFilterType] = useState('checkbox');
+  const [filterType, setFilterType] = useState<FilterType>('checkbox');
   const [inputType, setInputType] = useState<string>('');
   const [isFilterable, setIsFilterable] = useState(true);
   const [position, setPosition] = useState('');
@@ -47,7 +74,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         
         setCode(attr.code);
         setName(attr.name);
-        setFilterType(attr.filter_type);
+        setFilterType(normalizeFilterTypeFromApi(attr.filter_type));
         setInputType(attr.input_type || '');
         setIsFilterable(attr.is_filterable);
         setPosition(attr.position !== null && attr.position !== undefined ? String(attr.position) : '');
@@ -98,7 +125,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
     try {
       console.log('Submitting data:', {
         name: name.trim(),
-        filter_type: filterType,
+        filter_type: normalizeFilterTypeForApi(filterType),
         input_type: inputType.trim() || null,
         is_filterable: Boolean(isFilterable),
         position: position ? Number(position) : null,
@@ -107,7 +134,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
       
       await updateCatalogAttributeGroup(Number(id), {
         name: name.trim(),
-        filter_type: filterType,
+        filter_type: normalizeFilterTypeForApi(filterType),
         input_type: inputType.trim() || null,
         is_filterable: Boolean(isFilterable),
         position: position ? Number(position) : null,
@@ -117,17 +144,23 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
     } catch (error) {
       console.error('Failed to update attribute group:', error);
       console.error('Error payload:', error instanceof ApiError ? error.payload : null);
-      if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        const payload = error.payload as { message?: string; errors?: Record<string, string[]> };
-        if (payload.errors) {
+      if (error instanceof ApiError && error.payload && typeof error.payload === 'object') {
+        const payload = error.payload as { 
+          message?: string; 
+          error?: string;
+          errors?: Record<string, string[]>;
+          details?: Record<string, string[]>;
+        };
+        const validationErrors = payload.errors || payload.details;
+        if (validationErrors) {
           // Show validation errors
-          const errorMessages = Object.entries(payload.errors)
+          const errorMessages = Object.entries(validationErrors)
             .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
             .join('\n');
           toast.error(errorMessages);
-          console.error('Validation errors:', payload.errors);
+          console.error('Validation errors:', validationErrors);
         } else {
-          toast.error(String(payload.message ?? 'Cập nhật thuộc tính thất bại.'));
+          toast.error(payload.message || payload.error || 'Cập nhật thuộc tính thất bại.');
         }
       } else {
         toast.error('Cập nhật thuộc tính thất bại. Vui lòng thử lại.');
@@ -210,7 +243,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
                   id="filterType"
                   className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
                   value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
+                  onChange={(e) => setFilterType(normalizeFilterTypeForApi(e.target.value))}
                 >
                   <option value="checkbox">Checkbox (chọn nhiều)</option>
                   <option value="radio">Radio (chọn một)</option>
