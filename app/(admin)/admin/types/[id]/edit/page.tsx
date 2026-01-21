@@ -3,9 +3,14 @@
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
-import { fetchAdminProductType, updateProductType } from '@/lib/api/admin';
+import { ArrowLeft, Filter, X } from 'lucide-react';
+import { Button, Card, CardContent, Input, Label, Skeleton, Badge } from '../../../components/ui';
+import { 
+  fetchAdminProductType, 
+  updateProductType, 
+  fetchAdminCatalogAttributeGroups,
+  type AdminCatalogAttributeGroup 
+} from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
 
@@ -23,29 +28,43 @@ export default function ProductTypeEditPage({ params }: PageProps) {
   const [slug, setSlug] = useState('');
   const [order, setOrder] = useState('');
   const [active, setActive] = useState('true');
+  const [allAttributes, setAllAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
+  const [linkedAttributes, setLinkedAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
 
   useEffect(() => {
-    async function loadType() {
+    async function loadData() {
       setIsLoading(true);
       try {
-        const res = await fetchAdminProductType(Number(id));
-        const type = res.data;
+        const [typeRes, attributesRes] = await Promise.all([
+          fetchAdminProductType(Number(id)),
+          fetchAdminCatalogAttributeGroups({ per_page: 100 })
+        ]);
+        
+        const type = typeRes.data;
         setName(type.name);
         setSlug(type.slug);
         setOrder(type.order !== null && type.order !== undefined ? String(type.order) : '');
         setActive(type.active ? 'true' : 'false');
+        
+        setAllAttributes(attributesRes.data);
+        
+        // Filter attributes linked to this type
+        const linked = attributesRes.data.filter(attr => 
+          attr.product_types.some(pt => pt.id === Number(id))
+        );
+        setLinkedAttributes(linked);
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
           setNotFound(true);
         } else {
-          console.error('Failed to load type:', error);
+          console.error('Failed to load data:', error);
         }
       } finally {
         setIsLoading(false);
       }
     }
 
-    loadType();
+    loadData();
   }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,6 +92,17 @@ export default function ProductTypeEditPage({ params }: PageProps) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const getFilterTypeBadge = (filterType: string) => {
+    const badges: Record<string, { label: string; variant: 'default' | 'secondary' | 'info' | 'success' }> = {
+      checkbox: { label: 'Checkbox', variant: 'info' },
+      radio: { label: 'Radio', variant: 'success' },
+      range: { label: 'Range', variant: 'secondary' },
+      color: { label: 'Color', variant: 'default' },
+    };
+    const config = badges[filterType] || { label: filterType, variant: 'secondary' as const };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   if (isLoading) {
@@ -116,11 +146,11 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         </div>
       </div>
 
-      <Card>
-        <CardContent>
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
+        <Card>
+          <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Tên phân loại</Label>
+              <Label htmlFor="name">Tên phân loại <span className="text-red-500">*</span></Label>
               <Input
                 id="name"
                 value={name}
@@ -131,7 +161,13 @@ export default function ProductTypeEditPage({ params }: PageProps) {
 
             <div className="space-y-2">
               <Label htmlFor="slug">Slug</Label>
-              <Input id="slug" value={slug} disabled />
+              <Input 
+                id="slug" 
+                value={slug} 
+                disabled 
+                className="bg-slate-50 dark:bg-slate-900 text-slate-500"
+              />
+              <p className="text-xs text-slate-500">Slug không thể thay đổi sau khi tạo</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,6 +179,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                   min={0}
                   value={order}
                   onChange={(e) => setOrder(e.target.value)}
+                  placeholder="0"
                 />
               </div>
               <div className="space-y-2">
@@ -159,7 +196,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
               <Link href="/admin/types">
                 <Button type="button" variant="outline">Hủy bỏ</Button>
               </Link>
@@ -168,6 +205,69 @@ export default function ProductTypeEditPage({ params }: PageProps) {
               </Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      {/* Linked Attributes Section */}
+      <Card>
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Filter size={20} className="text-purple-600" />
+                Nhóm thuộc tính liên kết
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                {linkedAttributes.length} nhóm thuộc tính được sử dụng cho phân loại này
+              </p>
+            </div>
+            <Link href={`/admin/attributes?type_id=${id}`}>
+              <Button variant="outline" size="sm">
+                Quản lý thuộc tính
+              </Button>
+            </Link>
+          </div>
+        </div>
+        <CardContent className="p-4">
+          {linkedAttributes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {linkedAttributes.map(attr => (
+                <div 
+                  key={attr.id} 
+                  className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded flex items-center justify-center">
+                      <Filter size={16} className="text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm">{attr.name}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <code className="text-xs bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                          {attr.code}
+                        </code>
+                        {getFilterTypeBadge(attr.filter_type)}
+                        <Badge variant="secondary" className="text-xs">
+                          {attr.terms_count} giá trị
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <Link href={`/admin/attributes/${attr.id}/edit`}>
+                    <Button variant="ghost" size="sm">
+                      Xem
+                    </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-slate-500">
+              <Filter size={32} className="mx-auto mb-2 text-slate-300" />
+              <p>Chưa có nhóm thuộc tính nào được liên kết</p>
+              <p className="text-sm mt-1">Thuộc tính được quản lý trong Filament Admin</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
