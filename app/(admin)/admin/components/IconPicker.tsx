@@ -41,7 +41,7 @@ const COMMON_ICONS = [
   'Filter', 'Settings', 'Wrench', 'Hammer', 'Scissors', 'Ruler',
   
   // Hình dạng & Biểu tượng
-  'Heart', 'Circle', 'Square', 'Triangle', 'Hexagon', 'Star',
+  'Heart', 'Circle', 'Square', 'Triangle', 'Hexagon',
   'Feather', 'Anchor', 'Key', 'Lock', 'Unlock', 'Eye', 'EyeOff',
   
   // Khác
