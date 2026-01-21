@@ -99,8 +99,8 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
       console.log('Submitting data:', {
         name: name.trim(),
         filter_type: filterType,
-        input_type: inputType || null,
-        is_filterable: isFilterable,
+        input_type: inputType.trim() || null,
+        is_filterable: Boolean(isFilterable),
         position: position ? Number(position) : null,
         icon_path: iconPath.trim() || null,
       });
@@ -109,15 +109,26 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         name: name.trim(),
         filter_type: filterType,
         input_type: inputType.trim() || null,
-        is_filterable: isFilterable,
+        is_filterable: Boolean(isFilterable),
         position: position ? Number(position) : null,
         icon_path: iconPath.trim() || null,
       });
       toast.success('Đã lưu thay đổi thành công');
     } catch (error) {
       console.error('Failed to update attribute group:', error);
+      console.error('Error payload:', error instanceof ApiError ? error.payload : null);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        toast.error(String((error.payload as { message?: string }).message ?? 'Cập nhật thuộc tính thất bại.'));
+        const payload = error.payload as { message?: string; errors?: Record<string, string[]> };
+        if (payload.errors) {
+          // Show validation errors
+          const errorMessages = Object.entries(payload.errors)
+            .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
+            .join('\n');
+          toast.error(errorMessages);
+          console.error('Validation errors:', payload.errors);
+        } else {
+          toast.error(String(payload.message ?? 'Cập nhật thuộc tính thất bại.'));
+        }
       } else {
         toast.error('Cập nhật thuộc tính thất bại. Vui lòng thử lại.');
       }
