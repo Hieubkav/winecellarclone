@@ -72,30 +72,17 @@ export default function ProductTypeCreatePage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="order">Thứ tự hiển thị</Label>
-                <Input
-                  id="order"
-                  type="number"
-                  min={0}
-                  value={order}
-                  onChange={(e) => setOrder(e.target.value)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="active">Trạng thái</Label>
-                <select
-                  id="active"
-                  className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                  value={active}
-                  onChange={(e) => setActive(e.target.value)}
-                >
-                  <option value="true">Đang hoạt động</option>
-                  <option value="false">Tạm ẩn</option>
-                </select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="active">Trạng thái</Label>
+              <select
+                id="active"
+                className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                value={active}
+                onChange={(e) => setActive(e.target.value)}
+              >
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Tạm ẩn</option>
+              </select>
             </div>
 
             <div className="flex justify-end gap-3">

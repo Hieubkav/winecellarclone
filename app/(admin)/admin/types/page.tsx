@@ -277,7 +277,6 @@ export default function ProductTypesPage() {
                   <TableHead className="w-[40px]"></TableHead>
                   <SortableHeader label="Tên phân loại" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
                   <TableHead>Slug</TableHead>
-                  <SortableHeader label="Thứ tự" sortKey="order" sortConfig={sortConfig} onSort={handleSort} />
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
@@ -322,7 +321,6 @@ export default function ProductTypesPage() {
                         <TableCell>
                           <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{type.slug}</code>
                         </TableCell>
-                        <TableCell>{type.order ?? '-'}</TableCell>
                         <TableCell>
                           <Badge variant={type.active ? 'success' : 'secondary'}>
                             {type.active ? 'Hoạt động' : 'Tạm ẩn'}
@@ -349,7 +347,7 @@ export default function ProductTypesPage() {
                       </TableRow>
                       {isExpanded && typeAttributes.length > 0 && (
                         <TableRow>
-                          <TableCell colSpan={6} className="bg-slate-50/50 dark:bg-slate-900/30 p-0">
+                          <TableCell colSpan={5} className="bg-slate-50/50 dark:bg-slate-900/30 p-0">
                             <div className="p-4 pl-12">
                               <div className="text-xs font-semibold text-slate-500 mb-2">Thuộc tính liên kết:</div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -371,7 +369,7 @@ export default function ProductTypesPage() {
                 })}
                 {sortedTypes.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
                       {searchTerm ? 'Không tìm thấy phân loại phù hợp' : 'Chưa có phân loại nào'}
                     </TableCell>
                   </TableRow>
