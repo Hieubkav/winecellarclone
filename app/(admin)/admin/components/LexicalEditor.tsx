@@ -37,7 +37,29 @@
  import { cn } from '@/lib/utils';
  import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
  
- const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+const API_ORIGIN = (() => {
+  try {
+    return new URL(API_BASE_URL).origin;
+  } catch {
+    return '';
+  }
+})();
+
+const normalizeImageUrl = (url: string): string => {
+  if (!url || !API_ORIGIN) return url;
+
+  try {
+    const parsed = new URL(url, API_ORIGIN);
+    if (parsed.origin === API_ORIGIN) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+  } catch {
+    return url;
+  }
+
+  return url;
+};
  
  const theme = {
    paragraph: 'editor-paragraph',
@@ -375,7 +397,7 @@
        const result = await response.json();
        
        if (result.success && result.data?.url) {
-         return result.data.url;
+         return normalizeImageUrl(result.data.url);
        }
        
        throw new Error(result.message || 'Upload failed');

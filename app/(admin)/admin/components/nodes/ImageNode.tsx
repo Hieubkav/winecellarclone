@@ -31,6 +31,23 @@
  import { mergeRegister } from '@lexical/utils';
  import { useCallback, useEffect, useRef, useState } from 'react';
  import type { JSX } from 'react';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_ORIGIN = (() => {
+  if (!API_BASE_URL) return '';
+  try {
+    return new URL(API_BASE_URL).origin;
+  } catch {
+    return '';
+  }
+})();
+
+const resolveImageSrc = (src: string): string => {
+  if (!src) return src;
+  if (/^https?:\/\//i.test(src)) return src;
+  if (!API_ORIGIN) return src;
+  return `${API_ORIGIN}${src.startsWith('/') ? '' : '/'}${src}`;
+};
  
  export type InsertImagePayload = {
    src: string;
@@ -276,7 +293,7 @@
        {/* eslint-disable-next-line @next/next/no-img-element */}
        <img
          ref={imageRef}
-         src={src}
+        src={resolveImageSrc(src)}
          alt={altText}
          style={{
            width: width ? `${width}px` : 'auto',
