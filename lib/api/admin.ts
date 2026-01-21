@@ -229,6 +229,7 @@ export interface AdminProductType {
   slug: string;
   order: number | null;
   active: boolean;
+  products_count: number;
   created_at?: string;
   updated_at?: string;
 }

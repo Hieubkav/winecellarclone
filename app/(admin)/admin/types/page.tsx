@@ -177,9 +177,9 @@ export default function ProductTypesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Quản lý phân loại & thuộc tính</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Quản lý nhóm & thuộc tính</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            {types.length} phân loại • {attributes.length} nhóm thuộc tính
+            {types.length} nhóm • {attributes.length} nhóm thuộc tính
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -214,7 +214,7 @@ export default function ProductTypesPage() {
             className="flex-1"
           >
             <Tag size={16} className="mr-2" />
-            Phân loại ({types.length})
+            Nhóm SP ({types.length})
           </Button>
           <Button
             variant={viewMode === 'attributes' ? 'default' : 'ghost'}
@@ -268,15 +268,16 @@ export default function ProductTypesPage() {
             <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Tag size={20} className="text-blue-600" />
-                Phân loại sản phẩm
+                Nhóm sản phẩm
               </h2>
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[40px]"></TableHead>
-                  <SortableHeader label="Tên phân loại" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
+                  <SortableHeader label="Tên nhóm" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
                   <TableHead>Slug</TableHead>
+                  <TableHead>Số SP</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
@@ -322,6 +323,9 @@ export default function ProductTypesPage() {
                           <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{type.slug}</code>
                         </TableCell>
                         <TableCell>
+                          <Badge variant="secondary">{type.products_count || 0}</Badge>
+                        </TableCell>
+                        <TableCell>
                           <Badge variant={type.active ? 'success' : 'secondary'}>
                             {type.active ? 'Hoạt động' : 'Tạm ẩn'}
                           </Badge>
@@ -347,7 +351,7 @@ export default function ProductTypesPage() {
                       </TableRow>
                       {isExpanded && typeAttributes.length > 0 && (
                         <TableRow>
-                          <TableCell colSpan={5} className="bg-slate-50/50 dark:bg-slate-900/30 p-0">
+                          <TableCell colSpan={6} className="bg-slate-50/50 dark:bg-slate-900/30 p-0">
                             <div className="p-4 pl-12">
                               <div className="text-xs font-semibold text-slate-500 mb-2">Thuộc tính liên kết:</div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -369,8 +373,8 @@ export default function ProductTypesPage() {
                 })}
                 {sortedTypes.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
-                      {searchTerm ? 'Không tìm thấy phân loại phù hợp' : 'Chưa có phân loại nào'}
+                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                      {searchTerm ? 'Không tìm thấy nhóm phù hợp' : 'Chưa có nhóm nào'}
                     </TableCell>
                   </TableRow>
                 )}
