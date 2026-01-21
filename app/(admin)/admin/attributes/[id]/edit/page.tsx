@@ -134,23 +134,9 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
             <ArrowLeft size={20} />
           </Button>
         </Link>
-        <div className="flex items-center gap-3">
-          {iconPath && (LucideIcons as any)[iconPath] ? (
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-              {React.createElement((LucideIcons as any)[iconPath], {
-                size: 24,
-                className: 'text-red-600 dark:text-red-400'
-              })}
-            </div>
-          ) : (
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-              <Info size={24} className="text-red-600 dark:text-red-400" />
-            </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm thuộc tính</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Chỉnh sửa thông tin nhóm thuộc tính</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm thuộc tính</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Chỉnh sửa thông tin nhóm thuộc tính</p>
         </div>
       </div>
 
@@ -317,22 +303,6 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {/* Info Card */}
-      <Card className="bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
-        <CardContent className="p-4">
-          <div className="flex gap-3">
-            <Info size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-slate-700 dark:text-slate-300">
-              <p className="font-medium mb-1">Lưu ý</p>
-              <ul className="list-disc list-inside space-y-1 text-xs">
-                <li>Quản lý giá trị thuộc tính (terms) trong Filament Admin</li>
-                <li>Liên kết với phân loại được quản lý trong Filament Admin</li>
-                <li>Thay đổi ở đây chỉ ảnh hưởng đến thông tin cơ bản của nhóm thuộc tính</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
