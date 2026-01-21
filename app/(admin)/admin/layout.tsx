@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
  import { Sidebar } from './components/Sidebar';
  import { Header } from './components/Header';
+import { Toaster } from 'sonner';
  
  function AdminLayoutContent({ children }: { children: React.ReactNode }) {
    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,6 +33,7 @@ import React, { useState, useEffect } from 'react';
  
    return (
      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex font-sans admin-theme">
+       <Toaster position="top-right" richColors closeButton />
        <Sidebar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
  
        <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">

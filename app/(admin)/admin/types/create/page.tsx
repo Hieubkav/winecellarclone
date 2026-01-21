@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button, Card, CardContent, Input, Label } from '../../components/ui';
 import { createProductType } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
+import { toast } from 'sonner';
 
 export default function ProductTypeCreatePage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function ProductTypeCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert('Vui lòng nhập tên phân loại.');
+      toast.error('Vui lòng nhập tên phân loại.');
       return;
     }
 
@@ -29,13 +30,14 @@ export default function ProductTypeCreatePage() {
         order: order ? Number(order) : null,
         active: active === 'true',
       });
+      toast.success('Đã tạo phân loại thành công');
       router.push('/admin/types');
     } catch (error) {
       console.error('Failed to create type:', error);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        alert(String((error.payload as { message?: string }).message ?? 'Tạo phân loại thất bại.'));
+        toast.error(String((error.payload as { message?: string }).message ?? 'Tạo phân loại thất bại.'));
       } else {
-        alert('Tạo phân loại thất bại. Vui lòng thử lại.');
+        toast.error('Tạo phân loại thất bại. Vui lòng thử lại.');
       }
     } finally {
       setIsSubmitting(false);

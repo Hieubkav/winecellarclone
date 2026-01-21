@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
 import { fetchAdminProductType, updateProductType } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
+import { toast } from 'sonner';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -50,7 +51,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      alert('Vui lòng nhập tên phân loại.');
+      toast.error('Vui lòng nhập tên phân loại.');
       return;
     }
 
@@ -61,13 +62,13 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         order: order ? Number(order) : null,
         active: active === 'true',
       });
-      router.push('/admin/types');
+      toast.success('Đã lưu thay đổi thành công');
     } catch (error) {
       console.error('Failed to update type:', error);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        alert(String((error.payload as { message?: string }).message ?? 'Cập nhật phân loại thất bại.'));
+        toast.error(String((error.payload as { message?: string }).message ?? 'Cập nhật phân loại thất bại.'));
       } else {
-        alert('Cập nhật phân loại thất bại. Vui lòng thử lại.');
+        toast.error('Cập nhật phân loại thất bại. Vui lòng thử lại.');
       }
     } finally {
       setIsSubmitting(false);

@@ -10,6 +10,7 @@ import { createProduct } from '@/lib/api/admin';
 import { API_BASE_URL } from '@/lib/api/client';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../components/LexicalEditor';
+import { toast } from 'sonner';
 
 const formatNumberInput = (value: string) => {
   const digits = value.replace(/[^0-9]/g, '');
@@ -75,11 +76,11 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
  
   const uploadSingleImage = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Vui long chon file hinh anh');
+      toast.error('Vui lòng chọn file hình ảnh');
       return null;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Kich thuoc file khong duoc vuot qua 5MB');
+      toast.error('Kích thước file không được vượt quá 5MB');
       return null;
     }
 
@@ -112,10 +113,11 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
       const nextImages = results.filter((item): item is { url: string; path: string } => Boolean(item));
       if (nextImages.length > 0) {
         setGalleryImages(prev => [...prev, ...nextImages]);
+        toast.success(`Đã tải lên ${nextImages.length} ảnh`);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Khong the tai anh len');
+      toast.error('Không thể tải ảnh lên');
     } finally {
       setIsUploadingImage(false);
     }
@@ -139,10 +141,11 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
       if (result.success && result.data) {
         setGalleryImages(prev => [...prev, { url: result.data.url, path: result.data.path }]);
         setImageUrlInput('');
+        toast.success('Đã tải ảnh từ URL');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Khong the tai anh tu URL');
+      toast.error('Không thể tải ảnh từ URL');
     } finally {
       setIsUploadingImage(false);
     }
@@ -164,10 +167,11 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
       const result = await response.json();
       if (result.success && result.data) {
         setGalleryImages(prev => prev.map((img, i) => (i === index ? result.data : img)));
+        toast.success('Đã thay thế ảnh');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Khong the tai anh tu URL');
+      toast.error('Không thể tải ảnh từ URL');
     } finally {
       setIsUploadingImage(false);
     }
@@ -180,10 +184,11 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
       const uploaded = await uploadSingleImage(file);
       if (uploaded) {
         setGalleryImages(prev => prev.map((img, i) => (i === index ? uploaded : img)));
+        toast.success('Đã thay thế ảnh');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Khong the tai anh len');
+      toast.error('Không thể tải ảnh lên');
     } finally {
       setIsUploadingImage(false);
     }
@@ -250,7 +255,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
    const handleSubmit = async (e: React.FormEvent) => {
      e.preventDefault();
      if (!name.trim()) {
-       alert('Vui lòng nhập tên sản phẩm');
+       toast.error('Vui lòng nhập tên sản phẩm');
        return;
      }
  
@@ -288,11 +293,12 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
  
        const result = await createProduct(data);
        if (result.success) {
+         toast.success('Đã tạo sản phẩm thành công');
          router.push('/admin/products');
        }
      } catch (error) {
        console.error('Failed to create product:', error);
-       alert('Tạo sản phẩm thất bại. Vui lòng thử lại.');
+       toast.error('Tạo sản phẩm thất bại. Vui lòng thử lại.');
      } finally {
        setIsSubmitting(false);
      }
