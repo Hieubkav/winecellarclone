@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Package, FileText, Eye, TrendingUp, TrendingDown, Users, MousePointerClick } from 'lucide-react';
 import { Card, Skeleton, Badge } from '../components/ui';
@@ -22,19 +22,49 @@ interface TrafficChartData {
   cta_clicks: number;
 }
 
+// Hàm tính nice interval cho trục Y
+const getNiceInterval = (maxValue: number, targetSteps: number = 5) => {
+  if (maxValue === 0) return 1;
+  
+  const roughInterval = maxValue / targetSteps;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
+  const normalized = roughInterval / magnitude;
+  
+  let niceNormalized;
+  if (normalized <= 1) niceNormalized = 1;
+  else if (normalized <= 2) niceNormalized = 2;
+  else if (normalized <= 5) niceNormalized = 5;
+  else niceNormalized = 10;
+  
+  return niceNormalized * magnitude;
+};
+
 const LineChart: React.FC<{ data: TrafficChartData[] }> = ({ data }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  
   if (data.length === 0) return null;
   
   const maxViews = Math.max(...data.map(d => d.page_views), 1);
   const maxVisitors = Math.max(...data.map(d => d.visitors), 1);
-  const maxValue = Math.max(maxViews, maxVisitors);
+  const maxDataValue = Math.max(maxViews, maxVisitors);
+  
+  // Tính nice interval và max value cho trục Y
+  const interval = getNiceInterval(maxDataValue);
+  const maxValue = Math.ceil(maxDataValue / interval) * interval;
+  const ySteps = Math.floor(maxValue / interval);
   
   const width = 100;
   const height = 40;
-  const padding = 2;
+  const paddingTop = 2;
+  const paddingBottom = 2;
+  const paddingLeft = 8;
+  const paddingRight = 2;
   
-  const getY = (value: number) => height - padding - ((value / maxValue) * (height - padding * 2));
-  const getX = (index: number) => padding + (index / (data.length - 1 || 1)) * (width - padding * 2);
+  const chartHeight = height - paddingTop - paddingBottom;
+  const chartWidth = width - paddingLeft - paddingRight;
+  
+  const getY = (value: number) => paddingTop + chartHeight - ((value / maxValue) * chartHeight);
+  const getX = (index: number) => paddingLeft + (index / (data.length - 1 || 1)) * chartWidth;
   
   // Smooth curve using Catmull-Rom spline
   const smoothPath = (points: { x: number; y: number }[]) => {
@@ -66,10 +96,15 @@ const LineChart: React.FC<{ data: TrafficChartData[] }> = ({ data }) => {
   const viewsPath = smoothPath(viewsPoints);
   const visitorsPath = smoothPath(visitorsPoints);
   
-  const viewsAreaPath = `${viewsPath} L ${getX(data.length - 1)} ${height - padding} L ${getX(0)} ${height - padding} Z`;
+  const viewsAreaPath = `${viewsPath} L ${getX(data.length - 1)} ${height - paddingBottom} L ${getX(0)} ${height - paddingBottom} Z`;
+  
+  const formatNumber = (num: number) => {
+    if (num >= 1000) return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + 'K';
+    return num.toString();
+  };
   
   return (
-    <div className="relative">
+    <div className="relative select-none">
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40" preserveAspectRatio="none">
         <defs>
           <linearGradient id="viewsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -77,19 +112,95 @@ const LineChart: React.FC<{ data: TrafficChartData[] }> = ({ data }) => {
             <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity="0" />
           </linearGradient>
         </defs>
+        
+        {/* Grid lines ngang */}
+        {Array.from({ length: ySteps + 1 }).map((_, i) => {
+          const value = i * interval;
+          const y = getY(value);
+          return (
+            <g key={i}>
+              <line
+                x1={paddingLeft}
+                y1={y}
+                x2={width - paddingRight}
+                y2={y}
+                stroke="rgb(226, 232, 240)"
+                strokeWidth="0.1"
+                strokeDasharray="0.5 0.5"
+              />
+              <text
+                x={paddingLeft - 0.5}
+                y={y}
+                fontSize="2"
+                fill="rgb(148, 163, 184)"
+                textAnchor="end"
+                dominantBaseline="middle"
+              >
+                {formatNumber(value)}
+              </text>
+            </g>
+          );
+        })}
+        
         <path d={viewsAreaPath} fill="url(#viewsGradient)" />
         <path d={viewsPath} fill="none" stroke="rgb(59, 130, 246)" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" />
         <path d={visitorsPath} fill="none" stroke="rgb(168, 85, 247)" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 1" />
+        
+        {/* Data points với hover effect */}
         {data.map((d, i) => (
           <g key={d.date}>
-            <circle cx={getX(i)} cy={getY(d.page_views)} r="0.8" fill="rgb(59, 130, 246)" />
-            <circle cx={getX(i)} cy={getY(d.visitors)} r="0.6" fill="rgb(168, 85, 247)" />
+            <circle 
+              cx={getX(i)} 
+              cy={getY(d.page_views)} 
+              r={hoveredIndex === i ? "1.2" : "0.8"} 
+              fill="rgb(59, 130, 246)"
+              className="transition-all"
+            />
+            <circle 
+              cx={getX(i)} 
+              cy={getY(d.visitors)} 
+              r={hoveredIndex === i ? "1" : "0.6"} 
+              fill="rgb(168, 85, 247)"
+              className="transition-all"
+            />
+            {/* Invisible larger circle for easier hovering */}
+            <circle
+              cx={getX(i)}
+              cy={getY(d.page_views)}
+              r="2"
+              fill="transparent"
+              onMouseEnter={() => setHoveredIndex(i)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              style={{ cursor: 'pointer' }}
+            />
           </g>
         ))}
       </svg>
+      
+      {/* Tooltip */}
+      {hoveredIndex !== null && (
+        <div className="absolute bg-slate-900 text-white text-xs rounded px-2 py-1.5 pointer-events-none z-10 whitespace-nowrap shadow-lg"
+          style={{
+            left: `${((hoveredIndex / (data.length - 1 || 1)) * 100)}%`,
+            top: '-45px',
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <div className="font-semibold mb-0.5">{data[hoveredIndex].label}</div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-0.5 bg-blue-400"></div>
+            <span>{data[hoveredIndex].page_views.toLocaleString('vi-VN')} lượt xem</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-0.5 bg-purple-400"></div>
+            <span>{data[hoveredIndex].visitors.toLocaleString('vi-VN')} khách</span>
+          </div>
+        </div>
+      )}
+      
       <div className="flex justify-between mt-2">
-        {data.map((d, i) => (
-          <div key={d.date} className="text-center flex-1" title={`${d.label}: ${d.page_views} lượt xem, ${d.visitors} khách`}>
+        {data.map((d) => (
+          <div key={d.date} className="text-center flex-1">
             <span className="text-[10px] text-slate-500">{d.label}</span>
           </div>
         ))}
