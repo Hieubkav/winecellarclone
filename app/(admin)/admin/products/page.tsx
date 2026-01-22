@@ -7,7 +7,7 @@ import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle } from
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
-import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduct } from '@/lib/api/admin';
+import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, updateProduct, type AdminProduct } from '@/lib/api/admin';
  
  export default function ProductsListPage() {
    const [isLoading, setIsLoading] = useState(true);
@@ -309,15 +309,15 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
                  )}
               {visibleColumns.includes('active') && (
                 <TableCell>
-                  <Badge variant={product.active ? 'success' : 'secondary'}>
+                  <Badge 
                     className={togglingStatus === product.id ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:opacity-80 transition-opacity'}
                     variant={product.active ? 'success' : 'secondary'}
                     onClick={() => handleToggleStatus(product.id, product.active)}
                     title="Click để chuyển trạng thái"
                   >
+                    {product.active ? 'Hiển thị' : 'Ẩn'}
                   </Badge>
                 </TableCell>
-                  </Badge>
               )}
                  {visibleColumns.includes('actions') && (
                    <TableCell className="text-right">
