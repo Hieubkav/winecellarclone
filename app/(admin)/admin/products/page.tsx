@@ -12,6 +12,7 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
  export default function ProductsListPage() {
    const [isLoading, setIsLoading] = useState(true);
   const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState<ProductFilterOption[]>([]);
   const [types, setTypes] = useState<ProductFilterOption[]>([]);
@@ -112,6 +113,21 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
       alert('Xóa thất bại. Vui lòng thử lại.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    setTogglingStatus(id);
+    try {
+      await updateProduct(id, { active: !currentStatus });
+      setProducts(prev => prev.map(p => 
+        p.id === id ? { ...p, active: !currentStatus } : p
+      ));
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      alert('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      setTogglingStatus(null);
     }
   };
 
@@ -279,11 +295,11 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
                  )}
                  {visibleColumns.includes('price') && (
                    <TableCell>
-                     <div>
+                     <div className="flex flex-col">
                     {product.original_price && product.price && product.original_price > product.price ? (
                          <>
                         <span className="text-red-500 font-medium">{formatPrice(product.price)}</span>
-                        <span className="text-slate-400 line-through text-xs ml-1">{formatPrice(product.original_price)}</span>
+                        <span className="text-slate-400 line-through text-xs">{formatPrice(product.original_price)}</span>
                          </>
                        ) : (
                          <span>{formatPrice(product.price)}</span>
@@ -294,9 +310,14 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, type AdminProduc
               {visibleColumns.includes('active') && (
                 <TableCell>
                   <Badge variant={product.active ? 'success' : 'secondary'}>
-                    {product.active ? 'Hiển thị' : 'Ẩn'}
+                    className={togglingStatus === product.id ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:opacity-80 transition-opacity'}
+                    variant={product.active ? 'success' : 'secondary'}
+                    onClick={() => handleToggleStatus(product.id, product.active)}
+                    title="Click để chuyển trạng thái"
+                  >
                   </Badge>
                 </TableCell>
+                  </Badge>
               )}
                  {visibleColumns.includes('actions') && (
                    <TableCell className="text-right">
