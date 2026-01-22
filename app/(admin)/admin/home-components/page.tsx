@@ -69,7 +69,7 @@ function SortableRow({ component, isSelected, onToggleSelect, onDelete }: Sortab
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
-          <Link href={`/admin/home-components/${component.id}/edit`}>
+          <Link href={`/admin/home-components/${component.id}/edit${typeInfo ? `?type=${encodeURIComponent(typeInfo.label)}` : ''}`}>
             <Button variant="ghost" size="icon">
               <Edit size={16} />
             </Button>

@@ -199,6 +199,14 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       setActive(component.active);
       
       parseConfig(component.type, component.config);
+
+      // Update URL with component type for better UX
+      const typeInfo = getComponentTypeInfo(component.type);
+      if (typeInfo) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('type', typeInfo.label);
+        window.history.replaceState({}, '', url.toString());
+      }
     } catch (error) {
       console.error('Failed to load component:', error);
       toast.error('Không thể tải thành phần');
