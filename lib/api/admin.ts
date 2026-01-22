@@ -492,3 +492,210 @@ export async function bulkDeleteCategories(ids: number[]): Promise<{ success: bo
     body: JSON.stringify({ ids }),
   });
 }
+
+// Admin Home Components
+export interface AdminHomeComponent {
+  id: number;
+  type: string;
+  config: Record<string, unknown>;
+  order: number;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdminHomeComponentsResponse {
+  data: AdminHomeComponent[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminHomeComponents(params?: Record<string, string | number>): Promise<AdminHomeComponentsResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminHomeComponentsResponse>(`v1/admin/home-components${query}`);
+}
+
+export async function fetchAdminHomeComponent(id: number): Promise<{ data: AdminHomeComponent }> {
+  return apiFetch(`v1/admin/home-components/${id}`);
+}
+
+export async function createHomeComponent(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/home-components', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateHomeComponent(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/home-components/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteHomeComponent(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/home-components/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function bulkDeleteHomeComponents(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
+  return apiFetch('v1/admin/home-components/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+}
+
+export async function reorderHomeComponents(items: Array<{ id: number; order: number }>): Promise<{ success: boolean; message: string }> {
+  return apiFetch('v1/admin/home-components/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
+
+// Admin Images
+export interface AdminImage {
+  id: number;
+  file_path: string;
+  url: string | null;
+  alt: string | null;
+  width: number | null;
+  height: number | null;
+  mime: string | null;
+  model_type: string | null;
+  model_id: number | null;
+  order: number;
+  active: boolean;
+  created_at?: string;
+}
+
+export interface AdminImageDetail extends AdminImage {
+  disk: string;
+  extra_attributes: Record<string, unknown> | null;
+  updated_at?: string;
+}
+
+export interface AdminImagesResponse {
+  data: AdminImage[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminImages(params?: Record<string, string | number>): Promise<AdminImagesResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminImagesResponse>(`v1/admin/images${query}`);
+}
+
+export async function fetchAdminImage(id: number): Promise<{ data: AdminImageDetail }> {
+  return apiFetch(`v1/admin/images/${id}`);
+}
+
+export async function createImage(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number; url: string | null }; message: string }> {
+  return apiFetch('v1/admin/images', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateImage(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/images/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteImage(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/images/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function bulkDeleteImages(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
+  return apiFetch('v1/admin/images/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+}
+
+// Admin Social Links
+export interface AdminSocialLink {
+  id: number;
+  platform: string;
+  url: string;
+  icon_image_id: number | null;
+  icon_url: string | null;
+  order: number;
+  active: boolean;
+  created_at?: string;
+}
+
+export interface AdminSocialLinkDetail extends AdminSocialLink {
+  updated_at?: string;
+}
+
+export interface AdminSocialLinksResponse {
+  data: AdminSocialLink[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminSocialLinks(params?: Record<string, string | number>): Promise<AdminSocialLinksResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminSocialLinksResponse>(`v1/admin/social-links${query}`);
+}
+
+export async function fetchAdminSocialLink(id: number): Promise<{ data: AdminSocialLinkDetail }> {
+  return apiFetch(`v1/admin/social-links/${id}`);
+}
+
+export async function createSocialLink(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/social-links', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateSocialLink(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/social-links/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteSocialLink(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/social-links/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function bulkDeleteSocialLinks(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
+  return apiFetch('v1/admin/social-links/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+}
+
+export async function reorderSocialLinks(items: Array<{ id: number; order: number }>): Promise<{ success: boolean; message: string }> {
+  return apiFetch('v1/admin/social-links/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}

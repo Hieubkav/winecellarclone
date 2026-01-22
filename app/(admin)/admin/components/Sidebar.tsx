@@ -168,10 +168,10 @@ import {
          { 
            icon: Globe, 
            label: 'Website', 
-           href: '/admin/menus',
+           href: '/admin/home-components',
            subItems: [
-             { label: 'Menu', href: '/admin/menus' },
              { label: 'Trang chủ', href: '/admin/home-components' },
+             { label: 'Mạng xã hội', href: '/admin/social-links' },
            ]
          },
          { icon: ImageIcon, label: 'Thư viện ảnh', href: '/admin/images' },
