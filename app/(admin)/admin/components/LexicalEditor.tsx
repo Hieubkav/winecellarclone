@@ -26,6 +26,13 @@
    $isElementNode,
    $isDecoratorNode,
    $isTextNode,
+  TextNode,
+  $applyNodeReplacement,
+  type NodeKey,
+  type DOMConversionMap,
+  type DOMConversion,
+  type DOMConversionOutput,
+  type SerializedTextNode,
  } from 'lexical';
 import { $patchStyleText } from '@lexical/selection';
  import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
@@ -80,6 +87,101 @@ const normalizeImageUrl = (url: string): string => {
      underline: 'editor-text-underline',
    },
  };
+
+// Custom TextNode with inline style support for HTML export
+export class ExtendedTextNode extends TextNode {
+  static getType(): string {
+    return 'extended-text';
+  }
+
+  static clone(node: ExtendedTextNode): ExtendedTextNode {
+    return new ExtendedTextNode(node.__text, node.__key);
+  }
+
+  static importDOM(): DOMConversionMap | null {
+    const importers = TextNode.importDOM();
+    return {
+      ...importers,
+      span: () => ({
+        conversion: patchStyleConversion(importers?.span),
+        priority: 1,
+      }),
+      strong: () => ({
+        conversion: patchStyleConversion(importers?.strong),
+        priority: 1,
+      }),
+      em: () => ({
+        conversion: patchStyleConversion(importers?.em),
+        priority: 1,
+      }),
+      u: () => ({
+        conversion: patchStyleConversion(importers?.u),
+        priority: 1,
+      }),
+    };
+  }
+
+  static importJSON(serializedNode: SerializedTextNode): ExtendedTextNode {
+    return $createExtendedTextNode().updateFromJSON(serializedNode);
+  }
+
+  isSimpleText() {
+    return this.__type === 'extended-text' && this.__mode === 0;
+  }
+}
+
+function patchStyleConversion(
+  originalDOMConverter?: (node: HTMLElement) => DOMConversion | null
+): (node: HTMLElement) => DOMConversionOutput | null {
+  return (node) => {
+    const original = originalDOMConverter?.(node);
+    if (!original) {
+      return null;
+    }
+    const originalOutput = original.conversion(node);
+
+    if (!originalOutput) {
+      return originalOutput;
+    }
+
+    const backgroundColor = node.style.backgroundColor;
+    const color = node.style.color;
+    const fontFamily = node.style.fontFamily;
+    const fontSize = node.style.fontSize;
+
+    return {
+      ...originalOutput,
+      forChild: (lexicalNode, parent) => {
+        const originalForChild = originalOutput?.forChild ?? ((x) => x);
+        const result = originalForChild(lexicalNode, parent);
+        if ($isTextNode(result)) {
+          const style = [
+            backgroundColor ? `background-color: ${backgroundColor}` : null,
+            color ? `color: ${color}` : null,
+            fontFamily ? `font-family: ${fontFamily}` : null,
+            fontSize ? `font-size: ${fontSize}` : null,
+          ]
+            .filter((value) => value != null)
+            .join('; ');
+          if (style.length) {
+            return result.setStyle(style);
+          }
+        }
+        return result;
+      },
+    };
+  };
+}
+
+export function $createExtendedTextNode(text: string = ''): ExtendedTextNode {
+  return $applyNodeReplacement(new ExtendedTextNode(text));
+}
+
+export function $isExtendedTextNode(
+  node: LexicalNode | null | undefined
+): node is ExtendedTextNode {
+  return node instanceof ExtendedTextNode;
+}
  
  interface ToolbarPluginProps {
    onImageUpload?: (file: File) => Promise<string | null>;
@@ -461,7 +563,11 @@ const FONT_SIZE_OPTIONS = [
        ListItemNode, 
        AutoLinkNode, 
        LinkNode,
-       ImageNode
+      ImageNode,
+      {
+        replace: TextNode,
+        with: (node: TextNode) => new ExtendedTextNode(node.__text, node.__key),
+      },
      ],
    };
  
