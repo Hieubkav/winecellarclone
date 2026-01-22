@@ -430,3 +430,65 @@ export async function reorderCatalogTerms(items: Array<{ id: number; position: n
      body: JSON.stringify({ ids }),
    });
  }
+
+// Admin Categories
+export interface AdminCategory {
+  id: number;
+  name: string;
+  slug: string;
+  type_id: number | null;
+  type_name?: string | null;
+  order: number | null;
+  active: boolean;
+  products_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AdminCategoriesResponse {
+  data: AdminCategory[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminCategories(params?: Record<string, string | number>): Promise<AdminCategoriesResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminCategoriesResponse>(`v1/admin/categories${query}`);
+}
+
+export async function fetchAdminCategory(id: number): Promise<{ data: AdminCategory }> {
+  return apiFetch(`v1/admin/categories/${id}`);
+}
+
+export async function createCategory(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/categories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCategory(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/categories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteCategory(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/categories/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function bulkDeleteCategories(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
+  return apiFetch('v1/admin/categories/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+}

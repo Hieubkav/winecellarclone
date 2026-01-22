@@ -1,204 +1,376 @@
  'use client';
- 
-import React, { useState, useMemo, useEffect } from 'react';
- import Link from 'next/link';
-import { Search, FolderTree } from 'lucide-react';
-import { Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData } from '../components/TableUtilities';
-import { fetchProductFilters } from '@/lib/api/products';
- 
- interface Category {
-   id: number;
-   name: string;
-   slug: string;
-  type_id?: number | null;
- }
- 
-interface ProductType {
-  id: number;
-  name: string;
-  slug: string;
-}
- 
- export default function CategoriesListPage() {
-   const [isLoading, setIsLoading] = useState(true);
-   const [categories, setCategories] = useState<Category[]>([]);
-  const [types, setTypes] = useState<ProductType[]>([]);
-   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('');
-   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
- 
-   useEffect(() => {
-    async function fetchData() {
-      try {
-        const filtersRes = await fetchProductFilters();
-        setCategories(filtersRes.categories as Category[]);
-        setTypes(filtersRes.types as ProductType[]);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchData();
-   }, []);
- 
-   const handleSort = (key: string) => {
-     setSortConfig(prev => ({ 
-       key, 
-       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' 
-     }));
-   };
- 
-   const filteredData = useMemo(() => {
-     let data = [...categories];
-     if (searchTerm) {
-       data = data.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
-     }
-    if (filterType) {
-      const typeId = Number(filterType);
-      data = data.filter(c => c.type_id === typeId || c.type_id === null);
-     }
-     return data;
-  }, [categories, searchTerm, filterType]);
- 
-   const sortedData = useSortableData(filteredData, sortConfig);
- 
-  const getTypeName = (typeId: number | null | undefined) => {
-    if (!typeId) return 'Chung';
-    const type = types.find(t => t.id === typeId);
-    return type?.name || 'Không xác định';
-   };
- 
-   if (isLoading) {
-     return (
-       <div className="space-y-4">
-         <div className="flex justify-between items-center">
-           <div>
-             <Skeleton className="h-8 w-32 mb-2" />
-             <Skeleton className="h-4 w-48" />
-           </div>
-           <Skeleton className="h-10 w-32" />
-         </div>
-         <Card>
-           <div className="p-4 space-y-4">
-             {[1, 2, 3, 4, 5].map(i => (
-               <Skeleton key={i} className="h-14 w-full" />
-             ))}
-           </div>
-         </Card>
-       </div>
-     );
-   }
- 
-   return (
-     <div className="space-y-4">
-       <div className="flex justify-between items-center">
-         <div>
-           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Danh mục sản phẩm</h1>
-           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Xem danh mục và phân loại sản phẩm ({categories.length} danh mục)
-           </p>
-         </div>
-       </div>
- 
-       <Card>
-         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4">
-           <div className="relative max-w-xs">
-             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-             <Input 
-               placeholder="Tìm danh mục..." 
-               className="pl-9 w-48" 
-               value={searchTerm} 
-               onChange={(e) => setSearchTerm(e.target.value)} 
-             />
-           </div>
-           <select 
-             className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" 
-            value={filterType} 
-            onChange={(e) => setFilterType(e.target.value)}
-           >
-            <option value="">Tất cả phân loại</option>
-            {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-           </select>
-         </div>
- 
-         <Table>
-           <TableHeader>
-             <TableRow>
-               <SortableHeader label="Tên danh mục" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-              <TableHead>Slug</TableHead>
-              <TableHead>Phân loại</TableHead>
-               <TableHead className="text-right">Hành động</TableHead>
-             </TableRow>
-           </TableHeader>
-           <TableBody>
-             {sortedData.map(category => (
-              <TableRow key={category.id}>
-                 <TableCell>
-                   <div className="flex items-center gap-2">
-                     <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded flex items-center justify-center">
-                       <FolderTree size={16} className="text-amber-600 dark:text-amber-400" />
-                     </div>
-                     <span className="font-medium">{category.name}</span>
-                   </div>
-                 </TableCell>
-                 <TableCell>
-                  <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{category.slug}</code>
-                 </TableCell>
-                 <TableCell>
-                  <Badge variant={category.type_id ? 'info' : 'secondary'}>
-                    {getTypeName(category.type_id)}
-                   </Badge>
-                 </TableCell>
-                 <TableCell className="text-right">
-                  <Link 
-                    href={`/filter?category=${category.slug}`} 
-                    target="_blank"
-                    className="text-blue-600 hover:text-blue-700 text-sm"
-                  >
-                    Xem sản phẩm
-                  </Link>
-                 </TableCell>
-               </TableRow>
-             ))}
-             {sortedData.length === 0 && (
-               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-slate-500">
-                  {searchTerm || filterType 
-                     ? 'Không tìm thấy kết quả phù hợp' 
-                     : 'Chưa có danh mục nào'}
-                 </TableCell>
-               </TableRow>
-             )}
-           </TableBody>
-         </Table>
- 
-         {sortedData.length > 0 && (
-           <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-             <span className="text-sm text-slate-500">
-               Hiển thị {sortedData.length} / {categories.length} danh mục
-             </span>
-           </div>
-         )}
-       </Card>
 
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Phân loại sản phẩm</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {types.map(type => (
-            <Link 
-              key={type.id} 
-              href={`/filter?type_id=${type.id}`}
-              target="_blank"
-              className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-            >
-              <p className="font-medium text-slate-900 dark:text-slate-100">{type.name}</p>
-              <p className="text-xs text-slate-500 mt-1">{type.slug}</p>
-            </Link>
-          ))}
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { Plus, Edit, Trash2, ExternalLink, Search, FolderTree, AlertTriangle } from 'lucide-react';
+import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
+import { fetchAdminCategories, deleteCategory, bulkDeleteCategories, type AdminCategory } from '@/lib/api/admin';
+import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
+import CategoryFormModal from './CategoryFormModal';
+
+export default function CategoriesListPage() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [totalCategories, setTotalCategories] = useState(0);
+  const [types, setTypes] = useState<ProductFilterOption[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const columns = [
+    { key: 'select', label: 'Chọn' },
+    { key: 'name', label: 'Tên danh mục', required: true },
+    { key: 'slug', label: 'Slug' },
+    { key: 'type', label: 'Phân loại' },
+    { key: 'products_count', label: 'Số SP' },
+    { key: 'order', label: 'Thứ tự' },
+    { key: 'active', label: 'Trạng thái', required: true },
+    { key: 'actions', label: 'Hành động', required: true },
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(
+    columns.filter(c => c.required || ['name', 'type', 'products_count', 'active', 'actions'].includes(c.key)).map(c => c.key)
+  );
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params: Record<string, string | number> = { per_page: 100 };
+      if (searchTerm) params.q = searchTerm;
+      if (filterType) params.type_id = filterType;
+
+      const [categoriesRes, filtersRes] = await Promise.all([
+        fetchAdminCategories(params),
+        fetchProductFilters(),
+      ]);
+
+      setCategories(categoriesRes.data);
+      setTotalCategories(categoriesRes.meta.total);
+      setTypes(filtersRes.types);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [searchTerm, filterType]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleSort = (key: string) => {
+    setSortConfig(prev => ({ 
+      key, 
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' 
+    }));
+  };
+
+  const toggleColumn = (key: string) => {
+    setVisibleColumns(prev => 
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
+
+  const sortedData = useSortableData(categories, sortConfig);
+
+  const toggleSelectAll = () => {
+    setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map(c => c.id));
+  };
+
+  const toggleSelectItem = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    
+    setIsDeleting(true);
+    try {
+      if (deleteConfirm.type === 'single' && deleteConfirm.id) {
+        await deleteCategory(deleteConfirm.id);
+      } else if (deleteConfirm.type === 'bulk') {
+        await bulkDeleteCategories(selectedIds);
+        setSelectedIds([]);
+      }
+      setDeleteConfirm(null);
+      loadData();
+    } catch (error: any) {
+      console.error('Failed to delete:', error);
+      alert(error?.message || 'Xóa thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setIsFormOpen(false);
+    setEditingCategory(null);
+    loadData();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <Skeleton className="h-8 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-32" />
         </div>
+        <Card>
+          <div className="p-4 space-y-4">
+            {[1, 2, 3, 4, 5].map(i => (
+              <Skeleton key={i} className="h-14 w-full" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Danh mục sản phẩm</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Quản lý danh mục và phân loại sản phẩm • {totalCategories} danh mục
+          </p>
+        </div>
+        <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
+          <Plus size={16} />
+          Thêm danh mục
+        </Button>
+      </div>
+
+      {selectedIds.length > 0 && (
+        <BulkActionBar 
+          selectedCount={selectedIds.length} 
+          onDelete={() => setDeleteConfirm({ type: 'bulk' })} 
+          onClearSelection={() => setSelectedIds([])} 
+        />
+      )}
+
+      <Card>
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="flex flex-wrap gap-3 flex-1">
+            <div className="relative max-w-xs">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input 
+                placeholder="Tìm danh mục..." 
+                className="pl-9 w-48" 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+              />
+            </div>
+            <select 
+              className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" 
+              value={filterType} 
+              onChange={(e) => setFilterType(e.target.value)}
+            >
+              <option value="">Tất cả phân loại</option>
+              {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </div>
+          <ColumnToggle columns={columns} visibleColumns={visibleColumns} onToggle={toggleColumn} />
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {visibleColumns.includes('select') && (
+                <TableHead className="w-[40px]">
+                  <SelectCheckbox 
+                    checked={selectedIds.length === sortedData.length && sortedData.length > 0} 
+                    onChange={toggleSelectAll} 
+                    indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} 
+                  />
+                </TableHead>
+              )}
+              {visibleColumns.includes('name') && (
+                <SortableHeader label="Tên danh mục" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
+              )}
+              {visibleColumns.includes('slug') && <TableHead>Slug</TableHead>}
+              {visibleColumns.includes('type') && (
+                <SortableHeader label="Phân loại" sortKey="type_name" sortConfig={sortConfig} onSort={handleSort} />
+              )}
+              {visibleColumns.includes('products_count') && (
+                <SortableHeader label="Số SP" sortKey="products_count" sortConfig={sortConfig} onSort={handleSort} />
+              )}
+              {visibleColumns.includes('order') && (
+                <SortableHeader label="Thứ tự" sortKey="order" sortConfig={sortConfig} onSort={handleSort} />
+              )}
+              {visibleColumns.includes('active') && <TableHead>Trạng thái</TableHead>}
+              {visibleColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedData.map(category => (
+              <TableRow key={category.id} className={selectedIds.includes(category.id) ? 'bg-blue-500/5' : ''}>
+                {visibleColumns.includes('select') && (
+                  <TableCell>
+                    <SelectCheckbox checked={selectedIds.includes(category.id)} onChange={() => toggleSelectItem(category.id)} />
+                  </TableCell>
+                )}
+                {visibleColumns.includes('name') && (
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded flex items-center justify-center">
+                        <FolderTree size={16} className="text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <span className="font-medium">{category.name}</span>
+                    </div>
+                  </TableCell>
+                )}
+                {visibleColumns.includes('slug') && (
+                  <TableCell>
+                    <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{category.slug}</code>
+                  </TableCell>
+                )}
+                {visibleColumns.includes('type') && (
+                  <TableCell>
+                    <Badge variant={category.type_id ? 'info' : 'secondary'}>
+                      {category.type_name || 'Chung'}
+                    </Badge>
+                  </TableCell>
+                )}
+                {visibleColumns.includes('products_count') && (
+                  <TableCell>
+                    <Badge variant="secondary">{category.products_count || 0}</Badge>
+                  </TableCell>
+                )}
+                {visibleColumns.includes('order') && (
+                  <TableCell>
+                    <Badge variant="secondary">{category.order ?? '-'}</Badge>
+                  </TableCell>
+                )}
+                {visibleColumns.includes('active') && (
+                  <TableCell>
+                    <Badge variant={category.active ? 'success' : 'secondary'}>
+                      {category.active ? 'Hiển thị' : 'Ẩn'}
+                    </Badge>
+                  </TableCell>
+                )}
+                {visibleColumns.includes('actions') && (
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Link href={`/filter?category=${category.slug}`} target="_blank">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-blue-600 hover:text-blue-700" 
+                          title="Xem trên web"
+                          aria-label="View on website"
+                        >
+                          <ExternalLink size={16} />
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => {
+                          setEditingCategory(category);
+                          setIsFormOpen(true);
+                        }}
+                        aria-label="Edit"
+                      >
+                        <Edit size={16} />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => setDeleteConfirm({ type: 'single', id: category.id })}
+                        aria-label="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+            {sortedData.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-8 text-slate-500">
+                  {searchTerm || filterType 
+                    ? 'Không tìm thấy kết quả phù hợp' 
+                    : 'Chưa có danh mục nào'}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        {sortedData.length > 0 && (
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+            <span className="text-sm text-slate-500">
+              Hiển thị {sortedData.length} / {totalCategories} danh mục
+            </span>
+          </div>
+        )}
       </Card>
-     </div>
-   );
- }
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="p-6 max-w-md w-full mx-4">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="text-red-600" size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  Xác nhận xóa
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  {deleteConfirm.type === 'bulk' 
+                    ? `Bạn có chắc chắn muốn xóa ${selectedIds.length} danh mục đã chọn?`
+                    : 'Bạn có chắc chắn muốn xóa danh mục này?'
+                  }
+                </p>
+                <p className="text-xs text-red-500 mt-2">
+                  Hành động này không thể hoàn tác.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeleting}
+              >
+                Hủy
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Đang xóa...' : 'Xóa'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {isFormOpen && (
+        <CategoryFormModal
+          category={editingCategory}
+          types={types}
+          onClose={() => {
+            setIsFormOpen(false);
+            setEditingCategory(null);
+          }}
+          onSuccess={handleFormSuccess}
+        />
+      )}
+    </div>
+  );
+}
