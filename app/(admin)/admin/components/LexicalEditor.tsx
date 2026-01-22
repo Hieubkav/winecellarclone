@@ -91,7 +91,7 @@ const normalizeImageUrl = (url: string): string => {
 // Custom TextNode with inline style support for HTML export
 export class ExtendedTextNode extends TextNode {
   static getType(): string {
-    return 'extended-text';
+    return 'text'; // Override default TextNode
   }
 
   static clone(node: ExtendedTextNode): ExtendedTextNode {
@@ -123,10 +123,6 @@ export class ExtendedTextNode extends TextNode {
 
   static importJSON(serializedNode: SerializedTextNode): ExtendedTextNode {
     return $createExtendedTextNode().updateFromJSON(serializedNode);
-  }
-
-  isSimpleText() {
-    return this.__type === 'extended-text' && this.__mode === 0;
   }
 }
 
@@ -564,10 +560,7 @@ const FONT_SIZE_OPTIONS = [
        AutoLinkNode, 
        LinkNode,
       ImageNode,
-      {
-        replace: TextNode,
-        with: (node: TextNode) => new ExtendedTextNode(node.__text, node.__key),
-      },
+      ExtendedTextNode,
      ],
    };
  
