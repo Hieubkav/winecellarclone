@@ -699,3 +699,168 @@ export async function reorderSocialLinks(items: Array<{ id: number; order: numbe
     body: JSON.stringify({ items }),
   });
 }
+
+// Admin Settings
+export interface AdminSetting {
+  id: number;
+  site_name: string | null;
+  hotline: string | null;
+  email: string | null;
+  address: string | null;
+  hours: string | null;
+  google_map_embed: string | null;
+  meta_default_title: string | null;
+  meta_default_description: string | null;
+  meta_default_keywords: string | string[] | null;
+  logo_image_id: number | null;
+  logo_image_url: string | null;
+  favicon_image_id: number | null;
+  favicon_image_url: string | null;
+  product_watermark_image_id: number | null;
+  product_watermark_image_url: string | null;
+  product_watermark_position: string | null;
+  product_watermark_size: string | null;
+  updated_at?: string;
+}
+
+export async function fetchAdminSettings(): Promise<{ data: AdminSetting }> {
+  return apiFetch('v1/admin/settings');
+}
+
+export async function updateSettings(data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch('v1/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+// Admin Menus
+export interface AdminMenuBlockItem {
+  id: number;
+  label: string;
+  href: string | null;
+  badge: string | null;
+  order: number;
+  active: boolean;
+}
+
+export interface AdminMenuBlock {
+  id: number;
+  title: string;
+  order: number;
+  active: boolean;
+  items: AdminMenuBlockItem[];
+}
+
+export interface AdminMenu {
+  id: number;
+  title: string;
+  type: string | null;
+  href: string | null;
+  order: number;
+  active: boolean;
+  blocks_count: number;
+  created_at?: string;
+}
+
+export interface AdminMenuDetail extends Omit<AdminMenu, 'blocks_count'> {
+  blocks: AdminMenuBlock[];
+  updated_at?: string;
+}
+
+export interface AdminMenusResponse {
+  data: AdminMenu[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminMenus(params?: Record<string, string | number>): Promise<AdminMenusResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminMenusResponse>(`v1/admin/menus${query}`);
+}
+
+export async function fetchAdminMenu(id: number): Promise<{ data: AdminMenuDetail }> {
+  return apiFetch(`v1/admin/menus/${id}`);
+}
+
+export async function createMenu(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/menus', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateMenu(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/menus/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteMenu(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/menus/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function bulkDeleteMenus(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
+  return apiFetch('v1/admin/menus/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+}
+
+export async function reorderMenus(items: Array<{ id: number; order: number }>): Promise<{ success: boolean; message: string }> {
+  return apiFetch('v1/admin/menus/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
+
+// Menu Blocks
+export async function createMenuBlock(menuId: number, data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch(`v1/admin/menus/${menuId}/blocks`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateMenuBlock(menuId: number, blockId: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/menus/${menuId}/blocks/${blockId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteMenuBlock(menuId: number, blockId: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/menus/${menuId}/blocks/${blockId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Menu Block Items
+export async function createMenuBlockItem(blockId: number, data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch(`v1/admin/menu-blocks/${blockId}/items`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateMenuBlockItem(blockId: number, itemId: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/menu-blocks/${blockId}/items/${itemId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteMenuBlockItem(blockId: number, itemId: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/menu-blocks/${blockId}/items/${itemId}`, {
+    method: 'DELETE',
+  });
+}

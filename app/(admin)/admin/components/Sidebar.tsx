@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
  import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Package, FileText, 
-  Globe, Settings, Image as ImageIcon, ChevronRight, X, LogOut,
+  Globe, Settings, ChevronRight, X, LogOut,
   ChevronsLeft, ChevronsRight
 } from 'lucide-react';
  import { cn } from '@/lib/utils';
@@ -124,8 +124,10 @@ import {
   useEffect(() => {
     if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/product-types')) {
       setExpandedMenu('Sản phẩm');
-    } else if (isActive('/admin/menus') || isActive('/admin/home-components')) {
+    } else if (isActive('/admin/menus') || isActive('/admin/home-components') || isActive('/admin/social-links')) {
       setExpandedMenu('Website');
+    } else if (isActive('/admin/settings')) {
+      setExpandedMenu('Hệ thống');
     }
   }, [isActive]);
  
@@ -169,10 +171,18 @@ import {
            href: '/admin/home-components',
            subItems: [
              { label: 'Trang chủ', href: '/admin/home-components' },
+            { label: 'Menu', href: '/admin/menus' },
              { label: 'Mạng xã hội', href: '/admin/social-links' },
            ]
          },
-         { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
+        { 
+          icon: Settings, 
+          label: 'Hệ thống', 
+          href: '/admin/settings',
+          subItems: [
+            { label: 'Cấu hình chung', href: '/admin/settings' },
+          ]
+        },
        ]
      },
    ];
