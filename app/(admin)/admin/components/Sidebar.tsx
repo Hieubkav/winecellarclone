@@ -159,6 +159,11 @@ import {
              { label: 'Nhóm thuộc tính', href: '/admin/attribute-groups' },
            ]
          },
+       ]
+     },
+     {
+       section: 'Nội dung',
+       items: [
          { icon: FileText, label: 'Bài viết', href: '/admin/articles' },
        ]
      },
