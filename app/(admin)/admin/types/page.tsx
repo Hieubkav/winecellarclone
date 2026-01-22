@@ -490,11 +490,19 @@ export default function ProductTypesPage() {
                 <Filter size={20} className="text-red-600" />
                 Nhóm thuộc tính
               </h2>
-              <ColumnToggle 
-                columns={attributeColumnsConfig} 
-                visibleColumns={visibleAttributeColumns} 
-                onToggle={toggleAttributeColumn} 
-              />
+              <div className="flex items-center gap-2">
+                <Link href="/admin/attributes/create">
+                  <Button size="sm" className="gap-2">
+                    <Plus size={16} />
+                    Thêm mới
+                  </Button>
+                </Link>
+                <ColumnToggle 
+                  columns={attributeColumnsConfig} 
+                  visibleColumns={visibleAttributeColumns} 
+                  onToggle={toggleAttributeColumn} 
+                />
+              </div>
             </div>
             <Table>
               <TableHeader>
