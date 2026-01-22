@@ -27,6 +27,7 @@
    $isDecoratorNode,
    $isTextNode,
  } from 'lexical';
+import { $patchStyleText } from '@lexical/selection';
  import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
  import { $setBlocksType } from '@lexical/selection';
  import { 
@@ -83,6 +84,27 @@ const normalizeImageUrl = (url: string): string => {
  interface ToolbarPluginProps {
    onImageUpload?: (file: File) => Promise<string | null>;
  }
+
+const FONT_FAMILY_OPTIONS = [
+  { label: 'Inter', value: 'Inter' },
+  { label: 'Arial', value: 'Arial' },
+  { label: 'Courier New', value: 'Courier New' },
+  { label: 'Georgia', value: 'Georgia' },
+  { label: 'Times New Roman', value: 'Times New Roman' },
+  { label: 'Trebuchet MS', value: 'Trebuchet MS' },
+  { label: 'Verdana', value: 'Verdana' },
+];
+
+const FONT_SIZE_OPTIONS = [
+  { label: '10px', value: '10px' },
+  { label: '12px', value: '12px' },
+  { label: '14px', value: '14px' },
+  { label: '16px', value: '16px' },
+  { label: '18px', value: '18px' },
+  { label: '20px', value: '20px' },
+  { label: '24px', value: '24px' },
+  { label: '30px', value: '30px' },
+];
  
  const ToolbarPlugin: React.FC<ToolbarPluginProps> = ({ onImageUpload }) => {
    const [editor] = useLexicalComposerContext();
@@ -92,6 +114,9 @@ const normalizeImageUrl = (url: string): string => {
      italic: false,
      underline: false,
      blockType: 'paragraph',
+    fontSize: '14px',
+    fontFamily: 'Inter',
+    fontColor: '#000000',
    });
  
    const updateToolbar = useCallback(() => {
@@ -99,12 +124,27 @@ const normalizeImageUrl = (url: string): string => {
      if ($isRangeSelection(selection)) {
        const anchorNode = selection.anchor.getNode();
        const element = anchorNode.getKey() === 'root' ? anchorNode : anchorNode.getTopLevelElementOrThrow();
+
+      const fontSize = selection.style.split(';')
+        .find(s => s.includes('font-size'))
+        ?.split(':')[1]?.trim() || '14px';
+
+      const fontFamily = selection.style.split(';')
+        .find(s => s.includes('font-family'))
+        ?.split(':')[1]?.trim().replace(/['"]/g, '') || 'Inter';
+
+      const fontColor = selection.style.split(';')
+        .find(s => s.includes('color') && !s.includes('background'))
+        ?.split(':')[1]?.trim() || '#000000';
  
        setActiveState({
          bold: selection.hasFormat('bold'),
          italic: selection.hasFormat('italic'),
          underline: selection.hasFormat('underline'),
          blockType: element.getType(),
+        fontSize,
+        fontFamily,
+        fontColor,
        });
      }
    }, []);
@@ -180,6 +220,27 @@ const normalizeImageUrl = (url: string): string => {
      };
      input.click();
    };
+
+  const applyStyleText = (styles: Record<string, string>) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        $patchStyleText(selection, styles);
+      }
+    });
+  };
+
+  const handleFontSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    applyStyleText({ 'font-size': e.target.value });
+  };
+
+  const handleFontFamilyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    applyStyleText({ 'font-family': e.target.value });
+  };
+
+  const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applyStyleText({ color: e.target.value });
+  };
  
    const ToolbarBtn = ({ active, onClick, children, title }: { active?: boolean; onClick: () => void; children: React.ReactNode; title: string }) => (
      <button
@@ -199,6 +260,41 @@ const normalizeImageUrl = (url: string): string => {
  
    return (
      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-t-lg">
+      {/* Font Family */}
+      <select
+        value={activeState.fontFamily}
+        onChange={handleFontFamilyChange}
+        className="h-7 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2"
+        title="Font chữ"
+      >
+        {FONT_FAMILY_OPTIONS.map(option => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+
+      {/* Font Size */}
+      <select
+        value={activeState.fontSize}
+        onChange={handleFontSizeChange}
+        className="h-7 text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-2"
+        title="Cỡ chữ"
+      >
+        {FONT_SIZE_OPTIONS.map(option => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+
+      {/* Font Color */}
+      <input
+        type="color"
+        value={activeState.fontColor}
+        onChange={handleColorChange}
+        className="h-7 w-10 rounded border border-slate-300 dark:border-slate-600 cursor-pointer"
+        title="Màu chữ"
+      />
+
+      <Divider />
+
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} active={activeState.bold} title="In đậm (Ctrl+B)">
            <Bold size={16} />

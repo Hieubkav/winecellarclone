@@ -617,17 +617,29 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                     <div key={group.code} className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                         {group.icon_url && (
-                          <Image src={group.icon_url} alt="" width={16} height={16} sizes="16px" className="w-4 h-4" />
+                          <Image 
+                            src={group.icon_url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${group.icon_url}` : group.icon_url} 
+                            alt="" 
+                            width={16} 
+                            height={16} 
+                            sizes="16px" 
+                            className="w-4 h-4" 
+                          />
                         )}
                         {group.name}
                         {group.filter_type === 'chon_don' && (
                           <span className="text-xs text-slate-400">(chọn 1)</span>
                         )}
+                        {(group.filter_type === 'range' || group.filter_type === 'nhap_tay') && group.input_type === 'number' && (
+                          <span className="text-xs text-slate-400">({group.filter_type === 'range' ? 'khoảng giá trị' : 'nhập số'})</span>
+                        )}
                       </Label>
-                      {group.filter_type === 'nhap_tay' ? (
+                      {(group.filter_type === 'nhap_tay' || group.filter_type === 'range') && group.input_type ? (
                         <Input
                           type={group.input_type === 'number' ? 'number' : 'text'}
                           placeholder={group.input_type === 'number' ? '0' : 'Nhập giá trị'}
+                          min={group.input_type === 'number' ? 0 : undefined}
+                          step={group.input_type === 'number' ? 'any' : undefined}
                           value={manualAttributes[group.code] || ''}
                           onChange={(e) => handleManualAttributeChange(group.code, e.target.value)}
                         />
