@@ -91,7 +91,7 @@ const normalizeImageUrl = (url: string): string => {
 // Custom TextNode with inline style support for HTML export
 export class ExtendedTextNode extends TextNode {
   static getType(): string {
-    return 'text'; // Override default TextNode
+    return 'extended-text';
   }
 
   static clone(node: ExtendedTextNode): ExtendedTextNode {
@@ -561,6 +561,13 @@ const FONT_SIZE_OPTIONS = [
        LinkNode,
       ImageNode,
       ExtendedTextNode,
+      {
+        replace: TextNode,
+        with: (node: TextNode) => {
+          return new ExtendedTextNode(node.__text);
+        },
+        withKlass: ExtendedTextNode,
+      },
      ],
    };
  
