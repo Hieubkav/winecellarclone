@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { Plus, Edit, Trash2, Tag, Search, AlertTriangle, RotateCcw, Filter, Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData } from '../components/TableUtilities';
-import ColumnToggle, { type ColumnConfig } from '../components/ColumnToggle';
+import { SortableHeader, useSortableData, ColumnToggle } from '../components/TableUtilities';
 import { 
   deleteProductType, 
   fetchAdminProductTypes, 
@@ -35,24 +34,51 @@ export default function ProductTypesPage() {
   const [expandedTypes, setExpandedTypes] = useState<Set<number>>(new Set());
   
   // Column visibility state
-  const [typeColumns, setTypeColumns] = useState<ColumnConfig[]>([
-    { key: 'slug', label: 'Slug', visible: false },
-    { key: 'order', label: 'Thứ tự', visible: false },
-    { key: 'created_at', label: 'Ngày tạo', visible: false },
-    { key: 'updated_at', label: 'Cập nhật', visible: false },
-  ]);
+  const typeColumnsConfig = [
+    { key: 'expand', label: 'Mở rộng' },
+    { key: 'name', label: 'Tên nhóm', required: true },
+    { key: 'slug', label: 'Slug' },
+    { key: 'order', label: 'Thứ tự' },
+    { key: 'products_count', label: 'Số SP', required: true },
+    { key: 'active', label: 'Trạng thái', required: true },
+    { key: 'created_at', label: 'Ngày tạo' },
+    { key: 'updated_at', label: 'Cập nhật' },
+    { key: 'actions', label: 'Hành động', required: true },
+  ];
   
-  const [attributeColumns, setAttributeColumns] = useState<ColumnConfig[]>([
-    { key: 'code', label: 'Mã', visible: false },
-    { key: 'input_type', label: 'Kiểu nhập', visible: false },
-    { key: 'position', label: 'Vị trí', visible: false },
-    { key: 'created_at', label: 'Ngày tạo', visible: false },
-    { key: 'updated_at', label: 'Cập nhật', visible: false },
-  ]);
+  const attributeColumnsConfig = [
+    { key: 'name', label: 'Tên thuộc tính', required: true },
+    { key: 'code', label: 'Mã' },
+    { key: 'filter_type', label: 'Loại filter', required: true },
+    { key: 'input_type', label: 'Kiểu nhập' },
+    { key: 'terms_count', label: 'Số giá trị', required: true },
+    { key: 'products_count', label: 'Số SP' },
+    { key: 'product_types', label: 'Phân loại' },
+    { key: 'is_filterable', label: 'Trạng thái', required: true },
+    { key: 'position', label: 'Vị trí' },
+    { key: 'created_at', label: 'Ngày tạo' },
+    { key: 'updated_at', label: 'Cập nhật' },
+    { key: 'actions', label: 'Hành động', required: true },
+  ];
   
-  // Helper functions
-  const isColumnVisible = (columns: ColumnConfig[], key: string) => {
-    return columns.find(col => col.key === key)?.visible ?? false;
+  const [visibleTypeColumns, setVisibleTypeColumns] = useState<string[]>(
+    typeColumnsConfig.filter(c => c.required || ['expand', 'name', 'products_count', 'active', 'actions'].includes(c.key)).map(c => c.key)
+  );
+  
+  const [visibleAttributeColumns, setVisibleAttributeColumns] = useState<string[]>(
+    attributeColumnsConfig.filter(c => c.required || ['name', 'filter_type', 'terms_count', 'is_filterable', 'actions'].includes(c.key)).map(c => c.key)
+  );
+  
+  const toggleTypeColumn = (key: string) => {
+    setVisibleTypeColumns(prev => 
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
+  
+  const toggleAttributeColumn = (key: string) => {
+    setVisibleAttributeColumns(prev => 
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
   };
 
   useEffect(() => {
@@ -293,20 +319,24 @@ export default function ProductTypesPage() {
                 <Tag size={20} className="text-red-600" />
                 Nhóm sản phẩm
               </h2>
-              <ColumnToggle columns={typeColumns} onChange={setTypeColumns} />
+              <ColumnToggle 
+                columns={typeColumnsConfig} 
+                visibleColumns={visibleTypeColumns} 
+                onToggle={toggleTypeColumn} 
+              />
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40px]"></TableHead>
-                  <SortableHeader label="Tên nhóm" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-                  {isColumnVisible(typeColumns, 'slug') && <SortableHeader label="Slug" sortKey="slug" sortConfig={sortConfig} onSort={handleSort} />}
-                  {isColumnVisible(typeColumns, 'order') && <SortableHeader label="Thứ tự" sortKey="order" sortConfig={sortConfig} onSort={handleSort} />}
-                  <TableHead>Số SP</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  {isColumnVisible(typeColumns, 'created_at') && <SortableHeader label="Ngày tạo" sortKey="created_at" sortConfig={sortConfig} onSort={handleSort} />}
-                  {isColumnVisible(typeColumns, 'updated_at') && <SortableHeader label="Cập nhật" sortKey="updated_at" sortConfig={sortConfig} onSort={handleSort} />}
-                  <TableHead className="text-right">Hành động</TableHead>
+                  {visibleTypeColumns.includes('expand') && <TableHead className="w-[40px]"></TableHead>}
+                  {visibleTypeColumns.includes('name') && <SortableHeader label="Tên nhóm" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleTypeColumns.includes('slug') && <SortableHeader label="Slug" sortKey="slug" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleTypeColumns.includes('order') && <SortableHeader label="Thứ tự" sortKey="order" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleTypeColumns.includes('products_count') && <TableHead>Số SP</TableHead>}
+                  {visibleTypeColumns.includes('active') && <TableHead>Trạng thái</TableHead>}
+                  {visibleTypeColumns.includes('created_at') && <SortableHeader label="Ngày tạo" sortKey="created_at" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleTypeColumns.includes('updated_at') && <SortableHeader label="Cập nhật" sortKey="updated_at" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleTypeColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -319,94 +349,98 @@ export default function ProductTypesPage() {
                   return (
                     <React.Fragment key={type.id}>
                       <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                        <TableCell>
-                          {typeAttributes.length > 0 && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => toggleExpandType(type.id)}
-                            >
-                              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                            </Button>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
-                              <Tag size={16} className="text-red-600 dark:text-red-400" />
+                        {visibleTypeColumns.includes('expand') && (
+                          <TableCell>
+                            {typeAttributes.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => toggleExpandType(type.id)}
+                              >
+                                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                              </Button>
+                            )}
+                          </TableCell>
+                        )}
+                        {visibleTypeColumns.includes('name') && (
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
+                                <Tag size={16} className="text-red-600 dark:text-red-400" />
+                              </div>
+                              <div>
+                                <span className="font-medium">{type.name}</span>
+                                {typeAttributes.length > 0 && (
+                                  <span className="ml-2 text-xs text-slate-500">
+                                    ({typeAttributes.length} thuộc tính)
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div>
-                              <span className="font-medium">{type.name}</span>
-                              {typeAttributes.length > 0 && (
-                                <span className="ml-2 text-xs text-slate-500">
-                                  ({typeAttributes.length} thuộc tính)
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        {isColumnVisible(typeColumns, 'slug') && (
+                          </TableCell>
+                        )}
+                        {visibleTypeColumns.includes('slug') && (
                           <TableCell>
                             <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{type.slug}</code>
                           </TableCell>
                         )}
-                        {isColumnVisible(typeColumns, 'order') && (
+                        {visibleTypeColumns.includes('order') && (
                           <TableCell>
                             <Badge variant="secondary">{type.order ?? '-'}</Badge>
                           </TableCell>
                         )}
-                        <TableCell>
-                          <Badge variant="secondary">{type.products_count || 0}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={type.active ? 'success' : 'secondary'}>
-                            {type.active ? 'Hoạt động' : 'Tạm ẩn'}
-                          </Badge>
-                        </TableCell>
-                        {isColumnVisible(typeColumns, 'created_at') && (
+                        {visibleTypeColumns.includes('products_count') && (
+                          <TableCell>
+                            <Badge variant="secondary">{type.products_count || 0}</Badge>
+                          </TableCell>
+                        )}
+                        {visibleTypeColumns.includes('active') && (
+                          <TableCell>
+                            <Badge variant={type.active ? 'success' : 'secondary'}>
+                              {type.active ? 'Hoạt động' : 'Tạm ẩn'}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleTypeColumns.includes('created_at') && (
                           <TableCell>
                             <span className="text-xs text-slate-500">
                               {type.created_at ? new Date(type.created_at).toLocaleDateString('vi-VN') : '-'}
                             </span>
                           </TableCell>
                         )}
-                        {isColumnVisible(typeColumns, 'updated_at') && (
+                        {visibleTypeColumns.includes('updated_at') && (
                           <TableCell>
                             <span className="text-xs text-slate-500">
                               {type.updated_at ? new Date(type.updated_at).toLocaleDateString('vi-VN') : '-'}
                             </span>
                           </TableCell>
                         )}
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link href={`/admin/types/${type.id}/edit`}>
-                              <Button variant="ghost" size="icon" aria-label="Edit">
-                                <Edit size={16} />
+                        {visibleTypeColumns.includes('actions') && (
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Link href={`/admin/types/${type.id}/edit`}>
+                                <Button variant="ghost" size="icon" aria-label="Edit">
+                                  <Edit size={16} />
+                                </Button>
+                              </Link>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-600 hover:text-red-700"
+                                aria-label="Delete"
+                                onClick={() => setDeleteConfirm({ type: 'type', id: type.id })}
+                              >
+                                <Trash2 size={16} />
                               </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-red-600 hover:text-red-700"
-                              aria-label="Delete"
-                              onClick={() => setDeleteConfirm({ type: 'type', id: type.id })}
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          </div>
-                        </TableCell>
+                            </div>
+                          </TableCell>
+                        )}
                       </TableRow>
                       {isExpanded && typeAttributes.length > 0 && (
                         <TableRow>
                           <TableCell 
-                            colSpan={
-                              5 + // base columns: expand button, name, products_count, active, actions
-                              (isColumnVisible(typeColumns, 'slug') ? 1 : 0) +
-                              (isColumnVisible(typeColumns, 'order') ? 1 : 0) +
-                              (isColumnVisible(typeColumns, 'created_at') ? 1 : 0) +
-                              (isColumnVisible(typeColumns, 'updated_at') ? 1 : 0)
-                            } 
+                            colSpan={visibleTypeColumns.length} 
                             className="bg-slate-50/50 dark:bg-slate-900/30 p-0"
                           >
                             <div className="p-4 pl-12">
@@ -437,13 +471,7 @@ export default function ProductTypesPage() {
                 {sortedTypes.length === 0 && (
                   <TableRow>
                     <TableCell 
-                      colSpan={
-                        5 +
-                        (isColumnVisible(typeColumns, 'slug') ? 1 : 0) +
-                        (isColumnVisible(typeColumns, 'order') ? 1 : 0) +
-                        (isColumnVisible(typeColumns, 'created_at') ? 1 : 0) +
-                        (isColumnVisible(typeColumns, 'updated_at') ? 1 : 0)
-                      } 
+                      colSpan={visibleTypeColumns.length} 
                       className="text-center py-8 text-slate-500"
                     >
                       {searchTerm ? 'Không tìm thấy nhóm phù hợp' : 'Chưa có nhóm nào'}
@@ -462,23 +490,27 @@ export default function ProductTypesPage() {
                 <Filter size={20} className="text-red-600" />
                 Nhóm thuộc tính
               </h2>
-              <ColumnToggle columns={attributeColumns} onChange={setAttributeColumns} />
+              <ColumnToggle 
+                columns={attributeColumnsConfig} 
+                visibleColumns={visibleAttributeColumns} 
+                onToggle={toggleAttributeColumn} 
+              />
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortableHeader label="Tên thuộc tính" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-                  {isColumnVisible(attributeColumns, 'code') && <SortableHeader label="Mã" sortKey="code" sortConfig={sortConfig} onSort={handleSort} />}
-                  <SortableHeader label="Loại filter" sortKey="filter_type" sortConfig={sortConfig} onSort={handleSort} />
-                  {isColumnVisible(attributeColumns, 'input_type') && <TableHead>Kiểu nhập</TableHead>}
-                  <SortableHeader label="Số giá trị" sortKey="terms_count" sortConfig={sortConfig} onSort={handleSort} />
-                  <TableHead>Số SP</TableHead>
-                  <TableHead>Phân loại</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  {isColumnVisible(attributeColumns, 'position') && <SortableHeader label="Vị trí" sortKey="position" sortConfig={sortConfig} onSort={handleSort} />}
-                  {isColumnVisible(attributeColumns, 'created_at') && <SortableHeader label="Ngày tạo" sortKey="created_at" sortConfig={sortConfig} onSort={handleSort} />}
-                  {isColumnVisible(attributeColumns, 'updated_at') && <SortableHeader label="Cập nhật" sortKey="updated_at" sortConfig={sortConfig} onSort={handleSort} />}
-                  <TableHead className="text-right">Hành động</TableHead>
+                  {visibleAttributeColumns.includes('name') && <SortableHeader label="Tên thuộc tính" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleAttributeColumns.includes('code') && <SortableHeader label="Mã" sortKey="code" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleAttributeColumns.includes('filter_type') && <SortableHeader label="Loại filter" sortKey="filter_type" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleAttributeColumns.includes('input_type') && <TableHead>Kiểu nhập</TableHead>}
+                  {visibleAttributeColumns.includes('terms_count') && <SortableHeader label="Số giá trị" sortKey="terms_count" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleAttributeColumns.includes('products_count') && <TableHead>Số SP</TableHead>}
+                  {visibleAttributeColumns.includes('product_types') && <TableHead>Phân loại</TableHead>}
+                  {visibleAttributeColumns.includes('is_filterable') && <TableHead>Trạng thái</TableHead>}
+                  {visibleAttributeColumns.includes('position') && <SortableHeader label="Vị trí" sortKey="position" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleAttributeColumns.includes('created_at') && <SortableHeader label="Ngày tạo" sortKey="created_at" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleAttributeColumns.includes('updated_at') && <SortableHeader label="Cập nhật" sortKey="updated_at" sortConfig={sortConfig} onSort={handleSort} />}
+                  {visibleAttributeColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
