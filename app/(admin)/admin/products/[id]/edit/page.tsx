@@ -5,6 +5,7 @@
  import Link from 'next/link';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
  import { fetchAdminProduct, updateProduct } from '@/lib/api/admin';
  import { API_BASE_URL } from '@/lib/api/client';
@@ -617,17 +618,14 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                     <div key={group.code} className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                         {group.icon_url && (
-                          <Image 
-                            src={group.icon_url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${group.icon_url}` : group.icon_url} 
-                            alt="" 
-                            width={16} 
-                            height={16} 
-                            sizes="16px" 
-                            className="w-4 h-4" 
-                          />
-                        )}
-                        {group.name}
-                        {group.filter_type === 'chon_don' && (
+                          const iconName = group.icon_name || group.icon_url?.split('/').pop();
+                          // Extract icon name from icon_url (e.g., "http://...storage/Grape" => "Grape")
+                          const iconName = group.icon_url?.split('/').pop();
+                          const IconComponent = iconName && (LucideIcons as any)[iconName]
+                            ? (LucideIcons as any)[iconName]
+                            : null;
+                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+                        })()}
                           <span className="text-xs text-slate-400">(chọn 1)</span>
                         )}
                         {(group.filter_type === 'range' || group.filter_type === 'nhap_tay') && group.input_type === 'number' && (

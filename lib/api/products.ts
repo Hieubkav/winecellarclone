@@ -196,6 +196,8 @@ export interface AttributeFilter {
   input_type?: string;
   display_config: Record<string, unknown>;
   icon_url?: string | null;
+  icon_name?: string | null; // Lucide icon name (e.g., "Grape", "Award")
+  range?: { min: number; max: number }; // For range filters
   options: ProductFilterOption[];
 }
 
