@@ -92,7 +92,7 @@ export default function WineList() {
   }, [canLoadMore, requestMore])
 
   return (
-    <div className="flex flex-col font-sans text-stone-800 bg-stone-50 min-h-screen">
+    <div className="flex flex-col font-sans text-stone-800 bg-stone-50 min-h-screen" suppressHydrationWarning>
       
       <main className="container mx-auto flex-1 px-4 py-6 md:py-8">
         {/* Page Title & Search (Desktop) */}

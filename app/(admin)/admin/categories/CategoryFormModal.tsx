@@ -16,9 +16,7 @@ interface CategoryFormModalProps {
 export default function CategoryFormModal({ category, types, onClose, onSuccess }: CategoryFormModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    slug: '',
     type_id: '',
-    order: '',
     active: true,
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -28,9 +26,7 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
     if (category) {
       setFormData({
         name: category.name,
-        slug: category.slug,
         type_id: category.type_id?.toString() || '',
-        order: category.order?.toString() || '',
         active: category.active,
       });
     }
@@ -44,9 +40,7 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
     try {
       const payload: Record<string, any> = {
         name: formData.name,
-        slug: formData.slug || undefined,
         type_id: formData.type_id ? Number(formData.type_id) : null,
-        order: formData.order ? Number(formData.order) : null,
         active: formData.active,
       };
 
@@ -95,17 +89,6 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="slug">Slug</Label>
-            <Input
-              id="slug"
-              value={formData.slug}
-              onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              placeholder="Tự động tạo nếu để trống"
-            />
-            <p className="text-xs text-slate-500">Để trống để tự động tạo từ tên danh mục</p>
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="type_id">Phân loại sản phẩm</Label>
             <select
               id="type_id"
@@ -119,19 +102,6 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
               ))}
             </select>
             <p className="text-xs text-slate-500">Danh mục chỉ hiển thị cho phân loại đã chọn</p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="order">Thứ tự hiển thị</Label>
-            <Input
-              id="order"
-              type="number"
-              min="0"
-              value={formData.order}
-              onChange={(e) => setFormData({ ...formData, order: e.target.value })}
-              placeholder="0"
-            />
-            <p className="text-xs text-slate-500">Số nhỏ hơn sẽ hiển thị trước</p>
           </div>
 
           <div className="flex items-center gap-2">
