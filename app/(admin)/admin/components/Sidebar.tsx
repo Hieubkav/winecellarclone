@@ -140,14 +140,9 @@ import {
  
    const navItems = [
      {
-       section: 'Tổng quan',
+       section: '',
        items: [
          { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
-       ]
-     },
-     {
-       section: 'Quản lý',
-       items: [
          { 
            icon: Package, 
            label: 'Sản phẩm', 
@@ -159,18 +154,15 @@ import {
              { label: 'Nhóm thuộc tính', href: '/admin/attribute-groups' },
            ]
          },
-       ]
-     },
-     {
-       section: 'Nội dung',
-       items: [
-         { icon: FileText, label: 'Bài viết', href: '/admin/articles' },
-         { icon: ImageIcon, label: 'Thư viện ảnh', href: '/admin/images' },
-       ]
-     },
-     {
-       section: 'Hệ thống',
-       items: [
+         { 
+           icon: FileText, 
+           label: 'Nội dung', 
+           href: '/admin/articles',
+           subItems: [
+             { label: 'Bài viết', href: '/admin/articles' },
+             { label: 'Thư viện ảnh', href: '/admin/images' },
+           ]
+         },
          { 
            icon: Globe, 
            label: 'Website', 
