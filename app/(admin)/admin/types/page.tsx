@@ -208,7 +208,7 @@ export default function ProductTypesPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2" onClick={() => setSeedConfirm(true)}>
             <RotateCcw size={16} />
-            Khôi phục baseline
+            Khôi phục mặc định
           </Button>
           <Link href="/admin/types/create">
             <Button className="gap-2">
@@ -633,7 +633,7 @@ export default function ProductTypesPage() {
                 <AlertTriangle size={20} className="text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Khôi phục baseline</h3>
+                <h3 className="text-lg font-semibold">Khôi phục mặc định</h3>
                 <p className="text-sm text-slate-500 mt-1">Thao tác này sẽ khôi phục nhóm thuộc tính và phân loại mặc định.</p>
               </div>
             </div>

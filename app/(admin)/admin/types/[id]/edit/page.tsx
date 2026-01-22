@@ -3,7 +3,8 @@
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Filter, X } from 'lucide-react';
+import { ArrowLeft, Filter, X, Plus, Edit, Trash2 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Button, Card, CardContent, Input, Label, Skeleton, Badge } from '../../../components/ui';
 import { 
   fetchAdminProductType, 
@@ -18,6 +19,18 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export default function ProductTypeEditPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
@@ -26,6 +39,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const [order, setOrder] = useState('');
   const [active, setActive] = useState('true');
   const [allAttributes, setAllAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
@@ -43,6 +57,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         const type = typeRes.data;
         setName(type.name);
         setSlug(type.slug);
+        setIsNewRecord(false);
         setOrder(type.order !== null && type.order !== undefined ? String(type.order) : '');
         setActive(type.active ? 'true' : 'false');
         
@@ -154,20 +169,35 @@ export default function ProductTypeEditPage({ params }: PageProps) {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (!slug || isNewRecord) {
+                    setSlug(generateSlug(e.target.value));
+                  }
+                }}
                 required
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="slug">Slug</Label>
-              <Input 
-                id="slug" 
-                value={slug} 
-                disabled 
-                className="bg-slate-50 dark:bg-slate-900 text-slate-500"
-              />
-              <p className="text-xs text-slate-500">Slug không thể thay đổi sau khi tạo</p>
+              <div className="flex gap-2">
+                <Input 
+                  id="slug" 
+                  value={slug}
+                  onChange={(e) => isNewRecord && setSlug(generateSlug(e.target.value))}
+                  disabled={!isNewRecord}
+                  className={!isNewRecord ? "bg-slate-50 dark:bg-slate-900 text-slate-500" : ""}
+                />
+                {!isNewRecord && (
+                  <Badge variant="secondary" className="px-3 flex items-center whitespace-nowrap">
+                    Đã khóa
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">
+                {isNewRecord ? 'Slug tự động từ tên, có thể chỉnh sửa trước khi lưu' : 'Slug không thể thay đổi sau khi tạo'}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -201,52 +231,56 @@ export default function ProductTypeEditPage({ params }: PageProps) {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <Filter size={20} className="text-purple-600" />
+                <Filter size={20} className="text-red-600" />
                 Nhóm thuộc tính liên kết
               </h2>
               <p className="text-sm text-slate-500 mt-1">
                 {linkedAttributes.length} nhóm thuộc tính được sử dụng cho phân loại này
               </p>
             </div>
-            <Link href={`/admin/attributes?type_id=${id}`}>
-              <Button variant="outline" size="sm">
-                Quản lý thuộc tính
-              </Button>
-            </Link>
+            <div className="text-sm text-slate-500">
+              Quản lý trong Filament Admin
+            </div>
           </div>
         </div>
         <CardContent className="p-4">
           {linkedAttributes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {linkedAttributes.map(attr => (
-                <div 
-                  key={attr.id} 
-                  className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded flex items-center justify-center">
-                      <Filter size={16} className="text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-sm">{attr.name}</div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <code className="text-xs bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded">
-                          {attr.code}
-                        </code>
-                        {getFilterTypeBadge(attr.filter_type)}
-                        <Badge variant="secondary" className="text-xs">
-                          {attr.terms_count} giá trị
-                        </Badge>
+              {linkedAttributes.map(attr => {
+                const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
+                  ? (LucideIcons as any)[attr.icon_path]
+                  : Filter;
+                
+                return (
+                  <div 
+                    key={attr.id} 
+                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
+                        <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm">{attr.name}</div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <code className="text-xs bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            {attr.code}
+                          </code>
+                          {getFilterTypeBadge(attr.filter_type)}
+                          <Badge variant="secondary" className="text-xs">
+                            {attr.terms_count} giá trị
+                          </Badge>
+                        </div>
                       </div>
                     </div>
+                    <Link href={`/admin/attributes/${attr.id}/edit`}>
+                      <Button variant="ghost" size="sm">
+                        Xem
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href={`/admin/attributes/${attr.id}/edit`}>
-                    <Button variant="ghost" size="sm">
-                      Xem
-                    </Button>
-                  </Link>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 text-slate-500">
