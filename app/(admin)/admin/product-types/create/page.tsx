@@ -19,7 +19,7 @@ export default function ProductTypeCreatePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error('Vui lòng nhập tên phân loại.');
+      toast.error('Vui lòng nhập tên nhóm sản phẩm.');
       return;
     }
 
@@ -30,14 +30,14 @@ export default function ProductTypeCreatePage() {
         order: order ? Number(order) : null,
         active: active === 'true',
       });
-      toast.success('Đã tạo phân loại thành công');
-      router.push('/admin/types');
+      toast.success('Đã tạo nhóm sản phẩm thành công');
+      router.push('/admin/product-types');
     } catch (error) {
       console.error('Failed to create type:', error);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        toast.error(String((error.payload as { message?: string }).message ?? 'Tạo phân loại thất bại.'));
+        toast.error(String((error.payload as { message?: string }).message ?? 'Tạo nhóm sản phẩm thất bại.'));
       } else {
-        toast.error('Tạo phân loại thất bại. Vui lòng thử lại.');
+        toast.error('Tạo nhóm sản phẩm thất bại. Vui lòng thử lại.');
       }
     } finally {
       setIsSubmitting(false);
@@ -47,14 +47,14 @@ export default function ProductTypeCreatePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/types">
+        <Link href="/admin/product-types">
           <Button variant="ghost" size="icon">
             <ArrowLeft size={20} />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Thêm phân loại</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Tạo mới phân loại sản phẩm</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Thêm nhóm sản phẩm</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Tạo mới nhóm phân loại sản phẩm</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export default function ProductTypeCreatePage() {
         <CardContent>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="name">Tên phân loại</Label>
+              <Label htmlFor="name">Tên nhóm sản phẩm</Label>
               <Input
                 id="name"
                 value={name}
@@ -86,11 +86,11 @@ export default function ProductTypeCreatePage() {
             </div>
 
             <div className="flex justify-end gap-3">
-              <Link href="/admin/types">
+              <Link href="/admin/product-types">
                 <Button type="button" variant="outline">Hủy bỏ</Button>
               </Link>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Đang lưu...' : 'Lưu phân loại'}
+                {isSubmitting ? 'Đang lưu...' : 'Lưu nhóm sản phẩm'}
               </Button>
             </div>
           </form>

@@ -79,7 +79,6 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         setIsFilterable(attr.is_filterable);
         setPosition(attr.position !== null && attr.position !== undefined ? String(attr.position) : '');
         
-        // Sanitize icon_path: only accept simple icon names, not SVG content
         let iconValue = attr.icon_path || '';
         if (iconValue && (iconValue.includes('<') || iconValue.includes('svg') || iconValue.length > 50)) {
           console.warn('Invalid icon_path format, resetting to empty:', iconValue);
@@ -123,15 +122,6 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
 
     setIsSubmitting(true);
     try {
-      console.log('Submitting data:', {
-        name: name.trim(),
-        filter_type: normalizeFilterTypeForApi(filterType),
-        input_type: inputType.trim() || null,
-        is_filterable: Boolean(isFilterable),
-        position: position ? Number(position) : null,
-        icon_path: iconPath.trim() || null,
-      });
-      
       await updateCatalogAttributeGroup(Number(id), {
         name: name.trim(),
         filter_type: normalizeFilterTypeForApi(filterType),
@@ -143,7 +133,6 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
       toast.success('Đã lưu thay đổi thành công');
     } catch (error) {
       console.error('Failed to update attribute group:', error);
-      console.error('Error payload:', error instanceof ApiError ? error.payload : null);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object') {
         const payload = error.payload as { 
           message?: string; 
@@ -153,12 +142,10 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         };
         const validationErrors = payload.errors || payload.details;
         if (validationErrors) {
-          // Show validation errors
           const errorMessages = Object.entries(validationErrors)
             .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
             .join('\n');
           toast.error(errorMessages);
-          console.error('Validation errors:', validationErrors);
         } else {
           toast.error(payload.message || payload.error || 'Cập nhật thuộc tính thất bại.');
         }
@@ -190,7 +177,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
       <div className="text-center py-10">
         <h2 className="text-xl font-semibold mb-2">Không tìm thấy nhóm thuộc tính</h2>
         <p className="text-slate-500 mb-4">Nhóm thuộc tính này có thể đã bị xóa hoặc không tồn tại.</p>
-        <Link href="/admin/types">
+        <Link href="/admin/attribute-groups">
           <Button>Quay lại danh sách</Button>
         </Link>
       </div>
@@ -200,7 +187,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/types">
+        <Link href="/admin/attribute-groups">
           <Button variant="ghost" size="icon">
             <ArrowLeft size={20} />
           </Button>
@@ -289,7 +276,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-              <Link href="/admin/types">
+              <Link href="/admin/attribute-groups">
                 <Button type="button" variant="outline">Hủy bỏ</Button>
               </Link>
               <Button type="submit" disabled={isSubmitting}>
@@ -300,24 +287,23 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         </Card>
       </form>
 
-      {/* Product Types Section */}
       <Card>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Tag size={20} className="text-blue-600" />
-            Phân loại sử dụng thuộc tính này
+            Nhóm sản phẩm sử dụng thuộc tính này
           </h2>
           <p className="text-sm text-slate-500 mt-1">
             {productTypes.length > 0 
-              ? `${productTypes.length} phân loại đang sử dụng` 
-              : 'Chưa có phân loại nào sử dụng'}
+              ? `${productTypes.length} nhóm sản phẩm đang sử dụng` 
+              : 'Chưa có nhóm sản phẩm nào sử dụng'}
           </p>
         </div>
         <CardContent className="p-4">
           {productTypes.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {productTypes.map(type => (
-                <Link key={type.id} href={`/admin/types/${type.id}/edit`}>
+                <Link key={type.id} href={`/admin/product-types/${type.id}/edit`}>
                   <Badge variant="info" className="cursor-pointer hover:bg-blue-600">
                     {type.name}
                   </Badge>
@@ -327,8 +313,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
           ) : (
             <div className="text-center py-6 text-slate-500">
               <Info size={32} className="mx-auto mb-2 text-slate-300" />
-              <p className="text-sm">Thuộc tính này chưa được liên kết với phân loại nào</p>
-              <p className="text-xs mt-1">Quản lý liên kết trong Filament Admin</p>
+              <p className="text-sm">Thuộc tính này chưa được liên kết với nhóm sản phẩm nào</p>
             </div>
           )}
         </CardContent>

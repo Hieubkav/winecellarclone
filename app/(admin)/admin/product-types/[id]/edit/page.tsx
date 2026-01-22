@@ -12,7 +12,6 @@ import {
   fetchAdminCatalogAttributeGroups,
   attachAttributeGroupToType,
   detachAttributeGroupFromType,
-  syncAttributeGroupsToType,
   type AdminCatalogAttributeGroup 
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
@@ -26,7 +25,7 @@ function generateSlug(text: string): string {
   return text
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/đ/g, 'd')
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
@@ -68,7 +67,6 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         
         setAllAttributes(attributesRes.data);
         
-        // Use attribute_groups from type response
         if (type.attribute_groups) {
           const linkedIds = new Set(type.attribute_groups.map((g: any) => g.id));
           const linked = attributesRes.data
@@ -100,7 +98,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error('Vui lòng nhập tên phân loại.');
+      toast.error('Vui lòng nhập tên nhóm sản phẩm.');
       return;
     }
 
@@ -115,9 +113,9 @@ export default function ProductTypeEditPage({ params }: PageProps) {
     } catch (error) {
       console.error('Failed to update type:', error);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        toast.error(String((error.payload as { message?: string }).message ?? 'Cập nhật phân loại thất bại.'));
+        toast.error(String((error.payload as { message?: string }).message ?? 'Cập nhật nhóm sản phẩm thất bại.'));
       } else {
-        toast.error('Cập nhật phân loại thất bại. Vui lòng thử lại.');
+        toast.error('Cập nhật nhóm sản phẩm thất bại. Vui lòng thử lại.');
       }
     } finally {
       setIsSubmitting(false);
@@ -130,7 +128,6 @@ export default function ProductTypeEditPage({ params }: PageProps) {
       await attachAttributeGroupToType(Number(id), groupId, linkedAttributes.length);
       toast.success('Đã thêm nhóm thuộc tính');
       
-      // Reload data
       const typeRes = await fetchAdminProductType(Number(id));
       const type = typeRes.data;
       if (type.attribute_groups) {
@@ -196,9 +193,9 @@ export default function ProductTypeEditPage({ params }: PageProps) {
   if (notFound) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-xl font-semibold mb-2">Không tìm thấy phân loại</h2>
-        <p className="text-slate-500 mb-4">Phân loại này có thể đã bị xóa hoặc không tồn tại.</p>
-        <Link href="/admin/types">
+        <h2 className="text-xl font-semibold mb-2">Không tìm thấy nhóm sản phẩm</h2>
+        <p className="text-slate-500 mb-4">Nhóm sản phẩm này có thể đã bị xóa hoặc không tồn tại.</p>
+        <Link href="/admin/product-types">
           <Button>Quay lại danh sách</Button>
         </Link>
       </div>
@@ -208,14 +205,14 @@ export default function ProductTypeEditPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/types">
+        <Link href="/admin/product-types">
           <Button variant="ghost" size="icon">
             <ArrowLeft size={20} />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật phân loại</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Chỉnh sửa thông tin phân loại</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm sản phẩm</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Chỉnh sửa thông tin nhóm sản phẩm</p>
         </div>
       </div>
 
@@ -223,7 +220,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         <Card>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Tên phân loại <span className="text-red-500">*</span></Label>
+              <Label htmlFor="name">Tên nhóm sản phẩm <span className="text-red-500">*</span></Label>
               <Input
                 id="name"
                 value={name}
@@ -272,7 +269,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-              <Link href="/admin/types">
+              <Link href="/admin/product-types">
                 <Button type="button" variant="outline">Hủy bỏ</Button>
               </Link>
               <Button type="submit" disabled={isSubmitting}>
@@ -283,7 +280,6 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         </Card>
       </form>
 
-      {/* Linked Attributes Section */}
       <Card>
         <div className="p-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between">
@@ -293,7 +289,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                 Nhóm thuộc tính liên kết
               </h2>
               <p className="text-sm text-slate-500 mt-1">
-                {linkedAttributes.length} nhóm thuộc tính được sử dụng cho phân loại này
+                {linkedAttributes.length} nhóm thuộc tính được sử dụng cho nhóm sản phẩm này
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={() => setShowAddPopup(true)}>
@@ -333,7 +329,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Link href={`/admin/attributes/${attr.id}/edit`}>
+                      <Link href={`/admin/attribute-groups/${attr.id}/edit`}>
                         <Button variant="ghost" size="icon" title="Xem chi tiết">
                           <Edit size={16} />
                         </Button>
@@ -369,7 +365,6 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {/* Add Attribute Popup */}
       {showAddPopup && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-lg mx-4">

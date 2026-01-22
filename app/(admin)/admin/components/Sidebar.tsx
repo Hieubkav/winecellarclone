@@ -122,7 +122,7 @@ import {
   const isActive = useCallback((route: string) => pathname.startsWith(route), [pathname]);
  
   useEffect(() => {
-    if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/types')) {
+    if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/product-types')) {
       setExpandedMenu('Sản phẩm');
     } else if (isActive('/admin/menus') || isActive('/admin/home-components')) {
       setExpandedMenu('Website');
@@ -155,7 +155,8 @@ import {
            subItems: [
              { label: 'Tất cả sản phẩm', href: '/admin/products' },
              { label: 'Danh mục', href: '/admin/categories' },
-             { label: 'Phân loại', href: '/admin/types' },
+             { label: 'Nhóm sản phẩm', href: '/admin/product-types' },
+             { label: 'Nhóm thuộc tính', href: '/admin/attribute-groups' },
            ]
          },
          { icon: FileText, label: 'Bài viết', href: '/admin/articles' },
