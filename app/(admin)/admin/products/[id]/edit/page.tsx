@@ -617,15 +617,15 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                   {attributeFilters.map(group => (
                     <div key={group.code} className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                        {group.icon_url && (
+                        {(() => {
                           const iconName = group.icon_name || group.icon_url?.split('/').pop();
-                          // Extract icon name from icon_url (e.g., "http://...storage/Grape" => "Grape")
-                          const iconName = group.icon_url?.split('/').pop();
                           const IconComponent = iconName && (LucideIcons as any)[iconName]
                             ? (LucideIcons as any)[iconName]
                             : null;
                           return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
                         })()}
+                        {group.name}
+                        {group.filter_type === 'chon_don' && (
                           <span className="text-xs text-slate-400">(chọn 1)</span>
                         )}
                         {(group.filter_type === 'range' || group.filter_type === 'nhap_tay') && group.input_type === 'number' && (
