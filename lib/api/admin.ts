@@ -275,6 +275,26 @@ export async function deleteProductType(id: number): Promise<{ success: boolean;
   });
 }
 
+export async function attachAttributeGroupToType(typeId: number, groupId: number, position?: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-types/${typeId}/attribute-groups`, {
+    method: 'POST',
+    body: JSON.stringify({ group_id: groupId, position: position ?? 0 }),
+  });
+}
+
+export async function detachAttributeGroupFromType(typeId: number, groupId: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-types/${typeId}/attribute-groups/${groupId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function syncAttributeGroupsToType(typeId: number, groups: Array<{ id: number; position: number }>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-types/${typeId}/attribute-groups/sync`, {
+    method: 'PUT',
+    body: JSON.stringify({ groups }),
+  });
+}
+
 // Admin Catalog Attribute Groups
 export interface AdminCatalogAttributeGroup {
   id: number;

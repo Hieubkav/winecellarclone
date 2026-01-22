@@ -10,6 +10,9 @@ import {
   fetchAdminProductType, 
   updateProductType, 
   fetchAdminCatalogAttributeGroups,
+  attachAttributeGroupToType,
+  detachAttributeGroupFromType,
+  syncAttributeGroupsToType,
   type AdminCatalogAttributeGroup 
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
@@ -44,6 +47,8 @@ export default function ProductTypeEditPage({ params }: PageProps) {
   const [active, setActive] = useState('true');
   const [allAttributes, setAllAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
   const [linkedAttributes, setLinkedAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
+  const [showAddPopup, setShowAddPopup] = useState(false);
+  const [isAttaching, setIsAttaching] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -63,11 +68,21 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         
         setAllAttributes(attributesRes.data);
         
-        // Filter attributes linked to this type
-        const linked = attributesRes.data.filter(attr => 
-          attr.product_types.some(pt => pt.id === Number(id))
-        );
-        setLinkedAttributes(linked);
+        // Use attribute_groups from type response
+        if (type.attribute_groups) {
+          const linkedIds = new Set(type.attribute_groups.map((g: any) => g.id));
+          const linked = attributesRes.data
+            .filter(attr => linkedIds.has(attr.id))
+            .map(attr => {
+              const typeGroup = type.attribute_groups.find((g: any) => g.id === attr.id);
+              return {
+                ...attr,
+                position: typeGroup?.position ?? 0,
+              };
+            })
+            .sort((a, b) => a.position - b.position);
+          setLinkedAttributes(linked as any);
+        }
       } catch (error) {
         if (error instanceof ApiError && error.status === 404) {
           setNotFound(true);
@@ -106,6 +121,49 @@ export default function ProductTypeEditPage({ params }: PageProps) {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAddAttributeGroup = async (groupId: number) => {
+    setIsAttaching(true);
+    try {
+      await attachAttributeGroupToType(Number(id), groupId, linkedAttributes.length);
+      toast.success('Đã thêm nhóm thuộc tính');
+      
+      // Reload data
+      const typeRes = await fetchAdminProductType(Number(id));
+      const type = typeRes.data;
+      if (type.attribute_groups) {
+        const linkedIds = new Set(type.attribute_groups.map((g: any) => g.id));
+        const linked = allAttributes
+          .filter(attr => linkedIds.has(attr.id))
+          .map(attr => {
+            const typeGroup = type.attribute_groups.find((g: any) => g.id === attr.id);
+            return {
+              ...attr,
+              position: typeGroup?.position ?? 0,
+            };
+          })
+          .sort((a, b) => a.position - b.position);
+        setLinkedAttributes(linked as any);
+      }
+      setShowAddPopup(false);
+    } catch (error) {
+      console.error('Failed to add attribute group:', error);
+      toast.error('Thêm nhóm thuộc tính thất bại');
+    } finally {
+      setIsAttaching(false);
+    }
+  };
+
+  const handleRemoveAttributeGroup = async (groupId: number) => {
+    try {
+      await detachAttributeGroupFromType(Number(id), groupId);
+      toast.success('Đã xóa nhóm thuộc tính');
+      setLinkedAttributes(prev => prev.filter(attr => attr.id !== groupId));
+    } catch (error) {
+      console.error('Failed to remove attribute group:', error);
+      toast.error('Xóa nhóm thuộc tính thất bại');
     }
   };
 
@@ -238,9 +296,10 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                 {linkedAttributes.length} nhóm thuộc tính được sử dụng cho phân loại này
               </p>
             </div>
-            <div className="text-sm text-slate-500">
-              Quản lý trong Filament Admin
-            </div>
+            <Button variant="outline" size="sm" onClick={() => setShowAddPopup(true)}>
+              <Plus size={16} className="mr-2" />
+              Thêm thuộc tính
+            </Button>
           </div>
         </div>
         <CardContent className="p-4">
@@ -273,11 +332,22 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                         </div>
                       </div>
                     </div>
-                    <Link href={`/admin/attributes/${attr.id}/edit`}>
-                      <Button variant="ghost" size="sm">
-                        Xem
+                    <div className="flex items-center gap-2">
+                      <Link href={`/admin/attributes/${attr.id}/edit`}>
+                        <Button variant="ghost" size="icon" title="Xem chi tiết">
+                          <Edit size={16} />
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleRemoveAttributeGroup(attr.id)}
+                        title="Xóa liên kết"
+                      >
+                        <Trash2 size={16} />
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 );
               })}
@@ -286,11 +356,79 @@ export default function ProductTypeEditPage({ params }: PageProps) {
             <div className="text-center py-8 text-slate-500">
               <Filter size={32} className="mx-auto mb-2 text-slate-300" />
               <p>Chưa có nhóm thuộc tính nào được liên kết</p>
-              <p className="text-sm mt-1">Thuộc tính được quản lý trong Filament Admin</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => setShowAddPopup(true)}
+              >
+                <Plus size={16} className="mr-2" />
+                Thêm thuộc tính đầu tiên
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Add Attribute Popup */}
+      {showAddPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-lg mx-4">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Thêm nhóm thuộc tính</h3>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setShowAddPopup(false)}
+              >
+                <X size={20} />
+              </Button>
+            </div>
+            <CardContent className="p-4 max-h-96 overflow-y-auto">
+              <div className="space-y-2">
+                {allAttributes
+                  .filter(attr => !linkedAttributes.some(linked => linked.id === attr.id))
+                  .map(attr => {
+                    const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
+                      ? (LucideIcons as any)[attr.icon_path]
+                      : Filter;
+                    
+                    return (
+                      <button
+                        key={attr.id}
+                        className="w-full flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        onClick={() => handleAddAttributeGroup(attr.id)}
+                        disabled={isAttaching}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
+                            <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-medium text-sm">{attr.name}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <code className="text-xs bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                {attr.code}
+                              </code>
+                              <Badge variant="secondary" className="text-xs">
+                                {attr.terms_count} giá trị
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <Plus size={16} className="text-slate-400" />
+                      </button>
+                    );
+                  })}
+                {allAttributes.filter(attr => !linkedAttributes.some(linked => linked.id === attr.id)).length === 0 && (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>Tất cả nhóm thuộc tính đã được liên kết</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
