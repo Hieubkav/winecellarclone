@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle } from
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, updateProduct, type AdminProduct } from '@/lib/api/admin';
+import { cn } from '@/lib/utils';
  
  export default function ProductsListPage() {
    const [isLoading, setIsLoading] = useState(true);
@@ -309,14 +310,20 @@ import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, updateProduct, t
                  )}
               {visibleColumns.includes('active') && (
                 <TableCell>
-                  <Badge 
-                    className={togglingStatus === product.id ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:opacity-80 transition-opacity'}
-                    variant={product.active ? 'success' : 'secondary'}
+                  <div
+                    className={cn(
+                      "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
+                      togglingStatus === product.id ? "opacity-50 cursor-wait" : "",
+                      product.active ? "bg-green-500" : "bg-slate-300"
+                    )}
                     onClick={() => handleToggleStatus(product.id, product.active)}
-                    title="Click để chuyển trạng thái"
+                    title={`Click để ${product.active ? 'ẩn' : 'hiển thị'}`}
                   >
-                    {product.active ? 'Hiển thị' : 'Ẩn'}
-                  </Badge>
+                    <div className={cn(
+                      "w-3 h-3 bg-white rounded-full transition-transform",
+                      product.active ? "translate-x-2" : "-translate-x-2"
+                    )} />
+                  </div>
                 </TableCell>
               )}
                  {visibleColumns.includes('actions') && (
