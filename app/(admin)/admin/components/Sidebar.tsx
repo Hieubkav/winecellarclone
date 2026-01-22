@@ -165,6 +165,7 @@ import {
        section: 'Nội dung',
        items: [
          { icon: FileText, label: 'Bài viết', href: '/admin/articles' },
+         { icon: ImageIcon, label: 'Thư viện ảnh', href: '/admin/images' },
        ]
      },
      {
@@ -179,7 +180,6 @@ import {
              { label: 'Mạng xã hội', href: '/admin/social-links' },
            ]
          },
-         { icon: ImageIcon, label: 'Thư viện ảnh', href: '/admin/images' },
          { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
        ]
      },
