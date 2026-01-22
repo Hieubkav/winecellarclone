@@ -32,6 +32,8 @@ export default function ProductTypesPage() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
   const [expandedTypes, setExpandedTypes] = useState<Set<number>>(new Set());
+  const [showSlug, setShowSlug] = useState(false);
+  const [showCode, setShowCode] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -266,18 +268,26 @@ export default function ProductTypesPage() {
 
         {(viewMode === 'types' || viewMode === 'all') && (
           <div className="mb-6">
-            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <Tag size={20} className="text-blue-600" />
+                <Tag size={20} className="text-red-600" />
                 Nhóm sản phẩm
               </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSlug(!showSlug)}
+                className="text-xs"
+              >
+                {showSlug ? 'Ẩn Slug' : 'Hiện Slug'}
+              </Button>
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[40px]"></TableHead>
                   <SortableHeader label="Tên nhóm" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-                  <TableHead>Slug</TableHead>
+                  {showSlug && <TableHead>Slug</TableHead>}
                   <TableHead>Số SP</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
@@ -307,8 +317,8 @@ export default function ProductTypesPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded flex items-center justify-center">
-                              <Tag size={16} className="text-blue-600 dark:text-blue-400" />
+                            <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
+                              <Tag size={16} className="text-red-600 dark:text-red-400" />
                             </div>
                             <div>
                               <span className="font-medium">{type.name}</span>
@@ -320,9 +330,11 @@ export default function ProductTypesPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{type.slug}</code>
-                        </TableCell>
+                        {showSlug && (
+                          <TableCell>
+                            <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{type.slug}</code>
+                          </TableCell>
+                        )}
                         <TableCell>
                           <Badge variant="secondary">{type.products_count || 0}</Badge>
                         </TableCell>
@@ -352,18 +364,24 @@ export default function ProductTypesPage() {
                       </TableRow>
                       {isExpanded && typeAttributes.length > 0 && (
                         <TableRow>
-                          <TableCell colSpan={6} className="bg-slate-50/50 dark:bg-slate-900/30 p-0">
+                          <TableCell colSpan={showSlug ? 6 : 5} className="bg-slate-50/50 dark:bg-slate-900/30 p-0">
                             <div className="p-4 pl-12">
                               <div className="text-xs font-semibold text-slate-500 mb-2">Thuộc tính liên kết:</div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {typeAttributes.map(attr => (
-                                  <div key={attr.id} className="flex items-center gap-2 text-sm p-2 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
-                                    <Filter size={14} className="text-slate-400" />
-                                    <span className="font-medium">{attr.name}</span>
-                                    <span className="text-xs text-slate-500">({attr.terms_count} giá trị)</span>
-                                    {getFilterTypeBadge(attr.filter_type)}
-                                  </div>
-                                ))}
+                                {typeAttributes.map(attr => {
+                                  const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
+                                    ? (LucideIcons as any)[attr.icon_path]
+                                    : Filter;
+                                  
+                                  return (
+                                    <div key={attr.id} className="flex items-center gap-2 text-sm p-2 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                                      <IconComponent size={14} className="text-red-600" />
+                                      <span className="font-medium">{attr.name}</span>
+                                      <span className="text-xs text-slate-500">({attr.terms_count} giá trị)</span>
+                                      {getFilterTypeBadge(attr.filter_type)}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           </TableCell>
@@ -374,7 +392,7 @@ export default function ProductTypesPage() {
                 })}
                 {sortedTypes.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={showSlug ? 6 : 5} className="text-center py-8 text-slate-500">
                       {searchTerm ? 'Không tìm thấy nhóm phù hợp' : 'Chưa có nhóm nào'}
                     </TableCell>
                   </TableRow>
@@ -386,19 +404,27 @@ export default function ProductTypesPage() {
 
         {(viewMode === 'attributes' || viewMode === 'all') && (
           <div>
-            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <Filter size={20} className="text-purple-600" />
+                <Filter size={20} className="text-red-600" />
                 Nhóm thuộc tính
               </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCode(!showCode)}
+                className="text-xs"
+              >
+                {showCode ? 'Ẩn Mã' : 'Hiện Mã'}
+              </Button>
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <SortableHeader label="Tên thuộc tính" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-                  <TableHead>Mã</TableHead>
-                  <TableHead>Loại filter</TableHead>
-                  <TableHead>Số giá trị</TableHead>
+                  {showCode && <TableHead>Mã</TableHead>}
+                  <SortableHeader label="Loại filter" sortKey="filter_type" sortConfig={sortConfig} onSort={handleSort} />
+                  <SortableHeader label="Số giá trị" sortKey="terms_count" sortConfig={sortConfig} onSort={handleSort} />
                   <TableHead>Số SP</TableHead>
                   <TableHead>Phân loại</TableHead>
                   <TableHead>Trạng thái</TableHead>
@@ -415,15 +441,17 @@ export default function ProductTypesPage() {
                     <TableRow key={attr.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded flex items-center justify-center">
-                            <IconComponent size={16} className="text-purple-600 dark:text-purple-400" />
+                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
+                            <IconComponent size={16} className="text-red-600 dark:text-red-400" />
                           </div>
                           <span className="font-medium">{attr.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{attr.code}</code>
-                      </TableCell>
+                      {showCode && (
+                        <TableCell>
+                          <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{attr.code}</code>
+                        </TableCell>
+                      )}
                       <TableCell>{getFilterTypeBadge(attr.filter_type)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary">{attr.terms_count}</Badge>
@@ -472,7 +500,7 @@ export default function ProductTypesPage() {
                 })}
                 {sortedAttributes.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={showCode ? 8 : 7} className="text-center py-8 text-slate-500">
                       {searchTerm ? 'Không tìm thấy thuộc tính phù hợp' : 'Chưa có thuộc tính nào'}
                     </TableCell>
                   </TableRow>
