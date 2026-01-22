@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Package, FileText, Eye, TrendingUp, TrendingDown, Users, MousePointerClick, Activity } from 'lucide-react';
+import { Package, FileText, Eye, TrendingUp, TrendingDown, Users, MousePointerClick } from 'lucide-react';
 import { Card, Skeleton, Badge } from '../components/ui';
 import { cn } from '@/lib/utils';
 import {
@@ -12,6 +12,101 @@ import {
   useRecentEvents,
 } from './useDashboardData';
 import Link from 'next/link';
+
+interface TrafficChartData {
+  date: string;
+  label: string;
+  page_views: number;
+  visitors: number;
+  product_views: number;
+  cta_clicks: number;
+}
+
+const LineChart: React.FC<{ data: TrafficChartData[] }> = ({ data }) => {
+  if (data.length === 0) return null;
+  
+  const maxViews = Math.max(...data.map(d => d.page_views), 1);
+  const maxVisitors = Math.max(...data.map(d => d.visitors), 1);
+  const maxValue = Math.max(maxViews, maxVisitors);
+  
+  const width = 100;
+  const height = 40;
+  const padding = 2;
+  
+  const getY = (value: number) => height - padding - ((value / maxValue) * (height - padding * 2));
+  const getX = (index: number) => padding + (index / (data.length - 1 || 1)) * (width - padding * 2);
+  
+  // Smooth curve using Catmull-Rom spline
+  const smoothPath = (points: { x: number; y: number }[]) => {
+    if (points.length < 2) return '';
+    if (points.length === 2) return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+    
+    let path = `M ${points[0].x} ${points[0].y}`;
+    
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(0, i - 1)];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[Math.min(points.length - 1, i + 2)];
+      
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+    
+    return path;
+  };
+  
+  const viewsPoints = data.map((d, i) => ({ x: getX(i), y: getY(d.page_views) }));
+  const visitorsPoints = data.map((d, i) => ({ x: getX(i), y: getY(d.visitors) }));
+  
+  const viewsPath = smoothPath(viewsPoints);
+  const visitorsPath = smoothPath(visitorsPoints);
+  
+  const viewsAreaPath = `${viewsPath} L ${getX(data.length - 1)} ${height - padding} L ${getX(0)} ${height - padding} Z`;
+  
+  return (
+    <div className="relative">
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="viewsGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={viewsAreaPath} fill="url(#viewsGradient)" />
+        <path d={viewsPath} fill="none" stroke="rgb(59, 130, 246)" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={visitorsPath} fill="none" stroke="rgb(168, 85, 247)" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1 1" />
+        {data.map((d, i) => (
+          <g key={d.date}>
+            <circle cx={getX(i)} cy={getY(d.page_views)} r="0.8" fill="rgb(59, 130, 246)" />
+            <circle cx={getX(i)} cy={getY(d.visitors)} r="0.6" fill="rgb(168, 85, 247)" />
+          </g>
+        ))}
+      </svg>
+      <div className="flex justify-between mt-2">
+        {data.map((d, i) => (
+          <div key={d.date} className="text-center flex-1" title={`${d.label}: ${d.page_views} lượt xem, ${d.visitors} khách`}>
+            <span className="text-[10px] text-slate-500">{d.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-4 justify-center mt-2">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-0.5 bg-blue-500 rounded"></div>
+          <span className="text-[10px] text-slate-500">Lượt xem</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-0.5 bg-purple-500 rounded" style={{ borderStyle: 'dashed' }}></div>
+          <span className="text-[10px] text-slate-500">Khách truy cập</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface StatCardProps {
    title: string;
@@ -80,6 +175,9 @@ export default function DashboardPage() {
   const { data: trafficChart = [], isLoading: chartLoading, isPlaceholderData: chartPlaceholder } = useTrafficChart(chartDays);
   const { data: topProducts = [], isLoading: productsLoading, isPlaceholderData: productsPlaceholder } = useTopProducts(7, 5);
   const { data: recentEvents = [], isLoading: eventsLoading, isPlaceholderData: eventsPlaceholder } = useRecentEvents(10);
+  
+  // Format số hiển thị
+  const formatNumber = (num: number) => num.toLocaleString('vi-VN');
 
   // Only show skeleton on initial load (no placeholder data available)
   const statsInitialLoading = statsLoading && !statsPlaceholder;
@@ -161,49 +259,31 @@ export default function DashboardPage() {
           <Skeleton className="h-48 w-full" />
         ) : (
           <div className="space-y-4">
-            {/* Simple bar chart */}
-            <div className="flex items-end gap-1 h-32">
-              {trafficChart.map((day) => (
-                <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-                  <div 
-                    className="w-full bg-blue-500 rounded-t transition-all hover:bg-blue-600"
-                    style={{ height: `${(day.page_views / maxPageViews) * 100}%`, minHeight: day.page_views > 0 ? '4px' : '0' }}
-                    title={`${day.label}: ${day.page_views} lượt xem`}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-1">
-              {trafficChart.map((day) => (
-                <div key={day.date} className="flex-1 text-center">
-                  <span className="text-[10px] text-slate-500">{day.label}</span>
-                </div>
-              ))}
-            </div>
+            <LineChart data={trafficChart} />
             
             {/* Stats summary */}
             <div className="grid grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {trafficChart.reduce((sum, d) => sum + d.page_views, 0)}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.page_views, 0))}
                 </p>
                 <p className="text-xs text-slate-500">Tổng lượt xem</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {trafficChart.reduce((sum, d) => sum + d.visitors, 0)}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.visitors, 0))}
                 </p>
                 <p className="text-xs text-slate-500">Khách truy cập</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-600">
-                  {trafficChart.reduce((sum, d) => sum + d.product_views, 0)}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.product_views, 0))}
                 </p>
                 <p className="text-xs text-slate-500">Xem sản phẩm</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-green-600">
-                  {trafficChart.reduce((sum, d) => sum + d.cta_clicks, 0)}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.cta_clicks, 0))}
                 </p>
                 <p className="text-xs text-slate-500">Click liên hệ</p>
               </div>
@@ -318,66 +398,6 @@ export default function DashboardPage() {
             ) : (
               <p className="text-sm text-slate-500 text-center py-4">Chưa có hoạt động nào</p>
             )}
-          </div>
-        </Card>
-      </div>
-
-      {/* Quick Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Eye size={20} className="text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">7 ngày qua</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                {stats?.traffic.last_7_days.page_views ?? 0}
-              </p>
-              <p className="text-xs text-slate-400">lượt xem</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Users size={20} className="text-purple-600" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">7 ngày qua</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                {stats?.traffic.last_7_days.visitors ?? 0}
-              </p>
-              <p className="text-xs text-slate-400">khách truy cập</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <Activity size={20} className="text-green-600" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">30 ngày qua</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                {stats?.traffic.last_30_days.page_views ?? 0}
-              </p>
-              <p className="text-xs text-slate-400">lượt xem</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-              <MousePointerClick size={20} className="text-amber-600" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Hôm nay</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                {stats?.traffic.today.cta_clicks ?? 0}
-              </p>
-              <p className="text-xs text-slate-400">click liên hệ</p>
-            </div>
           </div>
         </Card>
       </div>
