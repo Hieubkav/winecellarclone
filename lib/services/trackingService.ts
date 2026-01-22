@@ -122,10 +122,20 @@ class TrackingService {
   }
 
   /**
+   * Track page view event
+   */
+  async trackPageView(
+    pagePath: string,
+    metadata?: Record<string, unknown>
+  ): Promise<void> {
+    return this.trackEvent("page_view", {}, { ...metadata, page_path: pagePath });
+  }
+
+  /**
    * Generic track event method
    */
   private async trackEvent(
-    eventType: "product_view" | "article_view" | "cta_contact",
+    eventType: "product_view" | "article_view" | "cta_contact" | "page_view",
     params: { product_id?: number; article_id?: number },
     metadata?: Record<string, unknown>
   ): Promise<void> {

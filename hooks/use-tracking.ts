@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { trackingService } from "@/lib/services/trackingService";
 
 /**
@@ -26,9 +27,32 @@ export function useTracking() {
     trackingService.trackCTAContact(metadata);
   }, []);
 
+  const trackPageView = useCallback(
+    (pagePath: string, metadata?: Record<string, unknown>) => {
+      trackingService.trackPageView(pagePath, metadata);
+    },
+    []
+  );
+
   return {
     trackProductView,
     trackArticleView,
     trackCTAContact,
+    trackPageView,
   };
+}
+
+/**
+ * Hook to automatically track page views on route change
+ * Usage: Place in layout or page component
+ *   usePageViewTracking()
+ */
+export function usePageViewTracking() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (pathname) {
+      trackingService.trackPageView(pathname);
+    }
+  }, [pathname]);
 }

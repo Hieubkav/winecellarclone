@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { trackingService } from "@/lib/services/trackingService";
 
 /**
@@ -8,6 +9,8 @@ import { trackingService } from "@/lib/services/trackingService";
  * Should be placed near root of app (in layout.tsx)
  */
 export function TrackingProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   useEffect(() => {
     // Initialize tracking service and track visitor
     const initTracking = async () => {
@@ -26,6 +29,13 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
       trackingService.destroy();
     };
   }, []);
+
+  // Track page views on route change
+  useEffect(() => {
+    if (pathname) {
+      trackingService.trackPageView(pathname);
+    }
+  }, [pathname]);
 
   return <>{children}</>;
 }
