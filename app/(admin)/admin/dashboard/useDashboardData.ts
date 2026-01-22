@@ -3,10 +3,12 @@
    fetchDashboardStats,
    fetchTrafficChart,
    fetchTopProducts,
+  fetchTopArticles,
    fetchRecentEvents,
    type DashboardStats,
    type TrafficChartData,
    type TopProduct,
+  type TopArticle,
    type RecentEvent,
  } from '@/lib/api/admin';
  
@@ -52,3 +54,13 @@ const STALE_TIME = 20 * 1000; // 20 seconds - data considered fresh
     placeholderData: keepPreviousData,
    });
  }
+
+export function useTopArticles(days: number = 7, limit: number = 5) {
+  return useQuery<TopArticle[]>({
+    queryKey: ['dashboard', 'top-articles', days, limit],
+    queryFn: () => fetchTopArticles(days, limit),
+    refetchInterval: REFETCH_INTERVAL,
+    staleTime: STALE_TIME,
+    placeholderData: keepPreviousData,
+  });
+}

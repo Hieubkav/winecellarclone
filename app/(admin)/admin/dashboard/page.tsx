@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Package, FileText, Eye, TrendingUp, TrendingDown, Users, MousePointerClick } from 'lucide-react';
+import { Package, FileText, Eye, TrendingUp, TrendingDown, Users } from 'lucide-react';
 import { Card, Skeleton, Badge } from '../components/ui';
 import { cn } from '@/lib/utils';
 import {
@@ -19,18 +19,9 @@ import {
   useDashboardStats,
   useTrafficChart,
   useTopProducts,
-  useRecentEvents,
+  useTopArticles,
 } from './useDashboardData';
 import Link from 'next/link';
-
-interface TrafficChartData {
-  date: string;
-  label: string;
-  page_views: number;
-  visitors: number;
-  product_views: number;
-  cta_clicks: number;
-}
 
 // Custom Tooltip cho Recharts
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -123,7 +114,7 @@ export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading, isPlaceholderData: statsPlaceholder } = useDashboardStats();
   const { data: trafficChart = [], isLoading: chartLoading, isPlaceholderData: chartPlaceholder } = useTrafficChart(chartDays);
   const { data: topProducts = [], isLoading: productsLoading, isPlaceholderData: productsPlaceholder } = useTopProducts(7, 5);
-  const { data: recentEvents = [], isLoading: eventsLoading, isPlaceholderData: eventsPlaceholder } = useRecentEvents(10);
+  const { data: topArticles = [], isLoading: articlesLoading, isPlaceholderData: articlesPlaceholder } = useTopArticles(7, 5);
   
   // Format số hiển thị
   const formatNumber = (num: number | string) => {
@@ -137,7 +128,7 @@ export default function DashboardPage() {
   const statsInitialLoading = statsLoading && !statsPlaceholder;
   const chartInitialLoading = chartLoading && !chartPlaceholder;
   const productsInitialLoading = productsLoading && !productsPlaceholder;
-  const eventsInitialLoading = eventsLoading && !eventsPlaceholder;
+  const articlesInitialLoading = articlesLoading && !articlesPlaceholder;
 
   const statCards = [
     {
@@ -172,8 +163,6 @@ export default function DashboardPage() {
     },
   ];
 
-  const maxPageViews = Math.max(...trafficChart.map(d => d.page_views), 1);
- 
    return (
      <div className="space-y-8">
        <div>
@@ -358,54 +347,57 @@ export default function DashboardPage() {
          </Card>
  
         {/* Recent Events */}
-         <Card className="p-6">
+        {/* Top Articles */}
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Hoạt động gần đây</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Bài viết xem nhiều</h2>
+            <Link href="/admin/articles" className="text-sm text-blue-600 hover:text-blue-700">Xem tất cả</Link>
           </div>
-          <div className="space-y-3 max-h-[400px] overflow-y-auto admin-scrollbar">
-            {eventsInitialLoading ? (
+          <div className="space-y-4">
+            {articlesInitialLoading ? (
               [1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-3 p-2">
-                  <Skeleton className="w-8 h-8 rounded-full" />
-                  <Skeleton className="h-4 flex-1" />
-                 </div>
-              ))
-            ) : recentEvents.length > 0 ? (
-              recentEvents.map((event) => (
-                <div 
-                  key={event.id} 
-                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                    event.event_type === 'product_view' && "bg-blue-100 dark:bg-blue-900/30",
-                    event.event_type === 'article_view' && "bg-green-100 dark:bg-green-900/30",
-                    event.event_type === 'cta_contact' && "bg-amber-100 dark:bg-amber-900/30",
-                  )}>
-                    {event.event_type === 'product_view' && <Package size={14} className="text-blue-600" />}
-                    {event.event_type === 'article_view' && <FileText size={14} className="text-green-600" />}
-                    {event.event_type === 'cta_contact' && <MousePointerClick size={14} className="text-amber-600" />}
+                <div key={i} className="flex items-center gap-4 p-3">
+                  <Skeleton className="w-12 h-12 rounded-lg" />
+                  <div className="flex-1">
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <Skeleton className="h-3 w-1/2" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-900 dark:text-slate-100">
-                      <span className="font-medium">{event.event_label}</span>
-                      {event.product && (
-                        <Link href={`/san-pham/${event.product.slug}`} target="_blank" className="text-blue-600 hover:underline ml-1">
-                          {event.product.name}
-                        </Link>
-                      )}
-                      {event.article && (
-                        <Link href={`/bai-viet/${event.article.slug}`} target="_blank" className="text-green-600 hover:underline ml-1">
-                          {event.article.title}
-                        </Link>
-                      )}
-                    </p>
-                    <p className="text-xs text-slate-500">{event.time_ago}</p>
-                  </div>
+                  <Skeleton className="h-4 w-20" />
                 </div>
               ))
+            ) : topArticles.length > 0 ? (
+              topArticles.map((article, index) => (
+                <Link 
+                  key={article.id} 
+                  href={`/bai-viet/${article.slug}`}
+                  target="_blank"
+                  className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150"
+                >
+                  <span className="w-6 text-center text-sm font-bold text-slate-400">#{index + 1}</span>
+                  {article.image_url ? (
+                    <Image
+                      src={article.image_url}
+                      alt={article.title}
+                      width={48}
+                      height={48}
+                      sizes="48px"
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+                      <FileText size={20} className="text-slate-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                      {article.title}
+                    </p>
+                  </div>
+                  <Badge variant="info">{article.views} lượt xem</Badge>
+                </Link>
+              ))
             ) : (
-              <p className="text-sm text-slate-500 text-center py-4">Chưa có hoạt động nào</p>
+              <p className="text-sm text-slate-500 text-center py-4">Chưa có bài viết nào</p>
             )}
           </div>
         </Card>
