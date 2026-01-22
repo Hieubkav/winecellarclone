@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { trackingService } from "@/lib/services/trackingService";
 
@@ -10,6 +10,8 @@ import { trackingService } from "@/lib/services/trackingService";
  */
 export function TrackingProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isInitialized = useRef(false);
+  const lastTrackedPath = useRef<string | null>(null);
 
   useEffect(() => {
     // Initialize tracking service and track visitor
@@ -17,6 +19,12 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
       try {
         await trackingService.initialize();
         await trackingService.trackVisitor();
+        isInitialized.current = true;
+        // Track initial page view after initialization
+        if (pathname) {
+          trackingService.trackPageView(pathname);
+          lastTrackedPath.current = pathname;
+        }
       } catch (error) {
         console.warn("[TrackingProvider] Failed to initialize tracking:", error);
       }
@@ -28,12 +36,14 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
     return () => {
       trackingService.destroy();
     };
-  }, []);
+  }, []); // Only run once on mount
 
   // Track page views on route change
   useEffect(() => {
-    if (pathname) {
+    // Only track if already initialized (subsequent route changes)
+    if (pathname && isInitialized.current && pathname !== lastTrackedPath.current) {
       trackingService.trackPageView(pathname);
+      lastTrackedPath.current = pathname;
     }
   }, [pathname]);
 
