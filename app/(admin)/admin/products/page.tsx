@@ -9,6 +9,7 @@ import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle } from
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, updateProduct, type AdminProduct } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
  
  export default function ProductsListPage() {
    const [isLoading, setIsLoading] = useState(true);
@@ -124,9 +125,13 @@ import { cn } from '@/lib/utils';
       setProducts(prev => prev.map(p => 
         p.id === id ? { ...p, active: !currentStatus } : p
       ));
+      toast.success(
+        !currentStatus ? 'Đã bật hiển thị sản phẩm' : 'Đã tắt hiển thị sản phẩm',
+        { duration: 2000 }
+      );
     } catch (error) {
       console.error('Failed to toggle status:', error);
-      alert('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+      toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
     } finally {
       setTogglingStatus(null);
     }
