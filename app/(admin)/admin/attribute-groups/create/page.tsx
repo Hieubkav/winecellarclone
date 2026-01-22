@@ -34,7 +34,6 @@ export default function AttributeGroupCreatePage() {
   const [filterType, setFilterType] = useState<FilterType>('checkbox');
   const [inputType, setInputType] = useState<string>('');
   const [isFilterable, setIsFilterable] = useState(true);
-  const [position, setPosition] = useState('');
   const [iconPath, setIconPath] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,7 +55,6 @@ export default function AttributeGroupCreatePage() {
         filter_type: filterType,
         input_type: inputType.trim() || null,
         is_filterable: Boolean(isFilterable),
-        position: position ? Number(position) : null,
         icon_path: iconPath.trim() || null,
       });
       
@@ -182,20 +180,6 @@ export default function AttributeGroupCreatePage() {
                 onChange={setIconPath}
               />
               <p className="text-xs text-slate-500">Chọn icon từ thư viện Lucide</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="position">Vị trí hiển thị</Label>
-              <Input
-                id="position"
-                type="number"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                placeholder="Để trống để tự động sắp xếp"
-              />
-              <p className="text-xs text-slate-500">
-                Số thứ tự hiển thị trong filter (số nhỏ hiển thị trước)
-              </p>
             </div>
 
             <div className="flex items-center gap-2">
