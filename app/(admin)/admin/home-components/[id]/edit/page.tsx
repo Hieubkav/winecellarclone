@@ -382,9 +382,19 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             <ArrowLeft size={18} />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa thành phần</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Cập nhật cấu hình thành phần trang chủ</p>
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa thành phần</h1>
+            {typeInfo && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                <typeInfo.icon size={16} className="text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">{typeInfo.label}</span>
+              </div>
+            )}
+          </div>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {typeInfo ? typeInfo.description : 'Cập nhật cấu hình thành phần trang chủ'}
+          </p>
         </div>
       </div>
 

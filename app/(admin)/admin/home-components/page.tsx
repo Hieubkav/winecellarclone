@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { getComponentTypeInfo } from './componentTypes';
 
 interface SortableRowProps {
   component: AdminHomeComponent;
@@ -34,6 +35,8 @@ function SortableRow({ component, isSelected, onToggleSelect, onDelete }: Sortab
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const typeInfo = getComponentTypeInfo(component.type);
+
   return (
     <TableRow ref={setNodeRef} style={style} className={isSelected ? 'bg-blue-500/5' : ''}>
       <TableCell>
@@ -44,7 +47,21 @@ function SortableRow({ component, isSelected, onToggleSelect, onDelete }: Sortab
           <GripVertical size={18} className="text-slate-400" />
         </button>
       </TableCell>
-      <TableCell className="font-medium">{component.type}</TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          {typeInfo ? (
+            <>
+              <typeInfo.icon size={16} className="text-slate-600 dark:text-slate-400" />
+              <div>
+                <p className="font-medium text-slate-900 dark:text-slate-100">{typeInfo.label}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{typeInfo.description}</p>
+              </div>
+            </>
+          ) : (
+            <span className="font-medium text-slate-500">{component.type}</span>
+          )}
+        </div>
+      </TableCell>
       <TableCell>
         <Badge variant={component.active ? 'success' : 'secondary'}>
           {component.active ? 'Hiển thị' : 'Ẩn'}
