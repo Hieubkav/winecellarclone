@@ -90,7 +90,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
         const nextManualAttributes: Record<string, string> = {};
 
         (baseFilters.attribute_filters || []).forEach(group => {
-          if (group.filter_type === 'nhap_tay') {
+          if (group.filter_type === 'nhap_tay' || group.filter_type === 'range') {
             const extraAttr = product.extra_attrs?.[group.code];
             if (extraAttr?.value !== undefined && extraAttr?.value !== null) {
               nextManualAttributes[group.code] = String(extraAttr.value);
@@ -310,7 +310,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
      setIsSubmitting(true);
      try {
       const extraAttrs = attributeFilters
-        .filter(group => group.filter_type === 'nhap_tay')
+        .filter(group => group.filter_type === 'nhap_tay' || group.filter_type === 'range')
         .reduce<Record<string, { label: string; value: string | number; type: string }>>((acc, group) => {
           const value = manualAttributes[group.code];
           if (value === undefined || value === '') {
