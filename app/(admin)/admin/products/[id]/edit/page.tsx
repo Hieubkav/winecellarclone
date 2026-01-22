@@ -622,7 +622,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                           const IconComponent = iconName && (LucideIcons as any)[iconName]
                             ? (LucideIcons as any)[iconName]
                             : null;
-                          return IconComponent ? <IconComponent className="w-4 h-4" /> : null;
+                          return IconComponent ? <IconComponent className="w-4 h-4 text-red-500" /> : null;
                         })()}
                         {group.name}
                         {group.filter_type === 'chon_don' && (
