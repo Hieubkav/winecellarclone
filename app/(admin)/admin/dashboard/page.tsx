@@ -288,7 +288,12 @@ export default function DashboardPage() {
   const { data: recentEvents = [], isLoading: eventsLoading, isPlaceholderData: eventsPlaceholder } = useRecentEvents(10);
   
   // Format số hiển thị
-  const formatNumber = (num: number) => num.toLocaleString('vi-VN');
+  const formatNumber = (num: number | string) => {
+    // Force convert to number to handle any string inputs
+    const n = typeof num === 'string' ? parseInt(num, 10) : num;
+    if (isNaN(n)) return '0';
+    return n.toLocaleString('vi-VN');
+  };
 
   // Only show skeleton on initial load (no placeholder data available)
   const statsInitialLoading = statsLoading && !statsPlaceholder;
@@ -376,25 +381,25 @@ export default function DashboardPage() {
             <div className="grid grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.page_views, 0))}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + Number(d.page_views || 0), 0))}
                 </p>
                 <p className="text-xs text-slate-500">Tổng lượt xem</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.visitors, 0))}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + Number(d.visitors || 0), 0))}
                 </p>
                 <p className="text-xs text-slate-500">Khách truy cập</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-600">
-                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.product_views, 0))}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + Number(d.product_views || 0), 0))}
                 </p>
                 <p className="text-xs text-slate-500">Xem sản phẩm</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-green-600">
-                  {formatNumber(trafficChart.reduce((sum, d) => sum + d.cta_clicks, 0))}
+                  {formatNumber(trafficChart.reduce((sum, d) => sum + Number(d.cta_clicks || 0), 0))}
                 </p>
                 <p className="text-xs text-slate-500">Click liên hệ</p>
               </div>
