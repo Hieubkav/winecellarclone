@@ -521,21 +521,23 @@ export default function ProductTypesPage() {
                   
                   return (
                     <TableRow key={attr.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
-                            <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                      {visibleAttributeColumns.includes('name') && (
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
+                              <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                            </div>
+                            <span className="font-medium">{attr.name}</span>
                           </div>
-                          <span className="font-medium">{attr.name}</span>
-                        </div>
-                      </TableCell>
-                      {isColumnVisible(attributeColumns, 'code') && (
+                        </TableCell>
+                      )}
+                      {visibleAttributeColumns.includes('code') && (
                         <TableCell>
                           <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{attr.code}</code>
                         </TableCell>
                       )}
-                      <TableCell>{getFilterTypeBadge(attr.filter_type)}</TableCell>
-                      {isColumnVisible(attributeColumns, 'input_type') && (
+                      {visibleAttributeColumns.includes('filter_type') && <TableCell>{getFilterTypeBadge(attr.filter_type)}</TableCell>}
+                      {visibleAttributeColumns.includes('input_type') && (
                         <TableCell>
                           {attr.input_type ? (
                             <Badge variant="secondary">{attr.input_type}</Badge>
@@ -544,81 +546,84 @@ export default function ProductTypesPage() {
                           )}
                         </TableCell>
                       )}
-                      <TableCell>
-                        <Badge variant="secondary">{attr.terms_count}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{attr.products_count || 0}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {attr.product_types.length > 0 ? (
-                            attr.product_types.map(pt => (
-                              <Badge key={pt.id} variant="info" className="text-xs">
-                                {pt.name}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-xs text-slate-400">Chung</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={attr.is_filterable ? 'success' : 'secondary'}>
-                          {attr.is_filterable ? 'Có thể lọc' : 'Không lọc'}
-                        </Badge>
-                      </TableCell>
-                      {isColumnVisible(attributeColumns, 'position') && (
+                      {visibleAttributeColumns.includes('terms_count') && (
+                        <TableCell>
+                          <Badge variant="secondary">{attr.terms_count}</Badge>
+                        </TableCell>
+                      )}
+                      {visibleAttributeColumns.includes('products_count') && (
+                        <TableCell>
+                          <Badge variant="secondary">{attr.products_count || 0}</Badge>
+                        </TableCell>
+                      )}
+                      {visibleAttributeColumns.includes('product_types') && (
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {attr.product_types.length > 0 ? (
+                              attr.product_types.map(pt => (
+                                <Badge key={pt.id} variant="info" className="text-xs">
+                                  {pt.name}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-slate-400">Chung</span>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
+                      {visibleAttributeColumns.includes('is_filterable') && (
+                        <TableCell>
+                          <Badge variant={attr.is_filterable ? 'success' : 'secondary'}>
+                            {attr.is_filterable ? 'Có thể lọc' : 'Không lọc'}
+                          </Badge>
+                        </TableCell>
+                      )}
+                      {visibleAttributeColumns.includes('position') && (
                         <TableCell>
                           <Badge variant="secondary">{attr.position ?? '-'}</Badge>
                         </TableCell>
                       )}
-                      {isColumnVisible(attributeColumns, 'created_at') && (
+                      {visibleAttributeColumns.includes('created_at') && (
                         <TableCell>
                           <span className="text-xs text-slate-500">
                             {attr.created_at ? new Date(attr.created_at).toLocaleDateString('vi-VN') : '-'}
                           </span>
                         </TableCell>
                       )}
-                      {isColumnVisible(attributeColumns, 'updated_at') && (
+                      {visibleAttributeColumns.includes('updated_at') && (
                         <TableCell>
                           <span className="text-xs text-slate-500">
                             {attr.updated_at ? new Date(attr.updated_at).toLocaleDateString('vi-VN') : '-'}
                           </span>
                         </TableCell>
                       )}
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link href={`/admin/attributes/${attr.id}/edit`}>
-                            <Button variant="ghost" size="icon" aria-label="Edit">
-                              <Edit size={16} />
+                      {visibleAttributeColumns.includes('actions') && (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link href={`/admin/attributes/${attr.id}/edit`}>
+                              <Button variant="ghost" size="icon" aria-label="Edit">
+                                <Edit size={16} />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-600 hover:text-red-700"
+                              aria-label="Delete"
+                              onClick={() => setDeleteConfirm({ type: 'attribute', id: attr.id })}
+                            >
+                              <Trash2 size={16} />
                             </Button>
-                          </Link>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-600 hover:text-red-700"
-                            aria-label="Delete"
-                            onClick={() => setDeleteConfirm({ type: 'attribute', id: attr.id })}
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </div>
-                      </TableCell>
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 })}
                 {sortedAttributes.length === 0 && (
                   <TableRow>
                     <TableCell 
-                      colSpan={
-                        7 + // base columns
-                        (isColumnVisible(attributeColumns, 'code') ? 1 : 0) +
-                        (isColumnVisible(attributeColumns, 'input_type') ? 1 : 0) +
-                        (isColumnVisible(attributeColumns, 'position') ? 1 : 0) +
-                        (isColumnVisible(attributeColumns, 'created_at') ? 1 : 0) +
-                        (isColumnVisible(attributeColumns, 'updated_at') ? 1 : 0)
-                      } 
+                      colSpan={visibleAttributeColumns.length} 
                       className="text-center py-8 text-slate-500"
                     >
                       {searchTerm ? 'Không tìm thấy thuộc tính phù hợp' : 'Chưa có thuộc tính nào'}
