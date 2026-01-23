@@ -235,23 +235,44 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
 
     setIsSubmitting(true);
     try {
+      // Ensure image_paths are valid strings
+      const validImagePaths = galleryImages
+        .map(img => img.path)
+        .filter(path => typeof path === 'string' && path.trim().length > 0);
+
       const data: Record<string, unknown> = {
-        title,
+        title: title.trim(),
         slug: slug.trim() || generateSlug(title),
-        content: content || null,
-        active,
-        image_paths: galleryImages.map(image => image.path),
+        content: content?.trim() || null,
+        active: Boolean(active),
+        image_paths: validImagePaths,
       };
+
+      console.log('[Submit Data]', {
+        ...data,
+        image_paths_count: validImagePaths.length,
+      });
 
       const result = await updateArticle(articleId, data);
 
       if (result.success) {
         toast.success(result.message || 'Cập nhật bài viết thành công');
-        router.push('/admin/articles');
+        await loadArticle(articleId);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update article:', error);
-      toast.error('Không thể cập nhật bài viết. Vui lòng thử lại.');
+      console.error('Error payload:', error.payload);
+      
+      // Show validation errors if available
+      if (error.status === 422 && error.payload?.errors) {
+        const errors = error.payload.errors;
+        const errorMessages = Object.entries(errors)
+          .map(([field, messages]: [string, any]) => `${field}: ${messages.join(', ')}`)
+          .join('\n');
+        toast.error(`Lỗi validation:\n${errorMessages}`);
+      } else {
+        toast.error('Không thể cập nhật bài viết. Vui lòng thử lại.');
+      }
     } finally {
       setIsSubmitting(false);
     }
