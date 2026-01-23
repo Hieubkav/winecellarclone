@@ -30,6 +30,7 @@ interface ProductCardProps {
 interface AttributeItem {
   icon: React.ReactNode;
   iconUrl?: string | null;
+  iconName?: string | null; // Lucide icon name
   label: string;
   show: boolean;
   filterCode?: string | null;
@@ -37,6 +38,24 @@ interface AttributeItem {
   typeSlug?: string | null;
   groupName?: string; // Tên nhóm thuộc tính (VD: "Giống nho", "Hương vị")
 }
+
+// Map Lucide icon names to components
+const LUCIDE_ICONS: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
+  Grape,
+  Award,
+  Thermometer,
+  Percent,
+  Coffee,
+  Hourglass,
+  Square,
+  Package,
+  Flag,
+  MapPin,
+  Tag,
+  Sparkles,
+  Layers,
+  Droplets,
+};
 
 // Fallback icons based on group code
 const getFallbackIcon = (code?: string): React.ReactNode => {
@@ -68,7 +87,8 @@ const getFallbackIcon = (code?: string): React.ReactNode => {
 };
 
 // Icon renderer component
-const AttributeIcon = ({ url, fallbackIcon }: { url?: string | null; fallbackIcon: React.ReactNode }) => {
+const AttributeIcon = ({ url, iconName, fallbackIcon }: { url?: string | null; iconName?: string | null; fallbackIcon: React.ReactNode }) => {
+  // Ưu tiên: iconUrl (file image) > iconName (Lucide) > fallbackIcon
   if (url) {
     return (
       <Image
@@ -80,6 +100,12 @@ const AttributeIcon = ({ url, fallbackIcon }: { url?: string | null; fallbackIco
       />
     );
   }
+
+  if (iconName && LUCIDE_ICONS[iconName]) {
+    const IconComponent = LUCIDE_ICONS[iconName];
+    return <IconComponent className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#9B2C3B]" size={12} />;
+  }
+
   return <span className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex items-center justify-center text-[10px] sm:text-xs">{fallbackIcon}</span>;
 };
 
@@ -134,6 +160,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
         attrs.push({
           icon: getFallbackIcon(attrGroup.group_code),
           iconUrl: attrGroup.icon_url,
+          iconName: attrGroup.icon_name,
           label: termNames,
           show: true,
           groupName: attrGroup.group_name || attrGroup.group_code,
@@ -218,7 +245,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
           {attributes.map((attr, index) => (
             <div key={index} className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600">
               <span className="text-[#9B2C3B] shrink-0 w-3.5 sm:w-4 flex items-center justify-center">
-                <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.icon} />
+                <AttributeIcon url={attr.iconUrl} iconName={attr.iconName} fallbackIcon={attr.icon} />
               </span>
               <AttributeLabel attr={attr} />
             </div>
