@@ -20,7 +20,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function ProductTypesPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [types, setTypes] = useState<AdminProductType[]>([]);
   const [totalTypes, setTotalTypes] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,6 +37,7 @@ export default function ProductTypesPage() {
   const [attributes, setAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -48,6 +50,13 @@ export default function ProductTypesPage() {
   useEffect(() => {
     localStorage.setItem('admin_product_types_perPage', String(perPage));
   }, [perPage]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   
   const typeColumnsConfig = [
     { key: 'expand', label: 'Mở rộng' },
@@ -72,17 +81,28 @@ export default function ProductTypesPage() {
   };
 
   useEffect(() => {
-    loadData();
-  }, [searchTerm, filterActive, currentPage, perPage]);
+    loadData(true);
+  }, []);
 
-  async function loadData() {
-    setIsLoading(true);
+  useEffect(() => {
+    if (!isInitialLoading) {
+      loadData(false);
+    }
+  }, [debouncedSearchTerm, filterActive, currentPage, perPage]);
+
+  async function loadData(isInitial = false) {
+    if (isInitial) {
+      setIsInitialLoading(true);
+    } else {
+      setIsSearching(true);
+    }
+    
     try {
       const params: Record<string, string | number> = {
         per_page: perPage === 'all' ? 1000 : perPage,
         page: currentPage,
       };
-      if (searchTerm) params.q = searchTerm;
+      if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterActive) params.active = filterActive;
       
       const [typesRes, attributesRes] = await Promise.all([
@@ -97,7 +117,8 @@ export default function ProductTypesPage() {
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
+      setIsSearching(false);
     }
   }
 
@@ -196,7 +217,7 @@ export default function ProductTypesPage() {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -244,9 +265,14 @@ export default function ProductTypesPage() {
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="relative max-w-xs">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            {isSearching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              </div>
+            )}
             <Input
               placeholder="Tìm kiếm..."
-              className="pl-9 w-48"
+              className={cn("pl-9 w-48", isSearching && "pr-9")}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -272,7 +298,11 @@ export default function ProductTypesPage() {
           </div>
         </div>
 
-        <Table>
+        <div className="relative">
+          {isSearching && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none rounded-lg" />
+          )}
+          <Table>
           <TableHeader>
             <TableRow>
               {visibleTypeColumns.includes('expand') && <TableHead className="w-[40px]"></TableHead>}
@@ -429,6 +459,7 @@ export default function ProductTypesPage() {
             )}
           </TableBody>
         </Table>
+      </div>
         {sortedTypes.length > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-4">

@@ -11,10 +11,12 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
  
  export default function ArticlesListPage() {
-   const [isLoading, setIsLoading] = useState(true);
+   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [articles, setArticles] = useState<AdminArticle[]>([]);
   const [totalArticles, setTotalArticles] = useState(0);
    const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'published_at', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -35,16 +37,28 @@ import { toast } from 'sonner';
   useEffect(() => {
     localStorage.setItem('admin_articles_perPage', String(perPage));
   }, [perPage]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
  
-  const loadArticles = useCallback(async () => {
-    setIsLoading(true);
+  const loadArticles = useCallback(async (isInitial = false) => {
+    if (isInitial) {
+      setIsInitialLoading(true);
+    } else {
+      setIsSearching(true);
+    }
+    
     try {
       const params: Record<string, string | number> = {
         per_page: perPage === 'all' ? 1000 : perPage,
         page: currentPage,
       };
       
-      if (searchTerm) params.q = searchTerm;
+      if (debouncedSearchTerm) params.q = debouncedSearchTerm;
 
       const articlesRes = await fetchAdminArticles(params);
       setArticles(articlesRes.data);
@@ -53,13 +67,20 @@ import { toast } from 'sonner';
     } catch (error) {
       console.error('Failed to fetch articles:', error);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
+      setIsSearching(false);
     }
-  }, [currentPage, searchTerm, perPage]);
+  }, [currentPage, debouncedSearchTerm, perPage]);
 
   useEffect(() => {
-    loadArticles();
-  }, [loadArticles]);
+    loadArticles(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoading) {
+      loadArticles(false);
+    }
+  }, [currentPage, debouncedSearchTerm, perPage]);
  
    const handleSort = (key: string) => {
      setSortConfig(prev => ({ 
@@ -90,7 +111,7 @@ import { toast } from 'sonner';
         setSelectedIds([]);
       }
       setDeleteConfirm(null);
-      loadArticles();
+      loadArticles(false);
     } catch (error) {
       console.error('Failed to delete:', error);
       alert('Xóa thất bại. Vui lòng thử lại.');
@@ -126,7 +147,7 @@ import { toast } from 'sonner';
      });
    };
  
-   if (isLoading) {
+   if (isInitialLoading) {
      return (
        <div className="space-y-4">
          <div className="flex justify-between items-center">
@@ -176,9 +197,14 @@ import { toast } from 'sonner';
          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4">
            <div className="relative max-w-xs">
              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+             {isSearching && (
+               <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                 <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+               </div>
+             )}
              <Input 
                placeholder="Tìm bài viết..." 
-               className="pl-9 w-48" 
+               className={cn("pl-9 w-48", isSearching && "pr-9")}
                value={searchTerm} 
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -188,7 +214,11 @@ import { toast } from 'sonner';
            </div>
          </div>
  
-         <Table>
+         <div className="relative">
+           {isSearching && (
+             <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none rounded-lg" />
+           )}
+           <Table>
            <TableHeader>
              <TableRow>
               <TableHead className="w-[40px]">
@@ -300,6 +330,7 @@ import { toast } from 'sonner';
              )}
            </TableBody>
          </Table>
+       </div>
  
          {sortedData.length > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">

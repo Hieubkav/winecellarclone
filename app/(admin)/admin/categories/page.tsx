@@ -12,7 +12,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function CategoriesListPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [totalCategories, setTotalCategories] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,6 +28,7 @@ export default function CategoriesListPage() {
   });
   const [types, setTypes] = useState<ProductFilterOption[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -40,6 +42,13 @@ export default function CategoriesListPage() {
   useEffect(() => {
     localStorage.setItem('admin_categories_perPage', String(perPage));
   }, [perPage]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const columns = [
     { key: 'select', label: 'Chọn' },
@@ -56,14 +65,19 @@ export default function CategoriesListPage() {
     columns.filter(c => c.required || ['name', 'type', 'products_count', 'active', 'actions'].includes(c.key)).map(c => c.key)
   );
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
+  const loadData = useCallback(async (isInitial = false) => {
+    if (isInitial) {
+      setIsInitialLoading(true);
+    } else {
+      setIsSearching(true);
+    }
+    
     try {
       const params: Record<string, string | number> = {
         per_page: perPage === 'all' ? 1000 : perPage,
         page: currentPage,
       };
-      if (searchTerm) params.q = searchTerm;
+      if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterType) params.type_id = filterType;
 
       const [categoriesRes, filtersRes] = await Promise.all([
@@ -78,13 +92,20 @@ export default function CategoriesListPage() {
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
+      setIsSearching(false);
     }
-  }, [searchTerm, filterType, currentPage, perPage]);
+  }, [debouncedSearchTerm, filterType, currentPage, perPage]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadData(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoading) {
+      loadData(false);
+    }
+  }, [debouncedSearchTerm, filterType, currentPage, perPage]);
 
   const handleSort = (key: string) => {
     setSortConfig(prev => ({ 
@@ -155,7 +176,7 @@ export default function CategoriesListPage() {
     }
   };
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -204,9 +225,14 @@ export default function CategoriesListPage() {
           <div className="flex flex-wrap gap-3 flex-1">
             <div className="relative max-w-xs">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                </div>
+              )}
               <Input 
                 placeholder="Tìm danh mục..." 
-                className="pl-9 w-48" 
+                className={cn("pl-9 w-48", isSearching && "pr-9")}
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
@@ -223,7 +249,11 @@ export default function CategoriesListPage() {
           <ColumnToggle columns={columns} visibleColumns={visibleColumns} onToggle={toggleColumn} />
         </div>
 
-        <Table>
+        <div className="relative">
+          {isSearching && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none rounded-lg" />
+          )}
+          <Table>
           <TableHeader>
             <TableRow>
               {visibleColumns.includes('select') && (
@@ -360,6 +390,7 @@ export default function CategoriesListPage() {
             )}
           </TableBody>
         </Table>
+      </div>
 
         {sortedData.length > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">

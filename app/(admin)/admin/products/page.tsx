@@ -365,7 +365,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
               }}
              >
               <option value="">Tất cả danh mục</option>
-              {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
              </select>
            </div>
            <ColumnToggle columns={columns} visibleColumns={visibleColumns} onToggle={toggleColumn} />
