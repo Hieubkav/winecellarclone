@@ -153,6 +153,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
   const attributeItems: AttributeDisplayItem[] = useMemo(() => {
     const attrs: AttributeDisplayItem[] = [];
+    const addedLabels = new Set<string>(); // Track added labels to avoid duplicates
 
     if (product.brand_term) {
       attrs.push({
@@ -161,6 +162,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         value: product.brand_term.name,
         filterUrl: `/filter?brand=${product.brand_term.slug}`,
       });
+      addedLabels.add("Thương hiệu");
     }
 
     if (product.country_term) {
@@ -170,6 +172,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         value: product.country_term.name,
         filterUrl: `/filter?origin=${product.country_term.slug}`,
       });
+      addedLabels.add("Xuất xứ");
     }
 
     if (product.attributes && product.attributes.length > 0) {
@@ -179,42 +182,44 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         }
         
         attrGroup.terms.forEach((term) => {
-          attrs.push({
-            fallbackIcon: getFallbackIcon(attrGroup.group_code),
-            iconUrl: attrGroup.icon_url,
-            label: attrGroup.group_name || attrGroup.group_code,
-            value: term.name,
-            filterUrl: `/filter?${attrGroup.group_code}=${term.slug}`,
-          });
+          const label = attrGroup.group_name || attrGroup.group_code;
+          if (!addedLabels.has(label)) {
+            attrs.push({
+              fallbackIcon: getFallbackIcon(attrGroup.group_code),
+              iconUrl: attrGroup.icon_url,
+              label: label,
+              value: term.name,
+              filterUrl: `/filter?${attrGroup.group_code}=${term.slug}`,
+            });
+          }
         });
       });
     }
 
-    if (product.extra_attrs) {
-      Object.entries(product.extra_attrs).forEach(([key, attr]) => {
-        attrs.push({
-          fallbackIcon: getFallbackIcon(key),
-          iconUrl: attr.icon_url,
-          label: attr.label || key,
-          value: `${attr.value}`,
-        });
-      });
-    }
-
+    // Only add volume_ml if not already in extra_attrs
     if (product.volume_ml && product.volume_ml > 0) {
-      attrs.push({
-        fallbackIcon: getFallbackIcon('volume'),
-        label: "Dung tích",
-        value: `${product.volume_ml}ml`,
-      });
+      const volumeLabel = "Dung tích";
+      if (!addedLabels.has(volumeLabel)) {
+        attrs.push({
+          fallbackIcon: getFallbackIcon('volume'),
+          label: volumeLabel,
+          value: `${product.volume_ml}ml`,
+        });
+        addedLabels.add(volumeLabel);
+      }
     }
 
+    // Only add alcohol_percent if not already in extra_attrs
     if (product.alcohol_percent && product.alcohol_percent > 0) {
-      attrs.push({
-        fallbackIcon: getFallbackIcon('alcohol'),
-        label: "Nồng độ",
-        value: `${product.alcohol_percent}%`,
-      });
+      const alcoholLabel = "Nồng độ";
+      if (!addedLabels.has(alcoholLabel)) {
+        attrs.push({
+          fallbackIcon: getFallbackIcon('alcohol'),
+          label: alcoholLabel,
+          value: `${product.alcohol_percent}%`,
+        });
+        addedLabels.add(alcoholLabel);
+      }
     }
 
     return attrs;
@@ -251,13 +256,13 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group">
+            <div className="relative w-full overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group" style={{ aspectRatio: 'auto' }}>
               {discountPercentage > 0 && (
                 <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
                   -{discountPercentage}%
                 </span>
               )}
-              <div className="relative w-full h-full p-8">
+              <div className="relative w-full h-full min-h-[500px] lg:min-h-[600px] p-8">
                 <ProductImage
                   src={imageSources[selectedImage]}
                   alt={product.name}
@@ -382,14 +387,16 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       <section className="bg-white py-12 border-y border-[#e5ddd0]">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="flex flex-col items-center text-center space-y-6">
-            <h2 className="text-2xl font-serif font-bold text-slate-900">Thông tin chi tiết</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+              Thông tin chi tiết
+            </h2>
             <div className="w-16 h-1 bg-[#9B2C3B] rounded-full"></div>
             
             <div className="relative w-full">
               {processedDescription ? (
                 <>
                   <div 
-                    className={`text-slate-600 leading-relaxed text-left md:text-center space-y-4 overflow-hidden transition-all duration-500 ease-in-out
+                    className={`text-slate-600 leading-relaxed text-left md:text-center space-y-4 overflow-hidden transition-all duration-500 ease-in-out text-base
                       ${!isDescExpanded ? 'max-h-[200px] opacity-90' : 'max-h-[2000px] opacity-100'}
                     `}
                     dangerouslySetInnerHTML={{ __html: processedDescription }}
@@ -403,7 +410,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                     <Button 
                       variant="ghost"
                       onClick={() => setIsDescExpanded(!isDescExpanded)}
-                      className="mt-2 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B]/80 hover:bg-[#9B2C3B]/5 font-medium"
+                      className="mt-4 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B]/80 hover:bg-[#9B2C3B]/10 font-semibold text-sm px-6 py-2 border border-[#9B2C3B]/20"
                     >
                       {isDescExpanded ? 'Thu gọn' : 'Xem thêm'}
                       {isDescExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
