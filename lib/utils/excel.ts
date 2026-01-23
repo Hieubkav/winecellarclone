@@ -103,29 +103,39 @@ export function createTemplateSheet(
   
   styleHeaderRow(worksheet, 1);
   
-  const maxRows = options.data ? options.data.length + 1 : (options.includeExample ? 11 : 101);
-  for (const column of options.columns) {
-    addDataValidation(worksheet, column, 2, maxRows);
-  }
-  
   if (options.data && options.data.length > 0) {
     options.data.forEach(row => {
       worksheet.addRow(row);
     });
+    
+    const maxRows = options.data.length + 100;
+    for (const column of options.columns) {
+      addDataValidation(worksheet, column, 2, maxRows);
+    }
   } else if (options.includeExample) {
     const exampleRow: Record<string, unknown> = {};
     options.columns.forEach(col => {
-      if (col.key === 'name') exampleRow[col.key] = 'Rượu vang đỏ Chile';
-      else if (col.key === 'slug') exampleRow[col.key] = 'ruou-vang-do-chile';
+      if (col.key === 'id') exampleRow[col.key] = '';
+      else if (col.key === 'name') exampleRow[col.key] = 'Rượu vang đỏ Chile Reserva';
+      else if (col.key === 'slug') exampleRow[col.key] = 'ruou-vang-do-chile-reserva';
       else if (col.key === 'type_name' && col.options) exampleRow[col.key] = col.options[0];
       else if (col.key === 'category_name' && col.options) exampleRow[col.key] = col.options[0];
       else if (col.key === 'price') exampleRow[col.key] = 500000;
       else if (col.key === 'original_price') exampleRow[col.key] = 600000;
       else if (col.key === 'active') exampleRow[col.key] = 'Có';
-      else if (col.key === 'description') exampleRow[col.key] = 'Mô tả sản phẩm...';
+      else if (col.key === 'description') exampleRow[col.key] = 'Rượu vang đỏ cao cấp từ Chile với hương vị trái cây chín mọng';
+      else if (col.key === 'volume_ml') exampleRow[col.key] = 750;
+      else if (col.key === 'alcohol_percent') exampleRow[col.key] = 13.5;
+      else if (col.key === 'country') exampleRow[col.key] = 'Chile';
+      else if (col.key === 'region') exampleRow[col.key] = 'Maipo Valley';
+      else if (col.key === 'vintage') exampleRow[col.key] = 2020;
       else exampleRow[col.key] = '';
     });
     worksheet.addRow(exampleRow);
+    
+    for (const column of options.columns) {
+      addDataValidation(worksheet, column, 2, 102);
+    }
   }
   
   worksheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];

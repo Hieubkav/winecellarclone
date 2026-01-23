@@ -103,13 +103,19 @@ export function useProductExcel(): UseProductExcelReturn {
           slug: product.slug,
           type_name: product.type_name || '',
           category_name: product.category_name || '',
-          price: product.price || 0,
-          original_price: product.original_price || '',
+          price: product.price || null,
+          original_price: product.original_price || null,
           active: product.active ? 'Có' : 'Không',
-          description: '', 
+          description: '',
         };
 
-        if (includeDynamicAttrs) {
+        if (includeDynamicAttrs && product.extra_attrs) {
+          baseData.volume_ml = product.extra_attrs['dung_tich']?.value || '';
+          baseData.alcohol_percent = product.extra_attrs['1abv']?.value || '';
+          baseData.country = product.extra_attrs['quoc_gia']?.value || '';
+          baseData.region = product.extra_attrs['vung_mien']?.value || '';
+          baseData.vintage = product.extra_attrs['nam_san_xuat']?.value || '';
+        } else if (includeDynamicAttrs) {
           baseData.volume_ml = '';
           baseData.alcohol_percent = '';
           baseData.country = '';
