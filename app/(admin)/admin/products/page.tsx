@@ -17,6 +17,7 @@ import { toast } from 'sonner';
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState<ProductFilterOption[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [types, setTypes] = useState<ProductFilterOption[]>([]);
    const [searchTerm, setSearchTerm] = useState('');
    const [filterCategory, setFilterCategory] = useState('');
@@ -24,9 +25,10 @@ import { toast } from 'sonner';
    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
    const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [perPage, setPerPage] = useState<number | 'all'>(25);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const perPageOptions = [10, 25, 50, 100];
  
    const columns = [
      { key: 'select', label: 'Chọn' },
@@ -45,7 +47,7 @@ import { toast } from 'sonner';
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = {
-        per_page: 20,
+        per_page: perPage === 'all' ? 1000 : perPage,
         page: currentPage,
       };
       
@@ -60,15 +62,15 @@ import { toast } from 'sonner';
 
       setProducts(productsRes.data);
       setTotalProducts(productsRes.meta.total);
+      setTotalPages(productsRes.meta.last_page);
       setCategories(filtersRes.categories);
       setTypes(filtersRes.types);
-      setHasMore(currentPage < productsRes.meta.last_page);
     } catch (error) {
       console.error('Failed to fetch products:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, filterCategory, filterType, searchTerm]);
+  }, [currentPage, filterCategory, filterType, searchTerm, perPage]);
 
   useEffect(() => {
     loadProducts();
@@ -378,17 +380,50 @@ import { toast } from 'sonner';
  
          {sortedData.length > 0 && (
            <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-             <span className="text-sm text-slate-500">
-              Hiển thị {sortedData.length} / {totalProducts} sản phẩm
-             </span>
-            {hasMore && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(prev => prev + 1)}
-              >
-                Tải thêm
-              </Button>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">
+                Hiển thị {sortedData.length} / {totalProducts} sản phẩm
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">Hiển thị:</span>
+                <select
+                  className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
+                  value={perPage}
+                  onChange={(e) => {
+                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                    setPerPage(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {perPageOptions.map(option => (
+                    <option key={option} value={option}>{option} / trang</option>
+                  ))}
+                  <option value="all">Tất cả</option>
+                </select>
+              </div>
+            </div>
+            {totalPages > 1 && perPage !== 'all' && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                <span className="text-sm text-slate-500">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
             )}
            </div>
          )}
