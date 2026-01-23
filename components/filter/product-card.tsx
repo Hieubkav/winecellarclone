@@ -207,7 +207,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-md border border-stone-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-stone-200/50">
 
-      {/* Image Area with Zoom Effect */}
+      {/* Image Area */}
       <Link
         href={`/san-pham/${wine.slug}`}
         className="relative aspect-[4/5] overflow-hidden bg-white border-b border-stone-50"
@@ -224,7 +224,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
           alt={wine.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-          className="h-full w-full object-contain p-4 sm:p-8 transition-transform duration-700 group-hover:scale-110"
+          className="h-full w-full object-contain p-1"
           priority={priority}
           loading={priority ? "eager" : "lazy"}
         />
