@@ -230,6 +230,7 @@ export interface AdminProductType {
   order: number | null;
   active: boolean;
   products_count: number;
+  attribute_groups?: Array<{ id: number; position?: number }>;
   created_at?: string;
   updated_at?: string;
 }

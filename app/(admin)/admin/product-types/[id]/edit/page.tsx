@@ -68,11 +68,12 @@ export default function ProductTypeEditPage({ params }: PageProps) {
         setAllAttributes(attributesRes.data);
         
         if (type.attribute_groups) {
-          const linkedIds = new Set(type.attribute_groups.map((g: any) => g.id));
+          const attrGroups = type.attribute_groups;
+          const linkedIds = new Set(attrGroups.map((g: any) => g.id));
           const linked = attributesRes.data
             .filter(attr => linkedIds.has(attr.id))
             .map(attr => {
-              const typeGroup = type.attribute_groups.find((g: any) => g.id === attr.id);
+              const typeGroup = attrGroups.find((g: any) => g.id === attr.id);
               return {
                 ...attr,
                 position: typeGroup?.position ?? 0,
@@ -131,16 +132,17 @@ export default function ProductTypeEditPage({ params }: PageProps) {
       const typeRes = await fetchAdminProductType(Number(id));
       const type = typeRes.data;
       if (type.attribute_groups) {
-        const linkedIds = new Set(type.attribute_groups.map((g: any) => g.id));
+          const attrGroups = type.attribute_groups;
+          const linkedIds = new Set(attrGroups.map((g: any) => g.id));
         const linked = allAttributes
           .filter(attr => linkedIds.has(attr.id))
-          .map(attr => {
-            const typeGroup = type.attribute_groups.find((g: any) => g.id === attr.id);
-            return {
-              ...attr,
-              position: typeGroup?.position ?? 0,
-            };
-          })
+            .map(attr => {
+              const typeGroup = attrGroups.find((g: any) => g.id === attr.id);
+              return {
+                ...attr,
+                position: typeGroup?.position ?? 0,
+              };
+            })
           .sort((a, b) => a.position - b.position);
         setLinkedAttributes(linked as any);
       }

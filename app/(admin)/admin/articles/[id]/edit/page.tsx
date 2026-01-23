@@ -163,9 +163,8 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
             <div className="space-y-2">
               <Label>Nội dung</Label>
               <LexicalEditor 
-                value={content}
+                initialContent={content}
                 onChange={setContent}
-                placeholder="Nhập nội dung bài viết..."
               />
             </div>
 
