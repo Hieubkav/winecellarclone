@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import {
@@ -15,6 +14,94 @@ import {
   Globe,
   FlaskConical,
   Award,
+  Wine,
+  Beer,
+  Coffee,
+  Milk,
+  Apple,
+  Cherry,
+  Grape,
+  MapPin,
+  Map,
+  Navigation,
+  Compass,
+  Mountain,
+  Flag,
+  Landmark,
+  Building,
+  Home,
+  Store,
+  Star,
+  Crown,
+  Trophy,
+  Medal,
+  Shield,
+  BadgeCheck,
+  Gem,
+  Diamond,
+  Zap,
+  Target,
+  TrendingUp,
+  Tags,
+  Bookmark,
+  Hash,
+  AtSign,
+  Percent,
+  DollarSign,
+  Package,
+  Box,
+  Archive,
+  ShoppingBag,
+  ShoppingCart,
+  Gift,
+  Flame,
+  Leaf,
+  Flower,
+  TreePine,
+  Sprout,
+  Wind,
+  Sun,
+  Moon,
+  Cloud,
+  CloudRain,
+  Snowflake,
+  Waves,
+  Calendar,
+  Clock,
+  Timer,
+  CalendarDays,
+  Filter,
+  Settings,
+  Wrench,
+  Hammer,
+  Scissors,
+  Ruler,
+  Heart,
+  Circle,
+  Square,
+  Triangle,
+  Hexagon,
+  Feather,
+  Anchor,
+  Key,
+  Lock,
+  Unlock,
+  Eye,
+  EyeOff,
+  Palette,
+  Brush,
+  Pen,
+  Pencil,
+  Image as ImageIcon,
+  Camera,
+  Video,
+  Music,
+  Mic,
+  Volume2,
+  Bell,
+  Lightbulb,
+  Thermometer,
+  type LucideIcon,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
 import { ProductImage } from "@/components/ui/product-image";
@@ -25,8 +112,8 @@ import { processProductContent } from "@/lib/utils/article-content";
 import RelatedProductsSection from "./RelatedProducts";
 
 interface AttributeDisplayItem {
-  iconUrl?: string | null;
-  fallbackIcon: React.ReactNode;
+  iconName?: string | null;
+  groupCode?: string;
   label: string;
   value: string;
   filterUrl?: string;
@@ -63,51 +150,41 @@ const formatOriginalPrice = (product: ProductDetail): string | null => {
   return currencyFormatter.format(product.original_price);
 };
 
-const getFallbackIcon = (code?: string): React.ReactNode => {
-  if (!code) return <Sparkles className="w-4 h-4" />;
-  
-  const lowerCode = code.toLowerCase();
-  
-  if (lowerCode.includes('huong') || lowerCode.includes('flavor') || lowerCode.includes('grape')) {
-    return <Sparkles className="w-4 h-4" />;
-  } else if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) {
-    return <Layers className="w-4 h-4" />;
-  } else if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) {
-    return <Globe className="w-4 h-4" />;
-  } else if (lowerCode.includes('tuoi') || lowerCode.includes('age')) {
-    return <Hourglass className="w-4 h-4" />;
-  } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('the_tich') || lowerCode.includes('ml')) {
-    return <FlaskConical className="w-4 h-4" />;
-  } else if (
-    lowerCode.includes('nong_do') ||
-    lowerCode.includes('alcohol') ||
-    lowerCode.includes('abv') ||
-    lowerCode.includes('phan_tram') ||
-    lowerCode.includes('percent')
-  ) {
-    return <Droplets className="w-4 h-4" />;
-  } else if (lowerCode.includes('brand')) {
-    return <Award className="w-4 h-4" />;
-  }
-  
-  return <Tag className="w-4 h-4" />;
+const LUCIDE_ICON_MAP: Record<string, LucideIcon> = {
+  Wine, Beer, Coffee, Milk, Apple, Cherry, Grape,
+  MapPin, Globe, Map, Navigation, Compass, Mountain, Flag, Landmark, Building, Home, Store,
+  Award, Star, Crown, Trophy, Medal, Shield, BadgeCheck, Gem, Diamond, Sparkles, Zap, Target, TrendingUp,
+  Tag, Tags, Bookmark, Hash, AtSign, Percent, DollarSign,
+  Package, Box, Archive, ShoppingBag, ShoppingCart, Gift,
+  Droplets, Flame, Leaf, Flower, TreePine, Sprout, Wind, Sun, Moon, Cloud, CloudRain, Snowflake, Waves,
+  Calendar, Clock, Timer, Hourglass, CalendarDays,
+  Filter, Settings, Wrench, Hammer, Scissors, Ruler,
+  Heart, Circle, Square, Triangle, Hexagon, Feather, Anchor, Key, Lock, Unlock, Eye, EyeOff,
+  Palette, Brush, Pen, Pencil, Image: ImageIcon, Camera, Video, Music, Mic, Volume2, Bell, Lightbulb, Thermometer,
+  FlaskConical, Layers,
 };
 
-function AttributeIcon({ url, fallbackIcon }: { url?: string | null; fallbackIcon: React.ReactNode }) {
-  if (url) {
-    return (
-      <Image 
-        src={url} 
-        alt="attribute" 
-        width={16} 
-        height={16}
-        className="w-4 h-4 object-contain"
-      />
-    );
-  }
-  return <span className="text-red-600">{fallbackIcon}</span>;
-}
+const getFallbackIconByCode = (code?: string): LucideIcon => {
+  if (!code) return Sparkles;
+  const lowerCode = code.toLowerCase();
+  if (lowerCode.includes('huong') || lowerCode.includes('flavor') || lowerCode.includes('grape')) return Grape;
+  if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) return Layers;
+  if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) return Globe;
+  if (lowerCode.includes('tuoi') || lowerCode.includes('age')) return Hourglass;
+  if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('the_tich') || lowerCode.includes('ml')) return FlaskConical;
+  if (lowerCode.includes('nong_do') || lowerCode.includes('alcohol') || lowerCode.includes('abv') || lowerCode.includes('phan_tram') || lowerCode.includes('percent')) return Droplets;
+  if (lowerCode.includes('brand') || lowerCode.includes('thuong_hieu')) return Award;
+  return Tag;
+};
 
+function AttributeIcon({ iconName, groupCode }: { iconName?: string | null; groupCode?: string }) {
+  const IconComponent = iconName ? LUCIDE_ICON_MAP[iconName] : null;
+  if (IconComponent) {
+    return <IconComponent className="w-4 h-4" />;
+  }
+  const FallbackIcon = getFallbackIconByCode(groupCode);
+  return <FallbackIcon className="w-4 h-4" />;
+}
 export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
 
@@ -157,7 +234,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
     if (product.brand_term) {
       attrs.push({
-        fallbackIcon: getFallbackIcon('brand'),
+        iconName: 'Award',
+        groupCode: 'brand',
         label: "Thương hiệu",
         value: product.brand_term.name,
         filterUrl: `/filter?brand=${product.brand_term.slug}`,
@@ -167,7 +245,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
     if (product.country_term) {
       attrs.push({
-        fallbackIcon: getFallbackIcon('origin'),
+        iconName: 'Flag',
+        groupCode: 'origin',
         label: "Xuất xứ",
         value: product.country_term.name,
         filterUrl: `/filter?origin=${product.country_term.slug}`,
@@ -179,8 +258,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       Object.entries(product.extra_attrs).forEach(([code, attr]) => {
         if (!addedCodes.has(code)) {
           attrs.push({
-            fallbackIcon: getFallbackIcon(code),
-            iconUrl: attr.icon_url,
+            iconName: attr.icon_name,
+            groupCode: code,
             label: attr.label,
             value: String(attr.value),
           });
@@ -200,8 +279,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
           const firstTerm = attrGroup.terms[0];
           
           attrs.push({
-            fallbackIcon: getFallbackIcon(attrGroup.group_code),
-            iconUrl: attrGroup.icon_url,
+            iconName: attrGroup.icon_name,
+            groupCode: attrGroup.group_code,
             label: attrGroup.group_name || attrGroup.group_code,
             value: termNames,
             filterUrl: `/filter?${attrGroup.group_code}=${firstTerm.slug}`,
@@ -213,7 +292,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
     if (product.volume_ml && product.volume_ml > 0 && !addedCodes.has('volume_ml')) {
       attrs.push({
-        fallbackIcon: getFallbackIcon('volume'),
+        iconName: 'FlaskConical',
+        groupCode: 'volume_ml',
         label: "Dung tích",
         value: `${product.volume_ml}ml`,
       });
@@ -222,7 +302,8 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
     if (product.alcohol_percent && product.alcohol_percent > 0 && !addedCodes.has('alcohol_percent')) {
       attrs.push({
-        fallbackIcon: getFallbackIcon('alcohol'),
+        iconName: 'Droplets',
+        groupCode: 'alcohol_percent',
         label: "Nồng độ",
         value: `${product.alcohol_percent}%`,
       });
@@ -348,7 +429,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 {attributeItems.map((attr, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     <div className="mt-0.5 p-1.5 bg-[#ECAA4D]/20 rounded-md text-[#9B2C3B]">
-                      <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.fallbackIcon} />
+                      <AttributeIcon iconName={attr.iconName} groupCode={attr.groupCode} />
                     </div>
                     <div className="overflow-hidden">
                       <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{attr.label}</p>

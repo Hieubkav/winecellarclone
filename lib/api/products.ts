@@ -19,13 +19,13 @@ export interface ExtraAttr {
   label: string;
   value: string | number;
   type: 'text' | 'number';
-  icon_url?: string | null;
+  icon_name?: string | null;
 }
 
 export interface ProductAttribute {
   group_code: string;
   group_name: string;
-  icon_url?: string | null;
+  icon_name?: string | null;
   terms: ApiTerm[];
 }
 

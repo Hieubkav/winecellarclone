@@ -176,7 +176,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
 
       attrs.push({
         icon: fallbackIcon,
-        iconUrl: attr.icon_url ?? wine.extraAttrIcons?.[key],
+        iconUrl: attr.icon_name ?? wine.extraAttrIcons?.[key],
         label: `${attr.value}`,
         show: true,
       });
