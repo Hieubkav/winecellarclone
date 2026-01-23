@@ -163,10 +163,15 @@ const buildQueryString = (params?: QueryParams): string => {
   return query.length > 0 ? `?${query}` : "";
 };
 
-export async function fetchProductList(params?: QueryParams): Promise<ProductListResponse> {
+export async function fetchProductList(
+  params?: QueryParams,
+  options?: { signal?: AbortSignal }
+): Promise<ProductListResponse> {
   const query = buildQueryString(params);
 
-  return apiFetch<ProductListResponse>(`v1/san-pham${query}`);
+  return apiFetch<ProductListResponse>(`v1/san-pham${query}`, {
+    signal: options?.signal,
+  });
 }
 
 export async function fetchProductDetail(slug: string): Promise<ProductDetail | null> {

@@ -1,12 +1,8 @@
-import { debounce } from 'lodash'
-
-export { debounce }
-
 /**
  * Custom debounce function without dependencies
  * 
  * Usage:
- * const debouncedSearch = debounce((query) => {
+ * const debouncedSearch = createDebounce((query) => {
  *   fetchProducts(query)
  * }, 500)
  * 

@@ -9,6 +9,7 @@ import {
   type ProductListMeta,
 } from "@/lib/api/products"
 import { matchesSearch } from "@/lib/utils/text-normalization"
+import { createDebounce } from "@/lib/utils/debounce"
 
 const DEFAULT_PRICE_MAX = 10_000_000
 const DEFAULT_PER_PAGE = 24
@@ -109,11 +110,13 @@ interface WineStoreState {
   error: string | null
   initialized: boolean
   viewMode: "grid" | "list"
+  abortController: AbortController | null
 }
 
 interface WineStoreActions {
   initialize: () => Promise<void>
   fetchProducts: (append?: boolean) => Promise<boolean>
+  fetchProductsDebounced: () => void
   resetFilters: () => Promise<void>
   setViewMode: (mode: "grid" | "list") => void
   setSearchQuery: (query: string) => void
@@ -370,6 +373,7 @@ const initialState: WineStoreState = {
   error: null,
   initialized: false,
   viewMode: "grid",
+  abortController: null,
 }
 
 export const useWineStore = create<WineStore>((set, get) => ({
@@ -419,11 +423,20 @@ export const useWineStore = create<WineStore>((set, get) => ({
     }
   },
   fetchProducts: async (append = false) => {
-    const { filters, initialized } = get()
+    const { filters, initialized, abortController } = get()
     
     if (!initialized) {
       return false
     }
+
+    // Cancel previous request if exists
+    if (abortController) {
+      abortController.abort()
+    }
+
+    // Create new AbortController for this request
+    const newAbortController = new AbortController()
+    set({ abortController: newAbortController })
 
     const shouldUseCache = !append && isDefaultFilters(filters, get().options)
     let usedCache = false
@@ -456,7 +469,15 @@ export const useWineStore = create<WineStore>((set, get) => ({
 
     try {
       const queryParams = buildQueryParams(filters)
-      const response = await fetchProductList(queryParams)
+      const response = await fetchProductList(queryParams, {
+        signal: newAbortController.signal,
+      })
+      
+      // Check if this request was aborted
+      if (newAbortController.signal.aborted) {
+        return false
+      }
+      
       const options = get().options
       const mapped = response.data.map((item) => mapProductToWine(item, options.attributeFilters))
       
@@ -475,6 +496,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
           meta: response.meta,
           loading: false,
           loadingMore: false,
+          abortController: null,
         }
       })
 
@@ -488,11 +510,21 @@ export const useWineStore = create<WineStore>((set, get) => ({
 
       return true
     } catch (error) {
+      // Ignore abort errors (user intentionally cancelled the request)
+      if (error instanceof Error && error.name === 'AbortError') {
+        set({ loading: false, loadingMore: false, abortController: null })
+        return false
+      }
+      
       const message = error instanceof Error ? error.message : "Khong the tai danh sach san pham."
-      set({ error: message, loading: false, loadingMore: false })
+      set({ error: message, loading: false, loadingMore: false, abortController: null })
       return false
     }
   },
+  // Debounced version for slider and search
+  fetchProductsDebounced: createDebounce(() => {
+    void get().fetchProducts()
+  }, 400),
   resetFilters: async () => {
     const { options, initialized } = get()
     if (!initialized) {
@@ -549,7 +581,8 @@ export const useWineStore = create<WineStore>((set, get) => ({
     }))
 
     if (get().initialized) {
-      void get().fetchProducts()
+      // Use debounced version for search to avoid excessive API calls
+      get().fetchProductsDebounced()
     }
   },
   setSelectedCategory: (id, skipFetch = false) => {
@@ -626,7 +659,8 @@ export const useWineStore = create<WineStore>((set, get) => ({
       },
     }))
     if (!skipFetch) {
-      void get().fetchProducts()
+      // Use debounced version for price slider to avoid excessive API calls while dragging
+      get().fetchProductsDebounced()
     }
   },
   setRangeFilter: (code, min, max, skipFetch = false) => {
@@ -641,7 +675,8 @@ export const useWineStore = create<WineStore>((set, get) => ({
       },
     }))
     if (!skipFetch) {
-      void get().fetchProducts()
+      // Use debounced version for range sliders (e.g., alcohol content)
+      get().fetchProductsDebounced()
     }
   },
   setAttributeSelection: (attributeCode, optionId, skipFetch = false) => {
