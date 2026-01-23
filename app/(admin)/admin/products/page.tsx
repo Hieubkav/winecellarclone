@@ -371,40 +371,41 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
            <ColumnToggle columns={columns} visibleColumns={visibleColumns} onToggle={toggleColumn} />
          </div>
  
-         <Table>
-           <TableHeader>
-             <TableRow>
-               {visibleColumns.includes('select') && (
-                 <TableHead className="w-[40px]">
-                   <SelectCheckbox 
-                     checked={selectedIds.length === sortedData.length && sortedData.length > 0} 
-                     onChange={toggleSelectAll} 
-                     indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} 
-                   />
-                 </TableHead>
-               )}
-               {visibleColumns.includes('image') && <TableHead className="w-[60px]">Ảnh</TableHead>}
-               {visibleColumns.includes('name') && (
-                 <SortableHeader label="Tên sản phẩm" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
-               )}
-              {visibleColumns.includes('type_name') && (
-                <SortableHeader label="Phân loại" sortKey="type_name" sortConfig={sortConfig} onSort={handleSort} />
-              )}
-              {visibleColumns.includes('category_name') && (
-                <SortableHeader label="Danh mục" sortKey="category_name" sortConfig={sortConfig} onSort={handleSort} />
-               )}
-               {visibleColumns.includes('price') && (
-                 <SortableHeader label="Giá bán" sortKey="price" sortConfig={sortConfig} onSort={handleSort} />
-               )}
-              {visibleColumns.includes('active') && <TableHead>Trạng thái</TableHead>}
-               {visibleColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
-             </TableRow>
-           </TableHeader>
-           <TableBody className="relative">
-             {isSearching && (
-               <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none" />
-             )}
-             {sortedData.map(product => (
+         <div className="relative">
+           {isSearching && (
+             <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none rounded-lg" />
+           )}
+           <Table>
+             <TableHeader>
+               <TableRow>
+                 {visibleColumns.includes('select') && (
+                   <TableHead className="w-[40px]">
+                     <SelectCheckbox 
+                       checked={selectedIds.length === sortedData.length && sortedData.length > 0} 
+                       onChange={toggleSelectAll} 
+                       indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} 
+                     />
+                   </TableHead>
+                 )}
+                 {visibleColumns.includes('image') && <TableHead className="w-[60px]">Ảnh</TableHead>}
+                 {visibleColumns.includes('name') && (
+                   <SortableHeader label="Tên sản phẩm" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />
+                 )}
+                {visibleColumns.includes('type_name') && (
+                  <SortableHeader label="Phân loại" sortKey="type_name" sortConfig={sortConfig} onSort={handleSort} />
+                )}
+                {visibleColumns.includes('category_name') && (
+                  <SortableHeader label="Danh mục" sortKey="category_name" sortConfig={sortConfig} onSort={handleSort} />
+                 )}
+                 {visibleColumns.includes('price') && (
+                   <SortableHeader label="Giá bán" sortKey="price" sortConfig={sortConfig} onSort={handleSort} />
+                 )}
+                {visibleColumns.includes('active') && <TableHead>Trạng thái</TableHead>}
+                 {visibleColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
+               </TableRow>
+             </TableHeader>
+             <TableBody>
+               {sortedData.map(product => (
                <TableRow key={product.id} className={selectedIds.includes(product.id) ? 'bg-blue-500/5' : ''}>
                  {visibleColumns.includes('select') && (
                    <TableCell>
@@ -516,6 +517,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
              )}
            </TableBody>
          </Table>
+       </div>
  
          {sortedData.length > 0 && (
            <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
