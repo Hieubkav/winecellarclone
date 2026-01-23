@@ -12,23 +12,44 @@ import { cn } from '@/lib/utils';
 export default function SocialLinksListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [links, setLinks] = useState<AdminSocialLink[]>([]);
+  const [totalLinks, setTotalLinks] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_social_links_perPage');
+      if (saved === 'all') return 'all';
+      if (saved) return Number(saved);
+    }
+    return 25;
+  });
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
+  const perPageOptions = [10, 25, 50, 100];
+
+  useEffect(() => {
+    localStorage.setItem('admin_social_links_perPage', String(perPage));
+  }, [perPage]);
 
   const loadLinks = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await fetchAdminSocialLinks({ per_page: 100 });
+      const result = await fetchAdminSocialLinks({
+        per_page: perPage === 'all' ? 1000 : perPage,
+        page: currentPage,
+      });
       setLinks(result.data);
+      setTotalLinks(result.meta.total);
+      setTotalPages(result.meta.last_page);
     } catch (error) {
       console.error('Failed to fetch links:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentPage, perPage]);
 
   useEffect(() => {
     loadLinks();
@@ -98,7 +119,7 @@ export default function SocialLinksListPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Mạng xã hội</h1>
-          <p className="text-sm text-slate-500">Quản lý liên kết mạng xã hội ({links.length} liên kết)</p>
+          <p className="text-sm text-slate-500">Quản lý liên kết mạng xã hội ({totalLinks} liên kết)</p>
         </div>
         <Link href="/admin/social-links/create"><Button className="gap-2"><Plus size={16} />Thêm liên kết</Button></Link>
       </div>
@@ -151,6 +172,55 @@ export default function SocialLinksListPage() {
             {sortedData.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-500">Chưa có liên kết nào</TableCell></TableRow>}
           </TableBody>
         </Table>
+        {sortedData.length > 0 && (
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">
+                Hiển thị {sortedData.length} / {totalLinks} liên kết
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">Hiển thị:</span>
+                <select
+                  className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
+                  value={perPage}
+                  onChange={(e) => {
+                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                    setPerPage(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {perPageOptions.map(option => (
+                    <option key={option} value={option}>{option} / trang</option>
+                  ))}
+                  <option value="all">Tất cả</option>
+                </select>
+              </div>
+            </div>
+            {totalPages > 1 && perPage !== 'all' && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                <span className="text-sm text-slate-500">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       {deleteConfirm && (

@@ -17,17 +17,30 @@ import { toast } from 'sonner';
    const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'published_at', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_articles_perPage');
+      if (saved === 'all') return 'all';
+      if (saved) return Number(saved);
+    }
+    return 25;
+  });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
+  const perPageOptions = [10, 25, 50, 100];
+
+  useEffect(() => {
+    localStorage.setItem('admin_articles_perPage', String(perPage));
+  }, [perPage]);
  
   const loadArticles = useCallback(async () => {
     setIsLoading(true);
     try {
       const params: Record<string, string | number> = {
-        per_page: 20,
+        per_page: perPage === 'all' ? 1000 : perPage,
         page: currentPage,
       };
       
@@ -36,13 +49,13 @@ import { toast } from 'sonner';
       const articlesRes = await fetchAdminArticles(params);
       setArticles(articlesRes.data);
       setTotalArticles(articlesRes.meta.total);
-      setHasMore(currentPage < articlesRes.meta.last_page);
+      setTotalPages(articlesRes.meta.last_page);
     } catch (error) {
       console.error('Failed to fetch articles:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, perPage]);
 
   useEffect(() => {
     loadArticles();
@@ -290,17 +303,50 @@ import { toast } from 'sonner';
  
          {sortedData.length > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-             <span className="text-sm text-slate-500">
-              Hiển thị {sortedData.length} / {totalArticles} bài viết
-             </span>
-            {hasMore && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(prev => prev + 1)}
-              >
-                Tải thêm
-              </Button>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">
+                Hiển thị {sortedData.length} / {totalArticles} bài viết
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">Hiển thị:</span>
+                <select
+                  className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
+                  value={perPage}
+                  onChange={(e) => {
+                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                    setPerPage(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {perPageOptions.map(option => (
+                    <option key={option} value={option}>{option} / trang</option>
+                  ))}
+                  <option value="all">Tất cả</option>
+                </select>
+              </div>
+            </div>
+            {totalPages > 1 && perPage !== 'all' && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                <span className="text-sm text-slate-500">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
             )}
            </div>
          )}

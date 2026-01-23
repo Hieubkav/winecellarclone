@@ -14,9 +14,25 @@ import {
 export default function AttributeGroupsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [attributes, setAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
+  const [totalAttributes, setTotalAttributes] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_attribute_groups_perPage');
+      if (saved === 'all') return 'all';
+      if (saved) return Number(saved);
+    }
+    return 25;
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [filterFilterable, setFilterFilterable] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'position', direction: 'asc' });
+  const perPageOptions = [10, 25, 50, 100];
+
+  useEffect(() => {
+    localStorage.setItem('admin_attribute_groups_perPage', String(perPage));
+  }, [perPage]);
   
   const attributeColumnsConfig = [
     { key: 'name', label: 'Tên thuộc tính', required: true },
@@ -45,17 +61,22 @@ export default function AttributeGroupsPage() {
 
   useEffect(() => {
     loadData();
-  }, [searchTerm, filterFilterable]);
+  }, [searchTerm, filterFilterable, currentPage, perPage]);
 
   async function loadData() {
     setIsLoading(true);
     try {
-      const params: Record<string, string | number> = { per_page: 100 };
+      const params: Record<string, string | number> = {
+        per_page: perPage === 'all' ? 1000 : perPage,
+        page: currentPage,
+      };
       if (searchTerm) params.q = searchTerm;
       if (filterFilterable) params.is_filterable = filterFilterable;
       
       const res = await fetchAdminCatalogAttributeGroups(params);
       setAttributes(res.data);
+      setTotalAttributes(res.meta.total);
+      setTotalPages(res.meta.last_page);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
@@ -116,7 +137,7 @@ export default function AttributeGroupsPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Nhóm thuộc tính</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Quản lý các nhóm thuộc tính và giá trị filter • {attributes.length} nhóm
+            Quản lý các nhóm thuộc tính và giá trị filter • {totalAttributes} nhóm
           </p>
         </div>
         <Link href="/admin/attribute-groups/create">
@@ -135,7 +156,10 @@ export default function AttributeGroupsPage() {
               placeholder="Tìm kiếm..."
               className="pl-9 w-48"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
           <div className="flex gap-2 items-center">
@@ -285,6 +309,55 @@ export default function AttributeGroupsPage() {
             )}
           </TableBody>
         </Table>
+        {sortedAttributes.length > 0 && (
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">
+                Hiển thị {sortedAttributes.length} / {totalAttributes} thuộc tính
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">Hiển thị:</span>
+                <select
+                  className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
+                  value={perPage}
+                  onChange={(e) => {
+                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                    setPerPage(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {perPageOptions.map(option => (
+                    <option key={option} value={option}>{option} / trang</option>
+                  ))}
+                  <option value="all">Tất cả</option>
+                </select>
+              </div>
+            </div>
+            {totalPages > 1 && perPage !== 'all' && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                <span className="text-sm text-slate-500">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </Card>
     </div>
   );

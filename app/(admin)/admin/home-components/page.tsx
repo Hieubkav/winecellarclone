@@ -105,11 +105,27 @@ function SortableRow({ component, isSelected, onToggleSelect, onDelete, onToggle
 export default function HomeComponentsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [components, setComponents] = useState<AdminHomeComponent[]>([]);
+  const [totalComponents, setTotalComponents] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_home_components_perPage');
+      if (saved === 'all') return 'all';
+      if (saved) return Number(saved);
+    }
+    return 25;
+  });
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
+  const perPageOptions = [10, 25, 50, 100];
+
+  useEffect(() => {
+    localStorage.setItem('admin_home_components_perPage', String(perPage));
+  }, [perPage]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -125,14 +141,19 @@ export default function HomeComponentsListPage() {
   const loadComponents = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await fetchAdminHomeComponents({ per_page: 100 });
+      const result = await fetchAdminHomeComponents({
+        per_page: perPage === 'all' ? 1000 : perPage,
+        page: currentPage,
+      });
       setComponents(result.data);
+      setTotalComponents(result.meta.total);
+      setTotalPages(result.meta.last_page);
     } catch (error) {
       console.error('Failed to fetch components:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentPage, perPage]);
 
   useEffect(() => {
     loadComponents();
@@ -233,7 +254,7 @@ export default function HomeComponentsListPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Thành phần trang chủ</h1>
-          <p className="text-sm text-slate-500">Quản lý các phần hiển thị trên trang chủ ({components.length} thành phần)</p>
+          <p className="text-sm text-slate-500">Quản lý các phần hiển thị trên trang chủ ({totalComponents} thành phần)</p>
         </div>
         <Link href="/admin/home-components/create">
           <Button className="gap-2"><Plus size={16} />Thêm thành phần</Button>
@@ -282,6 +303,55 @@ export default function HomeComponentsListPage() {
             </TableBody>
           </Table>
         </DndContext>
+      {sortedData.length > 0 && (
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-slate-500">
+              Hiển thị {sortedData.length} / {totalComponents} thành phần
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500">Hiển thị:</span>
+              <select
+                className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
+                value={perPage}
+                onChange={(e) => {
+                  const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                  setPerPage(value);
+                  setCurrentPage(1);
+                }}
+              >
+                {perPageOptions.map(option => (
+                  <option key={option} value={option}>{option} / trang</option>
+                ))}
+                <option value="all">Tất cả</option>
+              </select>
+            </div>
+          </div>
+          {totalPages > 1 && perPage !== 'all' && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                Trước
+              </Button>
+              <span className="text-sm text-slate-500">
+                Trang {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Sau
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       </Card>
 
       {deleteConfirm && (

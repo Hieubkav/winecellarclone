@@ -15,6 +15,16 @@ export default function CategoriesListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [totalCategories, setTotalCategories] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_categories_perPage');
+      if (saved === 'all') return 'all';
+      if (saved) return Number(saved);
+    }
+    return 25;
+  });
   const [types, setTypes] = useState<ProductFilterOption[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('');
@@ -25,6 +35,11 @@ export default function CategoriesListPage() {
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
+  const perPageOptions = [10, 25, 50, 100];
+
+  useEffect(() => {
+    localStorage.setItem('admin_categories_perPage', String(perPage));
+  }, [perPage]);
 
   const columns = [
     { key: 'select', label: 'Chọn' },
@@ -44,7 +59,10 @@ export default function CategoriesListPage() {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const params: Record<string, string | number> = { per_page: 100 };
+      const params: Record<string, string | number> = {
+        per_page: perPage === 'all' ? 1000 : perPage,
+        page: currentPage,
+      };
       if (searchTerm) params.q = searchTerm;
       if (filterType) params.type_id = filterType;
 
@@ -55,13 +73,14 @@ export default function CategoriesListPage() {
 
       setCategories(categoriesRes.data);
       setTotalCategories(categoriesRes.meta.total);
+      setTotalPages(categoriesRes.meta.last_page);
       setTypes(filtersRes.types);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, filterType]);
+  }, [searchTerm, filterType, currentPage, perPage]);
 
   useEffect(() => {
     loadData();
@@ -343,10 +362,52 @@ export default function CategoriesListPage() {
         </Table>
 
         {sortedData.length > 0 && (
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-            <span className="text-sm text-slate-500">
-              Hiển thị {sortedData.length} / {totalCategories} danh mục
-            </span>
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">
+                Hiển thị {sortedData.length} / {totalCategories} danh mục
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">Hiển thị:</span>
+                <select
+                  className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
+                  value={perPage}
+                  onChange={(e) => {
+                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                    setPerPage(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {perPageOptions.map(option => (
+                    <option key={option} value={option}>{option} / trang</option>
+                  ))}
+                  <option value="all">Tất cả</option>
+                </select>
+              </div>
+            </div>
+            {totalPages > 1 && perPage !== 'all' && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                <span className="text-sm text-slate-500">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>
