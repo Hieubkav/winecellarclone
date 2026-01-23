@@ -35,6 +35,7 @@ interface AttributeItem {
   filterCode?: string | null;
   filterSlug?: string | null;
   typeSlug?: string | null;
+  groupName?: string; // Tên nhóm thuộc tính (VD: "Giống nho", "Hương vị")
 }
 
 // Fallback icons based on group code
@@ -82,35 +83,8 @@ const AttributeIcon = ({ url, fallbackIcon }: { url?: string | null; fallbackIco
   return <span className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex items-center justify-center text-[10px] sm:text-xs">{fallbackIcon}</span>;
 };
 
-// Build filter URL for attribute
-const buildFilterUrl = (attr: AttributeItem): string | null => {
-  if (!attr.filterCode || !attr.filterSlug) return null;
-  
-  const params = new URLSearchParams();
-  if (attr.typeSlug) {
-    params.set("type", attr.typeSlug);
-  }
-  params.set(attr.filterCode, attr.filterSlug);
-  
-  return `/filter?${params.toString()}`;
-};
-
-// Clickable attribute label
+// Attribute label - simplified without filter links for grouped items
 const AttributeLabel = ({ attr }: { attr: AttributeItem }) => {
-  const filterUrl = buildFilterUrl(attr);
-  
-  if (filterUrl) {
-    return (
-      <Link 
-        href={filterUrl}
-        className="truncate hover:text-[#9B2C3B] hover:underline transition-colors"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {attr.label}
-      </Link>
-    );
-  }
-  
   return <span className="truncate">{attr.label}</span>;
 };
 
@@ -151,19 +125,18 @@ export const FilterProductCard = React.memo(function FilterProductCard({
       });
     }
 
-    // Attributes from API terms (catalog groups) - Use icon_url from API
+    // Attributes from API terms (catalog groups) - GROUP BY group_code
     if (wine.attributes && wine.attributes.length > 0) {
       wine.attributes.forEach((attrGroup) => {
-        attrGroup.terms.forEach((term) => {
-          attrs.push({
-            icon: getFallbackIcon(attrGroup.group_code),
-            iconUrl: attrGroup.icon_url,
-            label: term.name,
-            show: true,
-            filterCode: attrGroup.group_code,
-            filterSlug: term.slug,
-            typeSlug: wine.wineTypeSlug,
-          });
+        // Nhóm tất cả terms lại thành 1 dòng
+        const termNames = attrGroup.terms.map(t => t.name).join(", ");
+
+        attrs.push({
+          icon: getFallbackIcon(attrGroup.group_code),
+          iconUrl: attrGroup.icon_url,
+          label: termNames,
+          show: true,
+          groupName: attrGroup.group_name || attrGroup.group_code,
         });
       });
     }
