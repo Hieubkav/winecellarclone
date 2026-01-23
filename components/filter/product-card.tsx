@@ -39,20 +39,20 @@ interface AttributeItem {
 
 // Fallback icons based on group code
 const getFallbackIcon = (code?: string): React.ReactNode => {
-  if (!code) return <Sparkles size={14} />;
-  
+  if (!code) return <Sparkles size={12} />;
+
   const lowerCode = code.toLowerCase();
-  
+
   if (lowerCode.includes('huong') || lowerCode.includes('flavor')) {
-    return <Sparkles size={14} />;
+    return <Sparkles size={12} />;
   } else if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) {
-    return <Layers size={14} />;
+    return <Layers size={12} />;
   } else if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) {
-    return <MapPin size={14} />;
+    return <MapPin size={12} />;
   } else if (lowerCode.includes('tuoi') || lowerCode.includes('age')) {
-    return <Hourglass size={14} />;
+    return <Hourglass size={12} />;
   } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('the_tich') || lowerCode.includes('ml')) {
-    return <Droplets size={14} />;
+    return <Droplets size={12} />;
   } else if (
     lowerCode.includes('nong_do') ||
     lowerCode.includes('alcohol') ||
@@ -60,26 +60,26 @@ const getFallbackIcon = (code?: string): React.ReactNode => {
     lowerCode.includes('phan_tram') ||
     lowerCode.includes('percent')
   ) {
-    return <Percent size={14} />;
+    return <Percent size={12} />;
   }
-  
-  return <Tag size={14} />;
+
+  return <Tag size={12} />;
 };
 
 // Icon renderer component
 const AttributeIcon = ({ url, fallbackIcon }: { url?: string | null; fallbackIcon: React.ReactNode }) => {
   if (url) {
     return (
-      <Image 
-        src={url} 
-        alt="attribute" 
-        width={14} 
-        height={14}
-        className="w-4 h-4 sm:w-5 sm:h-5 object-contain"
+      <Image
+        src={url}
+        alt="attribute"
+        width={12}
+        height={12}
+        className="w-3.5 sm:w-4 h-3.5 sm:h-4 object-contain"
       />
     );
   }
-  return <span className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">{fallbackIcon}</span>;
+  return <span className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex items-center justify-center text-[10px] sm:text-xs">{fallbackIcon}</span>;
 };
 
 // Build filter URL for attribute
@@ -130,7 +130,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Brand only (hide product type on card per request)
     if (wine.brand) {
       attrs.push({
-        icon: <Tag size={14} />,
+        icon: <Tag size={12} />,
         label: wine.brand,
         show: true,
         filterCode: "thuong_hieu",
@@ -142,7 +142,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Origin/Country
     if (wine.country) {
       attrs.push({
-        icon: <MapPin size={14} />,
+        icon: <MapPin size={12} />,
         label: wine.country,
         show: true,
         filterCode: "xuat_xu",
@@ -183,7 +183,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Volume
     if (wine.volume && wine.volume > 0) {
       attrs.push({
-        icon: <Droplets size={14} />,
+        icon: <Droplets size={12} />,
         label: `${wine.volume}ml`,
         show: true
       });
@@ -192,7 +192,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Alcohol
     if (wine.alcoholContent && wine.alcoholContent > 0) {
       attrs.push({
-        icon: <Percent size={14} />,
+        icon: <Percent size={12} />,
         label: `${wine.alcoholContent}%`,
         show: true
       });
@@ -206,19 +206,19 @@ export const FilterProductCard = React.memo(function FilterProductCard({
   // Grid View - Vertical layout like the design
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-md border border-stone-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-stone-200/50">
-      
+
       {/* Image Area with Zoom Effect */}
-      <Link 
+      <Link
         href={`/san-pham/${wine.slug}`}
         className="relative aspect-[4/5] overflow-hidden bg-white border-b border-stone-50"
       >
         {/* Discount Badge */}
         {discountPercentage > 0 && (
-          <span className="absolute top-2 left-0 sm:top-4 z-10 bg-[#9e1e2d] px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-white shadow-sm rounded-r-md">
+          <span className="absolute top-2 left-0 sm:top-3 z-10 bg-[#9e1e2d] px-2 py-0.5 sm:px-2.5 sm:py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-sm rounded-r-md">
             -{discountPercentage}%
           </span>
         )}
-        
+
         <ProductImage
           src={wine.image || "/placeholder/wine-bottle.svg"}
           alt={wine.name}
@@ -231,20 +231,20 @@ export const FilterProductCard = React.memo(function FilterProductCard({
       </Link>
 
       {/* Content Area */}
-      <div className="flex flex-1 flex-col p-3 sm:p-5">
-        
+      <div className="flex flex-1 flex-col p-2 sm:p-3">
+
         {/* Title */}
         <Link href={`/san-pham/${wine.slug}`}>
-          <h3 className="mb-2 sm:mb-3 font-serif text-sm sm:text-lg font-bold leading-tight text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors line-clamp-2 min-h-[2.5rem] sm:min-h-[3.25rem]">
+          <h3 className="mb-1.5 sm:mb-2 font-serif text-sm sm:text-base font-bold leading-tight text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem]">
             {wine.name}
           </h3>
         </Link>
 
-        {/* Dynamic Attributes List */}
-        <div className="mb-2 sm:mb-4 flex flex-col gap-1 sm:gap-2">
-          {attributes.slice(0, 4).map((attr, index) => (
-            <div key={index} className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-stone-600">
-              <span className="text-[#9B2C3B] shrink-0 w-4 sm:w-5 flex items-center justify-center">
+        {/* Dynamic Attributes List - Show ALL attributes with compact spacing */}
+        <div className="mb-1.5 sm:mb-2 flex flex-col gap-0.5 sm:gap-1">
+          {attributes.map((attr, index) => (
+            <div key={index} className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600">
+              <span className="text-[#9B2C3B] shrink-0 w-3.5 sm:w-4 flex items-center justify-center">
                 <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.icon} />
               </span>
               <AttributeLabel attr={attr} />
@@ -253,13 +253,13 @@ export const FilterProductCard = React.memo(function FilterProductCard({
         </div>
 
         {/* Price Section */}
-        <div className="mt-auto flex flex-col pt-2 sm:pt-3 border-t border-stone-100">
+        <div className="mt-auto flex flex-col pt-1.5 sm:pt-2 border-t border-stone-100">
           {wine.originalPrice && wine.originalPrice > (wine.price ?? 0) && (
-            <span className="text-[10px] sm:text-xs font-medium text-stone-400 line-through decoration-stone-400 decoration-1 mb-0.5 sm:mb-1">
+            <span className="text-[10px] sm:text-xs font-medium text-stone-400 line-through decoration-stone-400 decoration-1 mb-0.5">
               {formatCurrency(wine.originalPrice)}
             </span>
           )}
-          <span className="font-serif text-base sm:text-xl font-bold text-[#9B2C3B]">
+          <span className="font-serif text-base sm:text-lg font-bold text-[#9B2C3B]">
             {getDisplayPrice(wine)}
           </span>
         </div>

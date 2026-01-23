@@ -211,7 +211,7 @@ export default function WineList() {
 
                 {/* Products Grid */}
                 <div
-                  className={`grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-3 transition-opacity duration-300 ${loading ? "opacity-50" : "opacity-100"}`}
+                  className={`grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-3 transition-opacity duration-300 ${loading ? "opacity-50" : "opacity-100"}`}
                 >
                   {wines.length === 0 && !loading ? (
                     <div className="col-span-full py-16 text-center">
