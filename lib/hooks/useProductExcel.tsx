@@ -43,8 +43,8 @@ export function useProductExcel(): UseProductExcelReturn {
   ): ExcelColumn[] => {
     const baseColumns: ExcelColumn[] = [
       { header: 'ID', key: 'id', width: 10, type: 'number' },
-      { header: 'Tên sản phẩm', key: 'name', width: 35, required: true, type: 'text' },
-      { header: 'Slug', key: 'slug', width: 30, required: true, type: 'text' },
+      { header: 'Tên sản phẩm', key: 'name', width: 40, required: true, type: 'text' },
+      { header: 'Slug', key: 'slug', width: 35, required: true, type: 'text' },
       { 
         header: 'Phân loại', 
         key: 'type_name', 
@@ -55,10 +55,9 @@ export function useProductExcel(): UseProductExcelReturn {
       },
       { 
         header: 'Danh mục', 
-        key: 'category_name', 
-        width: 25, 
-        type: 'select',
-        options: categories.map(c => c.name)
+        key: 'category_names', 
+        width: 30, 
+        type: 'text'
       },
       { header: 'Giá bán', key: 'price', width: 15, type: 'number' },
       { header: 'Giá gốc', key: 'original_price', width: 15, type: 'number' },
@@ -69,16 +68,18 @@ export function useProductExcel(): UseProductExcelReturn {
         type: 'boolean',
         required: true
       },
-      { header: 'Mô tả', key: 'description', width: 50, type: 'text' },
+      { header: 'Ảnh đại diện', key: 'cover_image_url', width: 60, type: 'text' },
+      { header: 'Mô tả (HTML)', key: 'description', width: 80, type: 'text' },
     ];
 
     if (includeDynamicAttrs) {
       const dynamicColumns: ExcelColumn[] = [
         { header: 'Dung tích (ml)', key: 'volume_ml', width: 15, type: 'number' },
-        { header: 'Nồng độ cồn (%)', key: 'alcohol_percent', width: 15, type: 'number' },
+        { header: 'Nồng độ cồn (%)', key: 'alcohol_percent', width: 17, type: 'number' },
         { header: 'Quốc gia', key: 'country', width: 20, type: 'text' },
-        { header: 'Vùng miền', key: 'region', width: 20, type: 'text' },
+        { header: 'Vùng miền', key: 'region', width: 25, type: 'text' },
         { header: 'Năm sản xuất', key: 'vintage', width: 15, type: 'number' },
+        { header: 'Thuộc tính khác', key: 'other_attrs', width: 50, type: 'text' },
       ];
       return [...baseColumns, ...dynamicColumns];
     }
@@ -111,15 +112,23 @@ export function useProductExcel(): UseProductExcelReturn {
       );
       
       const data = detailedProducts.map(product => {
+        const categoryNames = product.category_ids && product.category_ids.length > 0
+          ? product.category_ids.map(id => {
+              const cat = categories.find(c => c.id === id);
+              return cat?.name || '';
+            }).filter(Boolean).join(', ')
+          : '';
+
         const baseData: Record<string, unknown> = {
           id: product.id,
           name: product.name,
           slug: product.slug,
           type_name: product.type_name || '',
-          category_name: product.category_name || '',
+          category_names: categoryNames,
           price: product.price || null,
           original_price: product.original_price || null,
           active: product.active ? 'Có' : 'Không',
+          cover_image_url: product.cover_image_url || '',
           description: ('description' in product ? product.description : '') || '',
         };
 
@@ -130,12 +139,19 @@ export function useProductExcel(): UseProductExcelReturn {
             baseData.country = product.extra_attrs['quoc_gia']?.value || '';
             baseData.region = product.extra_attrs['vung_mien']?.value || '';
             baseData.vintage = product.extra_attrs['nam_san_xuat']?.value || '';
+            
+            const otherAttrs = Object.entries(product.extra_attrs)
+              .filter(([key]) => !['dung_tich', '1abv', 'quoc_gia', 'vung_mien', 'nam_san_xuat'].includes(key))
+              .map(([key, attr]) => `${attr.label}: ${attr.value}`)
+              .join('; ');
+            baseData.other_attrs = otherAttrs;
           } else {
             baseData.volume_ml = '';
             baseData.alcohol_percent = '';
             baseData.country = '';
             baseData.region = '';
             baseData.vintage = '';
+            baseData.other_attrs = '';
           }
         }
 

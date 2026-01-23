@@ -119,6 +119,15 @@ export interface AdminProductDetail extends AdminProduct {
   description: string | null;
   category_ids: number[];
   images?: AdminProductImage[];
+  terms?: Array<{
+    id: number;
+    name: string;
+    group?: {
+      id: number;
+      code: string;
+      name: string;
+    };
+  }>;
 }
  
  export interface AdminProductsResponse {
