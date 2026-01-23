@@ -39,7 +39,7 @@ export function useProductExcel(): UseProductExcelReturn {
   const buildColumns = useCallback((
     types: ProductFilterOption[], 
     categories: ProductFilterOption[],
-    includeDynamicAttrs: boolean = false
+    attributeFilters: Array<{ code: string; name: string; filter_type: string; input_type?: string }> = []
   ): ExcelColumn[] => {
     const baseColumns: ExcelColumn[] = [
       { header: 'ID', key: 'id', width: 10, type: 'number' },
@@ -73,17 +73,17 @@ export function useProductExcel(): UseProductExcelReturn {
       { header: 'Mô tả (HTML)', key: 'description', width: 80, type: 'text' },
     ];
 
-    if (includeDynamicAttrs) {
-      const dynamicColumns: ExcelColumn[] = [
-        { header: 'Dung tích (ml)', key: 'volume_ml', width: 15, type: 'number' },
-        { header: 'Nồng độ cồn (%)', key: 'alcohol_percent', width: 17, type: 'number' },
-        { header: 'Quốc gia', key: 'country', width: 20, type: 'text' },
-        { header: 'Vùng miền', key: 'region', width: 25, type: 'text' },
-        { header: 'Năm sản xuất', key: 'vintage', width: 15, type: 'number' },
-        { header: 'Thuộc tính khác', key: 'other_attrs', width: 50, type: 'text' },
-      ];
-      return [...baseColumns, ...dynamicColumns];
-    }
+    attributeFilters.forEach(attr => {
+      const colType = attr.input_type === 'number' || attr.filter_type === 'range' ? 'number' : 'text';
+      const colWidth = colType === 'number' ? 15 : 25;
+      
+      baseColumns.push({
+        header: attr.name,
+        key: `attr_${attr.code}`,
+        width: colWidth,
+        type: colType,
+      });
+    });
 
     return baseColumns;
   }, []);
@@ -91,12 +91,12 @@ export function useProductExcel(): UseProductExcelReturn {
   const exportProducts = useCallback(async (
     products: AdminProduct[],
     types: ProductFilterOption[],
-    categories: ProductFilterOption[],
-    includeDynamicAttrs: boolean = false
+    categories: ProductFilterOption[]
   ) => {
     setIsExporting(true);
     try {
-      const columns = buildColumns(types, categories, includeDynamicAttrs);
+      const filters = await fetchProductFilters();
+      const columns = buildColumns(types, categories, filters.attribute_filters);
       
       toast.info(`Đang tải chi tiết ${products.length} sản phẩm...`, { duration: 2000 });
       
@@ -144,28 +144,14 @@ export function useProductExcel(): UseProductExcelReturn {
           description: ('description' in product ? product.description : '') || '',
         };
 
-        if (includeDynamicAttrs) {
-          if (product.extra_attrs) {
-            baseData.volume_ml = product.extra_attrs['dung_tich']?.value || '';
-            baseData.alcohol_percent = product.extra_attrs['1abv']?.value || '';
-            baseData.country = product.extra_attrs['quoc_gia']?.value || '';
-            baseData.region = product.extra_attrs['vung_mien']?.value || '';
-            baseData.vintage = product.extra_attrs['nam_san_xuat']?.value || '';
-            
-            const otherAttrs = Object.entries(product.extra_attrs)
-              .filter(([key]) => !['dung_tich', '1abv', 'quoc_gia', 'vung_mien', 'nam_san_xuat'].includes(key))
-              .map(([key, attr]) => `${attr.label}: ${attr.value}`)
-              .join('; ');
-            baseData.other_attrs = otherAttrs;
+        filters.attribute_filters.forEach(attr => {
+          const key = `attr_${attr.code}`;
+          if (product.extra_attrs && product.extra_attrs[attr.code]) {
+            baseData[key] = product.extra_attrs[attr.code].value || '';
           } else {
-            baseData.volume_ml = '';
-            baseData.alcohol_percent = '';
-            baseData.country = '';
-            baseData.region = '';
-            baseData.vintage = '';
-            baseData.other_attrs = '';
+            baseData[key] = '';
           }
-        }
+        });
 
         return baseData;
       });
@@ -188,12 +174,12 @@ export function useProductExcel(): UseProductExcelReturn {
 
   const exportTemplate = useCallback(async (
     types: ProductFilterOption[],
-    categories: ProductFilterOption[],
-    includeDynamicAttrs: boolean = false
+    categories: ProductFilterOption[]
   ) => {
     setIsExporting(true);
     try {
-      const columns = buildColumns(types, categories, includeDynamicAttrs);
+      const filters = await fetchProductFilters();
+      const columns = buildColumns(types, categories, filters.attribute_filters);
       
       columns.forEach(col => {
         if (col.key === 'id') col.required = false;

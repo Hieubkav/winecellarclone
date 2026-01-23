@@ -173,7 +173,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
    };
 
   const handleExportCurrent = async () => {
-    await exportProducts(sortedData, types, categories, true);
+    await exportProducts(sortedData, types, categories);
   };
 
   const handleExportAll = async () => {
@@ -182,7 +182,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
         per_page: totalProducts > 0 ? totalProducts : 1000,
         page: 1 
       });
-      await exportProducts(allProductsRes.data, types, categories, true);
+      await exportProducts(allProductsRes.data, types, categories);
     } catch (error) {
       console.error('Failed to export all:', error);
       toast.error('Export toàn bộ thất bại. Vui lòng thử lại.');
@@ -190,7 +190,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
   };
 
   const handleExportTemplate = async () => {
-    await exportTemplate(types, categories, true);
+    await exportTemplate(types, categories);
   };
 
   const handleImportSuccess = () => {

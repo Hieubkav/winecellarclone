@@ -126,12 +126,10 @@ export function createTemplateSheet(
       else if (col.key === 'cover_image_url') exampleRow[col.key] = 'https://example.com/images/product.jpg';
       else if (col.key === 'additional_images') exampleRow[col.key] = 'https://example.com/images/product-2.jpg; https://example.com/images/product-3.jpg';
       else if (col.key === 'description') exampleRow[col.key] = '<p>Rượu vang đỏ cao cấp từ Chile với hương vị trái cây chín mọng</p>';
-      else if (col.key === 'volume_ml') exampleRow[col.key] = 750;
-      else if (col.key === 'alcohol_percent') exampleRow[col.key] = 13.5;
-      else if (col.key === 'country') exampleRow[col.key] = 'Chile';
-      else if (col.key === 'region') exampleRow[col.key] = 'Maipo Valley';
-      else if (col.key === 'vintage') exampleRow[col.key] = 2020;
-      else if (col.key === 'other_attrs') exampleRow[col.key] = 'Màu sắc: Đỏ ruby; Hương vị: Trái cây chín';
+      else if (col.key.startsWith('attr_')) {
+        if (col.type === 'number') exampleRow[col.key] = col.header.includes('ml') ? 750 : col.header.includes('%') ? 13.5 : 2020;
+        else exampleRow[col.key] = col.header.includes('Quốc') ? 'Chile' : 'Example';
+      }
       else exampleRow[col.key] = '';
     });
     worksheet.addRow(exampleRow);
