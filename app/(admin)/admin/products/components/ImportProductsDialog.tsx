@@ -73,7 +73,7 @@ export function ImportProductsDialog({
       const filters = await fetchProductFilters();
       
       const mappedResults = mapMultipleProducts(
-        importedData as ProductImportData[],
+        importedData as unknown as ProductImportData[],
         filters.types,
         filters.categories
       );
@@ -105,7 +105,7 @@ export function ImportProductsDialog({
         return;
       }
 
-      const result = await bulkImportProducts(validProducts as Record<string, unknown>[]);
+      const result = await bulkImportProducts(validProducts as unknown as Record<string, unknown>[]);
       setImportResult(result);
       setStep('complete');
 

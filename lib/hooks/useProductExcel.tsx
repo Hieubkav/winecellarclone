@@ -134,8 +134,8 @@ export function useProductExcel(): UseProductExcelReturn {
         const typeFound = types.find(t => t.id === product.type_id);
         const typeName = typeFound?.name || product.type_name || '';
         
-        const categoryNames = product.category_ids && product.category_ids.length > 0
-          ? product.category_ids.map(id => {
+        const categoryNames = 'category_ids' in product && Array.isArray(product.category_ids) && product.category_ids.length > 0
+          ? product.category_ids.map((id: number) => {
               const cat = categories.find(c => c.id === id);
               return cat?.name || '';
             }).filter(Boolean).join(', ')
@@ -256,7 +256,26 @@ export function useProductExcel(): UseProductExcelReturn {
       }
 
       const filters = await fetchProductFilters();
-      const columns = buildColumns(filters.types, filters.categories, true);
+      
+      // Fetch ALL attribute groups from all product types
+      const allAttributeGroups = new Map<string, { code: string; name: string; filter_type: string; input_type?: string }>();
+      
+      for (const type of filters.types) {
+        const typeFilters = await fetchProductFilters(type.id);
+        typeFilters.attribute_filters.forEach(attr => {
+          if (!allAttributeGroups.has(attr.code)) {
+            allAttributeGroups.set(attr.code, {
+              code: attr.code,
+              name: attr.name,
+              filter_type: attr.filter_type,
+              input_type: attr.input_type,
+            });
+          }
+        });
+      }
+      
+      const attributeFilters = Array.from(allAttributeGroups.values());
+      const columns = buildColumns(filters.types, filters.categories, attributeFilters);
 
       const workbook = await readExcelFile(file);
       const worksheet = workbook.getWorksheet('Sản phẩm') || workbook.worksheets[0];
