@@ -195,18 +195,19 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
           return;
         }
         
-        attrGroup.terms.forEach((term) => {
-          if (!addedCodes.has(attrGroup.group_code)) {
-            attrs.push({
-              fallbackIcon: getFallbackIcon(attrGroup.group_code),
-              iconUrl: attrGroup.icon_url,
-              label: attrGroup.group_name || attrGroup.group_code,
-              value: term.name,
-              filterUrl: `/filter?${attrGroup.group_code}=${term.slug}`,
-            });
-            addedCodes.add(attrGroup.group_code);
-          }
-        });
+        if (attrGroup.terms.length > 0) {
+          const termNames = attrGroup.terms.map(t => t.name).join(', ');
+          const firstTerm = attrGroup.terms[0];
+          
+          attrs.push({
+            fallbackIcon: getFallbackIcon(attrGroup.group_code),
+            iconUrl: attrGroup.icon_url,
+            label: attrGroup.group_name || attrGroup.group_code,
+            value: termNames,
+            filterUrl: `/filter?${attrGroup.group_code}=${firstTerm.slug}`,
+          });
+          addedCodes.add(attrGroup.group_code);
+        }
       });
     }
 
@@ -416,7 +417,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                     <Button 
                       variant="ghost"
                       onClick={() => setIsDescExpanded(!isDescExpanded)}
-                      className="mt-6 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B] hover:bg-[#9B2C3B]/10 font-semibold text-base px-8 py-3 border-2 border-[#9B2C3B]/30 hover:border-[#9B2C3B]/50 transition-all"
+                      className="relative z-10 mt-6 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B] hover:bg-[#9B2C3B]/10 font-semibold text-base px-8 py-3 border-2 border-[#9B2C3B] hover:border-[#9B2C3B]/70 transition-all bg-white"
                     >
                       {isDescExpanded ? 'Thu gọn' : 'Xem thêm'}
                       {isDescExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
