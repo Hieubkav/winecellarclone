@@ -14,7 +14,8 @@ import { useProductExcel } from '@/lib/hooks/useProductExcel';
 import { ImportProductsDialog } from './components/ImportProductsDialog';
  
  export default function ProductsListPage() {
-   const [isLoading, setIsLoading] = useState(true);
+   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -24,6 +25,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
   const [totalPages, setTotalPages] = useState(1);
   const [types, setTypes] = useState<ProductFilterOption[]>([]);
    const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
    const [filterCategory, setFilterCategory] = useState('');
   const [filterType, setFilterType] = useState('');
    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' });
@@ -46,6 +48,13 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
   useEffect(() => {
     localStorage.setItem('admin_products_perPage', String(perPage));
   }, [perPage]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
  
    const columns = [
      { key: 'select', label: 'Chọn' },
@@ -60,15 +69,20 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
  
    const [visibleColumns, setVisibleColumns] = useState<string[]>(columns.map(c => c.key));
  
-  const loadProducts = useCallback(async () => {
-    setIsLoading(true);
+  const loadProducts = useCallback(async (isInitial = false) => {
+    if (isInitial) {
+      setIsInitialLoading(true);
+    } else {
+      setIsSearching(true);
+    }
+    
     try {
       const params: Record<string, string | number> = {
         per_page: perPage === 'all' ? 1000 : perPage,
         page: currentPage,
       };
       
-      if (searchTerm) params.q = searchTerm;
+      if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterCategory) params.category_id = filterCategory;
       if (filterType) params.type_id = filterType;
 
@@ -85,13 +99,20 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
     } catch (error) {
       console.error('Failed to fetch products:', error);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
+      setIsSearching(false);
     }
-  }, [currentPage, filterCategory, filterType, searchTerm, perPage]);
+  }, [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage]);
 
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    loadProducts(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoading) {
+      loadProducts(false);
+    }
+  }, [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -194,10 +215,10 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
   };
 
   const handleImportSuccess = () => {
-    loadProducts();
+    loadProducts(false);
   };
  
-   if (isLoading) {
+   if (isInitialLoading) {
      return (
        <div className="space-y-4">
          <div className="flex justify-between items-center">
@@ -308,9 +329,14 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
            <div className="flex flex-wrap gap-3 flex-1">
              <div className="relative max-w-xs">
                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+               {isSearching && (
+                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                   <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                 </div>
+               )}
                <Input 
                  placeholder="Tìm tên sản phẩm..." 
-                 className="pl-9 w-48" 
+                 className={cn("pl-9 w-48", isSearching && "pr-9")}
                  value={searchTerm} 
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -374,7 +400,10 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
                {visibleColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
              </TableRow>
            </TableHeader>
-           <TableBody>
+           <TableBody className="relative">
+             {isSearching && (
+               <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none" />
+             )}
              {sortedData.map(product => (
                <TableRow key={product.id} className={selectedIds.includes(product.id) ? 'bg-blue-500/5' : ''}>
                  {visibleColumns.includes('select') && (
