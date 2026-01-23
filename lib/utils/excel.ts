@@ -144,14 +144,208 @@ export function createTemplateSheet(
   return worksheet;
 }
 
+function createGuideSheet(
+  workbook: ExcelJS.Workbook,
+  types: Array<{ id: number; name: string; slug: string }>,
+  typeAttributesMap: Map<number, any[]>
+): ExcelJS.Worksheet {
+  const worksheet = workbook.addWorksheet('📘 Hướng dẫn', {
+    views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }]
+  });
+
+  let currentRow = 1;
+
+  // Title
+  worksheet.mergeCells(`A${currentRow}:D${currentRow}`);
+  const titleCell = worksheet.getCell(`A${currentRow}`);
+  titleCell.value = '📋 HƯỚNG DẪN CẤU TRÚC DỮ LIỆU SẢN PHẨM';
+  titleCell.font = { bold: true, size: 16, color: { argb: 'FF1E40AF' } };
+  titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+  titleCell.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFDBEAFE' }
+  };
+  worksheet.getRow(currentRow).height = 30;
+  currentRow += 2;
+
+  // Section 1: Product Types
+  worksheet.getCell(`A${currentRow}`).value = '1️⃣ DANH SÁCH PHÂN LOẠI SẢN PHẨM';
+  worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 13, color: { argb: 'FF0F766E' } };
+  worksheet.getCell(`A${currentRow}`).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFCCFBF1' }
+  };
+  currentRow++;
+
+  // Type headers
+  ['STT', 'Tên phân loại', 'Mã (Slug)', 'Số thuộc tính'].forEach((header, idx) => {
+    const cell = worksheet.getCell(currentRow, idx + 1);
+    cell.value = header;
+    cell.font = { bold: true, size: 11 };
+    cell.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE5E7EB' }
+    };
+    cell.border = {
+      top: { style: 'thin' },
+      bottom: { style: 'thin' },
+      left: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+  });
+  currentRow++;
+
+  // Type data
+  types.forEach((type, idx) => {
+    const attrs = typeAttributesMap.get(type.id) || [];
+    [idx + 1, type.name, type.slug, attrs.length].forEach((val, colIdx) => {
+      const cell = worksheet.getCell(currentRow, colIdx + 1);
+      cell.value = val;
+      cell.border = {
+        top: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+    currentRow++;
+  });
+  currentRow += 2;
+
+  // Section 2: Attributes per Type
+  worksheet.getCell(`A${currentRow}`).value = '2️⃣ THUỘC TÍNH THEO TỪNG PHÂN LOẠI';
+  worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 13, color: { argb: 'FF0F766E' } };
+  worksheet.getCell(`A${currentRow}`).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFCCFBF1' }
+  };
+  currentRow++;
+
+  types.forEach(type => {
+    const attrs = typeAttributesMap.get(type.id) || [];
+    
+    // Type name
+    worksheet.getCell(`A${currentRow}`).value = `📦 ${type.name}`;
+    worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 12, color: { argb: 'FF1F2937' } };
+    worksheet.getCell(`A${currentRow}`).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFF3F4F6' }
+    };
+    currentRow++;
+
+    // Attribute headers
+    ['Tên thuộc tính', 'Loại', 'Kiểu nhập', 'Giá trị'].forEach((header, idx) => {
+      const cell = worksheet.getCell(currentRow, idx + 1);
+      cell.value = header;
+      cell.font = { bold: true, size: 10 };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE5E7EB' }
+      };
+      cell.border = {
+        top: { style: 'thin' },
+        bottom: { style: 'thin' },
+        left: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+    currentRow++;
+
+    // Attribute data
+    attrs.forEach(attr => {
+      const filterTypeLabel = 
+        attr.filter_type === 'checkbox' ? 'Nhiều lựa chọn' :
+        attr.filter_type === 'radio' ? 'Một lựa chọn' :
+        attr.filter_type === 'range' ? 'Khoảng giá trị' : 
+        attr.filter_type === 'nhap_tay' ? 'Nhập tay' : attr.filter_type;
+      
+      const inputTypeLabel = attr.input_type === 'number' ? 'Số' : 'Chữ';
+      
+      let valuesText = '';
+      if (attr.options && attr.options.length > 0) {
+        valuesText = attr.options.slice(0, 5).map((opt: any) => opt.name).join(', ');
+        if (attr.options.length > 5) {
+          valuesText += ` (+ ${attr.options.length - 5} giá trị khác)`;
+        }
+      } else if (attr.range) {
+        valuesText = `${attr.range.min} - ${attr.range.max}`;
+      } else {
+        valuesText = 'Nhập tự do';
+      }
+
+      [attr.name, filterTypeLabel, inputTypeLabel, valuesText].forEach((val, colIdx) => {
+        const cell = worksheet.getCell(currentRow, colIdx + 1);
+        cell.value = val;
+        cell.border = {
+          top: { style: 'thin' },
+          bottom: { style: 'thin' },
+          left: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+      currentRow++;
+    });
+    
+    currentRow++;
+  });
+
+  // Section 3: Notes
+  currentRow++;
+  worksheet.getCell(`A${currentRow}`).value = '💡 GHI CHÚ QUAN TRỌNG';
+  worksheet.getCell(`A${currentRow}`).font = { bold: true, size: 13, color: { argb: 'FFDC2626' } };
+  worksheet.getCell(`A${currentRow}`).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFFEF2F2' }
+  };
+  currentRow++;
+
+  const notes = [
+    '• Mỗi sản phẩm thuộc 1 PHÂN LOẠI và có thể có nhiều thuộc tính',
+    '• Thuộc tính không bắt buộc - nếu không có thì để trống',
+    '• Giá trị thuộc tính phải khớp với danh sách trên (nếu có)',
+    '• Thuộc tính kiểu "Khoảng giá trị" nhập số trong khoảng cho phép',
+    '• Thuộc tính kiểu "Nhập tay" có thể nhập tự do',
+  ];
+
+  notes.forEach(note => {
+    worksheet.getCell(`A${currentRow}`).value = note;
+    worksheet.getCell(`A${currentRow}`).font = { size: 10 };
+    currentRow++;
+  });
+
+  // Column widths
+  worksheet.getColumn(1).width = 35;
+  worksheet.getColumn(2).width = 25;
+  worksheet.getColumn(3).width = 20;
+  worksheet.getColumn(4).width = 50;
+
+  return worksheet;
+}
+
 export async function exportToExcel(
   filename: string,
-  sheets: ExcelTemplateOptions[]
+  sheets: ExcelTemplateOptions[],
+  metadata?: {
+    types?: Array<{ id: number; name: string; slug: string }>;
+    typeAttributesMap?: Map<number, any[]>;
+  }
 ): Promise<void> {
   const workbook = createWorkbook();
   
   for (const sheet of sheets) {
     createTemplateSheet(workbook, sheet);
+  }
+  
+  // Add guide sheet if metadata provided
+  if (metadata?.types && metadata?.typeAttributesMap) {
+    createGuideSheet(workbook, metadata.types, metadata.typeAttributesMap);
   }
   
   const buffer = await workbook.xlsx.writeBuffer();

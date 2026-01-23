@@ -198,9 +198,14 @@ export function useProductExcel(): UseProductExcelReturn {
     try {
       // Fetch ALL attribute groups from all product types
       const allAttributeGroups = new Map<string, { code: string; name: string; filter_type: string; input_type?: string }>();
+      const typeAttributesMap = new Map<number, any[]>();
       
       for (const type of types) {
         const filters = await fetchProductFilters(type.id);
+        
+        // Store attributes per type for guide sheet
+        typeAttributesMap.set(type.id, filters.attribute_filters);
+        
         filters.attribute_filters.forEach(attr => {
           if (!allAttributeGroups.has(attr.code)) {
             allAttributeGroups.set(attr.code, {
@@ -226,7 +231,10 @@ export function useProductExcel(): UseProductExcelReturn {
         includeExample: true,
       };
 
-      await exportToExcel('mau-import-san-pham', [sheetOptions]);
+      await exportToExcel('mau-import-san-pham', [sheetOptions], {
+        types,
+        typeAttributesMap,
+      });
       toast.success('Đã tải file Excel mẫu');
     } catch (error) {
       console.error('Export template error:', error);
