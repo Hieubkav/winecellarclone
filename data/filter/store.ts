@@ -73,6 +73,7 @@ interface AttributeFilter {
   input_type?: string
   display_config: Record<string, unknown>
   icon_url?: string | null
+  icon_name?: string | null
   options: FilterOption[]
   range?: { min: number; max: number }
 }

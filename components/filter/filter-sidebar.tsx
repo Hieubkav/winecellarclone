@@ -3,7 +3,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useShallow } from "zustand/react/shallow"
-import { RotateCcw, ChevronDown } from "lucide-react"
+import { RotateCcw, ChevronDown, Grape, Award, Thermometer, Percent, Coffee, Hourglass, Square, Package, Flag } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -25,23 +25,45 @@ const formatCurrency = (value: number) => currencyFormatter.format(value)
 
 const COLLAPSE_THRESHOLD = 6
 
+// Map Lucide icon names to components
+const LUCIDE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+    Grape,
+    Award,
+    Thermometer,
+    Percent,
+    Coffee,
+    Hourglass,
+    Square,
+    Package,
+    Flag,
+}
+
 interface FilterIconProps {
     iconUrl?: string | null
+    iconName?: string | null
     title: string
 }
 
-function FilterIcon({ iconUrl, title }: FilterIconProps) {
-    if (!iconUrl) return null
+function FilterIcon({ iconUrl, iconName, title }: FilterIconProps) {
+    // Ưu tiên iconUrl (file image), fallback về iconName (Lucide)
+    if (iconUrl) {
+        return (
+            <Image
+                src={iconUrl}
+                alt={`${title} icon`}
+                width={20}
+                height={20}
+                className="object-contain flex-shrink-0"
+            />
+        )
+    }
 
-    return (
-        <Image
-            src={iconUrl}
-            alt={`${title} icon`}
-            width={20}
-            height={20}
-            className="object-contain flex-shrink-0"
-        />
-    )
+    if (iconName && LUCIDE_ICONS[iconName]) {
+        const IconComponent = LUCIDE_ICONS[iconName]
+        return <IconComponent className="w-5 h-5 text-[#9B2C3B] flex-shrink-0" />
+    }
+
+    return null
 }
 
 interface CollapsibleCheckboxSectionProps {
@@ -52,6 +74,7 @@ interface CollapsibleCheckboxSectionProps {
     code: string
     hideZeroCount?: boolean
     iconUrl?: string | null
+    iconName?: string | null
 }
 
 function CollapsibleCheckboxSection({
@@ -61,7 +84,8 @@ function CollapsibleCheckboxSection({
     onToggle,
     code,
     hideZeroCount = true,
-    iconUrl
+    iconUrl,
+    iconName
 }: CollapsibleCheckboxSectionProps) {
     const [isOpen, setIsOpen] = useState(false)
     const selectedCount = selectedIds.length
@@ -80,7 +104,7 @@ function CollapsibleCheckboxSection({
             <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <FilterIcon iconUrl={iconUrl} title={title} />
+                        <FilterIcon iconUrl={iconUrl} iconName={iconName} title={title} />
                         <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
                             {title}
                         </h3>
@@ -164,7 +188,7 @@ function CollapsibleCheckboxSection({
         <div className="space-y-3">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <FilterIcon iconUrl={iconUrl} title={title} />
+                    <FilterIcon iconUrl={iconUrl} iconName={iconName} title={title} />
                     <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
                         {title}
                     </h3>
@@ -211,6 +235,7 @@ interface RadioFilterSectionProps {
     code: string
     hideZeroCount?: boolean
     iconUrl?: string | null
+    iconName?: string | null
 }
 
 interface RangeSliderSectionProps {
@@ -223,6 +248,7 @@ interface RangeSliderSectionProps {
     step?: number
     unit?: string
     iconUrl?: string | null
+    iconName?: string | null
 }
 
 function RangeSliderSection({
@@ -235,6 +261,7 @@ function RangeSliderSection({
     step = 1,
     unit = "",
     iconUrl,
+    iconName,
 }: RangeSliderSectionProps) {
     const sliderDisabled = max <= min
 
@@ -245,7 +272,7 @@ function RangeSliderSection({
     return (
         <div className="space-y-3">
             <div className="flex items-center gap-2">
-                <FilterIcon iconUrl={iconUrl} title={title} />
+                <FilterIcon iconUrl={iconUrl} iconName={iconName} title={title} />
                 <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
                     {title}
                 </h3>
@@ -288,6 +315,7 @@ function RadioFilterSection({
     code,
     hideZeroCount = true,
     iconUrl,
+    iconName,
 }: RadioFilterSectionProps) {
     const [isOpen, setIsOpen] = useState(false)
 
@@ -308,7 +336,7 @@ function RadioFilterSection({
         return (
             <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
                 <div className="flex items-center gap-2">
-                    <FilterIcon iconUrl={iconUrl} title={title} />
+                    <FilterIcon iconUrl={iconUrl} iconName={iconName} title={title} />
                     <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
                         {title}
                     </h3>
@@ -400,7 +428,7 @@ function RadioFilterSection({
     return (
         <div className="space-y-3">
             <div className="flex items-center gap-2">
-                <FilterIcon iconUrl={iconUrl} title={title} />
+                <FilterIcon iconUrl={iconUrl} iconName={iconName} title={title} />
                 <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
                     {title}
                 </h3>
@@ -507,6 +535,7 @@ export function FilterSidebar() {
         filter_type: string
         input_type?: string
         icon_url?: string | null
+        icon_name?: string | null
         options: { id: number; name: string; slug: string }[]
         range?: { min: number; max: number }
     }) => {
@@ -523,6 +552,7 @@ export function FilterSidebar() {
                         onSelect={(id) => setAttributeSelection(attributeFilter.code, id)}
                         code={attributeFilter.code}
                         iconUrl={attributeFilter.icon_url}
+                        iconName={attributeFilter.icon_name}
                     />
                 )
 
@@ -535,6 +565,7 @@ export function FilterSidebar() {
                         onToggle={(id) => toggleAttributeFilter(attributeFilter.code, id)}
                         code={attributeFilter.code}
                         iconUrl={attributeFilter.icon_url}
+                        iconName={attributeFilter.icon_name}
                     />
                 )
 
@@ -559,6 +590,7 @@ export function FilterSidebar() {
                             step={step}
                             unit={unit}
                             iconUrl={attributeFilter.icon_url}
+                            iconName={attributeFilter.icon_name}
                         />
                     )
                 }
@@ -573,6 +605,7 @@ export function FilterSidebar() {
                             onSelect={(id) => setAttributeSelection(attributeFilter.code, id)}
                             code={attributeFilter.code}
                             iconUrl={attributeFilter.icon_url}
+                            iconName={attributeFilter.icon_name}
                         />
                     )
                 }
@@ -587,6 +620,7 @@ export function FilterSidebar() {
                         onToggle={(id) => toggleAttributeFilter(attributeFilter.code, id)}
                         code={attributeFilter.code}
                         iconUrl={attributeFilter.icon_url}
+                        iconName={attributeFilter.icon_name}
                     />
                 )
         }
