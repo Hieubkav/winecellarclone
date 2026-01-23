@@ -8,9 +8,11 @@ import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function ImagesListPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [images, setImages] = useState<AdminImage[]>([]);
   const [totalImages, setTotalImages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,6 +26,7 @@ export default function ImagesListPage() {
     return 25;
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: null, direction: 'desc' });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
@@ -34,14 +37,26 @@ export default function ImagesListPage() {
     localStorage.setItem('admin_images_perPage', String(perPage));
   }, [perPage]);
 
-  const loadImages = useCallback(async () => {
-    setIsLoading(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const loadImages = useCallback(async (isInitial = false) => {
+    if (isInitial) {
+      setIsInitialLoading(true);
+    } else {
+      setIsSearching(true);
+    }
+    
     try {
       const params: Record<string, string | number> = {
         per_page: perPage === 'all' ? 1000 : perPage,
         page: currentPage,
       };
-      if (searchTerm) params.q = searchTerm;
+      if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       const result = await fetchAdminImages(params);
       setImages(result.data);
       setTotalImages(result.meta.total);
@@ -49,13 +64,20 @@ export default function ImagesListPage() {
     } catch (error) {
       console.error('Failed to fetch images:', error);
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
+      setIsSearching(false);
     }
-  }, [searchTerm, currentPage, perPage]);
+  }, [debouncedSearchTerm, currentPage, perPage]);
 
   useEffect(() => {
-    loadImages();
-  }, [loadImages]);
+    loadImages(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoading) {
+      loadImages(false);
+    }
+  }, [debouncedSearchTerm, currentPage, perPage]);
 
   const handleSort = (key: string) => {
     setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }));
@@ -84,7 +106,7 @@ export default function ImagesListPage() {
         toast.success(`Đã xóa ${selectedIds.length} hình ảnh`);
       }
       setDeleteConfirm(null);
-      loadImages();
+      loadImages(false);
     } catch (error) {
       console.error('Delete failed:', error);
       toast.error('Xóa thất bại');
@@ -93,7 +115,7 @@ export default function ImagesListPage() {
     }
   };
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return <div className="space-y-4"><Skeleton className="h-10 w-full" /><Card><div className="p-4 space-y-4">{[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div></Card></div>;
   }
 
@@ -113,13 +135,22 @@ export default function ImagesListPage() {
         <div className="p-4 border-b">
           <div className="relative max-w-xs">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input placeholder="Tìm ảnh..." className="pl-9" value={searchTerm} onChange={(e) => {
+            {isSearching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              </div>
+            )}
+            <Input placeholder="Tìm ảnh..." className={cn("pl-9", isSearching && "pr-9")} value={searchTerm} onChange={(e) => {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }} />
           </div>
         </div>
-        <Table>
+        <div className="relative">
+          {isSearching && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none rounded-lg" />
+          )}
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]"><SelectCheckbox checked={selectedIds.length === sortedData.length && sortedData.length > 0} onChange={toggleSelectAll} indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} /></TableHead>
@@ -155,6 +186,7 @@ export default function ImagesListPage() {
             {sortedData.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-500">{searchTerm ? 'Không tìm thấy ảnh' : 'Chưa có ảnh nào'}</TableCell></TableRow>}
           </TableBody>
         </Table>
+      </div>
         {sortedData.length > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-4">

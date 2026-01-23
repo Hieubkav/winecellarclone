@@ -10,7 +10,8 @@
  import { toast } from 'sonner';
  
  export default function MenusListPage() {
-   const [isLoading, setIsLoading] = useState(true);
+   const [isInitialLoading, setIsInitialLoading] = useState(true);
+   const [isSearching, setIsSearching] = useState(false);
    const [menus, setMenus] = useState<AdminMenu[]>([]);
    const [totalMenus, setTotalMenus] = useState(0);
    const [currentPage, setCurrentPage] = useState(1);
@@ -24,6 +25,7 @@
      return 25;
    });
    const [searchTerm, setSearchTerm] = useState('');
+   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>({ key: 'order', direction: 'asc' });
    const [selectedIds, setSelectedIds] = useState<number[]>([]);
    const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
@@ -34,15 +36,27 @@
    useEffect(() => {
      localStorage.setItem('admin_menus_perPage', String(perPage));
    }, [perPage]);
+
+   useEffect(() => {
+     const timer = setTimeout(() => {
+       setDebouncedSearchTerm(searchTerm);
+     }, 400);
+     return () => clearTimeout(timer);
+   }, [searchTerm]);
  
-   const loadMenus = useCallback(async () => {
-     setIsLoading(true);
+   const loadMenus = useCallback(async (isInitial = false) => {
+     if (isInitial) {
+       setIsInitialLoading(true);
+     } else {
+       setIsSearching(true);
+     }
+     
      try {
        const params: Record<string, string | number> = {
          per_page: perPage === 'all' ? 1000 : perPage,
          page: currentPage,
        };
-       if (searchTerm) params.q = searchTerm;
+       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
  
        const res = await fetchAdminMenus(params);
        setMenus(res.data);
@@ -52,13 +66,20 @@
        console.error('Failed to fetch menus:', error);
        toast.error('Không thể tải danh sách menu');
      } finally {
-       setIsLoading(false);
+       setIsInitialLoading(false);
+       setIsSearching(false);
      }
-   }, [searchTerm, currentPage, perPage]);
+   }, [debouncedSearchTerm, currentPage, perPage]);
  
    useEffect(() => {
-     loadMenus();
-   }, [loadMenus]);
+     loadMenus(true);
+   }, []);
+
+   useEffect(() => {
+     if (!isInitialLoading) {
+       loadMenus(false);
+     }
+   }, [debouncedSearchTerm, currentPage, perPage]);
  
    const handleSort = (key: string) => {
      setSortConfig(prev => ({
@@ -90,7 +111,7 @@
          toast.success(`Đã xóa ${selectedIds.length} menu`);
        }
        setDeleteConfirm(null);
-       loadMenus();
+       loadMenus(false);
      } catch (error) {
        console.error('Delete failed:', error);
        toast.error('Xóa thất bại');
@@ -118,7 +139,7 @@
     }
   };
  
-   if (isLoading) {
+   if (isInitialLoading) {
      return (
        <div className="space-y-4">
          <div className="flex justify-between items-center">
@@ -168,16 +189,25 @@
          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4">
            <div className="relative max-w-xs">
              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+             {isSearching && (
+               <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                 <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+               </div>
+             )}
              <Input
                placeholder="Tìm menu..."
-               className="pl-9 w-48"
+               className={cn("pl-9 w-48", isSearching && "pr-9")}
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
              />
            </div>
          </div>
  
-         <Table>
+         <div className="relative">
+           {isSearching && (
+             <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 pointer-events-none rounded-lg" />
+           )}
+           <Table>
            <TableHeader>
              <TableRow>
                <TableHead className="w-[40px]">
@@ -271,6 +301,7 @@
              )}
            </TableBody>
          </Table>
+       </div>
        {sortedData.length > 0 && (
          <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
            <div className="flex items-center gap-4">
