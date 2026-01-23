@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useCallback, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useShallow } from "zustand/react/shallow"
 import { RotateCcw, ChevronDown } from "lucide-react"
@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useWineStore } from "@/data/filter/store"
+import { createDebounce } from "@/lib/utils/debounce"
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
