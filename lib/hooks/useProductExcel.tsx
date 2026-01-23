@@ -95,8 +95,26 @@ export function useProductExcel(): UseProductExcelReturn {
   ) => {
     setIsExporting(true);
     try {
-      const filters = await fetchProductFilters();
-      const columns = buildColumns(types, categories, filters.attribute_filters);
+      // Fetch ALL attribute groups (not just common ones)
+      const allAttributeGroups = new Map<string, { code: string; name: string; filter_type: string; input_type?: string }>();
+      
+      // Collect attributes from all product types
+      for (const type of types) {
+        const filters = await fetchProductFilters(type.id);
+        filters.attribute_filters.forEach(attr => {
+          if (!allAttributeGroups.has(attr.code)) {
+            allAttributeGroups.set(attr.code, {
+              code: attr.code,
+              name: attr.name,
+              filter_type: attr.filter_type,
+              input_type: attr.input_type,
+            });
+          }
+        });
+      }
+      
+      const attributeFilters = Array.from(allAttributeGroups.values());
+      const columns = buildColumns(types, categories, attributeFilters);
       
       toast.info(`Đang tải chi tiết ${products.length} sản phẩm...`, { duration: 2000 });
       
@@ -144,7 +162,7 @@ export function useProductExcel(): UseProductExcelReturn {
           description: ('description' in product ? product.description : '') || '',
         };
 
-        filters.attribute_filters.forEach(attr => {
+        attributeFilters.forEach(attr => {
           const key = `attr_${attr.code}`;
           if (product.extra_attrs && product.extra_attrs[attr.code]) {
             baseData[key] = product.extra_attrs[attr.code].value || '';
@@ -178,8 +196,25 @@ export function useProductExcel(): UseProductExcelReturn {
   ) => {
     setIsExporting(true);
     try {
-      const filters = await fetchProductFilters();
-      const columns = buildColumns(types, categories, filters.attribute_filters);
+      // Fetch ALL attribute groups from all product types
+      const allAttributeGroups = new Map<string, { code: string; name: string; filter_type: string; input_type?: string }>();
+      
+      for (const type of types) {
+        const filters = await fetchProductFilters(type.id);
+        filters.attribute_filters.forEach(attr => {
+          if (!allAttributeGroups.has(attr.code)) {
+            allAttributeGroups.set(attr.code, {
+              code: attr.code,
+              name: attr.name,
+              filter_type: attr.filter_type,
+              input_type: attr.input_type,
+            });
+          }
+        });
+      }
+      
+      const attributeFilters = Array.from(allAttributeGroups.values());
+      const columns = buildColumns(types, categories, attributeFilters);
       
       columns.forEach(col => {
         if (col.key === 'id') col.required = false;
