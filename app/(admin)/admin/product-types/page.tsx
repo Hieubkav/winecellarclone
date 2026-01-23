@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Tag, Search, AlertTriangle, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag, Search, AlertTriangle, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, ColumnToggle } from '../components/TableUtilities';
@@ -369,11 +369,7 @@ export default function ProductTypesPage() {
                     )}
                     {visibleTypeColumns.includes('products_count') && (
                       <TableCell>
-                        <Link href={`/filter?type=${type.slug}`} target="_blank">
-                          <Badge variant="secondary" className="cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                            {type.products_count || 0}
-                          </Badge>
-                        </Link>
+                        <Badge variant="secondary">{type.products_count || 0}</Badge>
                       </TableCell>
                     )}
                     {visibleTypeColumns.includes('active') && (
@@ -400,6 +396,11 @@ export default function ProductTypesPage() {
                     {visibleTypeColumns.includes('actions') && (
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Link href={`/filter?type=${type.slug}`} target="_blank">
+                            <Button variant="ghost" size="icon" aria-label="Xem sản phẩm">
+                              <ExternalLink size={16} />
+                            </Button>
+                          </Link>
                           <Link href={`/admin/product-types/${type.id}/edit`}>
                             <Button variant="ghost" size="icon" aria-label="Edit">
                               <Edit size={16} />
