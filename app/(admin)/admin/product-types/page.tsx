@@ -369,7 +369,11 @@ export default function ProductTypesPage() {
                     )}
                     {visibleTypeColumns.includes('products_count') && (
                       <TableCell>
-                        <Badge variant="secondary">{type.products_count || 0}</Badge>
+                        <Link href={`/filter?type=${type.slug}`} target="_blank">
+                          <Badge variant="secondary" className="cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                            {type.products_count || 0}
+                          </Badge>
+                        </Link>
                       </TableCell>
                     )}
                     {visibleTypeColumns.includes('active') && (
