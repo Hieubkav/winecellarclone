@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import {
@@ -17,10 +16,6 @@ import {
   Award,
   Grape,
   MapPin,
-  Star,
-  ShoppingCart,
-  ArrowRight,
-  Percent,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
 import { ProductImage } from "@/components/ui/product-image";
@@ -307,26 +302,15 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                   {product.type.name}
                 </span>
               )}
+              {product.category?.name && (
+                <span className="text-xs">{product.category.name}</span>
+              )}
             </div>
 
             {/* Product Title */}
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 leading-tight mb-2">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 leading-tight mb-6">
               {product.name}
             </h1>
-
-            {/* Rating & SKU */}
-            <div className="flex items-center gap-4 text-sm text-slate-600 mb-6">
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-[#ECAA4D] text-[#ECAA4D]" />
-                <span className="font-medium text-slate-900">4.8</span>
-              </div>
-              {product.id && (
-                <>
-                  <span>•</span>
-                  <span>Mã SP: TK-{product.id}</span>
-                </>
-              )}
-            </div>
 
             {/* Price Section */}
             <div className="flex items-end gap-3 p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-6">
@@ -344,13 +328,6 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 </span>
               )}
             </div>
-
-            {/* Short Description */}
-            {product.description && (
-              <p className="text-slate-600 leading-relaxed mb-6">
-                {product.description.substring(0, 200).replace(/<[^>]*>/g, '')}...
-              </p>
-            )}
 
             {/* Specifications Grid - Compact */}
             {attributeItems.length > 0 && (
@@ -379,7 +356,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             )}
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button 
                 asChild
                 size="lg"
@@ -396,43 +373,42 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 </Link>
               </Button>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Description Section */}
-            <div className="mt-2">
-              <h3 className="text-slate-900 font-serif font-bold text-lg mb-3">Thông tin chi tiết</h3>
+      {/* Detailed Description Section - Full Width */}
+      <section className="bg-white py-12 border-y border-[#e5ddd0]">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="flex flex-col items-center text-center space-y-6">
+            <h2 className="text-2xl font-serif font-bold text-slate-900">Thông tin chi tiết</h2>
+            <div className="w-16 h-1 bg-[#9B2C3B] rounded-full"></div>
+            
+            <div className="relative w-full">
               {processedDescription ? (
-                <div className="relative">
+                <>
                   <div 
-                    className={`prose prose-sm prose-slate text-slate-600 transition-all duration-500 ease-in-out
-                      prose-p:mb-3 prose-p:leading-relaxed
-                      prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:mb-2
-                      prose-strong:text-slate-900 prose-strong:font-semibold
-                      prose-ul:list-disc prose-ul:pl-5 prose-ul:mb-3
-                      prose-ol:list-decimal prose-ol:pl-5 prose-ol:mb-3
-                      prose-li:text-slate-600 prose-li:mb-1.5
-                      prose-img:rounded-lg prose-img:shadow-md prose-img:my-4
-                      ${!isDescExpanded ? 'max-h-[250px] overflow-hidden' : ''}
+                    className={`text-slate-600 leading-relaxed text-left md:text-center space-y-4 overflow-hidden transition-all duration-500 ease-in-out
+                      ${!isDescExpanded ? 'max-h-[200px] opacity-90' : 'max-h-[2000px] opacity-100'}
                     `}
                     dangerouslySetInnerHTML={{ __html: processedDescription }}
                   />
-
+                  
                   {!isDescExpanded && processedDescription.length > 300 && (
-                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fcfbf9] to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
                   )}
 
                   {processedDescription.length > 300 && (
-                    <button 
+                    <Button 
+                      variant="ghost"
                       onClick={() => setIsDescExpanded(!isDescExpanded)}
-                      className="mt-2 flex items-center gap-1 text-[#9B2C3B] font-medium hover:text-[#7a2330] hover:underline text-sm transition-colors"
+                      className="mt-2 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B]/80 hover:bg-[#9B2C3B]/5 font-medium"
                     >
-                      {isDescExpanded ? (
-                        <>Thu gọn <ChevronUp className="w-4 h-4" /></>
-                      ) : (
-                        <>Xem thêm <ChevronDown className="w-4 h-4" /></>
-                      )}
-                    </button>
+                      {isDescExpanded ? 'Thu gọn' : 'Xem thêm'}
+                      {isDescExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
                   )}
-                </div>
+                </>
               ) : (
                 <p className="text-sm text-gray-500 italic">
                   Nội dung sản phẩm đang cập nhật.
@@ -441,7 +417,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Related Products Sections */}
       <div className="bg-white py-12 border-t border-[#e5ddd0]">
