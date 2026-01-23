@@ -213,7 +213,7 @@ export default function WineList() {
                 <div
                   className={`grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-3 transition-opacity duration-300 ${loading ? "opacity-50" : "opacity-100"}`}
                 >
-                  {!initialized || (loading && wines.length === 0) ? (
+                  {!initialized || loading || (wines.length === 0 && meta === null) ? (
                     Array.from({ length: 8 }).map((_, index) => (
                       <ProductSkeleton key={`skeleton-${index}`} />
                     ))
