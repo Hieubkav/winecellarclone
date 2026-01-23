@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRef, useState, type MouseEvent } from "react";
-import { ArrowRight, Globe, Droplets, FlaskConical } from "lucide-react";
+import { ArrowRight, Globe, Droplets, FlaskConical, ShoppingCart } from "lucide-react";
 import type { ProductListItem } from "@/lib/api/products";
 import { ProductImage } from "@/components/ui/product-image";
+import { Button } from "@/components/ui/button";
 
 interface RelatedProductsSectionProps {
   title: string;
@@ -53,103 +54,99 @@ export default function RelatedProductsSection({
   }
 
   return (
-    <div className="py-12 border-t border-gray-200">
-      <div className="flex items-center justify-between mb-6 px-1">
-        <h2 className="text-xl md:text-2xl font-serif font-bold text-slate-900">{title}</h2>
+    <section className="py-12">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-serif font-bold text-slate-900 relative inline-block">
+          {title}
+          <span className="absolute -bottom-2 left-0 w-12 h-1 bg-[#9B2C3B] rounded-full"></span>
+        </h2>
         {viewAllHref && (
           <Link 
             href={viewAllHref} 
-            className="text-[#9B2C3B] text-sm font-medium hover:text-[#7a2330] flex items-center gap-1 group whitespace-nowrap"
+            className="text-slate-600 hover:text-[#9B2C3B] text-sm font-medium flex items-center gap-1 group whitespace-nowrap hidden sm:flex"
           >
             {viewAllLabel} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         )}
       </div>
       
-      {/* Carousel Container with Drag Support */}
-      <div 
-        ref={scrollRef}
-        className={`flex overflow-x-auto gap-4 pb-6 -mx-4 px-4 no-scrollbar md:gap-6 ${
-          isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
-        }`}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseUpOrLeave}
-        onMouseUp={handleMouseUpOrLeave}
-        onMouseMove={handleMouseMove}
-      >
-        {products.map((product) => {
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        {products.slice(0, 4).map((product) => {
           const discountPercent = product.discount_percent || 
             (product.original_price && product.price && product.original_price > product.price 
               ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
               : 0);
 
-          const specs: { icon: typeof Globe; text: string }[] = [];
-          
-          if (product.country_term?.name) {
-            specs.push({ icon: Globe, text: product.country_term.name });
-          }
-          if (product.alcohol_percent) {
-            specs.push({ icon: Droplets, text: `${product.alcohol_percent}%` });
-          }
-          if (product.volume_ml) {
-            specs.push({ icon: FlaskConical, text: `${product.volume_ml}ml` });
-          }
-
           return (
-            <Link 
+            <div
               key={product.id}
-              href={`/san-pham/${product.slug}`}
-              className="flex-shrink-0 w-[45%] md:w-[30%] lg:w-[22%] group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col select-none"
+              className="group relative flex flex-col overflow-hidden rounded-lg border border-[#e5ddd0] bg-white transition-all hover:shadow-lg hover:-translate-y-1 duration-300"
             >
-              {/* Image Area */}
-              <div className="relative aspect-[3/4] p-4 bg-gray-50 overflow-hidden pointer-events-none">
-                {discountPercent > 0 && (
-                  <span className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">
-                    -{discountPercent}%
-                  </span>
-                )}
-                <div className="relative w-full h-full">
+              {/* Image */}
+              <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f0e8]">
+                <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-4">
                   <ProductImage 
                     src={product.main_image_url || "/placeholder/wine-bottle.svg"} 
                     alt={product.name}
                     fill
-                    className="object-contain transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 768px) 45vw, (max-width: 1024px) 30vw, 22vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                   />
-                </div>
-              </div>
-
-              {/* Content Area */}
-              <div className="p-3 md:p-4 flex flex-col flex-grow pointer-events-none">
-                <h3 className="text-sm md:text-base font-medium text-slate-900 line-clamp-2 mb-2 group-hover:text-red-700 transition-colors flex-grow">
-                  {product.name}
-                </h3>
-                
-                {/* Specs List */}
-                {specs.length > 0 && (
-                  <div className="space-y-1 mb-2 md:mb-3">
-                    {specs.map((spec, i) => {
-                      const Icon = spec.icon;
-                      return (
-                        <div key={i} className="flex items-center gap-1.5 text-[10px] md:text-xs text-slate-500">
-                          <Icon className="w-3 h-3 text-red-500 shrink-0" />
-                          <span className="truncate">{spec.text}</span>
-                        </div>
-                      );
-                    })}
+                </Link>
+                {discountPercent > 0 && (
+                  <div className="absolute top-2 left-2 bg-[hsl(0,84.2%,60.2%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-sm">
+                    -{discountPercent}%
                   </div>
                 )}
-
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-50">
-                  <span className="font-bold text-red-700 text-base md:text-lg">
-                    {product.show_contact_cta ? "Liên hệ" : formatPrice(product.price)}
-                  </span>
+                {/* Overlay Action */}
+                <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex justify-center">
+                  <Button 
+                    size="sm" 
+                    className="w-full shadow-lg bg-[#9B2C3B] hover:bg-[#9B2C3B]/90 text-white"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.location.href = `/san-pham/${product.slug}`;
+                    }}
+                  >
+                    <ShoppingCart className="mr-2 h-4 w-4" /> Đặt hàng
+                  </Button>
                 </div>
               </div>
-            </Link>
+
+              {/* Content */}
+              <div className="flex flex-1 flex-col p-4">
+                {product.type?.name && (
+                  <span className="text-xs text-slate-500 mb-1">{product.type.name}</span>
+                )}
+                <Link 
+                  href={`/san-pham/${product.slug}`}
+                  className="line-clamp-2 text-sm font-medium text-slate-900 mb-2 h-10 group-hover:text-[#9B2C3B] transition-colors"
+                >
+                  {product.name}
+                </Link>
+                <div className="mt-auto flex items-baseline gap-2">
+                  <span className="text-base font-bold text-[#9B2C3B]">
+                    {product.show_contact_cta ? "Liên hệ" : formatPrice(product.price)}
+                  </span>
+                  {product.original_price && product.price && product.original_price > product.price && (
+                    <span className="text-xs text-slate-400 line-through">
+                      {formatPrice(product.original_price)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
-    </div>
+      
+      {viewAllHref && (
+        <div className="mt-6 flex justify-center sm:hidden">
+          <Button variant="outline" className="w-full border-[#9B2C3B]/20 hover:bg-[#9B2C3B]/5 text-[#9B2C3B]">
+            {viewAllLabel}
+          </Button>
+        </div>
+      )}
+    </section>
   );
 }

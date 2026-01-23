@@ -15,6 +15,12 @@ import {
   Globe,
   FlaskConical,
   Award,
+  Grape,
+  MapPin,
+  Star,
+  ShoppingCart,
+  ArrowRight,
+  Percent,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
 import { ProductImage } from "@/components/ui/product-image";
@@ -229,180 +235,240 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const originalPriceLabel = formatOriginalPrice(product);
 
   return (
-    <div className="container mx-auto px-4 py-8 lg:py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        {/* Left Column: Image Gallery (7/12 columns on large screens) */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="relative aspect-square overflow-hidden rounded-xl border border-gray-100 bg-white p-4 md:p-8 shadow-sm group">
-            {discountPercentage > 0 && (
-              <span className="absolute top-4 left-4 z-10 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">
-                -{discountPercentage}%
-              </span>
-            )}
-            <div className="relative w-full h-full">
-              <ProductImage
-                src={imageSources[selectedImage]}
-                alt={product.name}
-                fill
-                className="object-contain transition-transform duration-500 group-hover:scale-110"
-                sizes="(max-width: 1024px) 100vw, 58vw"
-                priority
-              />
-            </div>
-          </div>
-          
-          {imageSources.length > 1 && (
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {imageSources.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`relative h-16 w-16 md:h-20 md:w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 bg-white p-2 transition-all ${
-                    selectedImage === idx 
-                      ? 'border-[#ECAA4D] ring-2 ring-[#ECAA4D]/20' 
-                      : 'border-transparent hover:border-gray-200'
-                  }`}
-                >
-                  <ProductImage 
-                    src={img} 
-                    alt={`Thumbnail ${idx + 1}`} 
-                    fill 
-                    className="object-contain p-1" 
-                    sizes="80px"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
+    <div className="min-h-screen bg-[#fcfbf9]">
+      {/* Breadcrumb */}
+      <div className="bg-[#f5f0e8] py-3 border-b border-[#e5ddd0]">
+        <div className="container mx-auto px-4 text-xs md:text-sm text-slate-600 flex gap-2">
+          <Link href="/" className="hover:text-[#9B2C3B] cursor-pointer transition-colors">
+            Trang chủ
+          </Link>
+          <span>/</span>
+          <Link href="/san-pham" className="hover:text-[#9B2C3B] cursor-pointer transition-colors">
+            Sản phẩm
+          </Link>
+          <span>/</span>
+          <span className="text-slate-900 font-medium truncate">{product.name}</span>
         </div>
+      </div>
 
-        {/* Right Column: Product Info (5/12 columns) */}
-        <div className="lg:col-span-5 flex flex-col">
-          <h1 className="text-2xl md:text-3xl font-serif font-bold text-slate-900 mb-4 leading-tight">
-            {product.name}
-          </h1>
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
+          {/* Left Column: Image Gallery (7/12 columns on large screens) */}
+          <div className="lg:col-span-7 space-y-4">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group">
+              {discountPercentage > 0 && (
+                <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
+                  -{discountPercentage}%
+                </span>
+              )}
+              <div className="relative w-full h-full p-8">
+                <ProductImage
+                  src={imageSources[selectedImage]}
+                  alt={product.name}
+                  fill
+                  className="object-contain transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 1024px) 100vw, 58vw"
+                  priority
+                />
+              </div>
+            </div>
+            
+            {imageSources.length > 1 && (
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+                {imageSources.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`relative aspect-square w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
+                      selectedImage === idx 
+                        ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
+                        : 'border-[#e5ddd0] hover:border-[#9B2C3B]/50 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <ProductImage 
+                      src={img} 
+                      alt={`Thumbnail ${idx + 1}`} 
+                      fill 
+                      className="object-cover" 
+                      sizes="80px"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-          {/* Price Section */}
-          <div className="mb-6 pb-4 border-b border-gray-100">
-            <div className="flex items-end gap-3 mb-1">
-              <span className="text-3xl font-bold text-red-700">{priceLabel}</span>
-              {originalPriceLabel && (
-                <span className="text-lg text-slate-400 line-through mb-1">
-                  {originalPriceLabel}
+          {/* Right Column: Product Info (5/12 columns) */}
+          <div className="lg:col-span-5 flex flex-col animate-in slide-in-from-right-4 duration-500">
+            {/* Category Badge */}
+            <div className="flex items-center gap-2 text-sm text-[#9B2C3B] font-medium tracking-wide uppercase mb-2">
+              {product.type?.name && (
+                <span className="inline-flex items-center rounded-full border border-transparent bg-[#ECAA4D] text-[hsl(20,14.3%,4.1%)] px-2.5 py-0.5 text-xs font-semibold">
+                  {product.type.name}
                 </span>
               )}
             </div>
-          </div>
 
-          {/* CTA Button */}
-          <div className="mb-6">
-            <Button 
-              asChild
-              className="w-full h-12 gap-2 bg-[#e6a347] hover:bg-[#d58f35] text-white shadow-lg shadow-orange-200/50 uppercase font-bold tracking-wide"
-              onClick={() => trackCTAContact({
-                button: 'contact_order',
-                placement: 'product_detail',
-                product_id: product.id,
-                product_name: product.name,
-              })}
-            >
-              <Link href="/contact" target="_blank" rel="noopener noreferrer">
-                <Phone className="w-5 h-5" /> Liên hệ đặt hàng
-              </Link>
-            </Button>
-          </div>
+            {/* Product Title */}
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 leading-tight mb-2">
+              {product.name}
+            </h1>
 
-          {/* Specifications Grid - Compact */}
-          {attributeItems.length > 0 && (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
-              {attributeItems.map((attr, idx) => (
-                <div key={idx} className="flex items-center gap-2.5">
-                  <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.fallbackIcon} />
-                  <div className="overflow-hidden">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-500">{attr.label}</p>
-                    {attr.filterUrl ? (
-                      <Link 
-                        href={attr.filterUrl} 
-                        className="text-sm font-semibold text-slate-900 truncate block hover:text-red-700 transition-colors"
-                      >
-                        {attr.value}
-                      </Link>
-                    ) : (
-                      <p className="text-sm font-semibold text-slate-900 truncate">{attr.value}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Description Section */}
-          <div className="mt-2">
-            <h3 className="text-slate-900 font-serif font-bold text-lg mb-3">Thông tin chi tiết</h3>
-            {processedDescription ? (
-              <div className="relative">
-                <div 
-                  className={`prose prose-sm prose-slate text-slate-600 transition-all duration-500 ease-in-out
-                    prose-p:mb-3 prose-p:leading-relaxed
-                    prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:mb-2
-                    prose-strong:text-slate-900 prose-strong:font-semibold
-                    prose-ul:list-disc prose-ul:pl-5 prose-ul:mb-3
-                    prose-ol:list-decimal prose-ol:pl-5 prose-ol:mb-3
-                    prose-li:text-slate-600 prose-li:mb-1.5
-                    prose-img:rounded-lg prose-img:shadow-md prose-img:my-4
-                    ${!isDescExpanded ? 'max-h-[250px] overflow-hidden' : ''}
-                  `}
-                  dangerouslySetInnerHTML={{ __html: processedDescription }}
-                />
-
-                {!isDescExpanded && processedDescription.length > 300 && (
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none" />
-                )}
-
-                {processedDescription.length > 300 && (
-                  <button 
-                    onClick={() => setIsDescExpanded(!isDescExpanded)}
-                    className="mt-2 flex items-center gap-1 text-[#9B2C3B] font-medium hover:text-[#7a2330] hover:underline text-sm"
-                  >
-                    {isDescExpanded ? (
-                      <>Thu gọn <ChevronUp className="w-4 h-4" /></>
-                    ) : (
-                      <>Xem thêm <ChevronDown className="w-4 h-4" /></>
-                    )}
-                  </button>
-                )}
+            {/* Rating & SKU */}
+            <div className="flex items-center gap-4 text-sm text-slate-600 mb-6">
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-[#ECAA4D] text-[#ECAA4D]" />
+                <span className="font-medium text-slate-900">4.8</span>
               </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">
-                Nội dung sản phẩm đang cập nhật.
+              {product.id && (
+                <>
+                  <span>•</span>
+                  <span>Mã SP: TK-{product.id}</span>
+                </>
+              )}
+            </div>
+
+            {/* Price Section */}
+            <div className="flex items-end gap-3 p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-6">
+              <div className="text-3xl md:text-4xl font-bold text-[#9B2C3B]">
+                {priceLabel}
+              </div>
+              {originalPriceLabel && (
+                <span className="text-lg text-slate-400 line-through mb-1.5">
+                  {originalPriceLabel}
+                </span>
+              )}
+              {discountPercentage > 0 && (
+                <span className="mb-2 ml-auto inline-flex items-center rounded-full border border-transparent bg-[hsl(0,84.2%,60.2%)] text-white px-2.5 py-0.5 text-xs font-semibold">
+                  -{discountPercentage}%
+                </span>
+              )}
+            </div>
+
+            {/* Short Description */}
+            {product.description && (
+              <p className="text-slate-600 leading-relaxed mb-6">
+                {product.description.substring(0, 200).replace(/<[^>]*>/g, '')}...
               </p>
             )}
+
+            {/* Specifications Grid - Compact */}
+            {attributeItems.length > 0 && (
+              <div className="grid grid-cols-2 gap-4 py-4 border-y border-[#e5ddd0] mb-6">
+                {attributeItems.map((attr, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="mt-0.5 p-1.5 bg-[#ECAA4D]/20 rounded-md text-[#9B2C3B]">
+                      <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.fallbackIcon} />
+                    </div>
+                    <div className="overflow-hidden">
+                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{attr.label}</p>
+                      {attr.filterUrl ? (
+                        <Link 
+                          href={attr.filterUrl} 
+                          className="text-sm font-medium text-slate-900 truncate block hover:text-[#9B2C3B] transition-colors"
+                        >
+                          {attr.value}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-medium text-slate-900 truncate">{attr.value}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <Button 
+                asChild
+                size="lg"
+                className="flex-1 text-base h-12 bg-[#9B2C3B] hover:bg-[#9B2C3B]/90 text-white shadow-sm"
+                onClick={() => trackCTAContact({
+                  button: 'contact_order',
+                  placement: 'product_detail',
+                  product_id: product.id,
+                  product_name: product.name,
+                })}
+              >
+                <Link href="/contact" target="_blank" rel="noopener noreferrer">
+                  <Phone className="w-5 h-5 mr-2" /> Liên hệ đặt hàng
+                </Link>
+              </Button>
+            </div>
+
+            {/* Description Section */}
+            <div className="mt-2">
+              <h3 className="text-slate-900 font-serif font-bold text-lg mb-3">Thông tin chi tiết</h3>
+              {processedDescription ? (
+                <div className="relative">
+                  <div 
+                    className={`prose prose-sm prose-slate text-slate-600 transition-all duration-500 ease-in-out
+                      prose-p:mb-3 prose-p:leading-relaxed
+                      prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:mb-2
+                      prose-strong:text-slate-900 prose-strong:font-semibold
+                      prose-ul:list-disc prose-ul:pl-5 prose-ul:mb-3
+                      prose-ol:list-decimal prose-ol:pl-5 prose-ol:mb-3
+                      prose-li:text-slate-600 prose-li:mb-1.5
+                      prose-img:rounded-lg prose-img:shadow-md prose-img:my-4
+                      ${!isDescExpanded ? 'max-h-[250px] overflow-hidden' : ''}
+                    `}
+                    dangerouslySetInnerHTML={{ __html: processedDescription }}
+                  />
+
+                  {!isDescExpanded && processedDescription.length > 300 && (
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fcfbf9] to-transparent pointer-events-none" />
+                  )}
+
+                  {processedDescription.length > 300 && (
+                    <button 
+                      onClick={() => setIsDescExpanded(!isDescExpanded)}
+                      className="mt-2 flex items-center gap-1 text-[#9B2C3B] font-medium hover:text-[#7a2330] hover:underline text-sm transition-colors"
+                    >
+                      {isDescExpanded ? (
+                        <>Thu gọn <ChevronUp className="w-4 h-4" /></>
+                      ) : (
+                        <>Xem thêm <ChevronDown className="w-4 h-4" /></>
+                      )}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 italic">
+                  Nội dung sản phẩm đang cập nhật.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Related Products Sections */}
-      {product.same_type_products && product.same_type_products.products.length > 0 && (
-        <div className="mt-12 lg:mt-16">
-          <RelatedProductsSection
-            title={`Cùng loại ${product.type?.name || 'sản phẩm'}`}
-            products={product.same_type_products.products}
-            viewAllHref={product.same_type_products.view_all_url || undefined}
-            viewAllLabel="Xem tất cả"
-          />
-        </div>
-      )}
+      <div className="bg-white py-12 border-t border-[#e5ddd0]">
+        <div className="container mx-auto px-4">
+          {product.same_type_products && product.same_type_products.products.length > 0 && (
+            <div className="mb-12">
+              <RelatedProductsSection
+                title={`Cùng loại ${product.type?.name || 'sản phẩm'}`}
+                products={product.same_type_products.products}
+                viewAllHref={product.same_type_products.view_all_url || undefined}
+                viewAllLabel="Xem tất cả"
+              />
+            </div>
+          )}
 
-      {product.related_by_attributes && product.related_by_attributes.products.length > 0 && (
-        <div className="mt-12 lg:mt-16">
-          <RelatedProductsSection
-            title="Sản phẩm liên quan"
-            products={product.related_by_attributes.products}
-            viewAllHref={product.related_by_attributes.view_all_url || undefined}
-            viewAllLabel="Xem tất cả"
-          />
+          {product.related_by_attributes && product.related_by_attributes.products.length > 0 && (
+            <div>
+              <RelatedProductsSection
+                title="Sản phẩm liên quan"
+                products={product.related_by_attributes.products}
+                viewAllHref={product.related_by_attributes.view_all_url || undefined}
+                viewAllLabel="Xem tất cả"
+              />
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
