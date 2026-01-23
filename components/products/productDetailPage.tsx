@@ -324,7 +324,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 lg:items-start">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
           <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-4">
-            <div className="relative w-full overflow-hidden rounded-xl border border-[#e5ddd0] shadow-sm group">
+            <div className="relative w-full overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group">
               {discountPercentage > 0 && (
                 <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
                   -{discountPercentage}%
@@ -332,7 +332,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
               )}
               {/* Blur background layer */}
               <div 
-                className="absolute inset-0 scale-110 blur-2xl opacity-30"
+                className="absolute inset-0 scale-150 blur-3xl opacity-40"
                 style={{
                   backgroundImage: `url(${imageSources[selectedImage]})`,
                   backgroundSize: 'cover',
@@ -340,13 +340,15 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 }}
               />
               {/* Main image container */}
-              <div className="relative w-full min-h-[400px] lg:min-h-[500px] p-8 bg-white/80">
+              <div className="relative w-full flex items-center justify-center p-8">
                 <ProductImage
                   src={imageSources[selectedImage]}
                   alt={product.name}
-                  fill
-                  className="object-contain transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 1024px) 100vw, 58vw"
+                  width={0}
+                  height={0}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="transition-transform duration-500 group-hover:scale-105"
+                  style={{ width: '100%', height: 'auto', maxHeight: '70vh', objectFit: 'contain' }}
                   priority
                 />
               </div>

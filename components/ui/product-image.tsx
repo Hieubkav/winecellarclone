@@ -14,6 +14,7 @@ interface ProductImageProps {
   className?: string;
   priority?: boolean;
   loading?: "eager" | "lazy";
+  style?: React.CSSProperties;
 }
 
 const getPositionClasses = (position: WatermarkPosition | null | undefined): string => {
@@ -92,6 +93,7 @@ export function ProductImage({
   className = "",
   priority = false,
   loading,
+  style,
 }: ProductImageProps) {
   const settings = useSettingsStore((state) => state.settings);
   
@@ -171,6 +173,7 @@ export function ProductImage({
         className={className}
         priority={priority}
         loading={loading}
+        style={style}
       />
       {showImageWatermark && (
         <div 
