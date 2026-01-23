@@ -235,7 +235,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
 
         {/* Title */}
         <Link href={`/san-pham/${wine.slug}`}>
-          <h3 className="mb-1.5 sm:mb-2 font-serif text-sm sm:text-base font-bold leading-tight text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem]">
+          <h3 className="mb-1.5 sm:mb-2 font-serif text-sm sm:text-base font-bold leading-tight text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors">
             {wine.name}
           </h3>
         </Link>
