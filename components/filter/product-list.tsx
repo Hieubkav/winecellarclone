@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, lazy, Suspense } from "react"
 import { useShallow } from "zustand/react/shallow"
-import { LayoutGrid, List, Filter, Loader2, ArrowUpDown } from "lucide-react"
+import { Filter, Loader2, ArrowUpDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -24,10 +24,8 @@ export default function WineList() {
     loading,
     loadingMore,
     error,
-    viewMode,
     filters,
     meta,
-    setViewMode,
     setSortBy,
     loadMore,
     setSearchQuery,
@@ -39,10 +37,8 @@ export default function WineList() {
       loading: state.loading,
       loadingMore: state.loadingMore,
       error: state.error,
-      viewMode: state.viewMode,
       filters: state.filters,
       meta: state.meta,
-      setViewMode: state.setViewMode,
       setSortBy: state.setSortBy,
       loadMore: state.loadMore,
       setSearchQuery: state.setSearchQuery,
@@ -172,10 +168,10 @@ export default function WineList() {
                   </div>
                 </div>
                 
-                {/* Controls (Sort & View) */}
+                {/* Controls (Sort) */}
                 <div className="flex items-center justify-end gap-2 sm:gap-3">
                   <div className="relative">
-                    <select 
+                    <select
                       value={filters.sortBy}
                       onChange={(e) => setSortBy(e.target.value as SortOption)}
                       className="h-9 appearance-none rounded-sm border border-stone-200 bg-stone-50 pl-3 pr-8 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#9B2C3B] cursor-pointer text-stone-700 hover:border-[#ECAA4D] sm:text-sm w-[110px] sm:w-auto truncate"
@@ -186,23 +182,6 @@ export default function WineList() {
                       <option value="price-desc">Giá giảm dần</option>
                     </select>
                     <ArrowUpDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
-                  </div>
-
-                  <div className="hidden sm:flex items-center rounded-md border border-stone-200 p-1 bg-stone-50 shrink-0">
-                    <button 
-                      onClick={() => setViewMode('grid')}
-                      className={`rounded-sm p-1.5 transition-all ${viewMode === 'grid' ? 'bg-white text-[#9B2C3B] shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
-                      title="Lưới"
-                    >
-                      <LayoutGrid size={18} />
-                    </button>
-                    <button 
-                      onClick={() => setViewMode('list')}
-                      className={`rounded-sm p-1.5 transition-all ${viewMode === 'list' ? 'bg-white text-[#9B2C3B] shadow-sm' : 'text-stone-400 hover:text-stone-600'}`}
-                      title="Danh sách"
-                    >
-                      <List size={18} />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -232,11 +211,7 @@ export default function WineList() {
 
                 {/* Products Grid */}
                 <div
-                  className={`grid transition-opacity duration-300 ${
-                    viewMode === "grid" 
-                      ? "grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 xl:grid-cols-4" 
-                      : "grid-cols-1 gap-4"
-                  } ${loading ? "opacity-50" : "opacity-100"}`}
+                  className={`grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-3 transition-opacity duration-300 ${loading ? "opacity-50" : "opacity-100"}`}
                 >
                   {wines.length === 0 && !loading ? (
                     <div className="col-span-full py-16 text-center">
@@ -262,7 +237,6 @@ export default function WineList() {
                         <FilterProductCard
                           key={wine.id}
                           wine={wine}
-                          viewMode={viewMode}
                           priority={index < 4}
                         />
                       ))}

@@ -24,7 +24,6 @@ const getDisplayPrice = (wine: Wine): string => {
 
 interface ProductCardProps {
   wine: Wine;
-  viewMode: "grid" | "list";
   priority?: boolean;
 }
 
@@ -115,12 +114,11 @@ const AttributeLabel = ({ attr }: { attr: AttributeItem }) => {
   return <span className="truncate">{attr.label}</span>;
 };
 
-export const FilterProductCard = React.memo(function FilterProductCard({ 
-  wine, 
-  viewMode, 
-  priority = false 
+export const FilterProductCard = React.memo(function FilterProductCard({
+  wine,
+  priority = false
 }: ProductCardProps) {
-  
+
   const discountPercentage = wine.originalPrice && wine.originalPrice > (wine.price ?? 0)
     ? Math.round(((wine.originalPrice - (wine.price ?? 0)) / wine.originalPrice) * 100)
     : 0;
@@ -131,9 +129,9 @@ export const FilterProductCard = React.memo(function FilterProductCard({
 
     // Brand only (hide product type on card per request)
     if (wine.brand) {
-      attrs.push({ 
-        icon: <Tag size={14} />, 
-        label: wine.brand, 
+      attrs.push({
+        icon: <Tag size={14} />,
+        label: wine.brand,
         show: true,
         filterCode: "thuong_hieu",
         filterSlug: wine.brandSlug,
@@ -143,9 +141,9 @@ export const FilterProductCard = React.memo(function FilterProductCard({
 
     // Origin/Country
     if (wine.country) {
-      attrs.push({ 
-        icon: <MapPin size={14} />, 
-        label: wine.country, 
+      attrs.push({
+        icon: <MapPin size={14} />,
+        label: wine.country,
         show: true,
         filterCode: "xuat_xu",
         filterSlug: wine.countrySlug,
@@ -184,19 +182,19 @@ export const FilterProductCard = React.memo(function FilterProductCard({
 
     // Volume
     if (wine.volume && wine.volume > 0) {
-      attrs.push({ 
-        icon: <Droplets size={14} />, 
-        label: `${wine.volume}ml`, 
-        show: true 
+      attrs.push({
+        icon: <Droplets size={14} />,
+        label: `${wine.volume}ml`,
+        show: true
       });
     }
 
     // Alcohol
     if (wine.alcoholContent && wine.alcoholContent > 0) {
-      attrs.push({ 
-        icon: <Percent size={14} />, 
-        label: `${wine.alcoholContent}%`, 
-        show: true 
+      attrs.push({
+        icon: <Percent size={14} />,
+        label: `${wine.alcoholContent}%`,
+        show: true
       });
     }
 
@@ -204,64 +202,6 @@ export const FilterProductCard = React.memo(function FilterProductCard({
   };
 
   const attributes = buildAttributes();
-
-  // List View
-  if (viewMode === "list") {
-    return (
-      <div className="group relative flex w-full overflow-hidden rounded-md border border-stone-100 bg-white shadow-sm transition-all hover:shadow-md hover:border-[#ECAA4D]/50">
-        <Link 
-          href={`/san-pham/${wine.slug}`}
-          className="relative w-32 sm:w-48 shrink-0 overflow-hidden bg-stone-50"
-        >
-          {discountPercentage > 0 && (
-            <span className="absolute top-2 left-0 z-10 bg-[#9e1e2d] px-2 py-0.5 text-[10px] font-bold text-white shadow-sm rounded-r-sm">
-              -{discountPercentage}%
-            </span>
-          )}
-          <ProductImage
-            src={wine.image || "/placeholder/wine-bottle.svg"}
-            alt={wine.name}
-            fill
-            sizes="(max-width: 640px) 128px, 192px"
-            className="h-full w-full object-contain p-2 sm:p-4 transition-transform duration-500 group-hover:scale-110"
-            priority={priority}
-            loading={priority ? "eager" : "lazy"}
-          />
-        </Link>
-        <div className="flex flex-1 flex-col justify-between p-3 sm:p-6">
-          <div>
-            <Link href={`/san-pham/${wine.slug}`}>
-              <h3 className="font-serif text-base sm:text-xl font-bold text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors line-clamp-2">
-                {wine.name}
-              </h3>
-            </Link>
-            
-            <div className="mt-2 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-x-8 sm:gap-y-3">
-              {attributes.slice(0, 6).map((attr, index) => (
-                <div key={index} className="flex items-center gap-2 text-xs sm:text-sm text-stone-600">
-                  <span className="text-[#9B2C3B] shrink-0 flex items-center justify-center">
-                    <AttributeIcon url={attr.iconUrl} fallbackIcon={attr.icon} />
-                  </span>
-                  <AttributeLabel attr={attr} />
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="mt-3 sm:mt-6 flex flex-wrap items-baseline gap-2 sm:gap-3">
-            <span className="font-serif text-lg sm:text-2xl font-bold text-[#9B2C3B]">
-              {getDisplayPrice(wine)}
-            </span>
-            {wine.originalPrice && wine.originalPrice > (wine.price ?? 0) && (
-              <span className="text-xs sm:text-sm font-medium text-stone-400 line-through decoration-stone-400 decoration-1">
-                {formatCurrency(wine.originalPrice)}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Grid View - Vertical layout like the design
   return (
