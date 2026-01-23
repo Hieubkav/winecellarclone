@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Tag, MapPin, Sparkles, Hourglass, Droplets, Percent, Layers } from "lucide-react";
+import { Tag, MapPin, Sparkles, Hourglass, Droplets, Percent, Layers, Grape, Award, Thermometer, Coffee, Square, Package, Flag } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
 import type { Wine } from "@/data/filter/store";
 
