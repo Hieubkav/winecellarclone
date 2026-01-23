@@ -252,16 +252,24 @@ export const FilterProductCard = React.memo(function FilterProductCard({
           ))}
         </div>
 
-        {/* Price Section */}
-        <div className="mt-auto flex flex-col pt-1.5 sm:pt-2 border-t border-stone-100">
-          {wine.originalPrice && wine.originalPrice > (wine.price ?? 0) && (
-            <span className="text-[10px] sm:text-xs font-medium text-stone-400 line-through decoration-stone-400 decoration-1 mb-0.5">
-              {formatCurrency(wine.originalPrice)}
+        {/* Price Section + CTA */}
+        <div className="mt-auto flex items-end justify-between gap-2 pt-1.5 sm:pt-2 border-t border-stone-100">
+          <div className="flex flex-col">
+            {wine.originalPrice && wine.originalPrice > (wine.price ?? 0) && (
+              <span className="text-[10px] sm:text-xs font-medium text-stone-400 line-through decoration-stone-400 decoration-1">
+                {formatCurrency(wine.originalPrice)}
+              </span>
+            )}
+            <span className="font-serif text-base sm:text-lg font-bold text-[#9B2C3B]">
+              {getDisplayPrice(wine)}
             </span>
-          )}
-          <span className="font-serif text-base sm:text-lg font-bold text-[#9B2C3B]">
-            {getDisplayPrice(wine)}
-          </span>
+          </div>
+          <Link
+            href={`/san-pham/${wine.slug}`}
+            className="shrink-0 px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-medium text-white bg-[#9B2C3B] rounded hover:bg-[#7a232f] transition-colors"
+          >
+            Xem
+          </Link>
         </div>
       </div>
     </div>
