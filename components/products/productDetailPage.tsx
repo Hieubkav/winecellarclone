@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   Tag,
   Sparkles,
@@ -295,11 +295,21 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [showExpandButton, setShowExpandButton] = useState(false);
+  const descriptionRef = useRef<HTMLDivElement>(null);
 
   const processedDescription = useMemo(
     () => processProductContent(product.description),
     [product.description]
   );
+
+  useEffect(() => {
+    if (descriptionRef.current) {
+      const scrollHeight = descriptionRef.current.scrollHeight;
+      setShowExpandButton(scrollHeight > 200);
+    }
+  }, [processedDescription]);
+
   const priceLabel = formatPrice(product);
   const originalPriceLabel = formatOriginalPrice(product);
 
@@ -340,7 +350,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 }}
               />
               {/* Main image container */}
-              <div className="relative w-full flex items-center justify-center p-8">
+              <div className="relative w-full flex items-center justify-center p-1">
                 <ProductImage
                   src={imageSources[selectedImage]}
                   alt={product.name}
@@ -476,17 +486,18 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
               {processedDescription ? (
                 <>
                   <div 
+                       ref={descriptionRef}
                     className={`text-slate-600 leading-relaxed text-left md:text-center space-y-4 overflow-hidden transition-all duration-500 ease-in-out text-base
                       ${!isDescExpanded ? 'max-h-[200px]' : 'max-h-[2000px]'}
                     `}
                     dangerouslySetInnerHTML={{ __html: processedDescription }}
                   />
                   
-                  {!isDescExpanded && processedDescription.length > 300 && (
+                     {!isDescExpanded && showExpandButton && (
                     <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
                   )}
 
-                  {processedDescription.length > 300 && (
+                     {showExpandButton && (
                     <Button 
                       variant="ghost"
                       onClick={() => setIsDescExpanded(!isDescExpanded)}
