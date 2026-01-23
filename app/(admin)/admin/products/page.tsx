@@ -3,18 +3,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle, FileDown, FileUp, FileSpreadsheet } from 'lucide-react';
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, updateProduct, type AdminProduct } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useProductExcel } from '@/lib/hooks/useProductExcel';
+import { ImportProductsDialog } from './components/ImportProductsDialog';
  
  export default function ProductsListPage() {
    const [isLoading, setIsLoading] = useState(true);
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState<ProductFilterOption[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -36,6 +39,8 @@ import { toast } from 'sonner';
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const perPageOptions = [10, 25, 50, 100];
+
+  const { isExporting, exportProducts, exportTemplate } = useProductExcel();
 
   useEffect(() => {
     localStorage.setItem('admin_products_perPage', String(perPage));
@@ -154,6 +159,18 @@ import { toast } from 'sonner';
     if (!price) return 'Liên hệ';
      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
    };
+
+  const handleExportAll = async () => {
+    await exportProducts(sortedData, types, categories, true);
+  };
+
+  const handleExportTemplate = async () => {
+    await exportTemplate(types, categories, true);
+  };
+
+  const handleImportSuccess = () => {
+    loadProducts();
+  };
  
    if (isLoading) {
      return (
@@ -188,12 +205,40 @@ import { toast } from 'sonner';
             Quản lý kho hàng và thông tin sản phẩm ({totalProducts} sản phẩm)
            </p>
          </div>
-         <Link href="/admin/products/create">
-           <Button className="gap-2">
-             <Plus size={16} />
-             Thêm sản phẩm
+         <div className="flex gap-2">
+           <Button 
+             variant="outline" 
+             className="gap-2"
+             onClick={handleExportTemplate}
+             disabled={isExporting}
+           >
+             <FileSpreadsheet size={16} />
+             Tải file mẫu
            </Button>
-         </Link>
+           <Button 
+             variant="outline" 
+             className="gap-2"
+             onClick={() => setShowImportDialog(true)}
+           >
+             <FileUp size={16} />
+             Import Excel
+           </Button>
+           <Button 
+             variant="outline" 
+             className="gap-2"
+             onClick={handleExportAll}
+             disabled={isExporting || sortedData.length === 0}
+           >
+             <FileDown size={16} />
+             {isExporting ? 'Đang xuất...' : 'Export Excel'}
+           </Button>
+           <Link href="/admin/products/create">
+             <Button className="gap-2">
+               <Plus size={16} />
+               Thêm sản phẩm
+             </Button>
+           </Link>
+         </div>
        </div>
  
       {selectedIds.length > 0 && (
@@ -482,6 +527,13 @@ import { toast } from 'sonner';
         </Card>
       </div>
     )}
+
+    {/* Import Dialog */}
+    <ImportProductsDialog 
+      isOpen={showImportDialog}
+      onClose={() => setShowImportDialog(false)}
+      onImportSuccess={handleImportSuccess}
+    />
      </div>
    );
  }
