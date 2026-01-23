@@ -1,8 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, FileSpreadsheet, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, X, FileSpreadsheet, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { Button, Card } from '@/app/components/ui';
 import { useProductExcel } from '@/lib/hooks/useProductExcel';
+import { bulkImportProducts, BulkImportResult } from '@/lib/api/admin';
+import { fetchProductFilters } from '@/lib/api/products';
+import { mapMultipleProducts, ProductImportData } from '@/lib/utils/productMapper';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export interface ImportProductsDialogProps {
   isOpen: boolean;
@@ -18,7 +22,9 @@ export function ImportProductsDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [importedData, setImportedData] = useState<Record<string, unknown>[]>([]);
-  const [step, setStep] = useState<'select' | 'preview' | 'processing'>('select');
+  const [step, setStep] = useState<'select' | 'preview' | 'importing' | 'complete'>('select');
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+  const [importResult, setImportResult] = useState<BulkImportResult | null>(null);
   
   const { isImporting, importProducts } = useProductExcel();
 
@@ -51,23 +57,76 @@ export function ImportProductsDialog({
   const handlePreview = async () => {
     if (!selectedFile) return;
     
-    setStep('processing');
+    setStep('preview');
     await importProducts(selectedFile, (data) => {
       setImportedData(data);
-      setStep('preview');
     });
   };
 
   const handleConfirmImport = async () => {
-    console.log('Importing products:', importedData);
-    
-    onImportSuccess();
-    handleClose();
+    if (importedData.length === 0) return;
+
+    setStep('importing');
+    setImportProgress({ current: 0, total: importedData.length });
+
+    try {
+      const filters = await fetchProductFilters();
+      
+      const mappedResults = mapMultipleProducts(
+        importedData as ProductImportData[],
+        filters.types,
+        filters.categories
+      );
+
+      const validProducts = mappedResults
+        .filter(r => r.data !== null)
+        .map(r => r.data!);
+
+      const mappingErrors = mappedResults.filter(r => r.error);
+
+      if (mappingErrors.length > 0) {
+        toast.error(
+          <div>
+            <div className="font-semibold mb-1">
+              Phát hiện {mappingErrors.length} lỗi mapping:
+            </div>
+            <div className="text-xs whitespace-pre-line">
+              {mappingErrors.slice(0, 3).map(e => `Dòng ${e.row}: ${e.error}`).join('\n')}
+              {mappingErrors.length > 3 && '\n...và các lỗi khác'}
+            </div>
+          </div>,
+          { duration: 8000 }
+        );
+      }
+
+      if (validProducts.length === 0) {
+        toast.error('Không có sản phẩm hợp lệ để import');
+        setStep('preview');
+        return;
+      }
+
+      const result = await bulkImportProducts(validProducts as Record<string, unknown>[]);
+      setImportResult(result);
+      setStep('complete');
+
+      if (result.success) {
+        toast.success(result.message);
+        onImportSuccess();
+      } else {
+        toast.warning(result.message);
+      }
+
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Import thất bại. Vui lòng thử lại.');
+      setStep('preview');
+    }
   };
 
   const handleClose = () => {
     setSelectedFile(null);
     setImportedData([]);
+    setImportResult(null);
     setStep('select');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -92,7 +151,8 @@ export function ImportProductsDialog({
               <p className="text-sm text-slate-500">
                 {step === 'select' && 'Chọn file Excel để import'}
                 {step === 'preview' && `Xem trước ${importedData.length} sản phẩm`}
-                {step === 'processing' && 'Đang xử lý file...'}
+                {step === 'importing' && 'Đang import sản phẩm...'}
+                {step === 'complete' && 'Hoàn tất import'}
               </p>
             </div>
           </div>
@@ -247,24 +307,109 @@ export function ImportProductsDialog({
             </div>
           )}
 
-          {step === 'processing' && (
+          {step === 'importing' && (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-              <p className="text-slate-600 dark:text-slate-400">
-                Đang xử lý file Excel...
+              <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
+              <p className="text-slate-900 dark:text-slate-100 font-medium mb-2">
+                Đang import sản phẩm...
               </p>
+              <p className="text-sm text-slate-500">
+                {importProgress.current} / {importProgress.total}
+              </p>
+              <div className="w-full max-w-md mt-4 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-blue-600 h-full transition-all duration-300"
+                  style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 'complete' && importResult && (
+            <div className="space-y-4">
+              <div className={cn(
+                "border rounded-lg p-4",
+                importResult.success 
+                  ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+                  : "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
+              )}>
+                <div className="flex gap-3">
+                  {importResult.success ? (
+                    <CheckCircle className="text-green-600 flex-shrink-0" size={24} />
+                  ) : (
+                    <AlertCircle className="text-yellow-600 flex-shrink-0" size={24} />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900 dark:text-slate-100 mb-2">
+                      {importResult.message}
+                    </p>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="bg-white dark:bg-slate-800 rounded p-3 text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {importResult.results.created}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">Tạo mới</div>
+                      </div>
+                      <div className="bg-white dark:bg-slate-800 rounded p-3 text-center">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {importResult.results.updated}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">Cập nhật</div>
+                      </div>
+                      <div className="bg-white dark:bg-slate-800 rounded p-3 text-center">
+                        <div className="text-2xl font-bold text-red-600">
+                          {importResult.results.failed}
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">Lỗi</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {importResult.results.errors.length > 0 && (
+                <div className="border border-red-200 dark:border-red-800 rounded-lg overflow-hidden">
+                  <div className="bg-red-50 dark:bg-red-900/20 px-4 py-2 font-medium text-sm border-b border-red-200 dark:border-red-800">
+                    Chi tiết lỗi ({importResult.results.errors.length})
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {importResult.results.errors.map((error, index) => (
+                      <div 
+                        key={index}
+                        className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 last:border-b-0"
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs font-mono bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-1 rounded">
+                            Dòng {error.row}
+                          </span>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                              {error.name}
+                            </p>
+                            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                              {error.error}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
 
         <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
-          <Button 
-            variant="outline" 
-            onClick={handleClose}
-            disabled={isImporting || step === 'processing'}
-          >
-            Hủy
-          </Button>
+          {step !== 'importing' && step !== 'complete' && (
+            <Button 
+              variant="outline" 
+              onClick={handleClose}
+              disabled={isImporting}
+            >
+              Hủy
+            </Button>
+          )}
           
           {step === 'select' && selectedFile && (
             <Button 
@@ -281,6 +426,12 @@ export function ImportProductsDialog({
               disabled={isImporting || importedData.length === 0}
             >
               Xác nhận Import
+            </Button>
+          )}
+
+          {step === 'complete' && (
+            <Button onClick={handleClose}>
+              Đóng
             </Button>
           )}
         </div>

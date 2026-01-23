@@ -169,6 +169,52 @@ export async function fetchAdminProduct(id: number): Promise<{ data: AdminProduc
    });
  }
  
+ export interface BulkImportResult {
+   success: boolean;
+   message: string;
+   results: {
+     created: number;
+     updated: number;
+     failed: number;
+     errors: Array<{ row: number; name: string; error: string }>;
+   };
+ }
+ 
+ export async function bulkImportProducts(products: Record<string, unknown>[]): Promise<BulkImportResult> {
+   const results = {
+     created: 0,
+     updated: 0,
+     failed: 0,
+     errors: [] as Array<{ row: number; name: string; error: string }>,
+   };
+ 
+   for (let i = 0; i < products.length; i++) {
+     const product = products[i];
+     try {
+       if (product.id) {
+         await updateProduct(Number(product.id), product);
+         results.updated++;
+       } else {
+         await createProduct(product);
+         results.created++;
+       }
+     } catch (error) {
+       results.failed++;
+       results.errors.push({
+         row: i + 2,
+         name: String(product.name || 'Unknown'),
+         error: error instanceof Error ? error.message : 'Unknown error',
+       });
+     }
+   }
+ 
+   return {
+     success: results.failed === 0,
+     message: `Import hoàn tất: ${results.created} tạo mới, ${results.updated} cập nhật, ${results.failed} lỗi`,
+     results,
+   };
+ }
+ 
  // Admin Articles
  export interface AdminArticle {
    id: number;
