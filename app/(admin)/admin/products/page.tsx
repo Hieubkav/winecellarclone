@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle, FileDown, FileUp, FileSpreadsheet } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle, FileDown, FileUp, FileSpreadsheet, ChevronDown } from 'lucide-react';
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
@@ -18,6 +18,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState<ProductFilterOption[]>([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -91,6 +92,17 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showExportMenu && !target.closest('.export-menu-wrapper')) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showExportMenu]);
  
    const handleSort = (key: string) => {
      setSortConfig(prev => ({ 
@@ -160,8 +172,21 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
    };
 
-  const handleExportAll = async () => {
+  const handleExportCurrent = async () => {
     await exportProducts(sortedData, types, categories, true);
+  };
+
+  const handleExportAll = async () => {
+    try {
+      const allProductsRes = await fetchAdminProducts({ 
+        per_page: totalProducts > 0 ? totalProducts : 1000,
+        page: 1 
+      });
+      await exportProducts(allProductsRes.data, types, categories, true);
+    } catch (error) {
+      console.error('Failed to export all:', error);
+      toast.error('Export toàn bộ thất bại. Vui lòng thử lại.');
+    }
   };
 
   const handleExportTemplate = async () => {
@@ -223,15 +248,44 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
              <FileUp size={16} />
              Import Excel
            </Button>
-           <Button 
-             variant="outline" 
-             className="gap-2"
-             onClick={handleExportAll}
-             disabled={isExporting || sortedData.length === 0}
-           >
-             <FileDown size={16} />
-             {isExporting ? 'Đang xuất...' : 'Export Excel'}
-           </Button>
+           <div className="relative export-menu-wrapper">
+             <Button 
+               variant="outline" 
+               className="gap-2"
+               onClick={() => setShowExportMenu(!showExportMenu)}
+               disabled={isExporting}
+             >
+               <FileDown size={16} />
+               {isExporting ? 'Đang xuất...' : 'Export Excel'}
+               <ChevronDown size={14} />
+             </Button>
+             {showExportMenu && (
+               <div className="absolute right-0 mt-1 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-10">
+                 <button
+                   className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm"
+                   onClick={() => {
+                     handleExportCurrent();
+                     setShowExportMenu(false);
+                   }}
+                   disabled={isExporting || sortedData.length === 0}
+                 >
+                   <div className="font-medium">Trang hiện tại</div>
+                   <div className="text-xs text-slate-500">{sortedData.length} sản phẩm</div>
+                 </button>
+                 <button
+                   className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm border-t border-slate-200 dark:border-slate-700"
+                   onClick={() => {
+                     handleExportAll();
+                     setShowExportMenu(false);
+                   }}
+                   disabled={isExporting}
+                 >
+                   <div className="font-medium">Toàn bộ</div>
+                   <div className="text-xs text-slate-500">{totalProducts} sản phẩm</div>
+                 </button>
+               </div>
+             )}
+           </div>
            <Link href="/admin/products/create">
              <Button className="gap-2">
                <Plus size={16} />

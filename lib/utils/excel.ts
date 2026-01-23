@@ -124,6 +124,7 @@ export function createTemplateSheet(
       else if (col.key === 'original_price') exampleRow[col.key] = 600000;
       else if (col.key === 'active') exampleRow[col.key] = 'Có';
       else if (col.key === 'cover_image_url') exampleRow[col.key] = 'https://example.com/images/product.jpg';
+      else if (col.key === 'additional_images') exampleRow[col.key] = 'https://example.com/images/product-2.jpg; https://example.com/images/product-3.jpg';
       else if (col.key === 'description') exampleRow[col.key] = '<p>Rượu vang đỏ cao cấp từ Chile với hương vị trái cây chín mọng</p>';
       else if (col.key === 'volume_ml') exampleRow[col.key] = 750;
       else if (col.key === 'alcohol_percent') exampleRow[col.key] = 13.5;

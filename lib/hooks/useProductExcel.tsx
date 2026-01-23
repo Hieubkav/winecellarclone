@@ -69,6 +69,7 @@ export function useProductExcel(): UseProductExcelReturn {
         required: true
       },
       { header: 'Ảnh đại diện', key: 'cover_image_url', width: 60, type: 'text' },
+      { header: 'Ảnh phụ (URLs)', key: 'additional_images', width: 80, type: 'text' },
       { header: 'Mô tả (HTML)', key: 'description', width: 80, type: 'text' },
     ];
 
@@ -112,6 +113,9 @@ export function useProductExcel(): UseProductExcelReturn {
       );
       
       const data = detailedProducts.map(product => {
+        const typeFound = types.find(t => t.id === product.type_id);
+        const typeName = typeFound?.name || product.type_name || '';
+        
         const categoryNames = product.category_ids && product.category_ids.length > 0
           ? product.category_ids.map(id => {
               const cat = categories.find(c => c.id === id);
@@ -119,16 +123,24 @@ export function useProductExcel(): UseProductExcelReturn {
             }).filter(Boolean).join(', ')
           : '';
 
+        const additionalImages = ('images' in product && Array.isArray(product.images))
+          ? product.images
+              .filter((img: any) => img.url && img.url !== product.cover_image_url)
+              .map((img: any) => img.url)
+              .join('; ')
+          : '';
+
         const baseData: Record<string, unknown> = {
           id: product.id,
           name: product.name,
           slug: product.slug,
-          type_name: product.type_name || '',
+          type_name: typeName,
           category_names: categoryNames,
           price: product.price || null,
           original_price: product.original_price || null,
           active: product.active ? 'Có' : 'Không',
           cover_image_url: product.cover_image_url || '',
+          additional_images: additionalImages,
           description: ('description' in product ? product.description : '') || '',
         };
 
