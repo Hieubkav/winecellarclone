@@ -8,7 +8,7 @@ import {
   ExcelColumn,
   ExcelTemplateOptions 
 } from '@/lib/utils/excel';
-import { AdminProduct, fetchAdminProducts } from '@/lib/api/admin';
+import { AdminProduct, fetchAdminProduct } from '@/lib/api/admin';
 import { fetchProductFilters, ProductFilterOption } from '@/lib/api/products';
 
 export interface ProductExcelRow {
@@ -96,7 +96,21 @@ export function useProductExcel(): UseProductExcelReturn {
     try {
       const columns = buildColumns(types, categories, includeDynamicAttrs);
       
-      const data = products.map(product => {
+      toast.info(`Đang tải chi tiết ${products.length} sản phẩm...`, { duration: 2000 });
+      
+      const detailedProducts = await Promise.all(
+        products.map(async (product) => {
+          try {
+            const { data } = await fetchAdminProduct(product.id);
+            return data;
+          } catch (error) {
+            console.error(`Failed to fetch product ${product.id}:`, error);
+            return product;
+          }
+        })
+      );
+      
+      const data = detailedProducts.map(product => {
         const baseData: Record<string, unknown> = {
           id: product.id,
           name: product.name,
@@ -106,21 +120,23 @@ export function useProductExcel(): UseProductExcelReturn {
           price: product.price || null,
           original_price: product.original_price || null,
           active: product.active ? 'Có' : 'Không',
-          description: '',
+          description: ('description' in product ? product.description : '') || '',
         };
 
-        if (includeDynamicAttrs && product.extra_attrs) {
-          baseData.volume_ml = product.extra_attrs['dung_tich']?.value || '';
-          baseData.alcohol_percent = product.extra_attrs['1abv']?.value || '';
-          baseData.country = product.extra_attrs['quoc_gia']?.value || '';
-          baseData.region = product.extra_attrs['vung_mien']?.value || '';
-          baseData.vintage = product.extra_attrs['nam_san_xuat']?.value || '';
-        } else if (includeDynamicAttrs) {
-          baseData.volume_ml = '';
-          baseData.alcohol_percent = '';
-          baseData.country = '';
-          baseData.region = '';
-          baseData.vintage = '';
+        if (includeDynamicAttrs) {
+          if (product.extra_attrs) {
+            baseData.volume_ml = product.extra_attrs['dung_tich']?.value || '';
+            baseData.alcohol_percent = product.extra_attrs['1abv']?.value || '';
+            baseData.country = product.extra_attrs['quoc_gia']?.value || '';
+            baseData.region = product.extra_attrs['vung_mien']?.value || '';
+            baseData.vintage = product.extra_attrs['nam_san_xuat']?.value || '';
+          } else {
+            baseData.volume_ml = '';
+            baseData.alcohol_percent = '';
+            baseData.country = '';
+            baseData.region = '';
+            baseData.vintage = '';
+          }
         }
 
         return baseData;
