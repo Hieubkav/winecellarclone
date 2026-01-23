@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { Plus, Link as LinkIcon, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { Button, Card, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
-import { fetchAdminSocialLinks, deleteSocialLink, bulkDeleteSocialLinks, type AdminSocialLink } from '@/lib/api/admin';
+import { fetchAdminSocialLinks, deleteSocialLink, bulkDeleteSocialLinks, updateSocialLink, type AdminSocialLink } from '@/lib/api/admin';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function SocialLinksListPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +16,7 @@ export default function SocialLinksListPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
 
   const loadLinks = useCallback(async () => {
     setIsLoading(true);
@@ -68,6 +70,25 @@ export default function SocialLinksListPage() {
     }
   };
 
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    setTogglingStatus(id);
+    try {
+      await updateSocialLink(id, { active: !currentStatus });
+      setLinks(prev => prev.map(l => 
+        l.id === id ? { ...l, active: !currentStatus } : l
+      ));
+      toast.success(
+        !currentStatus ? 'Đã bật hiển thị liên kết' : 'Đã tắt hiển thị liên kết',
+        { duration: 2000 }
+      );
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      setTogglingStatus(null);
+    }
+  };
+
   if (isLoading) {
     return <div className="space-y-4"><Skeleton className="h-10 w-full" /><Card><div className="p-4 space-y-4">{[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div></Card></div>;
   }
@@ -103,7 +124,22 @@ export default function SocialLinksListPage() {
                 <TableCell className="font-medium">{link.platform}</TableCell>
                 <TableCell><a href={link.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1"><LinkIcon size={14} />{link.url}</a></TableCell>
                 <TableCell>{link.order}</TableCell>
-                <TableCell><Badge variant={link.active ? 'success' : 'secondary'}>{link.active ? 'Hiển thị' : 'Ẩn'}</Badge></TableCell>
+                <TableCell>
+                  <div
+                    className={cn(
+                      "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
+                      togglingStatus === link.id ? "opacity-50 cursor-wait" : "",
+                      link.active ? "bg-green-500" : "bg-slate-300"
+                    )}
+                    onClick={() => handleToggleStatus(link.id, link.active)}
+                    title={`Click để ${link.active ? 'ẩn' : 'hiển thị'}`}
+                  >
+                    <div className={cn(
+                      "w-3 h-3 bg-white rounded-full transition-transform",
+                      link.active ? "translate-x-2" : "-translate-x-2"
+                    )} />
+                  </div>
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Link href={`/admin/social-links/${link.id}/edit`}><Button variant="ghost" size="icon"><Edit size={16} /></Button></Link>

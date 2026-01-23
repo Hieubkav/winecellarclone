@@ -5,7 +5,8 @@
  import { Search, Plus, Edit, Trash2, AlertTriangle, Menu as MenuIcon, Layers } from 'lucide-react';
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
- import { fetchAdminMenus, deleteMenu, bulkDeleteMenus, type AdminMenu } from '@/lib/api/admin';
+ import { fetchAdminMenus, deleteMenu, bulkDeleteMenus, updateMenu, type AdminMenu } from '@/lib/api/admin';
+ import { cn } from '@/lib/utils';
  import { toast } from 'sonner';
  
  export default function MenusListPage() {
@@ -17,6 +18,7 @@
    const [selectedIds, setSelectedIds] = useState<number[]>([]);
    const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
    const [isDeleting, setIsDeleting] = useState(false);
+   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
  
    const loadMenus = useCallback(async () => {
      setIsLoading(true);
@@ -77,6 +79,25 @@
        setIsDeleting(false);
      }
    };
+
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    setTogglingStatus(id);
+    try {
+      await updateMenu(id, { active: !currentStatus });
+      setMenus(prev => prev.map(m => 
+        m.id === id ? { ...m, active: !currentStatus } : m
+      ));
+      toast.success(
+        !currentStatus ? 'Đã bật hiển thị menu' : 'Đã tắt hiển thị menu',
+        { duration: 2000 }
+      );
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      setTogglingStatus(null);
+    }
+  };
  
    if (isLoading) {
      return (
@@ -163,9 +184,20 @@
                  </TableCell>
                  <TableCell>
                    <div className="flex items-center gap-3">
-                     <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
-                       <MenuIcon size={16} className="text-slate-500" />
-                     </div>
+                   <div
+                     className={cn(
+                       "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
+                       togglingStatus === menu.id ? "opacity-50 cursor-wait" : "",
+                       menu.active ? "bg-green-500" : "bg-slate-300"
+                     )}
+                     onClick={() => handleToggleStatus(menu.id, menu.active)}
+                     title={`Click để ${menu.active ? 'ẩn' : 'hiển thị'}`}
+                   >
+                     <div className={cn(
+                       "w-3 h-3 bg-white rounded-full transition-transform",
+                       menu.active ? "translate-x-2" : "-translate-x-2"
+                     )} />
+                   </div>
                      <div>
                        <p className="font-medium text-slate-900 dark:text-slate-100">{menu.title}</p>
                        {menu.href && (

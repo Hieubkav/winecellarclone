@@ -4,9 +4,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, FileText, ExternalLink, Edit, Trash2, Plus, AlertTriangle } from 'lucide-react';
-import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
-import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticle } from '@/lib/api/admin';
+import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, updateArticle, type AdminArticle } from '@/lib/api/admin';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
  
  export default function ArticlesListPage() {
    const [isLoading, setIsLoading] = useState(true);
@@ -19,6 +21,7 @@ import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticl
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
  
   const loadArticles = useCallback(async () => {
     setIsLoading(true);
@@ -80,6 +83,25 @@ import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticl
       alert('Xóa thất bại. Vui lòng thử lại.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    setTogglingStatus(id);
+    try {
+      await updateArticle(id, { active: !currentStatus });
+      setArticles(prev => prev.map(a => 
+        a.id === id ? { ...a, active: !currentStatus } : a
+      ));
+      toast.success(
+        !currentStatus ? 'Đã bật hiển thị bài viết' : 'Đã tắt hiển thị bài viết',
+        { duration: 2000 }
+      );
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      setTogglingStatus(null);
     }
   };
 
@@ -208,9 +230,20 @@ import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, type AdminArticl
                   <span className="text-sm text-slate-500">{article.published_at ? formatDate(article.published_at) : '—'}</span>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={article.active ? 'success' : 'secondary'}>
-                    {article.active ? 'Hiển thị' : 'Ẩn'}
-                  </Badge>
+                  <div
+                    className={cn(
+                      "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
+                      togglingStatus === article.id ? "opacity-50 cursor-wait" : "",
+                      article.active ? "bg-green-500" : "bg-slate-300"
+                    )}
+                    onClick={() => handleToggleStatus(article.id, article.active)}
+                    title={`Click để ${article.active ? 'ẩn' : 'hiển thị'}`}
+                  >
+                    <div className={cn(
+                      "w-3 h-3 bg-white rounded-full transition-transform",
+                      article.active ? "translate-x-2" : "-translate-x-2"
+                    )} />
+                  </div>
                  </TableCell>
                  <TableCell className="text-right">
                    <div className="flex justify-end gap-2">

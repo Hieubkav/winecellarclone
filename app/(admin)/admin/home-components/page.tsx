@@ -5,21 +5,24 @@ import Link from 'next/link';
 import { Plus, Trash2, Edit, AlertTriangle, GripVertical } from 'lucide-react';
 import { Button, Card, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
-import { fetchAdminHomeComponents, deleteHomeComponent, bulkDeleteHomeComponents, reorderHomeComponents, type AdminHomeComponent } from '@/lib/api/admin';
+import { fetchAdminHomeComponents, deleteHomeComponent, bulkDeleteHomeComponents, reorderHomeComponents, updateHomeComponent, type AdminHomeComponent } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getComponentTypeInfo } from './componentTypes';
+import { cn } from '@/lib/utils';
 
 interface SortableRowProps {
   component: AdminHomeComponent;
   isSelected: boolean;
   onToggleSelect: () => void;
   onDelete: () => void;
+  onToggleStatus: (id: number, currentStatus: boolean) => void;
+  togglingStatus: number | null;
 }
 
-function SortableRow({ component, isSelected, onToggleSelect, onDelete }: SortableRowProps) {
+function SortableRow({ component, isSelected, onToggleSelect, onDelete, onToggleStatus, togglingStatus }: SortableRowProps) {
   const {
     attributes,
     listeners,
@@ -63,9 +66,20 @@ function SortableRow({ component, isSelected, onToggleSelect, onDelete }: Sortab
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant={component.active ? 'success' : 'secondary'}>
-          {component.active ? 'Hiển thị' : 'Ẩn'}
-        </Badge>
+        <div
+          className={cn(
+            "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
+            togglingStatus === component.id ? "opacity-50 cursor-wait" : "",
+            component.active ? "bg-green-500" : "bg-slate-300"
+          )}
+          onClick={() => onToggleStatus(component.id, component.active)}
+          title={`Click để ${component.active ? 'ẩn' : 'hiển thị'}`}
+        >
+          <div className={cn(
+            "w-3 h-3 bg-white rounded-full transition-transform",
+            component.active ? "translate-x-2" : "-translate-x-2"
+          )} />
+        </div>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
@@ -95,6 +109,7 @@ export default function HomeComponentsListPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -185,6 +200,25 @@ export default function HomeComponentsListPage() {
     }
   };
 
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    setTogglingStatus(id);
+    try {
+      await updateHomeComponent(id, { active: !currentStatus });
+      setComponents(prev => prev.map(c => 
+        c.id === id ? { ...c, active: !currentStatus } : c
+      ));
+      toast.success(
+        !currentStatus ? 'Đã bật hiển thị thành phần' : 'Đã tắt hiển thị thành phần',
+        { duration: 2000 }
+      );
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      setTogglingStatus(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -237,6 +271,8 @@ export default function HomeComponentsListPage() {
                     isSelected={selectedIds.includes(component.id)}
                     onToggleSelect={() => toggleSelectItem(component.id)}
                     onDelete={() => setDeleteConfirm({ type: 'single', id: component.id })}
+                    onToggleStatus={handleToggleStatus}
+                    togglingStatus={togglingStatus}
                   />
                 ))}
               </SortableContext>

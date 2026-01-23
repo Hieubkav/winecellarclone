@@ -10,16 +10,20 @@ import {
   deleteProductType, 
   fetchAdminProductTypes, 
   fetchAdminCatalogAttributeGroups,
-  seedCatalogBaseline, 
+  seedCatalogBaseline,
+  updateProductType,
   type AdminProductType,
   type AdminCatalogAttributeGroup
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function ProductTypesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [types, setTypes] = useState<AdminProductType[]>([]);
   const [attributes, setAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
+  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
@@ -126,6 +130,25 @@ export default function ProductTypesPage() {
       }
     } finally {
       setIsSeeding(false);
+    }
+  };
+
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    setTogglingStatus(id);
+    try {
+      await updateProductType(id, { active: !currentStatus });
+      setTypes(prev => prev.map(t => 
+        t.id === id ? { ...t, active: !currentStatus } : t
+      ));
+      toast.success(
+        !currentStatus ? 'Đã bật hiển thị nhóm sản phẩm' : 'Đã tắt hiển thị nhóm sản phẩm',
+        { duration: 2000 }
+      );
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      setTogglingStatus(null);
     }
   };
 

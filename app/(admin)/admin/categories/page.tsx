@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { Plus, Edit, Trash2, ExternalLink, Search, FolderTree, AlertTriangle } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
-import { fetchAdminCategories, deleteCategory, bulkDeleteCategories, type AdminCategory } from '@/lib/api/admin';
+import { fetchAdminCategories, deleteCategory, bulkDeleteCategories, updateCategory, type AdminCategory } from '@/lib/api/admin';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import CategoryFormModal from './CategoryFormModal';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function CategoriesListPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +24,7 @@ export default function CategoriesListPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
 
   const columns = [
     { key: 'select', label: 'Chọn' },
@@ -112,6 +115,25 @@ export default function CategoriesListPage() {
     setIsFormOpen(false);
     setEditingCategory(null);
     loadData();
+  };
+
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    setTogglingStatus(id);
+    try {
+      await updateCategory(id, { active: !currentStatus });
+      setCategories(prev => prev.map(c => 
+        c.id === id ? { ...c, active: !currentStatus } : c
+      ));
+      toast.success(
+        !currentStatus ? 'Đã bật hiển thị danh mục' : 'Đã tắt hiển thị danh mục',
+        { duration: 2000 }
+      );
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+      toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
+    } finally {
+      setTogglingStatus(null);
+    }
   };
 
   if (isLoading) {
@@ -253,9 +275,20 @@ export default function CategoriesListPage() {
                 )}
                 {visibleColumns.includes('active') && (
                   <TableCell>
-                    <Badge variant={category.active ? 'success' : 'secondary'}>
-                      {category.active ? 'Hiển thị' : 'Ẩn'}
-                    </Badge>
+                    <div
+                      className={cn(
+                        "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
+                        togglingStatus === category.id ? "opacity-50 cursor-wait" : "",
+                        category.active ? "bg-green-500" : "bg-slate-300"
+                      )}
+                      onClick={() => handleToggleStatus(category.id, category.active)}
+                      title={`Click để ${category.active ? 'ẩn' : 'hiển thị'}`}
+                    >
+                      <div className={cn(
+                        "w-3 h-3 bg-white rounded-full transition-transform",
+                        category.active ? "translate-x-2" : "-translate-x-2"
+                      )} />
+                    </div>
                   </TableCell>
                 )}
                 {visibleColumns.includes('actions') && (
