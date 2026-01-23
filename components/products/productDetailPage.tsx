@@ -290,26 +290,6 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       });
     }
 
-    if (product.volume_ml && product.volume_ml > 0 && !addedCodes.has('volume_ml')) {
-      attrs.push({
-        iconName: 'FlaskConical',
-        groupCode: 'volume_ml',
-        label: "Dung tích",
-        value: `${product.volume_ml}ml`,
-      });
-      addedCodes.add('volume_ml');
-    }
-
-    if (product.alcohol_percent && product.alcohol_percent > 0 && !addedCodes.has('alcohol_percent')) {
-      attrs.push({
-        iconName: 'Droplets',
-        groupCode: 'alcohol_percent',
-        label: "Nồng độ",
-        value: `${product.alcohol_percent}%`,
-      });
-      addedCodes.add('alcohol_percent');
-    }
-
     return attrs;
   }, [product]);
 
@@ -344,13 +324,13 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="relative w-full overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group" style={{ aspectRatio: 'auto' }}>
+            <div className="relative w-full overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group">
               {discountPercentage > 0 && (
                 <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
                   -{discountPercentage}%
                 </span>
               )}
-              <div className="relative w-full h-full min-h-[500px] lg:min-h-[600px] p-8">
+              <div className="relative w-full aspect-[3/4] p-8">
                 <ProductImage
                   src={imageSources[selectedImage]}
                   alt={product.name}
