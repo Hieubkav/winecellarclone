@@ -15,8 +15,6 @@ import {
   Globe,
   FlaskConical,
   Award,
-  Grape,
-  MapPin,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
 import { ProductImage } from "@/components/ui/product-image";
@@ -124,15 +122,17 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   }, [product?.id, product.name, product.category, product.type, product.price, trackProductView]);
 
   const imageSources = useMemo(() => {
+    const urls: string[] = [];
+
+    if (product.cover_image_url) {
+      urls.push(product.cover_image_url);
+    }
+
     const galleryUrls = (product.gallery ?? [])
       .map((image) => image.url)
-      .filter((url): url is string => Boolean(url));
+      .filter((url): url is string => Boolean(url) && url !== product.cover_image_url);
 
-    const urls = [...galleryUrls];
-
-    if (product.cover_image_url && !urls.includes(product.cover_image_url)) {
-      urls.unshift(product.cover_image_url);
-    }
+    urls.push(...galleryUrls);
 
     if (urls.length === 0) {
       urls.push("/placeholder/wine-bottle.svg");
@@ -153,7 +153,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
   const attributeItems: AttributeDisplayItem[] = useMemo(() => {
     const attrs: AttributeDisplayItem[] = [];
-    const addedLabels = new Set<string>(); // Track added labels to avoid duplicates
+    const addedCodes = new Set<string>();
 
     if (product.brand_term) {
       attrs.push({
@@ -162,7 +162,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         value: product.brand_term.name,
         filterUrl: `/filter?brand=${product.brand_term.slug}`,
       });
-      addedLabels.add("Thương hiệu");
+      addedCodes.add('brand');
     }
 
     if (product.country_term) {
@@ -172,54 +172,60 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         value: product.country_term.name,
         filterUrl: `/filter?origin=${product.country_term.slug}`,
       });
-      addedLabels.add("Xuất xứ");
+      addedCodes.add('origin');
+    }
+
+    if (product.extra_attrs && Object.keys(product.extra_attrs).length > 0) {
+      Object.entries(product.extra_attrs).forEach(([code, attr]) => {
+        if (!addedCodes.has(code)) {
+          attrs.push({
+            fallbackIcon: getFallbackIcon(code),
+            iconUrl: attr.icon_url,
+            label: attr.label,
+            value: String(attr.value),
+          });
+          addedCodes.add(code);
+        }
+      });
     }
 
     if (product.attributes && product.attributes.length > 0) {
       product.attributes.forEach((attrGroup) => {
-        if (attrGroup.group_code === 'brand' || attrGroup.group_code === 'origin') {
+        if (addedCodes.has(attrGroup.group_code)) {
           return;
         }
         
         attrGroup.terms.forEach((term) => {
-          const label = attrGroup.group_name || attrGroup.group_code;
-          if (!addedLabels.has(label)) {
+          if (!addedCodes.has(attrGroup.group_code)) {
             attrs.push({
               fallbackIcon: getFallbackIcon(attrGroup.group_code),
               iconUrl: attrGroup.icon_url,
-              label: label,
+              label: attrGroup.group_name || attrGroup.group_code,
               value: term.name,
               filterUrl: `/filter?${attrGroup.group_code}=${term.slug}`,
             });
+            addedCodes.add(attrGroup.group_code);
           }
         });
       });
     }
 
-    // Only add volume_ml if not already in extra_attrs
-    if (product.volume_ml && product.volume_ml > 0) {
-      const volumeLabel = "Dung tích";
-      if (!addedLabels.has(volumeLabel)) {
-        attrs.push({
-          fallbackIcon: getFallbackIcon('volume'),
-          label: volumeLabel,
-          value: `${product.volume_ml}ml`,
-        });
-        addedLabels.add(volumeLabel);
-      }
+    if (product.volume_ml && product.volume_ml > 0 && !addedCodes.has('volume_ml')) {
+      attrs.push({
+        fallbackIcon: getFallbackIcon('volume'),
+        label: "Dung tích",
+        value: `${product.volume_ml}ml`,
+      });
+      addedCodes.add('volume_ml');
     }
 
-    // Only add alcohol_percent if not already in extra_attrs
-    if (product.alcohol_percent && product.alcohol_percent > 0) {
-      const alcoholLabel = "Nồng độ";
-      if (!addedLabels.has(alcoholLabel)) {
-        attrs.push({
-          fallbackIcon: getFallbackIcon('alcohol'),
-          label: alcoholLabel,
-          value: `${product.alcohol_percent}%`,
-        });
-        addedLabels.add(alcoholLabel);
-      }
+    if (product.alcohol_percent && product.alcohol_percent > 0 && !addedCodes.has('alcohol_percent')) {
+      attrs.push({
+        fallbackIcon: getFallbackIcon('alcohol'),
+        label: "Nồng độ",
+        value: `${product.alcohol_percent}%`,
+      });
+      addedCodes.add('alcohol_percent');
     }
 
     return attrs;
@@ -397,23 +403,23 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <>
                   <div 
                     className={`text-slate-600 leading-relaxed text-left md:text-center space-y-4 overflow-hidden transition-all duration-500 ease-in-out text-base
-                      ${!isDescExpanded ? 'max-h-[200px] opacity-90' : 'max-h-[2000px] opacity-100'}
+                      ${!isDescExpanded ? 'max-h-[200px]' : 'max-h-[2000px]'}
                     `}
                     dangerouslySetInnerHTML={{ __html: processedDescription }}
                   />
                   
                   {!isDescExpanded && processedDescription.length > 300 && (
-                    <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
                   )}
 
                   {processedDescription.length > 300 && (
                     <Button 
                       variant="ghost"
                       onClick={() => setIsDescExpanded(!isDescExpanded)}
-                      className="mt-4 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B]/80 hover:bg-[#9B2C3B]/10 font-semibold text-sm px-6 py-2 border border-[#9B2C3B]/20"
+                      className="mt-6 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B] hover:bg-[#9B2C3B]/10 font-semibold text-base px-8 py-3 border-2 border-[#9B2C3B]/30 hover:border-[#9B2C3B]/50 transition-all"
                     >
                       {isDescExpanded ? 'Thu gọn' : 'Xem thêm'}
-                      {isDescExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {isDescExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                     </Button>
                   )}
                 </>
