@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Search, FileText, ExternalLink, Edit, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
+import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, updateArticle, type AdminArticle } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -33,6 +33,31 @@ import { toast } from 'sonner';
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const perPageOptions = [10, 25, 50, 100];
+
+  const columns = [
+    { key: 'title', label: 'Tiêu đề', required: true },
+    { key: 'excerpt', label: 'Mô tả ngắn' },
+    { key: 'published_at', label: 'Ngày xuất bản' },
+    { key: 'active', label: 'Trạng thái' },
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_articles_columns');
+      if (saved) return JSON.parse(saved);
+    }
+    return ['title', 'published_at', 'active'];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('admin_articles_columns', JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
+
+  const toggleColumn = (key: string) => {
+    setVisibleColumns(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  };
 
   useEffect(() => {
     localStorage.setItem('admin_articles_perPage', String(perPage));
@@ -194,7 +219,7 @@ import { toast } from 'sonner';
     )}
  
        <Card>
-         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4">
+         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 justify-between">
            <div className="relative max-w-xs">
              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
              {isSearching && (
@@ -202,16 +227,21 @@ import { toast } from 'sonner';
                  <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
                </div>
              )}
-             <Input 
-               placeholder="Tìm bài viết..." 
+             <Input
+               placeholder="Tìm bài viết..."
                className={cn("pl-9 w-48", isSearching && "pr-9")}
-               value={searchTerm} 
+               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
-              }} 
+              }}
              />
            </div>
+           <ColumnToggle
+             columns={columns}
+             visibleColumns={visibleColumns}
+             onToggle={toggleColumn}
+           />
          </div>
  
          <div className="relative">
@@ -229,9 +259,9 @@ import { toast } from 'sonner';
                 />
               </TableHead>
                <SortableHeader label="Tiêu đề" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
-               <TableHead className="hidden lg:table-cell">Mô tả ngắn</TableHead>
-              <SortableHeader label="Ngày xuất bản" sortKey="published_at" sortConfig={sortConfig} onSort={handleSort} />
-              <TableHead>Trạng thái</TableHead>
+               {visibleColumns.includes('excerpt') && <TableHead>Mô tả ngắn</TableHead>}
+               {visibleColumns.includes('published_at') && <SortableHeader label="Ngày xuất bản" sortKey="published_at" sortConfig={sortConfig} onSort={handleSort} />}
+               {visibleColumns.includes('active') && <TableHead>Trạng thái</TableHead>}
                <TableHead className="text-right">Hành động</TableHead>
              </TableRow>
            </TableHeader>
@@ -264,30 +294,36 @@ import { toast } from 'sonner';
                      </div>
                    </div>
                  </TableCell>
-                 <TableCell className="hidden lg:table-cell">
-                   <p className="text-sm text-slate-500 dark:text-slate-400 truncate max-w-[300px]">
-                     {article.excerpt || '—'}
-                   </p>
-                 </TableCell>
-                 <TableCell>
-                  <span className="text-sm text-slate-500">{article.published_at ? formatDate(article.published_at) : '—'}</span>
-                </TableCell>
-                <TableCell>
-                  <div
-                    className={cn(
-                      "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
-                      togglingStatus === article.id ? "opacity-50 cursor-wait" : "",
-                      article.active ? "bg-green-500" : "bg-slate-300"
-                    )}
-                    onClick={() => handleToggleStatus(article.id, article.active)}
-                    title={`Click để ${article.active ? 'ẩn' : 'hiển thị'}`}
-                  >
-                    <div className={cn(
-                      "w-3 h-3 bg-white rounded-full transition-transform",
-                      article.active ? "translate-x-2" : "-translate-x-2"
-                    )} />
-                  </div>
-                 </TableCell>
+                 {visibleColumns.includes('excerpt') && (
+                   <TableCell>
+                     <p className="text-sm text-slate-500 dark:text-slate-400 truncate max-w-[300px]">
+                       {article.excerpt || '—'}
+                     </p>
+                   </TableCell>
+                 )}
+                 {visibleColumns.includes('published_at') && (
+                   <TableCell>
+                     <span className="text-sm text-slate-500">{article.published_at ? formatDate(article.published_at) : '—'}</span>
+                   </TableCell>
+                 )}
+                 {visibleColumns.includes('active') && (
+                   <TableCell>
+                     <div
+                       className={cn(
+                         "cursor-pointer inline-flex items-center justify-center rounded-full w-8 h-4 transition-colors",
+                         togglingStatus === article.id ? "opacity-50 cursor-wait" : "",
+                         article.active ? "bg-green-500" : "bg-slate-300"
+                       )}
+                       onClick={() => handleToggleStatus(article.id, article.active)}
+                       title={`Click để ${article.active ? 'ẩn' : 'hiển thị'}`}
+                     >
+                       <div className={cn(
+                         "w-3 h-3 bg-white rounded-full transition-transform",
+                         article.active ? "translate-x-2" : "-translate-x-2"
+                       )} />
+                     </div>
+                   </TableCell>
+                 )}
                  <TableCell className="text-right">
                    <div className="flex justify-end gap-2">
                     <Link href={`/bai-viet/${article.slug}`} target="_blank">
@@ -321,7 +357,7 @@ import { toast } from 'sonner';
              ))}
              {sortedData.length === 0 && (
                <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-slate-500">
+              <TableCell colSpan={2 + visibleColumns.length} className="text-center py-8 text-slate-500">
                   {searchTerm 
                      ? 'Không tìm thấy kết quả phù hợp' 
                      : 'Chưa có bài viết nào'}

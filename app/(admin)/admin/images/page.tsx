@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle, LayoutGrid, LayoutList } from 'lucide-react';
 import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
+import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -31,11 +31,43 @@ export default function ImagesListPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_images_viewMode');
+      return (saved as 'list' | 'grid') || 'grid';
+    }
+    return 'grid';
+  });
   const perPageOptions = [10, 25, 50, 100];
+
+  const columns = [
+    { key: 'select', label: 'Chọn' },
+    { key: 'preview', label: 'Xem trước', required: true },
+    { key: 'file_path', label: 'Tên file', required: true },
+    { key: 'alt', label: 'Alt text' },
+    { key: 'dimensions', label: 'Kích thước' },
+    { key: 'actions', label: 'Hành động', required: true },
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_images_visibleColumns');
+      if (saved) return JSON.parse(saved);
+    }
+    return ['select', 'preview', 'file_path', 'actions'];
+  });
 
   useEffect(() => {
     localStorage.setItem('admin_images_perPage', String(perPage));
   }, [perPage]);
+
+  useEffect(() => {
+    localStorage.setItem('admin_images_viewMode', viewMode);
+  }, [viewMode]);
+
+  useEffect(() => {
+    localStorage.setItem('admin_images_visibleColumns', JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
