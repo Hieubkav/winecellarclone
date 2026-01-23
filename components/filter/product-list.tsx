@@ -213,7 +213,11 @@ export default function WineList() {
                 <div
                   className={`grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-3 transition-opacity duration-300 ${loading ? "opacity-50" : "opacity-100"}`}
                 >
-                  {wines.length === 0 && !loading ? (
+                  {!initialized || (loading && wines.length === 0) ? (
+                    Array.from({ length: 8 }).map((_, index) => (
+                      <ProductSkeleton key={`skeleton-${index}`} />
+                    ))
+                  ) : wines.length === 0 ? (
                     <div className="col-span-full py-16 text-center">
                       <div className="inline-flex flex-col items-center gap-3 px-6 py-8 rounded-lg bg-stone-100">
                         <svg className="h-16 w-16 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -223,10 +227,6 @@ export default function WineList() {
                         <p className="text-sm text-stone-500">Vui lòng thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                       </div>
                     </div>
-                  ) : loading && wines.length === 0 ? (
-                    Array.from({ length: 8 }).map((_, index) => (
-                      <ProductSkeleton key={`skeleton-${index}`} />
-                    ))
                   ) : (
                     <Suspense fallback={
                       Array.from({ length: 8 }).map((_, index) => (
