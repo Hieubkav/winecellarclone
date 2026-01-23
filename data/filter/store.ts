@@ -136,7 +136,7 @@ const mapProductToWine = (product: ProductListItem, attributeFilters: AttributeF
   const attributeIconMap: Record<string, string | null> = {};
 
   (product.attributes ?? []).forEach((group) => {
-    attributeIconMap[group.group_code] = group.icon_name ?? null;
+    attributeIconMap[group.group_code] = group.icon_url ?? null;
   });
 
   attributeFilters.forEach((group) => {
