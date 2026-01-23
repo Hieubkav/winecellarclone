@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, FileSpreadsheet, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { Button, Card } from '@/app/components/ui';
+import { Button, Card } from '../../components/ui';
 import { useProductExcel } from '@/lib/hooks/useProductExcel';
 import { bulkImportProducts, BulkImportResult } from '@/lib/api/admin';
 import { fetchProductFilters } from '@/lib/api/products';
