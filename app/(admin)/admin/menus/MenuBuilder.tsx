@@ -28,21 +28,19 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Save,
   Loader2,
-  ExternalLink,
-  Edit2,
   X,
   Check,
   Menu as MenuIcon,
   Layers,
   Link as LinkIcon,
+  Database,
+  Sparkles,
 } from 'lucide-react';
 import {
   Button,
   Card,
   Input,
-  Label,
   Badge,
   cn,
 } from '../components/ui';
@@ -51,6 +49,8 @@ import {
   type AdminMenuBlock,
   type AdminMenuBlockItem,
   updateMenu,
+  createMenu,
+  deleteMenu,
   createMenuBlock,
   updateMenuBlock,
   deleteMenuBlock,
@@ -58,6 +58,9 @@ import {
   updateMenuBlockItem,
   deleteMenuBlockItem,
   reorderMenus,
+  fetchAdminProductTypes,
+  fetchAdminCategories,
+  bulkDeleteMenus,
 } from '@/lib/api/admin';
 import { toast } from 'sonner';
 
@@ -75,21 +78,211 @@ interface EditingState {
   value: string;
 }
 
+// ==================== INLINE ADD FORMS ====================
+
+interface InlineAddMenuProps {
+  onAdd: (title: string, type?: string) => Promise<void>;
+  onCancel: () => void;
+}
+
+function InlineAddMenu({ onAdd, onCancel }: InlineAddMenuProps) {
+  const [title, setTitle] = useState('');
+  const [type, setType] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    
+    setIsAdding(true);
+    try {
+      await onAdd(title.trim(), type.trim() || undefined);
+      setTitle('');
+      setType('');
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg p-3 bg-blue-50/50 dark:bg-blue-900/20">
+      <div className="flex items-center gap-2">
+        <MenuIcon size={16} className="text-blue-500" />
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Tiêu đề menu..."
+          className="h-8 text-sm flex-1"
+          autoFocus
+          disabled={isAdding}
+        />
+        <Input
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          placeholder="Loại (tùy chọn)"
+          className="h-8 text-sm w-32"
+          disabled={isAdding}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          className="h-8 gap-1"
+          disabled={!title.trim() || isAdding}
+        >
+          {isAdding ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+          Thêm
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8"
+          onClick={onCancel}
+          disabled={isAdding}
+        >
+          <X size={14} />
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+interface InlineAddBlockProps {
+  onAdd: (title: string) => Promise<void>;
+}
+
+function InlineAddBlock({ onAdd }: InlineAddBlockProps) {
+  const [title, setTitle] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    
+    setIsAdding(true);
+    try {
+      await onAdd(title.trim());
+      setTitle('');
+      setIsExpanded(false);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  if (!isExpanded) {
+    return (
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="w-full py-2 text-xs text-slate-500 hover:text-blue-600 border border-dashed border-slate-300 dark:border-slate-700 rounded-md hover:border-blue-400 transition-colors flex items-center justify-center gap-1"
+      >
+        <Plus size={12} />
+        Thêm block
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-2 bg-orange-50/50 dark:bg-orange-900/20 rounded-md border border-dashed border-orange-300 dark:border-orange-700">
+      <Layers size={14} className="text-orange-500" />
+      <Input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Tên block..."
+        className="h-7 text-xs flex-1"
+        autoFocus
+        disabled={isAdding}
+      />
+      <Button type="submit" size="sm" className="h-7 text-xs px-2" disabled={!title.trim() || isAdding}>
+        {isAdding ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+      </Button>
+      <Button type="button" variant="ghost" size="sm" className="h-7 px-1" onClick={() => setIsExpanded(false)}>
+        <X size={12} />
+      </Button>
+    </form>
+  );
+}
+
+interface InlineAddItemProps {
+  onAdd: (label: string, href?: string) => Promise<void>;
+}
+
+function InlineAddItem({ onAdd }: InlineAddItemProps) {
+  const [label, setLabel] = useState('');
+  const [href, setHref] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!label.trim()) return;
+    
+    setIsAdding(true);
+    try {
+      await onAdd(label.trim(), href.trim() || undefined);
+      setLabel('');
+      setHref('');
+      setIsExpanded(false);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  if (!isExpanded) {
+    return (
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="w-full py-1.5 text-[10px] text-slate-400 hover:text-blue-500 border border-dashed border-slate-200 dark:border-slate-700 rounded hover:border-blue-300 transition-colors flex items-center justify-center gap-1"
+      >
+        <Plus size={10} />
+        Thêm item
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center gap-1.5 p-1.5 bg-blue-50/50 dark:bg-blue-900/20 rounded border border-dashed border-blue-300 dark:border-blue-700">
+      <LinkIcon size={10} className="text-blue-500" />
+      <Input
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="Tên item"
+        className="h-6 text-[11px] flex-1"
+        autoFocus
+        disabled={isAdding}
+      />
+      <Input
+        value={href}
+        onChange={(e) => setHref(e.target.value)}
+        placeholder="URL"
+        className="h-6 text-[11px] w-24 font-mono"
+        disabled={isAdding}
+      />
+      <Button type="submit" size="sm" className="h-6 text-[10px] px-1.5" disabled={!label.trim() || isAdding}>
+        {isAdding ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
+      </Button>
+      <Button type="button" variant="ghost" size="sm" className="h-6 px-1" onClick={() => setIsExpanded(false)}>
+        <X size={10} />
+      </Button>
+    </form>
+  );
+}
+
 // ==================== SORTABLE COMPONENTS ====================
 
 interface SortableMenuProps {
   menu: AdminMenuDetail;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  onEdit: (field: string, value: string) => void;
   onToggleActive: () => void;
   onDelete: () => void;
-  onAddBlock: () => void;
+  onAddBlock: (title: string) => Promise<void>;
   children: React.ReactNode;
   editingState: EditingState | null;
   onStartEdit: (type: 'menu' | 'block' | 'item', id: number, field: string, currentValue: string) => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
+  onUpdateEditValue: (value: string) => void;
   isSaving: boolean;
 }
 
@@ -105,6 +298,7 @@ function SortableMenu({
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
+  onUpdateEditValue,
   isSaving,
 }: SortableMenuProps) {
   const {
@@ -159,7 +353,7 @@ function SortableMenu({
           <div className="flex-1 flex items-center gap-2">
             <Input
               value={editingState.value}
-              onChange={(e) => onStartEdit('menu', menu.id, 'title', e.target.value)}
+              onChange={(e) => onUpdateEditValue(e.target.value)}
               className="h-8 text-sm font-medium"
               autoFocus
               onKeyDown={(e) => {
@@ -229,15 +423,7 @@ function SortableMenu({
       {isExpanded && (
         <div className="p-3 space-y-2">
           {children}
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full border-dashed gap-2"
-            onClick={onAddBlock}
-          >
-            <Plus size={14} />
-            Thêm block
-          </Button>
+          <InlineAddBlock onAdd={onAddBlock} />
         </div>
       )}
     </div>
@@ -251,12 +437,13 @@ interface SortableBlockProps {
   onToggleExpand: () => void;
   onToggleActive: () => void;
   onDelete: () => void;
-  onAddItem: () => void;
+  onAddItem: (label: string, href?: string) => Promise<void>;
   children: React.ReactNode;
   editingState: EditingState | null;
   onStartEdit: (type: 'menu' | 'block' | 'item', id: number, field: string, currentValue: string) => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
+  onUpdateEditValue: (value: string) => void;
   isSaving: boolean;
 }
 
@@ -272,6 +459,7 @@ function SortableBlock({
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
+  onUpdateEditValue,
   isSaving,
 }: SortableBlockProps) {
   const {
@@ -326,7 +514,7 @@ function SortableBlock({
           <div className="flex-1 flex items-center gap-2">
             <Input
               value={editingState.value}
-              onChange={(e) => onStartEdit('block', block.id, 'title', e.target.value)}
+              onChange={(e) => onUpdateEditValue(e.target.value)}
               className="h-7 text-sm"
               autoFocus
               onKeyDown={(e) => {
@@ -388,15 +576,7 @@ function SortableBlock({
       {isExpanded && (
         <div className="px-2 pb-2 pl-8 space-y-1">
           {children}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-xs gap-1 h-7"
-            onClick={onAddItem}
-          >
-            <Plus size={12} />
-            Thêm item
-          </Button>
+          <InlineAddItem onAdd={onAddItem} />
         </div>
       )}
     </div>
@@ -412,6 +592,7 @@ interface SortableItemProps {
   onStartEdit: (type: 'menu' | 'block' | 'item', id: number, field: string, currentValue: string) => void;
   onSaveEdit: () => void;
   onCancelEdit: () => void;
+  onUpdateEditValue: (value: string) => void;
   isSaving: boolean;
 }
 
@@ -423,6 +604,7 @@ function SortableItem({
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
+  onUpdateEditValue,
   isSaving,
 }: SortableItemProps) {
   const {
@@ -467,7 +649,7 @@ function SortableItem({
       {isEditingLabel ? (
         <Input
           value={editingState.value}
-          onChange={(e) => onStartEdit('item', item.id, 'label', e.target.value)}
+          onChange={(e) => onUpdateEditValue(e.target.value)}
           className="h-6 text-xs flex-1"
           autoFocus
           onKeyDown={(e) => {
@@ -488,7 +670,7 @@ function SortableItem({
       {isEditingHref ? (
         <Input
           value={editingState.value}
-          onChange={(e) => onStartEdit('item', item.id, 'href', e.target.value)}
+          onChange={(e) => onUpdateEditValue(e.target.value)}
           className="h-6 text-xs w-32 font-mono"
           onKeyDown={(e) => {
             if (e.key === 'Enter') onSaveEdit();
@@ -554,6 +736,31 @@ function SortableItem({
   );
 }
 
+// ==================== GENERATE FROM DATA ====================
+
+interface GenerateMenuDialogProps {
+  onGenerate: () => Promise<void>;
+  isGenerating: boolean;
+}
+
+function GenerateMenuButton({ onGenerate, isGenerating }: GenerateMenuDialogProps) {
+  return (
+    <Button
+      variant="outline"
+      onClick={onGenerate}
+      disabled={isGenerating}
+      className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20"
+    >
+      {isGenerating ? (
+        <Loader2 size={16} className="animate-spin" />
+      ) : (
+        <Sparkles size={16} />
+      )}
+      {isGenerating ? 'Đang tạo...' : 'Tạo từ dữ liệu'}
+    </Button>
+  );
+}
+
 // ==================== MAIN COMPONENT ====================
 
 export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps) {
@@ -563,10 +770,14 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
   const [editingState, setEditingState] = useState<EditingState | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Sync when initialMenus changes
   useEffect(() => {
     setMenus(initialMenus);
+    // Auto expand all new menus
+    setExpandedMenus(new Set(initialMenus.map(m => m.id)));
   }, [initialMenus]);
 
   const sensors = useSensors(
@@ -582,6 +793,10 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
 
   const handleStartEdit = useCallback((type: 'menu' | 'block' | 'item', id: number, field: string, currentValue: string) => {
     setEditingState({ type, id, field, value: currentValue });
+  }, []);
+
+  const handleUpdateEditValue = useCallback((value: string) => {
+    setEditingState(prev => prev ? { ...prev, value } : null);
   }, []);
 
   const handleCancelEdit = useCallback(() => {
@@ -631,6 +846,83 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
     }
   }, [editingState, menus]);
 
+  // Add handlers
+  const handleAddMenu = useCallback(async (title: string, type?: string) => {
+    try {
+      const result = await createMenu({
+        title,
+        type: type || null,
+        active: true,
+      });
+
+      const newMenu: AdminMenuDetail = {
+        id: result.data.id,
+        title,
+        type: type || null,
+        href: null,
+        order: menus.length,
+        active: true,
+        blocks: [],
+      };
+
+      setMenus(prev => [...prev, newMenu]);
+      setExpandedMenus(prev => new Set([...prev, result.data.id]));
+      setShowAddMenu(false);
+      toast.success('Đã tạo menu');
+    } catch {
+      toast.error('Không thể tạo menu');
+    }
+  }, [menus.length]);
+
+  const handleAddBlock = useCallback(async (menuId: number, title: string) => {
+    try {
+      const result = await createMenuBlock(menuId, { title });
+      const newBlock: AdminMenuBlock = {
+        id: result.data.id,
+        title,
+        order: 0,
+        active: true,
+        items: [],
+      };
+      setMenus(prev => prev.map(m => m.id === menuId ? {
+        ...m,
+        blocks: [...(m.blocks || []), newBlock]
+      } : m));
+      setExpandedBlocks(prev => new Set([...prev, result.data.id]));
+      toast.success('Đã thêm block');
+    } catch {
+      toast.error('Không thể thêm block');
+    }
+  }, []);
+
+  const handleAddItem = useCallback(async (blockId: number, label: string, href?: string) => {
+    try {
+      const result = await createMenuBlockItem(blockId, {
+        label,
+        href: href || null,
+      });
+      const newItem: AdminMenuBlockItem = {
+        id: result.data.id,
+        label,
+        href: href || null,
+        badge: null,
+        order: 0,
+        active: true,
+      };
+      setMenus(prev => prev.map(m => ({
+        ...m,
+        blocks: m.blocks?.map(b => b.id === blockId ? {
+          ...b,
+          items: [...(b.items || []), newItem]
+        } : b)
+      })));
+      toast.success('Đã thêm item');
+    } catch {
+      toast.error('Không thể thêm item');
+    }
+  }, []);
+
+  // Toggle handlers
   const handleToggleMenuActive = useCallback(async (menuId: number) => {
     const menu = menus.find(m => m.id === menuId);
     if (!menu) return;
@@ -679,11 +971,11 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
     }
   }, [menus]);
 
+  // Delete handlers
   const handleDeleteMenu = useCallback(async (menuId: number) => {
     if (!confirm('Xóa menu này và tất cả blocks/items bên trong?')) return;
     
     try {
-      const { deleteMenu } = await import('@/lib/api/admin');
       await deleteMenu(menuId);
       setMenus(prev => prev.filter(m => m.id !== menuId));
       toast.success('Đã xóa menu');
@@ -725,61 +1017,141 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
     }
   }, []);
 
-  const handleAddBlock = useCallback(async (menuId: number) => {
-    const title = prompt('Nhập tên block:');
-    if (!title?.trim()) return;
-
-    try {
-      const result = await createMenuBlock(menuId, { title: title.trim() });
-      const newBlock: AdminMenuBlock = {
-        id: result.data.id,
-        title: title.trim(),
-        order: 0,
-        active: true,
-        items: [],
-      };
-      setMenus(prev => prev.map(m => m.id === menuId ? {
-        ...m,
-        blocks: [...(m.blocks || []), newBlock]
-      } : m));
-      setExpandedBlocks(prev => new Set([...prev, result.data.id]));
-      toast.success('Đã thêm block');
-    } catch {
-      toast.error('Không thể thêm block');
+  // Generate from data
+  const handleGenerateFromData = useCallback(async () => {
+    if (!confirm('Tính năng này sẽ XÓA tất cả menu hiện tại và tạo mới từ dữ liệu Phân mục + Danh mục. Tiếp tục?')) {
+      return;
     }
-  }, []);
 
-  const handleAddItem = useCallback(async (blockId: number) => {
-    const label = prompt('Nhập tên item:');
-    if (!label?.trim()) return;
-
-    const href = prompt('Nhập URL (có thể để trống):') || '';
-
+    setIsGenerating(true);
     try {
-      const result = await createMenuBlockItem(blockId, {
-        label: label.trim(),
-        href: href.trim() || null,
+      // Fetch product types and categories
+      const [typesRes, categoriesRes] = await Promise.all([
+        fetchAdminProductTypes({ per_page: 100 }),
+        fetchAdminCategories({ per_page: 500 }),
+      ]);
+
+      const productTypes = typesRes.data.filter(t => t.active);
+      const categories = categoriesRes.data.filter(c => c.active);
+
+      // Delete all existing menus
+      if (menus.length > 0) {
+        await bulkDeleteMenus(menus.map(m => m.id));
+      }
+
+      // Create "Trang chủ" menu first
+      const homeResult = await createMenu({
+        title: 'Trang chủ',
+        href: '/',
+        type: 'link',
+        active: true,
+        order: 0,
       });
-      const newItem: AdminMenuBlockItem = {
-        id: result.data.id,
-        label: label.trim(),
-        href: href.trim() || null,
-        badge: null,
+
+      const newMenus: AdminMenuDetail[] = [{
+        id: homeResult.data.id,
+        title: 'Trang chủ',
+        href: '/',
+        type: 'link',
         order: 0,
         active: true,
-      };
-      setMenus(prev => prev.map(m => ({
-        ...m,
-        blocks: m.blocks?.map(b => b.id === blockId ? {
-          ...b,
-          items: [...(b.items || []), newItem]
-        } : b)
-      })));
-      toast.success('Đã thêm item');
-    } catch {
-      toast.error('Không thể thêm item');
+        blocks: [],
+      }];
+
+      // Create menu for each product type
+      for (let i = 0; i < productTypes.length; i++) {
+        const productType = productTypes[i];
+        
+        // Create menu
+        const menuResult = await createMenu({
+          title: productType.name,
+          href: `/san-pham?type=${productType.slug}`,
+          type: 'mega',
+          active: true,
+          order: i + 1,
+        });
+
+        // Get categories for this type
+        const typeCategories = categories.filter(c => c.type_id === productType.id);
+
+        const blocks: AdminMenuBlock[] = [];
+
+        if (typeCategories.length > 0) {
+          // Create "Theo danh mục" block
+          const blockResult = await createMenuBlock(menuResult.data.id, {
+            title: 'Theo danh mục',
+            active: true,
+          });
+
+          const items: AdminMenuBlockItem[] = [];
+
+          // Add "Xem tất cả" item first
+          const viewAllResult = await createMenuBlockItem(blockResult.data.id, {
+            label: `Tất cả ${productType.name}`,
+            href: `/san-pham?type=${productType.slug}`,
+            badge: null,
+            active: true,
+          });
+
+          items.push({
+            id: viewAllResult.data.id,
+            label: `Tất cả ${productType.name}`,
+            href: `/san-pham?type=${productType.slug}`,
+            badge: null,
+            order: 0,
+            active: true,
+          });
+
+          // Add category items
+          for (let j = 0; j < typeCategories.length; j++) {
+            const category = typeCategories[j];
+            const itemResult = await createMenuBlockItem(blockResult.data.id, {
+              label: category.name,
+              href: `/san-pham?type=${productType.slug}&category=${category.slug}`,
+              active: true,
+            });
+
+            items.push({
+              id: itemResult.data.id,
+              label: category.name,
+              href: `/san-pham?type=${productType.slug}&category=${category.slug}`,
+              badge: null,
+              order: j + 1,
+              active: true,
+            });
+          }
+
+          blocks.push({
+            id: blockResult.data.id,
+            title: 'Theo danh mục',
+            order: 0,
+            active: true,
+            items,
+          });
+        }
+
+        newMenus.push({
+          id: menuResult.data.id,
+          title: productType.name,
+          href: `/san-pham?type=${productType.slug}`,
+          type: 'mega',
+          order: i + 1,
+          active: true,
+          blocks,
+        });
+      }
+
+      setMenus(newMenus);
+      setExpandedMenus(new Set(newMenus.map(m => m.id)));
+      toast.success(`Đã tạo ${newMenus.length} menu từ dữ liệu`);
+      
+    } catch (error) {
+      console.error('Generate failed:', error);
+      toast.error('Không thể tạo menu từ dữ liệu');
+    } finally {
+      setIsGenerating(false);
     }
-  }, []);
+  }, [menus]);
 
   // ==================== DRAG HANDLERS ====================
 
@@ -818,12 +1190,6 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
         }
       }
     }
-
-    // Block reorder (within same menu)
-    // TODO: Implement block reorder if needed
-
-    // Item reorder (within same block)
-    // TODO: Implement item reorder if needed
   };
 
   // ==================== RENDER ====================
@@ -831,109 +1197,143 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
   const menuIds = useMemo(() => menus.map(m => `menu-${m.id}`), [menus]);
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext items={menuIds} strategy={verticalListSortingStrategy}>
-        <div className="space-y-3">
-          {menus.map((menu) => {
-            const isExpanded = expandedMenus.has(menu.id);
-            const blockIds = (menu.blocks || []).map(b => `block-${b.id}`);
+    <div className="space-y-4">
+      {/* Header Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <GenerateMenuButton onGenerate={handleGenerateFromData} isGenerating={isGenerating} />
+        </div>
+        {!showAddMenu && (
+          <Button onClick={() => setShowAddMenu(true)} className="gap-2">
+            <Plus size={16} />
+            Thêm menu
+          </Button>
+        )}
+      </div>
 
-            return (
-              <SortableMenu
-                key={menu.id}
-                menu={menu}
-                isExpanded={isExpanded}
-                onToggleExpand={() => {
-                  setExpandedMenus(prev => {
-                    const next = new Set(prev);
-                    if (next.has(menu.id)) next.delete(menu.id);
-                    else next.add(menu.id);
-                    return next;
-                  });
-                }}
-                onEdit={() => {}}
-                onToggleActive={() => handleToggleMenuActive(menu.id)}
-                onDelete={() => handleDeleteMenu(menu.id)}
-                onAddBlock={() => handleAddBlock(menu.id)}
-                editingState={editingState}
-                onStartEdit={handleStartEdit}
-                onSaveEdit={handleSaveEdit}
-                onCancelEdit={handleCancelEdit}
-                isSaving={isSaving}
-              >
-                <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
-                  {(menu.blocks || []).map((block) => {
-                    const isBlockExpanded = expandedBlocks.has(block.id);
-                    const itemIds = (block.items || []).map(i => `item-${i.id}`);
+      {/* Inline Add Menu Form */}
+      {showAddMenu && (
+        <InlineAddMenu
+          onAdd={handleAddMenu}
+          onCancel={() => setShowAddMenu(false)}
+        />
+      )}
 
-                    return (
-                      <SortableBlock
-                        key={block.id}
-                        block={block}
-                        menuId={menu.id}
-                        isExpanded={isBlockExpanded}
-                        onToggleExpand={() => {
-                          setExpandedBlocks(prev => {
-                            const next = new Set(prev);
-                            if (next.has(block.id)) next.delete(block.id);
-                            else next.add(block.id);
-                            return next;
-                          });
-                        }}
-                        onToggleActive={() => handleToggleBlockActive(menu.id, block.id)}
-                        onDelete={() => handleDeleteBlock(menu.id, block.id)}
-                        onAddItem={() => handleAddItem(block.id)}
-                        editingState={editingState}
-                        onStartEdit={handleStartEdit}
-                        onSaveEdit={handleSaveEdit}
-                        onCancelEdit={handleCancelEdit}
-                        isSaving={isSaving}
-                      >
-                        <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-                          {(block.items || []).map((item) => (
-                            <SortableItem
-                              key={item.id}
-                              item={item}
-                              blockId={block.id}
-                              onToggleActive={() => handleToggleItemActive(block.id, item.id)}
-                              onDelete={() => handleDeleteItem(block.id, item.id)}
-                              editingState={editingState}
-                              onStartEdit={handleStartEdit}
-                              onSaveEdit={handleSaveEdit}
-                              onCancelEdit={handleCancelEdit}
-                              isSaving={isSaving}
-                            />
-                          ))}
-                        </SortableContext>
-                      </SortableBlock>
-                    );
-                  })}
-                </SortableContext>
-              </SortableMenu>
-            );
-          })}
+      {/* Menu List */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={menuIds} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3">
+            {menus.map((menu) => {
+              const isExpanded = expandedMenus.has(menu.id);
+              const blockIds = (menu.blocks || []).map(b => `block-${b.id}`);
 
-          {menus.length === 0 && (
-            <div className="text-center py-12 text-slate-500">
-              <MenuIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-              <p>Chưa có menu nào</p>
+              return (
+                <SortableMenu
+                  key={menu.id}
+                  menu={menu}
+                  isExpanded={isExpanded}
+                  onToggleExpand={() => {
+                    setExpandedMenus(prev => {
+                      const next = new Set(prev);
+                      if (next.has(menu.id)) next.delete(menu.id);
+                      else next.add(menu.id);
+                      return next;
+                    });
+                  }}
+                  onToggleActive={() => handleToggleMenuActive(menu.id)}
+                  onDelete={() => handleDeleteMenu(menu.id)}
+                  onAddBlock={(title) => handleAddBlock(menu.id, title)}
+                  editingState={editingState}
+                  onStartEdit={handleStartEdit}
+                  onSaveEdit={handleSaveEdit}
+                  onCancelEdit={handleCancelEdit}
+                  onUpdateEditValue={handleUpdateEditValue}
+                  isSaving={isSaving}
+                >
+                  <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
+                    {(menu.blocks || []).map((block) => {
+                      const isBlockExpanded = expandedBlocks.has(block.id);
+                      const itemIds = (block.items || []).map(i => `item-${i.id}`);
+
+                      return (
+                        <SortableBlock
+                          key={block.id}
+                          block={block}
+                          menuId={menu.id}
+                          isExpanded={isBlockExpanded}
+                          onToggleExpand={() => {
+                            setExpandedBlocks(prev => {
+                              const next = new Set(prev);
+                              if (next.has(block.id)) next.delete(block.id);
+                              else next.add(block.id);
+                              return next;
+                            });
+                          }}
+                          onToggleActive={() => handleToggleBlockActive(menu.id, block.id)}
+                          onDelete={() => handleDeleteBlock(menu.id, block.id)}
+                          onAddItem={(label, href) => handleAddItem(block.id, label, href)}
+                          editingState={editingState}
+                          onStartEdit={handleStartEdit}
+                          onSaveEdit={handleSaveEdit}
+                          onCancelEdit={handleCancelEdit}
+                          onUpdateEditValue={handleUpdateEditValue}
+                          isSaving={isSaving}
+                        >
+                          <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+                            {(block.items || []).map((item) => (
+                              <SortableItem
+                                key={item.id}
+                                item={item}
+                                blockId={block.id}
+                                onToggleActive={() => handleToggleItemActive(block.id, item.id)}
+                                onDelete={() => handleDeleteItem(block.id, item.id)}
+                                editingState={editingState}
+                                onStartEdit={handleStartEdit}
+                                onSaveEdit={handleSaveEdit}
+                                onCancelEdit={handleCancelEdit}
+                                onUpdateEditValue={handleUpdateEditValue}
+                                isSaving={isSaving}
+                              />
+                            ))}
+                          </SortableContext>
+                        </SortableBlock>
+                      );
+                    })}
+                  </SortableContext>
+                </SortableMenu>
+              );
+            })}
+
+            {menus.length === 0 && !showAddMenu && (
+              <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                <MenuIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                <p className="text-slate-500 mb-4">Chưa có menu nào</p>
+                <div className="flex items-center justify-center gap-3">
+                  <Button onClick={() => setShowAddMenu(true)} variant="outline" className="gap-2">
+                    <Plus size={16} />
+                    Thêm menu thủ công
+                  </Button>
+                  <span className="text-slate-400">hoặc</span>
+                  <GenerateMenuButton onGenerate={handleGenerateFromData} isGenerating={isGenerating} />
+                </div>
+              </div>
+            )}
+          </div>
+        </SortableContext>
+
+        <DragOverlay>
+          {activeId && (
+            <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border border-blue-500 opacity-90">
+              <span className="text-sm font-medium">Đang di chuyển...</span>
             </div>
           )}
-        </div>
-      </SortableContext>
-
-      <DragOverlay>
-        {activeId && (
-          <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border border-blue-500 opacity-90">
-            <span className="text-sm font-medium">Đang di chuyển...</span>
-          </div>
-        )}
-      </DragOverlay>
-    </DndContext>
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }
