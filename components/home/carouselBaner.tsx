@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import Autoplay, { type AutoplayType } from "embla-carousel-autoplay"
 
@@ -12,7 +11,6 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const AUTOPLAY_DELAY = 3000
@@ -78,9 +76,10 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
   }
 
   return (
-    <section className="relative w-full overflow-hidden bg-slate-900 text-[#1C1C1C]">
+    <section className="relative w-full overflow-hidden bg-slate-900">
       <div className="relative mx-auto w-full max-w-7xl">
         <div className="relative overflow-hidden">
+          {/* Carousel */}
           <Carousel
             className="group mx-auto w-full bg-transparent"
             opts={{ align: "center", loop: hasMultipleSlides }}
@@ -94,7 +93,7 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                   className="border-none bg-transparent p-0 pl-0 shadow-none"
                 >
                   <div className="relative block">
-                    {/* Responsive aspect ratio - giống preview */}
+                    {/* Responsive aspect ratio */}
                     <div className="relative block w-full overflow-hidden bg-slate-900 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9]">
                       {/* Blurred background layer */}
                       <div
@@ -108,14 +107,12 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                       />
                       {/* Dark overlay */}
                       <div className="absolute inset-0 bg-black/20" />
-                      {/* Main image - object-contain để hiển thị full ảnh */}
-                      <Image
+                      {/* Main image - object-contain */}
+                      <img
                         src={slide.image}
-                        alt={slide.alt}
-                        fill
-                        className="relative object-contain z-10"
-                        priority={index === 0}
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1280px"
+                        alt={slide.alt || `Slide ${index + 1}`}
+                        className="relative w-full h-full object-contain z-10"
+                        loading={index === 0 ? "eager" : "lazy"}
                       />
                     </div>
                     <span className="sr-only">{slide.alt}</span>
@@ -123,54 +120,52 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {hasMultipleSlides && (
-              <>
-                {/* Navigation buttons - style giống preview */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between px-2 sm:flex">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-white text-[#1C1C1C] shadow-lg transition-all hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-0 border-2 border-transparent"
-                    style={{ borderColor: `${WINE_COLOR}40` }}
-                    onClick={() => handleManualNavigation("prev")}
-                    aria-label="Xem slide trước"
-                  >
-                    <ChevronLeft className="h-4 w-4" style={{ color: WINE_COLOR }} />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 hover:bg-white text-[#1C1C1C] shadow-lg transition-all hover:scale-105 focus-visible:ring-2 focus-visible:ring-offset-0 border-2 border-transparent"
-                    style={{ borderColor: `${WINE_COLOR}40` }}
-                    onClick={() => handleManualNavigation("next")}
-                    aria-label="Xem slide tiếp theo"
-                  >
-                    <ChevronRight className="h-4 w-4" style={{ color: WINE_COLOR }} />
-                  </Button>
-                </div>
-
-                {/* Dots - style giống preview */}
-                <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 z-20">
-                  {slides.map((slide, index) => (
-                    <button
-                      key={`dot-${slide.image}-${index}`}
-                      type="button"
-                      onClick={() => handleDotClick(index)}
-                      className={cn(
-                        "h-2 w-2 rounded-full transition-all",
-                        current === index ? "w-6" : "bg-white/50"
-                      )}
-                      style={current === index ? { backgroundColor: WINE_COLOR } : {}}
-                      aria-label={`Chuyển tới slide ${index + 1}`}
-                      aria-current={current === index}
-                    >
-                      <span className="sr-only">{`Slide ${index + 1}`}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
           </Carousel>
+
+          {/* Navigation controls - NGOÀI carousel để không bị che */}
+          {hasMultipleSlides && (
+            <>
+              {/* Prev/Next buttons */}
+              <button
+                type="button"
+                onClick={() => handleManualNavigation("prev")}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105"
+                style={{ borderColor: `${WINE_COLOR}40` }}
+                aria-label="Xem slide trước"
+              >
+                <ChevronLeft size={14} style={{ color: WINE_COLOR }} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleManualNavigation("next")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105"
+                style={{ borderColor: `${WINE_COLOR}40` }}
+                aria-label="Xem slide tiếp theo"
+              >
+                <ChevronRight size={14} style={{ color: WINE_COLOR }} />
+              </button>
+
+              {/* Dots indicators */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                {slides.map((_, index) => (
+                  <button
+                    key={`dot-${index}`}
+                    type="button"
+                    onClick={() => handleDotClick(index)}
+                    className={cn(
+                      "w-2 h-2 rounded-full transition-all",
+                      current === index ? "w-6" : "bg-white/50"
+                    )}
+                    style={current === index ? { backgroundColor: WINE_COLOR } : {}}
+                    aria-label={`Chuyển tới slide ${index + 1}`}
+                    aria-current={current === index}
+                  >
+                    <span className="sr-only">{`Slide ${index + 1}`}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </section>
