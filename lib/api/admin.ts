@@ -234,6 +234,12 @@ export async function fetchAdminProduct(id: number): Promise<{ data: AdminProduc
    cover_image_url: string | null;
    published_at: string | null;
    created_at: string;
+   images?: Array<{
+     url: string;
+     path: string;
+     image_url?: string;
+     image_path?: string;
+   }>;
  }
  
  export interface AdminArticlesResponse {
@@ -626,6 +632,13 @@ export interface AdminImage {
   mime: string | null;
   model_type: string | null;
   model_id: number | null;
+  used_by: {
+    type: string;
+    label: string;
+    name: string;
+    slug: string | null;
+    url: string;
+  } | null;
   order: number;
   active: boolean;
   created_at?: string;

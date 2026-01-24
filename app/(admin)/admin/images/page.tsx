@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle, LayoutGrid, LayoutList } from 'lucide-react';
-import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle, LayoutGrid, LayoutList, ExternalLink } from 'lucide-react';
+import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton, Badge } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ImageEditModal } from './components/ImageEditModal';
 
 export default function ImagesListPage() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -31,6 +32,7 @@ export default function ImagesListPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: number } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingImageId, setEditingImageId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('admin_images_viewMode');
