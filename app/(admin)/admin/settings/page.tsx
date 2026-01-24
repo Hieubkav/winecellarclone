@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Search } from 'lucide-react';
+import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Search, X } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
@@ -19,7 +19,8 @@ export default function SettingsPage() {
   const [googleMapEmbed, setGoogleMapEmbed] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
-  const [metaKeywords, setMetaKeywords] = useState('');
+  const [metaKeywords, setMetaKeywords] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState('');
   
   // Watermark states
   const [watermarkType, setWatermarkType] = useState('image');
@@ -44,11 +45,15 @@ export default function SettingsPage() {
       setGoogleMapEmbed(data.google_map_embed || '');
       setMetaTitle(data.meta_default_title || '');
       setMetaDescription(data.meta_default_description || '');
-      setMetaKeywords(
-        Array.isArray(data.meta_default_keywords) 
-          ? data.meta_default_keywords.join(', ') 
-          : (data.meta_default_keywords || '')
-      );
+      
+      // Parse keywords
+      let keywords: string[] = [];
+      if (Array.isArray(data.meta_default_keywords)) {
+        keywords = data.meta_default_keywords;
+      } else if (typeof data.meta_default_keywords === 'string' && data.meta_default_keywords) {
+        keywords = data.meta_default_keywords.split(',').map(k => k.trim()).filter(Boolean);
+      }
+      setMetaKeywords(keywords);
       // Watermark
       setWatermarkType(data.product_watermark_type || 'image');
       setWatermarkPosition(data.product_watermark_position || 'none');
@@ -69,6 +74,21 @@ export default function SettingsPage() {
     loadSettings();
   }, [loadSettings]);
 
+  const handleKeywordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const trimmed = keywordInput.trim();
+      if (trimmed && !metaKeywords.includes(trimmed)) {
+        setMetaKeywords([...metaKeywords, trimmed]);
+        setKeywordInput('');
+      }
+    }
+  };
+
+  const handleKeywordRemove = (keyword: string) => {
+    setMetaKeywords(metaKeywords.filter(k => k !== keyword));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -83,7 +103,7 @@ export default function SettingsPage() {
         google_map_embed: googleMapEmbed || null,
         meta_default_title: metaTitle || null,
         meta_default_description: metaDescription || null,
-        meta_default_keywords: metaKeywords || null,
+        meta_default_keywords: metaKeywords.length > 0 ? metaKeywords : null,
         // Watermark
         product_watermark_type: watermarkType,
         product_watermark_position: watermarkPosition,
@@ -416,13 +436,35 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="metaKeywords">Từ khóa mặc định</Label>
-                  <Input
-                    id="metaKeywords"
-                    value={metaKeywords}
-                    onChange={(e) => setMetaKeywords(e.target.value)}
-                    placeholder="rượu vang, wine, rượu ngoại, whisky"
-                  />
-                  <p className="text-xs text-slate-500">Các từ khóa cách nhau bằng dấu phẩy</p>
+                  <div className="space-y-2">
+                    <Input
+                      id="metaKeywords"
+                      value={keywordInput}
+                      onChange={(e) => setKeywordInput(e.target.value)}
+                      onKeyDown={handleKeywordAdd}
+                      placeholder="Nhập từ khóa và nhấn Enter"
+                    />
+                    {metaKeywords.length > 0 && (
+                      <div className="flex flex-wrap gap-2 p-3 border border-slate-200 dark:border-slate-700 rounded-md bg-slate-50 dark:bg-slate-900/50">
+                        {metaKeywords.map((keyword) => (
+                          <span
+                            key={keyword}
+                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm"
+                          >
+                            {keyword}
+                            <button
+                              type="button"
+                              onClick={() => handleKeywordRemove(keyword)}
+                              className="hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-full p-0.5 transition-colors"
+                            >
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">Nhấn Enter để thêm từ khóa mới</p>
                 </div>
               </div>
             </Card>
