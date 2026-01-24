@@ -3,7 +3,6 @@
  import React, { useState, useEffect, use, useCallback, useRef } from 'react';
  import Image from 'next/image';
  import Link from 'next/link';
- import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
@@ -20,10 +19,21 @@ const formatNumberInput = (value: string) => {
 };
 
 const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, '')) : null);
+
+const generateSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+};
  
  export default function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
    const { id } = use(params);
-   const router = useRouter();
    const [isLoading, setIsLoading] = useState(true);
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [types, setTypes] = useState<ProductFilterOption[]>([]);
@@ -405,7 +415,12 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                    required
                    placeholder="Nhập tên sản phẩm..."
                    value={name}
-                   onChange={(e) => setName(e.target.value)}
+                   onChange={(e) => {
+                     setName(e.target.value);
+                     if (!showSlugEditor) {
+                       setSlug(generateSlug(e.target.value));
+                     }
+                   }}
                  />
                </div>
              </div>
@@ -619,8 +634,8 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                         {(() => {
                           const iconName = group.icon_name || group.icon_url?.split('/').pop();
-                          const IconComponent = iconName && (LucideIcons as any)[iconName]
-                            ? (LucideIcons as any)[iconName]
+                          const IconComponent = iconName && (LucideIcons as Record<string, React.ComponentType<{className?: string}>>)[iconName]
+                            ? (LucideIcons as Record<string, React.ComponentType<{className?: string}>>)[iconName]
                             : null;
                           return IconComponent ? <IconComponent className="w-4 h-4 text-red-500" /> : null;
                         })()}
