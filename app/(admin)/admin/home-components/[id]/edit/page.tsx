@@ -28,6 +28,7 @@ interface HeroSlide {
   id: number;
   image: string;
   path: string;
+  imageId?: number;
   link: string;
   alt: string;
 }
@@ -108,29 +109,48 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     });
   }, []);
 
-  const parseConfig = (type: string, config: any) => {
+  const parseConfig = async (type: string, config: any) => {
     try {
       switch (type) {
         case 'hero_carousel':
           console.log('parseConfig hero_carousel - raw config:', config);
           if (config.slides && Array.isArray(config.slides)) {
             console.log('parseConfig hero_carousel - slides:', config.slides);
-            // Debug: log chi tiết từng slide
-            config.slides.forEach((slide: any, idx: number) => {
-              console.log(`Slide ${idx + 1} RAW:`, slide);
-              console.log(`  - slide.image:`, slide.image);
-              console.log(`  - slide.image?.url:`, slide.image?.url);
-              console.log(`  - slide.href:`, slide.href);
-              console.log(`  - slide.alt:`, slide.alt);
-            });
             
-            setHeroSlides(config.slides.map((slide: any, idx: number) => ({
-              id: Date.now() + idx,
-              image: slide.image?.url || '',
-              path: slide.image?.url || '',
-              link: slide.href || '',
-              alt: slide.alt || slide.image?.alt || '',
-            })));
+            // Fetch images for slides with image_id
+            const slidesWithImages = await Promise.all(
+              config.slides.map(async (slide: any) => {
+                let imageUrl = '';
+                
+                // Try slide.image.url first (new format)
+                if (slide.image?.url) {
+                  imageUrl = slide.image.url;
+                }
+                // Fallback to fetch from image_id (old format)
+                else if (slide.image_id) {
+                  try {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'}/v1/admin/images/${slide.image_id}`);
+                    if (response.ok) {
+                      const data = await response.json();
+                      imageUrl = data.data?.url || '';
+                    }
+                  } catch (error) {
+                    console.error(`Failed to fetch image ${slide.image_id}:`, error);
+                  }
+                }
+                
+                return {
+                  id: Date.now() + Math.random(),
+                  image: imageUrl,
+                  path: imageUrl,
+                  imageId: slide.image_id || slide.image?.id,
+                  link: slide.href || '',
+                  alt: slide.alt || slide.image?.alt || '',
+                };
+              })
+            );
+            
+            setHeroSlides(slidesWithImages);
           }
           break;
 
@@ -242,9 +262,9 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         }
         return {
           slides: heroSlides.map(slide => ({
-            image: { id: 0, url: slide.image, alt: slide.alt },
-            href: slide.link,
-            alt: slide.alt,
+            image_id: slide.imageId || null,
+            href: slide.link || null,
+            alt: slide.alt || null,
           })),
         };
 

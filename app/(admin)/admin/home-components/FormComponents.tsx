@@ -10,6 +10,7 @@ interface Slide {
   id: number;
   image: string;
   path: string;
+  imageId?: number; // Add image_id field
   link: string;
   alt: string;
 }
@@ -38,9 +39,9 @@ export function HeroCarouselForm({ slides, onChange }: HeroCarouselFormProps) {
     onChange(updated);
   };
 
-  const updateSlideImage = (index: number, url: string, path: string) => {
+  const updateSlideImage = (index: number, url: string, path: string, imageId?: number) => {
     const updated = slides.map((slide, i) =>
-      i === index ? { ...slide, image: url, path } : slide
+      i === index ? { ...slide, image: url, path, imageId } : slide
     );
     onChange(updated);
   };
@@ -51,7 +52,7 @@ export function HeroCarouselForm({ slides, onChange }: HeroCarouselFormProps) {
 
   const removeSlideImage = (index: number) => {
     const updated = slides.map((slide, i) =>
-      i === index ? { ...slide, image: '', path: '' } : slide
+      i === index ? { ...slide, image: '', path: '', imageId: undefined } : slide
     );
     onChange(updated);
   };
@@ -85,7 +86,7 @@ export function HeroCarouselForm({ slides, onChange }: HeroCarouselFormProps) {
                   label="Hình ảnh slide"
                   value={slide.image}
                   path={slide.path}
-                  onChange={(url, path) => updateSlideImage(idx, url, path)}
+                  onChange={(url, path, imageId) => updateSlideImage(idx, url, path, imageId)}
                   onRemove={() => removeSlideImage(idx)}
                   aspectRatio="21:9"
                   folder="home-components/hero"

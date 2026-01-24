@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 interface ImageUploadFieldProps {
   value?: string;
   path?: string;
-  onChange: (url: string, path: string) => void;
+  onChange: (url: string, path: string, id?: number) => void;
   onRemove?: () => void;
   label?: string;
   aspectRatio?: 'square' | 'video' | '21:9' | 'auto';
@@ -126,7 +126,7 @@ export function ImageUploadField({
       const result = await response.json();
       
       if (result.success && result.data) {
-        onChange(result.data.url, result.data.path);
+        onChange(result.data.url, result.data.path, result.data.id);
         toast.success('Đã tải ảnh lên');
         return result.data;
       }
@@ -179,7 +179,7 @@ export function ImageUploadField({
       const result = await response.json();
       
       if (result.success && result.data) {
-        onChange(result.data.url, result.data.path);
+        onChange(result.data.url, result.data.path, result.data.id);
         setUrlInput('');
         setShowUrlInput(false);
         toast.success('Đã tải ảnh từ URL');
