@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle, LayoutGrid, LayoutList } from 'lucide-react';
-import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle, LayoutGrid, LayoutList, ExternalLink } from 'lucide-react';
+import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton, Badge } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
@@ -46,6 +46,7 @@ export default function ImagesListPage() {
     { key: 'select', label: 'Chọn' },
     { key: 'preview', label: 'Xem trước', required: true },
     { key: 'file_path', label: 'Tên file', required: true },
+    { key: 'used_by', label: 'Đang dùng tại' },
     { key: 'alt', label: 'Alt text' },
     { key: 'dimensions', label: 'Kích thước' },
     { key: 'actions', label: 'Hành động', required: true },
@@ -56,7 +57,7 @@ export default function ImagesListPage() {
       const saved = localStorage.getItem('admin_images_visibleColumns');
       if (saved) return JSON.parse(saved);
     }
-    return ['select', 'preview', 'file_path', 'actions'];
+    return ['select', 'preview', 'file_path', 'used_by', 'actions'];
   });
 
   useEffect(() => {
@@ -230,6 +231,7 @@ export default function ImagesListPage() {
                   {visibleColumns.includes('file_path') && (
                     <SortableHeader label="Tên file" sortKey="file_path" sortConfig={sortConfig} onSort={handleSort} />
                   )}
+                  {visibleColumns.includes('used_by') && <TableHead>Đang dùng tại</TableHead>}
                   {visibleColumns.includes('alt') && <TableHead>Alt text</TableHead>}
                   {visibleColumns.includes('dimensions') && <TableHead>Kích thước</TableHead>}
                   {visibleColumns.includes('actions') && <TableHead className="text-right">Hành động</TableHead>}
@@ -254,6 +256,24 @@ export default function ImagesListPage() {
                     )}
                     {visibleColumns.includes('file_path') && (
                       <TableCell className="font-medium max-w-[200px] truncate">{img.file_path}</TableCell>
+                    )}
+                    {visibleColumns.includes('used_by') && (
+                      <TableCell>
+                        {img.used_by ? (
+                          <Link 
+                            href={img.used_by.url} 
+                            className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm"
+                          >
+                            <Badge variant="outline" className="font-normal">
+                              {img.used_by.label}
+                            </Badge>
+                            <span className="max-w-[150px] truncate">{img.used_by.name}</span>
+                            <ExternalLink size={12} />
+                          </Link>
+                        ) : (
+                          <span className="text-slate-400 text-sm">Chưa dùng</span>
+                        )}
+                      </TableCell>
                     )}
                     {visibleColumns.includes('alt') && (
                       <TableCell className="max-w-[150px] truncate">{img.alt || '—'}</TableCell>
@@ -318,7 +338,19 @@ export default function ImagesListPage() {
                         </div>
                       )}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent p-3 pt-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-white text-xs font-medium truncate mb-2">{img.file_path}</p>
+                        <p className="text-white text-xs font-medium truncate mb-1">{img.file_path}</p>
+                        {img.used_by && (
+                          <Link 
+                            href={img.used_by.url}
+                            className="flex items-center gap-1 text-white/90 hover:text-white text-xs mb-2"
+                          >
+                            <Badge variant="secondary" className="text-xs h-5 px-1.5">
+                              {img.used_by.label}
+                            </Badge>
+                            <span className="truncate">{img.used_by.name}</span>
+                            <ExternalLink size={10} />
+                          </Link>
+                        )}
                         <div className="flex gap-1">
                           <Button 
                             variant="secondary" 
