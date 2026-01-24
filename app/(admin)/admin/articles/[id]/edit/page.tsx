@@ -48,10 +48,20 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
       setActive(article.active);
 
       if (article.images && Array.isArray(article.images) && article.images.length > 0) {
-        setGalleryImages(article.images.map((img: any) => ({
-          url: img.url || img.image_url,
-          path: img.path || img.image_path
-        })));
+        const mappedImages = article.images.map((img: any) => {
+          const url = img.url || img.image_url;
+          const path = img.path || img.image_path || img.file_path;
+
+          console.log('[loadArticle] Image mapping:', {
+            original: img,
+            mapped: { url, path },
+            hasPath: !!path
+          });
+
+          return { url, path };
+        });
+
+        setGalleryImages(mappedImages);
       }
     } catch (error) {
       console.error('Failed to load article:', error);
@@ -235,10 +245,15 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
 
     setIsSubmitting(true);
     try {
+      // Debug: log current galleryImages state
+      console.log('[DEBUG] galleryImages state:', galleryImages);
+
       // Ensure image_paths are valid strings
       const validImagePaths = galleryImages
         .map(img => img.path)
         .filter(path => typeof path === 'string' && path.trim().length > 0);
+
+      console.log('[DEBUG] validImagePaths:', validImagePaths);
 
       const data: Record<string, unknown> = {
         title: title.trim(),
