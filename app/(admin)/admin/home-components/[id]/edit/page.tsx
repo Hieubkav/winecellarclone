@@ -312,8 +312,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           if (config.items && Array.isArray(config.items)) {
             setSpeedDialItems(config.items.map((item: any, idx: number) => ({
               id: Date.now() + idx,
-              iconType: item.iconType || 'phone',
-              iconUrl: item.iconUrl || '',
+              iconType: item.icon_type || item.iconType || 'phone',
+              iconUrl: item.icon_url || item.iconUrl || '',
               label: item.label || '',
               href: item.href || '',
               target: item.target || '_self',
@@ -468,8 +468,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         }
         return {
           items: speedDialItems.map(item => ({
-            iconType: item.iconType,
-            iconUrl: item.iconUrl || null,
+            icon_type: item.iconType,
+            icon_url: item.iconUrl || null,
             label: item.label,
             href: item.href,
             target: item.target,

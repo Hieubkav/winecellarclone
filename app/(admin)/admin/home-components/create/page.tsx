@@ -240,8 +240,8 @@ export default function HomeComponentCreatePage() {
         }
         return {
           items: speedDialItems.map(item => ({
-            iconType: item.iconType,
-            iconUrl: item.iconUrl || null,
+            icon_type: item.iconType,
+            icon_url: item.iconUrl || null,
             label: item.label,
             href: item.href,
             target: item.target,
