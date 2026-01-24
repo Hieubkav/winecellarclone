@@ -208,7 +208,7 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
       <div className="min-h-screen bg-white selection:bg-[#C9A050]/30 selection:text-[#8B1832]">
         <article className="min-h-screen">
           {/* Breadcrumb & Meta - Compact */}
-          <div className="border-b border-gray-200/40 pb-6 mb-6">
+          <div className="border-b border-gray-200/40 pt-6 pb-6 mb-6">
             <div className="container mx-auto px-4 max-w-5xl">
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
                 <Link href="/" className="hover:text-[#8B1832] cursor-pointer transition-colors">
@@ -216,10 +216,10 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
                 </Link>
                 <ChevronRight className="h-3 w-3 text-[#C9A050]" />
                 <Link href="/bai-viet" className="hover:text-[#8B1832] cursor-pointer transition-colors">
-                  Blog Rượu Vang
+                  Bài viết
                 </Link>
                 <ChevronRight className="h-3 w-3 text-[#C9A050]" />
-                <span className="text-[#C9A050] font-medium uppercase tracking-wide truncate max-w-[200px]">
+                <span className="text-[#C9A050] font-medium truncate max-w-[300px]">
                   {article.title}
                 </span>
               </div>
@@ -331,7 +331,7 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
 
         {/* Related Articles */}
         {article.related_articles && article.related_articles.length > 0 && (
-          <div className="container mx-auto px-4 md:px-6 max-w-7xl border-t border-gray-200 pt-8 mt-12">
+          <div className="container mx-auto px-4 md:px-6 max-w-7xl border-t border-gray-200 pt-8 mt-12 pb-12">
             <div className="flex items-center gap-3 mb-8">
               <div className="h-px flex-1 bg-gray-200" />
               <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#8B1832] shrink-0">
@@ -342,34 +342,6 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
             <RelatedArticles articles={article.related_articles} />
           </div>
         )}
-
-        {/* Footer CTA */}
-        <div className="bg-gray-50 py-12 mt-12">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-2xl font-bold text-[#1C1C1C] mb-4 font-serif">
-                Khám phá thêm bài viết
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Tìm hiểu thêm về rượu vang, cocktail và nghệ thuật thưởng thức
-              </p>
-              <Link
-                href="/bai-viet"
-                className="inline-flex h-12 px-8 items-center justify-center bg-[#8B1832] hover:bg-[#6B1226] text-white rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 font-medium"
-                onClick={() =>
-                  trackCTAContact({
-                    button: "view_all_articles",
-                    placement: "article_footer",
-                    article_id: article.id,
-                    article_title: article.title,
-                  })
-                }
-              >
-                Xem tất cả bài viết
-              </Link>
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );
