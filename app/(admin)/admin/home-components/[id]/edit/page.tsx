@@ -388,7 +388,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       
       if (result.success) {
         toast.success(result.message || 'Cập nhật thành phần thành công');
-        router.push('/admin/home-components');
+        // Reload component data thay vì redirect
+        await loadComponent(componentId);
       }
     } catch (error) {
       console.error('Failed to update component:', error);
