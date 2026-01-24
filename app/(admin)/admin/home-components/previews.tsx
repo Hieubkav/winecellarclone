@@ -391,7 +391,7 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
               ) : articles && articles.length > 0 ? (
                 <div className={cn(
                   "grid gap-8",
-                  device === 'mobile' ? 'grid-cols-1' : device === 'tablet' ? 'sm:grid-cols-2' : 'xl:grid-cols-3'
+                  device === 'mobile' ? 'grid-cols-1' : 'md:grid-cols-3'
                 )}>
                   {articles.slice(0, 3).map((article: any) => {
                     // listForSelect API returns: value, label, cover_image, published_at

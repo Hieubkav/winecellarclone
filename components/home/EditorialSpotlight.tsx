@@ -41,7 +41,7 @@ export default function EditorialSpotlight({ label, title, description, articles
               <p className="max-w-2xl mx-auto text-slate-600 mt-4">{description}</p>
             )}
           </header>
-          <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-3">
             {articles.map((article, index) => (
               <ArticleCard key={article.id} article={article} index={index} />
             ))}
