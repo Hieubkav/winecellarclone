@@ -108,7 +108,7 @@ import { ProductImage } from "@/components/ui/product-image";
 
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
-import { processProductContent } from "@/lib/utils/article-content";
+import { processProductContent, getImageUrl } from "@/lib/utils/article-content";
 import RelatedProductsSection from "./RelatedProducts";
 
 interface AttributeDisplayItem {
@@ -202,12 +202,12 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     const urls: string[] = [];
 
     if (product.cover_image_url) {
-      urls.push(product.cover_image_url);
+      urls.push(getImageUrl(product.cover_image_url));
     }
 
     const galleryUrls = (product.gallery ?? [])
-      .map((image) => image.url)
-      .filter((url): url is string => Boolean(url) && url !== product.cover_image_url);
+      .map((image) => getImageUrl(image.url))
+      .filter((url): url is string => Boolean(url) && url !== getImageUrl(product.cover_image_url));
 
     urls.push(...galleryUrls);
 

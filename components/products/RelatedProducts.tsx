@@ -6,6 +6,7 @@ import { ArrowRight, ShoppingCart } from "lucide-react";
 import type { ProductListItem } from "@/lib/api/products";
 import { ProductImage } from "@/components/ui/product-image";
 import { Button } from "@/components/ui/button";
+import { getImageUrl } from "@/lib/utils/article-content";
 
 interface RelatedProductsSectionProps {
   title: string;
@@ -86,7 +87,7 @@ export default function RelatedProductsSection({
               <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f0e8]">
                 <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-4">
                   <ProductImage 
-                    src={product.main_image_url || "/placeholder/wine-bottle.svg"} 
+                    src={getImageUrl(product.main_image_url)} 
                     alt={product.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"

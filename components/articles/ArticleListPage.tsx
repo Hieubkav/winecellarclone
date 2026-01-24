@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ArticleListResponse } from "@/lib/api/articles";
 import { cn } from "@/lib/utils";
+import { getImageUrl } from "@/lib/utils/article-content";
 
 const SORT_OPTIONS = [
   { value: "-created_at", label: "Mới nhất" },
@@ -62,7 +63,7 @@ function BlogCard({ article, index }: BlogCardProps) {
               <Skeleton className="absolute inset-0 w-full h-full" />
             )}
             <Image
-              src={article.cover_image_url || "/placeholder/article.svg"}
+              src={getImageUrl(article.cover_image_url)}
               alt={article.title}
               fill
               onLoad={() => setIsImageLoaded(true)}

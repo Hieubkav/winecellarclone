@@ -7,7 +7,7 @@ import { Calendar, Clock, ChevronRight, Facebook, Twitter, ChevronLeft } from "l
 import ArticleJsonLd from "./ArticleJsonLd";
 import RelatedArticles from "./RelatedArticles";
 import type { ArticleDetail } from "@/lib/api/articles";
-import { processArticleContent, calculateReadingTime } from "@/lib/utils/article-content";
+import { processArticleContent, calculateReadingTime, getImageUrl } from "@/lib/utils/article-content";
 import { useTracking } from "@/hooks/use-tracking";
 
 interface ArticleDetailPageProps {
@@ -173,11 +173,11 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
 
   const processedContent = processArticleContent(article.content);
   const readingTime = article.content ? calculateReadingTime(article.content) : 5;
-  const coverImage = article.cover_image_url || "/placeholder/article.svg";
+  const coverImage = getImageUrl(article.cover_image_url);
 
   // Prepare gallery images
   const galleryImages = article.gallery && article.gallery.length > 0
-    ? article.gallery.map(img => ({ url: img.url || "/placeholder/article.svg", alt: img.alt || article.title }))
+    ? article.gallery.map(img => ({ url: getImageUrl(img.url), alt: img.alt || article.title }))
     : [];
 
   // Share functionality

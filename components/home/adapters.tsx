@@ -12,6 +12,7 @@ import type {
   ApiArticle,
 } from "@/lib/api/home";
 import type { HomeShowcaseProduct, HomeEditorial } from "@/data/homeCollections";
+import { getImageUrl } from "@/lib/utils/article-content";
 
 // Transform API product to HomeShowcaseProduct format
 export function transformApiProduct(product: ApiProduct): HomeShowcaseProduct {
@@ -26,7 +27,7 @@ export function transformApiProduct(product: ApiProduct): HomeShowcaseProduct {
     id: product.id.toString(),
     name: product.name,
     href: `/san-pham/${product.slug}`,
-    image: product.cover_image_url || "/placeholder.jpg",
+    image: getImageUrl(product.cover_image_url),
     country: product.country_term?.name || "",
     style: product.type?.name || "",
     price: priceFormatted,
@@ -49,7 +50,7 @@ export function transformApiArticle(article: ApiArticle): HomeEditorial {
     title: article.title,
     summary: article.excerpt || "",
     href: `/bai-viet/${article.slug}`,
-    image: article.cover_image_url || "/placeholder.jpg",
+    image: getImageUrl(article.cover_image_url),
     readingTime: article.reading_time ? `${article.reading_time} phút đọc` : "",
     highlight: "",
     category: article.category_term?.name || "",
@@ -98,7 +99,7 @@ export function adaptHeroCarouselProps(config: HeroCarouselConfig) {
     slides: (config.slides || [])
       .filter((slide) => slide?.image?.url)
       .map((slide) => ({
-        image: slide.image.url,
+        image: getImageUrl(slide.image.url),
         alt: slide.alt || slide.image.alt || "",
         href: slide.href,
       })),
@@ -110,7 +111,7 @@ export function adaptDualBannerProps(config: DualBannerConfig) {
     banners: (config.banners || [])
       .filter((banner) => banner?.image?.url)
       .map((banner) => ({
-        image: banner.image.url,
+        image: getImageUrl(banner.image.url),
         alt: banner.alt || banner.image.alt || "",
         href: banner.href,
       })),
@@ -123,7 +124,7 @@ export function adaptBrandShowcaseProps(config: BrandShowcaseConfig) {
     brands: (config.brands || [])
       .filter((brand) => brand?.image?.url)
       .map((brand) => ({
-        image: brand.image.url,
+        image: getImageUrl(brand.image.url),
         alt: brand.alt || brand.image.alt || "",
         href: brand.href,
       })),
@@ -137,7 +138,7 @@ export function adaptCategoryGridProps(config: CategoryGridConfig) {
       .map((item) => ({
         title: item.title,
         href: item.href,
-        image: item.image?.url || null, // Allow null image
+        image: item.image?.url ? getImageUrl(item.image.url) : null, // Allow null image
         alt: item.image?.alt || item.title,
       })),
   };
@@ -160,7 +161,7 @@ export function adaptSpeedDialProps(config: SpeedDialConfig) {
       .filter((item) => item && item.label && item.href)
       .map((item) => ({
         iconType: item.icon_type,
-        iconUrl: item.icon_url,
+        iconUrl: item.icon_url ? getImageUrl(item.icon_url) : null,
         label: item.label,
         href: item.href,
         target: item.target,

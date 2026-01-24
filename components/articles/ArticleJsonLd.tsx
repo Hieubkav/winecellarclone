@@ -1,4 +1,5 @@
 import type { ArticleDetail } from "@/lib/api/articles";
+import { getImageUrl } from "@/lib/utils/article-content";
 
 interface ArticleJsonLdProps {
   article: ArticleDetail;
@@ -11,7 +12,7 @@ export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
     headline: article.title,
     description: article.excerpt || article.meta.description,
     image: article.cover_image_url
-      ? [article.cover_image_url]
+      ? [getImageUrl(article.cover_image_url)]
       : [],
     datePublished: article.published_at,
     dateModified: article.updated_at,

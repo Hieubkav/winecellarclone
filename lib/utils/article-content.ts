@@ -9,6 +9,30 @@ const getBackendBaseUrl = (): string => {
 };
 
 /**
+ * Convert relative /storage/ path to absolute URL with backend domain
+ * Example: /storage/image.jpg -> https://backend.com/storage/image.jpg
+ * 
+ * Also handles cases where URL might already be absolute or null
+ */
+export function getImageUrl(url: string | null | undefined): string {
+  if (!url) return "/placeholder/wine-bottle.svg";
+  
+  // Already absolute URL - return as is
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url;
+  }
+  
+  // Relative path starting with /storage/ - prepend backend URL
+  if (url.startsWith("/storage/")) {
+    const backendUrl = getBackendBaseUrl();
+    return `${backendUrl}${url}`;
+  }
+  
+  // Other relative paths (like /placeholder/) - return as is
+  return url;
+}
+
+/**
  * Convert relative /storage/ paths to absolute URLs
  * Example: /storage/image.jpg -> http://127.0.0.1:8000/storage/image.jpg
  */
