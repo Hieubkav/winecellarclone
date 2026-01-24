@@ -298,10 +298,11 @@ function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren
   return (
     <div className="border-b border-[#751826] bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav className="relative flex items-center gap-6 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
+        <nav className="relative flex items-center gap-4 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
           {items.map((item) => {
-            // Mega menu nếu có children với nhiều blocks (>1 cột)
+            // Có dropdown nếu có children với items
             const hasValidChildren = item.children && item.children.length > 0
+            // Mega menu khi có nhiều hơn 1 block
             const isMega = hasValidChildren && item.children!.length > 1
             return (
               <div
@@ -312,7 +313,7 @@ function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren
                   href={item.href}
                   className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[#1C1C1C]/80 transition-all hover:bg-[#1C1C1C]/10 hover:text-[#1C1C1C]"
                 >
-                  <span>{item.label}</span>
+                  <span className="whitespace-nowrap">{item.label}</span>
                   {hasValidChildren && (
                     <ChevronDown size={14} className="text-[#1C1C1C]/70 transition-transform group-hover:rotate-180" />
                   )}
@@ -333,71 +334,52 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
   // Guard: không render nếu menu rỗng
   if (!menu || menu.length === 0) return null
 
-  // Separate "View All" section from regular sections
-  const viewAllSection = menu.find(section => section.isViewAll)
-  const regularSections = menu.filter(section => !section.isViewAll)
+  // Chỉ lấy các section có label và children
+  const validSections = menu.filter(section => section.label && section.children && section.children.length > 0)
+  
+  if (validSections.length === 0) return null
 
   const containerClasses = isFull
     ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#ECAA4D]/35 bg-white px-8 py-7 shadow-[0_28px_60px_rgba(28,28,28,0.12)]"
-    : "absolute left-0 top-full w-fit max-w-sm rounded-b-xl border border-[#ECAA4D]/35 bg-white px-6 py-5 shadow-[0_24px_48px_rgba(28,28,28,0.1)]"
+    : "absolute left-0 top-full z-20 min-w-[200px] max-w-sm rounded-b-xl border border-[#ECAA4D]/35 bg-white px-6 py-5 shadow-[0_24px_48px_rgba(28,28,28,0.1)]"
 
   // Dynamic grid columns based on number of sections (max 4)
-  const colCount = Math.min(regularSections.length, 4)
+  const colCount = Math.min(validSections.length, 4)
 
   return (
     <div
       className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
     >
-      {/* View All link - Best Practice: đặt ở đầu mega menu */}
-      {viewAllSection && viewAllSection.children?.[0] && (
-        <div className="mb-4 border-b border-[#ECAA4D]/20 pb-4">
-          <Link
-            href={viewAllSection.children[0].href || '#'}
-            className="inline-flex items-center gap-2 rounded-full bg-[#ECAA4D] px-4 py-2 text-[0.78rem] font-bold uppercase tracking-[0.12em] text-[#1C1C1C] transition-all hover:bg-[#d99a3d] hover:shadow-md"
-          >
-            <span>→</span>
-            <span>{viewAllSection.children[0].label}</span>
-          </Link>
-        </div>
-      )}
-
       <div 
         className={`mx-auto grid max-w-7xl ${isFull ? "gap-8" : "grid-cols-1 gap-4"}`} 
         style={isFull ? { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` } : undefined}
       >
-        {regularSections.map((section, idx) => {
-          // Skip sections without children
-          if (!section.children || section.children.length === 0) return null
-          
-          return (
-            <div key={section.label || idx} className={`min-w-[180px] ${isFull && idx > 0 ? "border-l border-[#ECAA4D]/25 pl-6" : ""}`}>
-              <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
-              <ul className="space-y-2">
-                {section.children.map((child, childIdx) => (
-                  <li key={child.label || childIdx}>
-                    <Link
-                      href={child.href || '#'}
-                      className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
-                        child.isViewAll
-                          ? "font-semibold text-[#ECAA4D] hover:bg-[#ECAA4D]/12"
-                          : child.isHot
-                          ? "font-semibold text-[#9B2C3B]"
-                          : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
-                      }`}
-                    >
-                      {child.isHot && (
-                        <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
-                          HOT
-                        </span>
-                      )}
-                      {child.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
+        {validSections.map((section, idx) => (
+          <div key={section.label || idx} className={`min-w-[180px] ${isFull && idx > 0 ? "border-l border-[#ECAA4D]/25 pl-6" : ""}`}>
+            <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
+            <ul className="space-y-2">
+              {section.children.map((child, childIdx) => (
+                <li key={child.label || childIdx}>
+                  <Link
+                    href={child.href || '#'}
+                    className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
+                      child.isHot
+                        ? "font-semibold text-[#9B2C3B]"
+                        : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
+                    }`}
+                  >
+                    {child.isHot && (
+                      <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
+                        HOT
+                      </span>
+                    )}
+                    {child.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   )

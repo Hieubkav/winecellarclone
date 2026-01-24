@@ -1077,32 +1077,15 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
         const blocks: AdminMenuBlock[] = [];
 
         if (typeCategories.length > 0) {
-          // Create "Theo danh mục" block
+          // Create block with product type name (không dùng "Theo danh mục")
           const blockResult = await createMenuBlock(menuResult.data.id, {
-            title: 'Theo danh mục',
+            title: productType.name,
             active: true,
           });
 
           const items: AdminMenuBlockItem[] = [];
 
-          // Add "Xem tất cả" item first
-          const viewAllResult = await createMenuBlockItem(blockResult.data.id, {
-            label: `Tất cả ${productType.name}`,
-            href: `/san-pham?type=${productType.slug}`,
-            badge: null,
-            active: true,
-          });
-
-          items.push({
-            id: viewAllResult.data.id,
-            label: `Tất cả ${productType.name}`,
-            href: `/san-pham?type=${productType.slug}`,
-            badge: null,
-            order: 0,
-            active: true,
-          });
-
-          // Add category items
+          // Add category items (không cần "Xem tất cả" vì menu cha đã có href)
           for (let j = 0; j < typeCategories.length; j++) {
             const category = typeCategories[j];
             const itemResult = await createMenuBlockItem(blockResult.data.id, {
@@ -1116,14 +1099,14 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
               label: category.name,
               href: `/san-pham?type=${productType.slug}&category=${category.slug}`,
               badge: null,
-              order: j + 1,
+              order: j,
               active: true,
             });
           }
 
           blocks.push({
             id: blockResult.data.id,
-            title: 'Theo danh mục',
+            title: productType.name,
             order: 0,
             active: true,
             items,
