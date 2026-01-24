@@ -13,18 +13,26 @@ const getBackendBaseUrl = (): string => {
  * Example: /storage/image.jpg -> https://backend.com/storage/image.jpg
  * 
  * Also handles cases where URL might already be absolute or null
+ * Converts localhost URLs to production backend URL
  */
 export function getImageUrl(url: string | null | undefined): string {
   if (!url) return "/placeholder/wine-bottle.svg";
   
-  // Already absolute URL - return as is
+  const backendUrl = getBackendBaseUrl();
+  
+  // Convert localhost URLs to production backend URL
+  if (url.includes("127.0.0.1:8000/storage/") || url.includes("localhost:8000/storage/")) {
+    const storagePath = url.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000/, "");
+    return `${backendUrl}${storagePath}`;
+  }
+  
+  // Already absolute URL with correct domain - return as is
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
   
   // Relative path starting with /storage/ - prepend backend URL
   if (url.startsWith("/storage/")) {
-    const backendUrl = getBackendBaseUrl();
     return `${backendUrl}${url}`;
   }
   
