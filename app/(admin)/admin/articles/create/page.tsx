@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../../components/ui';
 import { createArticle } from '@/lib/api/admin';
 import { API_BASE_URL } from '@/lib/api/client';
@@ -187,6 +187,24 @@ export default function ArticleCreatePage() {
     setDragIndex(null);
   }, [dragIndex]);
 
+  const handleAIWriting = () => {
+    const prompt = encodeURIComponent(`Viết ngay bài viết tiếng Việt về chủ đề rượu vang trending (có thể là: review giống nho mới, xu hướng rượu vang 2026, cách chọn rượu vang theo phong cách, food pairing, vùng rượu nổi bật...).
+
+Yêu cầu:
+- Mở bài: thu hút, nêu vấn đề/lợi ích, tạo tò mò
+- Thân bài: 3-5 phần với heading rõ ràng (H2/H3), có storytelling, số liệu cụ thể, ví dụ thực tế
+- Kết bài: tóm tắt + kêu gọi hành động
+- Tối ưu SEO: từ khóa tự nhiên, dễ đọc, có internal linking suggestions
+- Độ dài: 800-1200 từ
+- Giọng văn: conversational, thân thiện, chuyên môn vừa phải
+- Thêm: 3-5 tips thực tế, 1-2 case study/câu chuyện, FAQ (nếu phù hợp)
+
+Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu trúc heading rõ ràng, không hỏi lại.`);
+
+    const chatGPTUrl = `https://chatgpt.com/?model=auto&prompt=${prompt}`;
+    window.open(chatGPTUrl, '_blank');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -221,16 +239,27 @@ export default function ArticleCreatePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/articles">
-          <Button variant="outline" size="icon">
-            <ArrowLeft size={18} />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Thêm bài viết mới</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Tạo bài viết mới cho website</p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/articles">
+            <Button variant="outline" size="icon">
+              <ArrowLeft size={18} />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Thêm bài viết mới</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Tạo bài viết mới cho website</p>
+          </div>
         </div>
+        <Button
+          type="button"
+          onClick={handleAIWriting}
+          variant="default"
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+        >
+          <Sparkles size={16} className="mr-2" />
+          Tạo bài viết bằng AI
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
