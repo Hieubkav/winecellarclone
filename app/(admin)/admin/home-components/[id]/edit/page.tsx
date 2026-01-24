@@ -207,6 +207,12 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           console.log('parseConfig category_grid - raw config:', config);
           if (config.categories && Array.isArray(config.categories)) {
             console.log('parseConfig category_grid - categories array:', config.categories);
+            
+            // Log first item detail
+            if (config.categories[0]) {
+              console.log('First category FULL OBJECT:', JSON.stringify(config.categories[0], null, 2));
+            }
+            
             const parsed = config.categories.map((cat: any, idx: number) => {
               // Handle both string URL and object {url} formats
               const imageUrl = typeof cat.image === 'string'
@@ -219,6 +225,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 parsedImageUrl: imageUrl,
                 title: cat.title,
                 href: cat.href,
+                fullObject: cat,
               });
               
               return {
