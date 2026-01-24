@@ -223,7 +223,7 @@ export const CollectionShowcasePreview = ({ title, subtitle, description, produc
     queryKey: ['products', 'by-ids', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${API_BASE_URL}/v1/products?ids=${ids.join(',')}&per_page=100`);
+      const response = await fetch(`${API_BASE_URL}/v1/admin/products/list-for-select?ids=${ids.join(',')}&limit=100`);
       if (!response.ok) throw new Error('Failed to fetch products');
       const json = await response.json();
       return json.data || [];
@@ -279,19 +279,23 @@ export const CollectionShowcasePreview = ({ title, subtitle, description, produc
                   device === 'mobile' ? 'grid-cols-2' : device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'
                 )}>
                   {products.slice(0, 8).map((product: any) => {
+                    // listForSelect API returns: value, label, price, cover_image
+                    const productId = product.value || product.id;
+                    const productName = product.label?.replace(/\s*\(#\d+\)$/, '') || product.name || '';
+                    const productPrice = product.price;
                     // Fix image URL if relative
                     let imageUrl = product.cover_image?.url || '';
                     if (imageUrl && !imageUrl.startsWith('http')) {
                       imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
                     }
                     return (
-                      <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                      <div key={productId} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
                         {imageUrl && (
-                          <img src={imageUrl} alt={product.name} className="w-full aspect-square object-cover rounded mb-2" />
+                          <img src={imageUrl} alt={productName} className="w-full aspect-square object-cover rounded mb-2" />
                         )}
-                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
+                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{productName}</h3>
                         <p className="text-sm font-bold" style={{ color: accentColor }}>
-                          {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
+                          {productPrice ? `${productPrice.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
                         </p>
                       </div>
                     );
@@ -333,7 +337,7 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
     queryKey: ['articles', 'by-ids', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${API_BASE_URL}/v1/articles?ids=${ids.join(',')}&per_page=100`);
+      const response = await fetch(`${API_BASE_URL}/v1/admin/articles/list-for-select?ids=${ids.join(',')}&limit=100`);
       if (!response.ok) throw new Error('Failed to fetch articles');
       const json = await response.json();
       return json.data || [];
@@ -392,26 +396,30 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                   device === 'mobile' ? 'grid-cols-1' : device === 'tablet' ? 'sm:grid-cols-2' : 'xl:grid-cols-3'
                 )}>
                   {articles.slice(0, 3).map((article: any) => {
+                    // listForSelect API returns: value, label, cover_image, published_at
+                    const articleId = article.value || article.id;
+                    const articleTitle = article.label?.replace(/\s*\(#\d+\)$/, '') || article.title || '';
+                    const publishedAt = article.published_at;
                     // Fix image URL if relative
                     let imageUrl = article.cover_image?.url || '';
                     if (imageUrl && !imageUrl.startsWith('http')) {
                       imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
                     }
                     return (
-                      <div key={article.id} className="group flex h-full flex-col overflow-hidden border border-[#efefef] bg-white/95 p-0 rounded-lg transition hover:-translate-y-1 hover:border-[#ECAA4D]/60">
+                      <div key={articleId} className="group flex h-full flex-col overflow-hidden border border-[#efefef] bg-white/95 p-0 rounded-lg transition hover:-translate-y-1 hover:border-[#ECAA4D]/60">
                         {imageUrl && (
                           <div className="relative aspect-video w-full overflow-hidden bg-[#FAFAFA]">
-                            <img src={imageUrl} alt={article.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.02]" />
+                            <img src={imageUrl} alt={articleTitle} className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.02]" />
                           </div>
                         )}
                         <div className="flex flex-1 flex-col p-5">
                           <h3 className="text-lg font-semibold text-[#1C1C1C] transition-colors group-hover:text-[#9B2C3B]">
-                            {article.title}
+                            {articleTitle}
                           </h3>
                           <div className="mt-auto flex items-center justify-between border-t border-[#f5f5f5] pt-4">
                             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B2C3B]">Thien Kim Wine</span>
                             <span className="text-xs text-slate-500">
-                              {article.published_at ? new Date(article.published_at).toLocaleDateString('vi-VN') : ''}
+                              {publishedAt ? new Date(publishedAt).toLocaleDateString('vi-VN') : ''}
                             </span>
                           </div>
                         </div>
@@ -456,7 +464,7 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
     queryKey: ['products', 'favourite', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${API_BASE_URL}/v1/products?ids=${ids.join(',')}&per_page=100`);
+      const response = await fetch(`${API_BASE_URL}/v1/admin/products/list-for-select?ids=${ids.join(',')}&limit=100`);
       if (!response.ok) throw new Error('Failed to fetch products');
       const json = await response.json();
       return json.data || [];
@@ -503,6 +511,10 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                   <div className="overflow-x-auto pb-2 -mx-3 md:-mx-1.5">
                     <div className="flex gap-3 md:gap-4 px-3 md:px-1.5">
                       {products.slice(0, 6).map((product: any) => {
+                        // listForSelect API returns: value, label, price, cover_image
+                        const productId = product.value || product.id;
+                        const productName = product.label?.replace(/\s*\(#\d+\)$/, '') || product.name || '';
+                        const productPrice = product.price;
                         // Fix image URL if relative
                         let imageUrl = product.cover_image?.url || '';
                         if (imageUrl && !imageUrl.startsWith('http')) {
@@ -510,12 +522,12 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                         }
                         const itemWidth = device === 'mobile' ? 'w-[140px]' : device === 'tablet' ? 'w-[150px]' : 'w-[170px]';
                         return (
-                          <div key={product.id} className={cn("flex-shrink-0", itemWidth)}>
+                          <div key={productId} className={cn("flex-shrink-0", itemWidth)}>
                             <div className="flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100">
                               {/* Image */}
                               {imageUrl && (
                                 <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg">
-                                  <img src={imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                                  <img src={imageUrl} alt={productName} className="w-full h-full object-cover" />
                                   <span className="absolute left-2 top-2 rounded-full bg-[#9B2C3B] px-1.5 py-0.5 text-[9px] font-bold text-white z-20">
                                     NEW
                                   </span>
@@ -523,9 +535,9 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                               )}
                               {/* Content */}
                               <div className="flex flex-1 flex-col p-2 text-[#1C1C1C]">
-                                <p className="mb-1 text-xs font-bold leading-tight line-clamp-2 h-8">{product.name}</p>
+                                <p className="mb-1 text-xs font-bold leading-tight line-clamp-2 h-8">{productName}</p>
                                 <p className="text-xs font-bold text-[#ECAA4D]">
-                                  {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
+                                  {productPrice ? `${productPrice.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
                                 </p>
                               </div>
                             </div>
