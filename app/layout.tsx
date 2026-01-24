@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { QueryProvider } from "@/lib/query-client";
@@ -8,6 +8,13 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-montserrat",
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -118,7 +125,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="vi" dir="ltr" className="scroll-smooth">
-      <body className={`${montserrat.variable} font-sans antialiased bg-white text-[#1C1C1C]`}>
+      <body className={`${montserrat.variable} ${playfairDisplay.variable} font-sans antialiased bg-white text-[#1C1C1C]`}>
         <QueryProvider>
           {children}
         </QueryProvider>
