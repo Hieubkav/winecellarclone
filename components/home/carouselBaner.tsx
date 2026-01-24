@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import Autoplay, { type AutoplayType } from "embla-carousel-autoplay"
 
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import {
   Carousel,
@@ -95,7 +95,7 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                 >
                   <div className="relative block">
                     {/* Responsive aspect ratio - giống preview */}
-                    <div className="relative block w-full overflow-hidden bg-slate-900 aspect-[16/9] max-h-[200px] sm:max-h-[250px] lg:aspect-[21/9] lg:max-h-[280px]">
+                    <div className="relative block w-full overflow-hidden bg-slate-900 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9]">
                       {/* Blurred background layer */}
                       <div
                         className="absolute inset-0 scale-110"
@@ -135,7 +135,7 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                     onClick={() => handleManualNavigation("prev")}
                     aria-label="Xem slide trước"
                   >
-                    <ArrowLeft className="h-4 w-4" style={{ color: WINE_COLOR }} />
+                    <ChevronLeft className="h-4 w-4" style={{ color: WINE_COLOR }} />
                   </Button>
                   <Button
                     type="button"
@@ -145,7 +145,7 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                     onClick={() => handleManualNavigation("next")}
                     aria-label="Xem slide tiếp theo"
                   >
-                    <ArrowRight className="h-4 w-4" style={{ color: WINE_COLOR }} />
+                    <ChevronRight className="h-4 w-4" style={{ color: WINE_COLOR }} />
                   </Button>
                 </div>
 
