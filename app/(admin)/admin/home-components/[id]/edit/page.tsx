@@ -204,12 +204,22 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           break;
 
         case 'category_grid':
+          console.log('parseConfig category_grid - raw config:', config);
           if (config.categories && Array.isArray(config.categories)) {
-            setCategories(config.categories.map((cat: any, idx: number) => {
+            console.log('parseConfig category_grid - categories array:', config.categories);
+            const parsed = config.categories.map((cat: any, idx: number) => {
               // Handle both string URL and object {url} formats
               const imageUrl = typeof cat.image === 'string'
                 ? cat.image
                 : (cat.image?.url || '');
+              
+              console.log(`Category ${idx}:`, {
+                originalImage: cat.image,
+                imageType: typeof cat.image,
+                parsedImageUrl: imageUrl,
+                title: cat.title,
+                href: cat.href,
+              });
               
               return {
                 id: Date.now() + idx,
@@ -218,7 +228,11 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 image: imageUrl,
                 path: imageUrl,
               };
-            }));
+            });
+            console.log('parseConfig category_grid - parsed categories:', parsed);
+            setCategories(parsed);
+          } else {
+            console.log('parseConfig category_grid - NO categories array found');
           }
           break;
 

@@ -269,6 +269,11 @@ interface CategoryGridFormProps {
 }
 
 export function CategoryGridForm({ categories, onChange }: CategoryGridFormProps) {
+  // Debug log
+  React.useEffect(() => {
+    console.log('CategoryGridForm render - categories:', categories);
+  }, [categories]);
+
   const addCategory = () => {
     const newCat: CategoryItem = {
       id: Date.now(),
@@ -288,9 +293,11 @@ export function CategoryGridForm({ categories, onChange }: CategoryGridFormProps
   };
 
   const updateCategoryImage = (index: number, url: string, path: string) => {
+    console.log('updateCategoryImage called:', { index, url, path });
     const updated = categories.map((cat, i) =>
       i === index ? { ...cat, image: url, path } : cat
     );
+    console.log('updateCategoryImage - updated categories:', updated);
     onChange(updated);
   };
 
@@ -312,58 +319,64 @@ export function CategoryGridForm({ categories, onChange }: CategoryGridFormProps
       </CardHeader>
       <CardContent className="space-y-4">
         {categories.length > 0 ? (
-          <SortableList
-            items={categories}
-            onChange={onChange}
-            renderItem={(cat: CategoryItem, idx: number) => (
-              <div className="border rounded-lg p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="font-semibold">Danh mục {idx + 1}</Label>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeCategory(idx)}
-                  >
-                    <Trash2 size={14} className="mr-1" />
-                    Xóa
-                  </Button>
-                </div>
+          <div className="space-y-4">
+            {/* Grid layout for categories */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categories.map((cat, idx) => (
+                <div key={cat.id} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="font-semibold">Danh mục {idx + 1}</Label>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeCategory(idx)}
+                    >
+                      <Trash2 size={14} className="mr-1" />
+                      Xóa
+                    </Button>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`cat-title-${idx}`}>Tên danh mục *</Label>
-                  <Input
-                    id={`cat-title-${idx}`}
-                    placeholder="Rượu Vang Đỏ"
-                    value={cat.title}
-                    onChange={(e) => updateCategory(idx, 'title', e.target.value)}
-                    required
+                  <div className="space-y-2">
+                    <Label htmlFor={`cat-title-${idx}`}>Tên danh mục *</Label>
+                    <Input
+                      id={`cat-title-${idx}`}
+                      placeholder="Rượu Vang Đỏ"
+                      value={cat.title}
+                      onChange={(e) => updateCategory(idx, 'title', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <ImageUploadField
+                    label="Hình ảnh danh mục"
+                    value={cat.image}
+                    path={cat.path}
+                    onChange={(url, path) => updateCategoryImage(idx, url, path)}
+                    onRemove={() => removeCategoryImage(idx)}
+                    aspectRatio="square"
+                    folder="home-components/categories"
                   />
-                </div>
 
-                <ImageUploadField
-                  label="Hình ảnh danh mục"
-                  value={cat.image}
-                  path={cat.path}
-                  onChange={(url, path) => updateCategoryImage(idx, url, path)}
-                  onRemove={() => removeCategoryImage(idx)}
-                  aspectRatio="square"
-                  folder="home-components/categories"
-                />
-
-                <div className="space-y-2">
-                  <Label htmlFor={`cat-href-${idx}`}>Link đích *</Label>
-                  <Input
-                    id={`cat-href-${idx}`}
-                    placeholder="/category/red-wine"
-                    value={cat.href}
-                    onChange={(e) => updateCategory(idx, 'href', e.target.value)}
-                    required
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor={`cat-href-${idx}`}>Link đích *</Label>
+                    <Input
+                      id={`cat-href-${idx}`}
+                      placeholder="/category/red-wine"
+                      value={cat.href}
+                      onChange={(e) => updateCategory(idx, 'href', e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-          />
+              ))}
+            </div>
+
+            {/* Note about drag & drop - removed sortable for better UX */}
+            <p className="text-xs text-slate-500 italic">
+              💡 Tip: Thứ tự hiển thị từ trái sang phải, trên xuống dưới
+            </p>
+          </div>
         ) : (
           <p className="text-sm text-slate-500 text-center py-4">
             Chưa có danh mục nào. Click &quot;Thêm danh mục&quot; để bắt đầu.
@@ -450,57 +463,62 @@ export function BrandShowcaseForm({ title, brands, onTitleChange, onBrandsChange
 
         <div className="border-t pt-4 space-y-4">
           {brands.length > 0 ? (
-            <SortableList
-              items={brands}
-              onChange={onBrandsChange}
-              renderItem={(brand: BrandItem, idx: number) => (
-                <div className="border rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="font-semibold">Brand {idx + 1}</Label>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeBrand(idx)}
-                    >
-                      <Trash2 size={14} className="mr-1" />
-                      Xóa
-                    </Button>
-                  </div>
+            <div className="space-y-4">
+              {/* Grid layout for brands */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {brands.map((brand, idx) => (
+                  <div key={brand.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="font-semibold">Brand {idx + 1}</Label>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeBrand(idx)}
+                      >
+                        <Trash2 size={14} className="mr-1" />
+                        Xóa
+                      </Button>
+                    </div>
 
-                  <ImageUploadField
-                    label="Logo thương hiệu"
-                    value={brand.image}
-                    path={brand.path}
-                    onChange={(url, path) => updateBrandImage(idx, url, path)}
-                    onRemove={() => removeBrandImage(idx)}
-                    aspectRatio="auto"
-                    folder="home-components/brands"
-                  />
-
-                  <div className="space-y-2">
-                    <Label htmlFor={`brand-href-${idx}`}>Link (optional)</Label>
-                    <Input
-                      id={`brand-href-${idx}`}
-                      placeholder="/brand/moet-chandon"
-                      value={brand.href}
-                      onChange={(e) => updateBrand(idx, 'href', e.target.value)}
+                    <ImageUploadField
+                      label="Logo thương hiệu"
+                      value={brand.image}
+                      path={brand.path}
+                      onChange={(url, path) => updateBrandImage(idx, url, path)}
+                      onRemove={() => removeBrandImage(idx)}
+                      aspectRatio="auto"
+                      folder="home-components/brands"
                     />
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor={`brand-alt-${idx}`}>Tên thương hiệu (Alt text) *</Label>
-                    <Input
-                      id={`brand-alt-${idx}`}
-                      placeholder="Moët & Chandon"
-                      value={brand.alt}
-                      onChange={(e) => updateBrand(idx, 'alt', e.target.value)}
-                      required
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor={`brand-href-${idx}`}>Link (optional)</Label>
+                      <Input
+                        id={`brand-href-${idx}`}
+                        placeholder="/brand/moet-chandon"
+                        value={brand.href}
+                        onChange={(e) => updateBrand(idx, 'href', e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`brand-alt-${idx}`}>Tên thương hiệu (Alt text) *</Label>
+                      <Input
+                        id={`brand-alt-${idx}`}
+                        placeholder="Moët & Chandon"
+                        value={brand.alt}
+                        onChange={(e) => updateBrand(idx, 'alt', e.target.value)}
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
-            />
+                ))}
+              </div>
+
+              <p className="text-xs text-slate-500 italic">
+                💡 Tip: Logo sẽ hiển thị theo thứ tự từ trái sang phải
+              </p>
+            </div>
           ) : (
             <p className="text-sm text-slate-500 text-center py-4">
               Chưa có thương hiệu nào. Click &quot;Thêm brand&quot; để bắt đầu.
