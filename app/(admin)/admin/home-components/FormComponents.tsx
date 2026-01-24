@@ -167,6 +167,11 @@ interface DualBannerFormProps {
 }
 
 export function DualBannerForm({ banners, onChange }: DualBannerFormProps) {
+  // Debug log
+  React.useEffect(() => {
+    console.log('DualBannerForm render - banners:', banners);
+  }, [banners]);
+
   const updateBanner = (index: number, field: keyof DualBannerItem, value: string) => {
     const updated = banners.map((banner, i) =>
       i === index ? { ...banner, [field]: value } : banner
@@ -175,9 +180,11 @@ export function DualBannerForm({ banners, onChange }: DualBannerFormProps) {
   };
 
   const updateBannerImage = (index: number, url: string, path: string) => {
+    console.log('updateBannerImage called:', { index, url, path });
     const updated = banners.map((banner, i) =>
       i === index ? { ...banner, image: url, path } : banner
     );
+    console.log('updateBannerImage - updated banners:', updated);
     onChange(updated);
   };
 
@@ -189,14 +196,18 @@ export function DualBannerForm({ banners, onChange }: DualBannerFormProps) {
   };
 
   // Initialize with 2 banners if empty
+  const [isInitialized, setIsInitialized] = React.useState(false);
+  
   React.useEffect(() => {
-    if (banners.length === 0) {
+    if (banners.length === 0 && !isInitialized) {
+      console.log('DualBannerForm - initializing with empty banners');
       onChange([
         { id: 1, image: '', path: '', link: '', alt: '' },
         { id: 2, image: '', path: '', link: '', alt: '' },
       ]);
+      setIsInitialized(true);
     }
-  }, []);
+  }, [banners.length, isInitialized, onChange]);
 
   return (
     <Card>

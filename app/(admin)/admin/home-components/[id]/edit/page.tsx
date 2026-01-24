@@ -171,12 +171,22 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           break;
 
         case 'dual_banner':
+          console.log('parseConfig dual_banner - raw config:', config);
           if (config.banners && Array.isArray(config.banners)) {
-            setDualBanners(config.banners.slice(0, 2).map((banner: any, idx: number) => {
+            console.log('parseConfig dual_banner - banners array:', config.banners);
+            const parsed = config.banners.slice(0, 2).map((banner: any, idx: number) => {
               // Handle both string URL and object {url} formats
               const imageUrl = typeof banner.image === 'string' 
                 ? banner.image 
                 : (banner.image?.url || '');
+              
+              console.log(`Banner ${idx}:`, {
+                originalImage: banner.image,
+                imageType: typeof banner.image,
+                parsedImageUrl: imageUrl,
+                href: banner.href,
+                alt: banner.alt,
+              });
               
               return {
                 id: idx + 1,
@@ -185,7 +195,11 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
                 link: banner.href || '',
                 alt: banner.alt || '',
               };
-            }));
+            });
+            console.log('parseConfig dual_banner - parsed banners:', parsed);
+            setDualBanners(parsed);
+          } else {
+            console.log('parseConfig dual_banner - NO banners array found');
           }
           break;
 
