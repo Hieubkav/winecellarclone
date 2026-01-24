@@ -5,8 +5,8 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../components/ui';
 import { ImageUploadField } from '../components/ImageUploadField';
 import { SortableList } from '../components/SortableList';
-import { MultiSelect } from '../components/MultiSelect';
 import { ProductGridSelector } from '../components/ProductGridSelector';
+import { ArticleGridSelector } from '../components/ArticleGridSelector';
 
 // API helper functions
 async function fetchProductsForSelect(query: string) {
@@ -689,14 +689,14 @@ export function EditorialSpotlightForm({
           />
         </div>
 
-        <MultiSelect
+        <ArticleGridSelector
           label="Bài viết"
           value={articleIdsArray}
           onChange={handleArticleIdsChange}
-          fetchOptions={fetchArticlesForSelect}
-          placeholder="Chọn bài viết..."
+          fetchArticles={fetchArticlesForSelect}
           required
-          helpText="Chọn các bài viết để hiển thị trong section này"
+          helpText="Chọn các bài viết để hiển thị trong section này (khuyến nghị 3 bài viết)"
+          maxSelection={6}
         />
       </CardContent>
     </Card>
