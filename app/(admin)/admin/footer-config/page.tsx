@@ -112,7 +112,7 @@ function SortableColumn({ column, onUpdate, onDelete }: SortableColumnProps) {
           <GripVertical size={18} className="text-slate-400" />
         </button>
         <Input
-          value={column.title}
+          value={column.title ?? ''}
           onChange={(e) => onUpdate({ ...column, title: e.target.value })}
           className="flex-1 font-semibold"
           placeholder="Tiêu đề cột"
@@ -135,7 +135,7 @@ function SortableColumn({ column, onUpdate, onDelete }: SortableColumnProps) {
             <div className="flex-1 space-y-2">
               <div className="flex gap-2">
                 <Input
-                  value={item.label}
+                  value={item.label ?? ''}
                   onChange={(e) => updateItem(item.id, { label: e.target.value })}
                   placeholder="Nhãn"
                   className="flex-1"
@@ -153,13 +153,13 @@ function SortableColumn({ column, onUpdate, onDelete }: SortableColumnProps) {
                 </select>
               </div>
               <Input
-                value={item.value}
+                value={item.value ?? ''}
                 onChange={(e) => updateItem(item.id, { value: e.target.value })}
                 placeholder={item.type === 'phone' ? '0909 123 456' : item.type === 'email' ? 'email@example.com' : 'Nội dung'}
               />
               {item.type === 'link' && (
                 <Input
-                  value={item.href || ''}
+                  value={item.href ?? ''}
                   onChange={(e) => updateItem(item.id, { href: e.target.value })}
                   placeholder="URL (https://...)"
                 />
@@ -392,7 +392,7 @@ export default function FooterConfigPage() {
               <Label htmlFor="copyright">Copyright</Label>
               <Input
                 id="copyright"
-                value={config.copyright}
+                value={config.copyright ?? ''}
                 onChange={(e) => setConfig({ ...config, copyright: e.target.value })}
                 placeholder="© {year} {siteName}. All rights reserved."
               />
@@ -402,7 +402,7 @@ export default function FooterConfigPage() {
               <Label htmlFor="tagline">Tagline</Label>
               <Input
                 id="tagline"
-                value={config.tagline}
+                value={config.tagline ?? ''}
                 onChange={(e) => setConfig({ ...config, tagline: e.target.value })}
                 placeholder="Slogan hoặc câu nói hay"
               />
