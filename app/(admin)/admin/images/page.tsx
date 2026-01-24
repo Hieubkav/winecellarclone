@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle, LayoutGrid, LayoutList, ExternalLink } from 'lucide-react';
-import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton, Badge } from '../components/ui';
+import { Plus, Search, Trash2, Edit, ImageIcon, AlertTriangle, LayoutGrid, LayoutList } from 'lucide-react';
+import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
@@ -105,12 +105,14 @@ export default function ImagesListPage() {
 
   useEffect(() => {
     loadImages(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!isInitialLoading) {
       loadImages(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchTerm, currentPage, perPage]);
 
   const handleSort = (key: string) => {
@@ -262,7 +264,7 @@ export default function ImagesListPage() {
                     {visibleColumns.includes('actions') && (
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Link href={`/admin/images/${img.id}/edit`}><Button variant="ghost" size="icon"><Edit size={16} /></Button></Link>
+                          <Button variant="ghost" size="icon" onClick={() => setEditingImageId(img.id)}><Edit size={16} /></Button>
                           <Button variant="ghost" size="icon" className="text-red-600" onClick={() => setDeleteConfirm({ type: 'single', id: img.id })}><Trash2 size={16} /></Button>
                         </div>
                       </TableCell>
@@ -318,12 +320,15 @@ export default function ImagesListPage() {
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent p-3 pt-8 opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="text-white text-xs font-medium truncate mb-2">{img.file_path}</p>
                         <div className="flex gap-1">
-                          <Link href={`/admin/images/${img.id}/edit`} className="flex-1">
-                            <Button variant="secondary" size="sm" className="w-full gap-1 h-7 text-xs">
-                              <Edit size={12} />
-                              Sửa
-                            </Button>
-                          </Link>
+                          <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            className="flex-1 gap-1 h-7 text-xs"
+                            onClick={() => setEditingImageId(img.id)}
+                          >
+                            <Edit size={12} />
+                            Sửa
+                          </Button>
                           <Button
                             variant="destructive"
                             size="sm"
@@ -405,6 +410,14 @@ export default function ImagesListPage() {
             </div>
           </Card>
         </div>
+      )}
+
+      {editingImageId && (
+        <ImageEditModal
+          imageId={editingImageId}
+          onClose={() => setEditingImageId(null)}
+          onSuccess={() => loadImages(false)}
+        />
       )}
     </div>
   );
