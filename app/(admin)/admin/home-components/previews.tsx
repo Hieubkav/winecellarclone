@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/article-content';
 
 // Fixed colors từ site
 const WINE_COLOR = "#9B2C3B";  // Đỏ burgundy
@@ -111,12 +112,9 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
                 {slides.length > 0 ? (
                   <>
                     {slides.map((slide, idx) => {
-                      // Use image or fallback to path
-                      let imageUrl = slide.image || slide.path || '';
-                      // Fix: Add backend URL if path is relative
-                      if (imageUrl && !imageUrl.startsWith('http')) {
-                        imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                      }
+                      // Use image or fallback to path, then convert to absolute URL
+                      const rawUrl = slide.image || slide.path || '';
+                      const imageUrl = rawUrl ? getImageUrl(rawUrl) : '';
                       return (
                         <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700",
                           idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
@@ -280,11 +278,8 @@ export const CollectionShowcasePreview = ({ title, subtitle, productIds }: Colle
                     const productId = product.value || product.id;
                     const productName = product.label?.replace(/\s*\(#\d+\)$/, '') || product.name || '';
                     const productPrice = product.price;
-                    // Fix image URL if relative
-                    let imageUrl = product.cover_image?.url || '';
-                    if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                    }
+                    // Convert to absolute URL using helper
+                    const imageUrl = getImageUrl(product.cover_image?.url);
                     return (
                       <div key={productId} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
                         {imageUrl && (
@@ -397,11 +392,8 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                     const articleId = article.value || article.id;
                     const articleTitle = article.label?.replace(/\s*\(#\d+\)$/, '') || article.title || '';
                     const publishedAt = article.published_at;
-                    // Fix image URL if relative
-                    let imageUrl = article.cover_image?.url || '';
-                    if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                    }
+                    // Convert to absolute URL using helper
+                    const imageUrl = getImageUrl(article.cover_image?.url);
                     return (
                       <div key={articleId} className="group flex h-full flex-col overflow-hidden border border-[#efefef] bg-white/95 p-0 rounded-lg transition hover:-translate-y-1 hover:border-[#ECAA4D]/60">
                         {imageUrl && (
@@ -512,11 +504,8 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                         const productId = product.value || product.id;
                         const productName = product.label?.replace(/\s*\(#\d+\)$/, '') || product.name || '';
                         const productPrice = product.price;
-                        // Fix image URL if relative
-                        let imageUrl = product.cover_image?.url || '';
-                        if (imageUrl && !imageUrl.startsWith('http')) {
-                          imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                        }
+                        // Convert to absolute URL using helper
+                        const imageUrl = getImageUrl(product.cover_image?.url);
                         const itemWidth = device === 'mobile' ? 'w-[140px]' : device === 'tablet' ? 'w-[150px]' : 'w-[170px]';
                         return (
                           <div key={productId} className={cn("flex-shrink-0", itemWidth)}>
@@ -620,10 +609,8 @@ export const DualBannerPreview = ({ banners }: { banners: DualBannerItem[] }) =>
                 {banners.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2">
                     {banners.slice(0, 2).map((banner, idx) => {
-                      let imageUrl = banner.image || banner.path || '';
-                      if (imageUrl && !imageUrl.startsWith('http')) {
-                        imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                      }
+                      const rawUrl = banner.image || banner.path || '';
+                      const imageUrl = rawUrl ? getImageUrl(rawUrl) : '';
                       return (
                         <div key={banner.id} className="group relative block rounded-lg border border-slate-200 bg-white/95 p-1 shadow-md transition-all hover:-translate-y-1 hover:border-[#9B2C3B]/40">
                           <div className="relative overflow-hidden rounded-md">
@@ -729,10 +716,8 @@ export const CategoryGridPreview = ({ categories }: { categories: CategoryItem[]
                     device === 'mobile' ? 'grid-cols-3' : 'grid-cols-6'
                   )}>
                     {categories.map((cat, _idx) => {
-                      let imageUrl = cat.image || cat.path || '';
-                      if (imageUrl && !imageUrl.startsWith('http')) {
-                        imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                      }
+                      const rawUrl = cat.image || cat.path || '';
+                      const imageUrl = rawUrl ? getImageUrl(rawUrl) : '';
                       return (
                         <div key={cat.id} className="group">
                           <div className="rounded-lg overflow-hidden border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-[#ECAA4D]/45 hover:shadow-lg">
@@ -868,10 +853,8 @@ export const BrandShowcasePreview = ({ title, brands }: { title: string; brands:
                     {/* Carousel items */}
                     <div className="flex gap-4 justify-center items-center">
                       {visibleBrands.map((brand, idx) => {
-                        let imageUrl = brand.image || brand.path || '';
-                        if (imageUrl && !imageUrl.startsWith('http')) {
-                          imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                        }
+                        const rawUrl = brand.image || brand.path || '';
+                        const imageUrl = rawUrl ? getImageUrl(rawUrl) : '';
                         return (
                           <div key={brand.id} className="flex-shrink-0" style={{ width: `${100 / itemsPerView}%` }}>
                             <div className="flex h-full items-center justify-center rounded-xl border border-transparent p-2 transition-all hover:-translate-y-0.5 hover:border-[#ECAA4D]/40 hover:shadow-md">

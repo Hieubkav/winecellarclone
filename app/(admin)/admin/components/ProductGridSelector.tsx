@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X, Loader2, Package } from 'lucide-react';
 import { Label, Input, Button } from './ui';
-import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/article-content';
 
 interface Product {
   value: number;
@@ -100,11 +100,9 @@ export function ProductGridSelector({
     setSelectedProducts(selectedProducts.filter(p => p.value !== productValue));
   };
 
-  // Fix image URL
-  const getImageUrl = (imageUrl?: string) => {
-    if (!imageUrl) return '';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+  // Fix image URL using shared helper
+  const fixImageUrl = (imageUrl?: string) => {
+    return getImageUrl(imageUrl);
   };
 
   return (
@@ -146,7 +144,7 @@ export function ProductGridSelector({
               {searchResults
                 .filter(p => !value.includes(p.value))
                 .map(product => {
-                  const imageUrl = getImageUrl(product.cover_image?.url);
+                  const imageUrl = fixImageUrl(product.cover_image?.url);
                   return (
                     <div
                       key={product.value}
@@ -189,7 +187,7 @@ export function ProductGridSelector({
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {selectedProducts.map(product => {
-              const imageUrl = getImageUrl(product.cover_image?.url);
+              const imageUrl = fixImageUrl(product.cover_image?.url);
               return (
                 <div
                   key={product.value}

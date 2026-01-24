@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X, Loader2, FileText } from 'lucide-react';
 import { Label, Input, Button } from './ui';
-import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/article-content';
 
 interface Article {
   value: number;
@@ -100,11 +100,9 @@ export function ArticleGridSelector({
     setSelectedArticles(selectedArticles.filter(a => a.value !== articleValue));
   };
 
-  // Fix image URL
-  const getImageUrl = (imageUrl?: string) => {
-    if (!imageUrl) return '';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+  // Fix image URL using shared helper
+  const fixImageUrl = (imageUrl?: string) => {
+    return getImageUrl(imageUrl);
   };
 
   // Format date
@@ -156,7 +154,7 @@ export function ArticleGridSelector({
               {searchResults
                 .filter(a => !value.includes(a.value))
                 .map(article => {
-                  const imageUrl = getImageUrl(article.cover_image?.url);
+                  const imageUrl = fixImageUrl(article.cover_image?.url);
                   return (
                     <div
                       key={article.value}
@@ -201,7 +199,7 @@ export function ArticleGridSelector({
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {selectedArticles.map(article => {
-              const imageUrl = getImageUrl(article.cover_image?.url);
+              const imageUrl = fixImageUrl(article.cover_image?.url);
               return (
                 <div
                   key={article.value}
