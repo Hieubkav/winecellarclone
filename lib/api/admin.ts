@@ -787,8 +787,13 @@ export interface AdminSetting {
   favicon_image_url: string | null;
   product_watermark_image_id: number | null;
   product_watermark_image_url: string | null;
+  product_watermark_type: string | null;
   product_watermark_position: string | null;
   product_watermark_size: string | null;
+  product_watermark_text: string | null;
+  product_watermark_text_size: string | null;
+  product_watermark_text_position: string | null;
+  product_watermark_text_opacity: number | null;
   updated_at?: string;
 }
 
