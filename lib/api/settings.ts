@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import type { FooterConfig } from "@/lib/types/footer";
 
 // TypeScript types matching Laravel API response structure
 export type WatermarkPosition = 'none' | 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
@@ -17,6 +18,7 @@ export interface SettingsResponse {
     hours: string | null;
     email: string | null;
     google_map_embed: string | null;
+    footer_config: FooterConfig | null;
     product_watermark_url: string | null;
     product_watermark_position: WatermarkPosition | null;
     product_watermark_size: WatermarkSize | null;
@@ -43,6 +45,7 @@ export interface Settings {
   hours: string | null;
   email: string | null;
   google_map_embed: string | null;
+  footer_config: FooterConfig | null;
   product_watermark_url: string | null;
   product_watermark_position: WatermarkPosition | null;
   product_watermark_size: WatermarkSize | null;
@@ -84,6 +87,7 @@ export const FALLBACK_SETTINGS: Settings = {
   hours: "09:00 - 21:00 (T2-CN)",
   email: null,
   google_map_embed: null,
+  footer_config: null,
   product_watermark_url: null,
   product_watermark_position: 'none',
   product_watermark_size: '128x128',
