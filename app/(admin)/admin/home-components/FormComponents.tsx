@@ -530,34 +530,26 @@ export function BrandShowcaseForm({ title, brands, onTitleChange, onBrandsChange
 interface CollectionShowcaseFormProps {
   title: string;
   subtitle: string;
-  description: string;
   ctaLabel: string;
   ctaHref: string;
-  tone: 'wine' | 'spirit' | 'default';
   productIds: string;
   onTitleChange: (title: string) => void;
   onSubtitleChange: (subtitle: string) => void;
-  onDescriptionChange: (description: string) => void;
   onCtaLabelChange: (ctaLabel: string) => void;
   onCtaHrefChange: (ctaHref: string) => void;
-  onToneChange: (tone: 'wine' | 'spirit' | 'default') => void;
   onProductIdsChange: (productIds: string) => void;
 }
 
 export function CollectionShowcaseForm({
   title,
   subtitle,
-  description,
   ctaLabel,
   ctaHref,
-  tone,
   productIds,
   onTitleChange,
   onSubtitleChange,
-  onDescriptionChange,
   onCtaLabelChange,
   onCtaHrefChange,
-  onToneChange,
   onProductIdsChange,
 }: CollectionShowcaseFormProps) {
   // Parse productIds string to array
@@ -597,17 +589,6 @@ export function CollectionShowcaseForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="collection-description">Mô tả</Label>
-          <textarea
-            id="collection-description"
-            placeholder="Khám phá bộ sưu tập rượu vang cao cấp..."
-            value={description}
-            onChange={(e) => onDescriptionChange(e.target.value)}
-            className="w-full min-h-[100px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm resize-y"
-          />
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="collection-cta-label">Text nút CTA</Label>
           <Input
             id="collection-cta-label"
@@ -625,20 +606,6 @@ export function CollectionShowcaseForm({
             value={ctaHref}
             onChange={(e) => onCtaHrefChange(e.target.value)}
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="collection-tone">Tone màu sắc</Label>
-          <select
-            id="collection-tone"
-            value={tone}
-            onChange={(e) => onToneChange(e.target.value as 'wine' | 'spirit' | 'default')}
-            className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-          >
-            <option value="default">Default</option>
-            <option value="wine">Wine (Đỏ burgundy)</option>
-            <option value="spirit">Spirit (Vàng gold)</option>
-          </select>
         </div>
 
         <ProductGridSelector

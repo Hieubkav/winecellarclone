@@ -207,12 +207,10 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
 interface CollectionShowcasePreviewProps {
   title: string;
   subtitle?: string;
-  description?: string;
   productIds: string; // "1,2,3,4"
-  tone: 'wine' | 'spirit' | 'default';
 }
 
-export const CollectionShowcasePreview = ({ title, subtitle, description, productIds, tone }: CollectionShowcasePreviewProps) => {
+export const CollectionShowcasePreview = ({ title, subtitle, productIds }: CollectionShowcasePreviewProps) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   
   // Parse IDs
@@ -231,7 +229,7 @@ export const CollectionShowcasePreview = ({ title, subtitle, description, produc
     enabled: ids.length > 0,
   });
   
-  const accentColor = tone === 'spirit' ? SPIRIT_COLOR : tone === 'wine' ? WINE_COLOR : WINE_COLOR;
+  const accentColor = WINE_COLOR;
   
   return (
     <Card className="mt-6">
@@ -313,7 +311,7 @@ export const CollectionShowcasePreview = ({ title, subtitle, description, produc
           </BrowserFrame>
         </div>
         <div className="mt-3 text-xs text-slate-500">
-          {device} • {products?.length || 0} sản phẩm • Màu: {tone}
+          {device} • {products?.length || 0} sản phẩm
         </div>
       </CardContent>
     </Card>

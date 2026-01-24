@@ -85,10 +85,8 @@ export default function HomeComponentCreatePage() {
   // Collection Showcase state
   const [collectionTitle, setCollectionTitle] = useState('');
   const [collectionSubtitle, setCollectionSubtitle] = useState('');
-  const [collectionDescription, setCollectionDescription] = useState('');
   const [collectionCtaLabel, setCollectionCtaLabel] = useState('');
   const [collectionCtaHref, setCollectionCtaHref] = useState('');
-  const [collectionTone, setCollectionTone] = useState<'wine' | 'spirit' | 'default'>('default');
   const [collectionProductIds, setCollectionProductIds] = useState('');
 
   // Editorial Spotlight state
@@ -115,10 +113,8 @@ export default function HomeComponentCreatePage() {
     setBrands([]);
     setCollectionTitle('');
     setCollectionSubtitle('');
-    setCollectionDescription('');
     setCollectionCtaLabel('');
     setCollectionCtaHref('');
-    setCollectionTone('default');
     setCollectionProductIds('');
     setEditorialLabel('');
     setEditorialTitle('');
@@ -201,10 +197,8 @@ export default function HomeComponentCreatePage() {
         return {
           title: collectionTitle,
           subtitle: collectionSubtitle || null,
-          description: collectionDescription || null,
           ctaLabel: collectionCtaLabel || null,
           ctaHref: collectionCtaHref || null,
-          tone: collectionTone,
           product_ids: collectionProductIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)),
         };
 
@@ -381,17 +375,13 @@ export default function HomeComponentCreatePage() {
           <CollectionShowcaseForm
             title={collectionTitle}
             subtitle={collectionSubtitle}
-            description={collectionDescription}
             ctaLabel={collectionCtaLabel}
             ctaHref={collectionCtaHref}
-            tone={collectionTone}
             productIds={collectionProductIds}
             onTitleChange={setCollectionTitle}
             onSubtitleChange={setCollectionSubtitle}
-            onDescriptionChange={setCollectionDescription}
             onCtaLabelChange={setCollectionCtaLabel}
             onCtaHrefChange={setCollectionCtaHref}
-            onToneChange={setCollectionTone}
             onProductIdsChange={setCollectionProductIds}
           />
         )}

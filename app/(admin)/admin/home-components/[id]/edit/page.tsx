@@ -98,10 +98,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   // Collection Showcase state
   const [collectionTitle, setCollectionTitle] = useState('');
   const [collectionSubtitle, setCollectionSubtitle] = useState('');
-  const [collectionDescription, setCollectionDescription] = useState('');
   const [collectionCtaLabel, setCollectionCtaLabel] = useState('');
   const [collectionCtaHref, setCollectionCtaHref] = useState('');
-  const [collectionTone, setCollectionTone] = useState<'wine' | 'spirit' | 'default'>('default');
   const [collectionProductIds, setCollectionProductIds] = useState('');
 
   // Editorial Spotlight state
@@ -286,10 +284,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         case 'collection_showcase':
           setCollectionTitle(config.title || '');
           setCollectionSubtitle(config.subtitle || '');
-          setCollectionDescription(config.description || '');
           setCollectionCtaLabel(config.ctaLabel || '');
           setCollectionCtaHref(config.ctaHref || '');
-          setCollectionTone(config.tone || 'default');
           if (config.product_ids && Array.isArray(config.product_ids)) {
             setCollectionProductIds(config.product_ids.join(','));
           }
@@ -429,10 +425,8 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         return {
           title: collectionTitle,
           subtitle: collectionSubtitle || null,
-          description: collectionDescription || null,
           ctaLabel: collectionCtaLabel || null,
           ctaHref: collectionCtaHref || null,
-          tone: collectionTone,
           product_ids: collectionProductIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)),
         };
 
@@ -632,25 +626,19 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
             <CollectionShowcaseForm
               title={collectionTitle}
               subtitle={collectionSubtitle}
-              description={collectionDescription}
               ctaLabel={collectionCtaLabel}
               ctaHref={collectionCtaHref}
-              tone={collectionTone}
               productIds={collectionProductIds}
               onTitleChange={setCollectionTitle}
               onSubtitleChange={setCollectionSubtitle}
-              onDescriptionChange={setCollectionDescription}
               onCtaLabelChange={setCollectionCtaLabel}
               onCtaHrefChange={setCollectionCtaHref}
-              onToneChange={setCollectionTone}
               onProductIdsChange={setCollectionProductIds}
             />
             <CollectionShowcasePreview
               title={collectionTitle}
               subtitle={collectionSubtitle}
-              description={collectionDescription}
               productIds={collectionProductIds}
-              tone={collectionTone}
             />
           </>
         )}
