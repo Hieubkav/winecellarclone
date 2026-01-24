@@ -12,9 +12,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { cn } from "@/lib/utils"
-
-const AUTOPLAY_DELAY = 3000
-const WINE_COLOR = "#9B2C3B"
+import { BRAND_COLORS, ANIMATION_TIMINGS } from "@/lib/constants/colors"
 
 type HeroCarouselProps = {
   slides: Array<{
@@ -31,7 +29,7 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
   const [current, setCurrent] = useState(0)
   const autoplay = useRef<AutoplayType>(
     Autoplay({
-      delay: AUTOPLAY_DELAY,
+      delay: ANIMATION_TIMINGS.autoplayDelay,
       stopOnInteraction: false,
       stopOnMouseEnter: true,
     })
@@ -76,7 +74,10 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
   }
 
   return (
-    <section className="relative w-full overflow-hidden bg-slate-900">
+    <section 
+      className="relative w-full overflow-hidden bg-[#9B2C3B]"
+      aria-label="Hero Carousel - Banner chính"
+    >
       <div className="relative mx-auto w-full max-w-7xl">
         <div className="relative overflow-hidden">
           {/* Carousel */}
@@ -105,15 +106,17 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                           filter: 'blur(40px)',
                           transform: 'scale(1.2)', // Scale ra để không thấy edge
                         }}
+                        aria-hidden="true"
                       />
                       {/* Dark overlay để làm mờ background */}
-                      <div className="absolute inset-0 bg-black/30" />
+                      <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
                       {/* Main image - object-contain ở giữa */}
                       <img
                         src={slide.image}
-                        alt={slide.alt || `Slide ${index + 1}`}
+                        alt={slide.alt || `Banner ${index + 1}`}
                         className="relative w-full h-full object-contain z-10"
                         loading={index === 0 ? "eager" : "lazy"}
+                        fetchpriority={index === 0 ? "high" : "low"}
                       />
                     </div>
                     <span className="sr-only">{slide.alt}</span>
@@ -131,23 +134,23 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                 type="button"
                 onClick={() => handleManualNavigation("prev")}
                 className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105"
-                style={{ borderColor: `${WINE_COLOR}40` }}
+                style={{ borderColor: `${BRAND_COLORS.wine}40` }}
                 aria-label="Xem slide trước"
               >
-                <ChevronLeft size={14} style={{ color: WINE_COLOR }} />
+                <ChevronLeft size={14} style={{ color: BRAND_COLORS.wine }} />
               </button>
               <button
                 type="button"
                 onClick={() => handleManualNavigation("next")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all z-20 border-2 border-transparent hover:scale-105"
-                style={{ borderColor: `${WINE_COLOR}40` }}
+                style={{ borderColor: `${BRAND_COLORS.wine}40` }}
                 aria-label="Xem slide tiếp theo"
               >
-                <ChevronRight size={14} style={{ color: WINE_COLOR }} />
+                <ChevronRight size={14} style={{ color: BRAND_COLORS.wine }} />
               </button>
 
               {/* Dots indicators */}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20" role="tablist" aria-label="Carousel navigation">
                 {slides.map((_, index) => (
                   <button
                     key={`dot-${index}`}
@@ -157,9 +160,10 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                       "w-2 h-2 rounded-full transition-all",
                       current === index ? "w-6" : "bg-white/50"
                     )}
-                    style={current === index ? { backgroundColor: WINE_COLOR } : {}}
+                    style={current === index ? { backgroundColor: BRAND_COLORS.wine } : {}}
                     aria-label={`Chuyển tới slide ${index + 1}`}
                     aria-current={current === index}
+                    role="tab"
                   >
                     <span className="sr-only">{`Slide ${index + 1}`}</span>
                   </button>

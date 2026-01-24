@@ -362,15 +362,24 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
       <CardContent>
         <div className={cn("mx-auto transition-all duration-300", deviceWidths[device])}>
           <BrowserFrame>
-            <div className="p-6 bg-white">
-              {label && (
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-2"
-                  style={{ backgroundColor: `${WINE_COLOR}15`, color: WINE_COLOR }}>
-                  {label}
-                </span>
-              )}
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Tiêu đề'}</h2>
-              {description && <p className="text-slate-600 mb-6">{description}</p>}
+            <div className="py-16 bg-white">
+              <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
+                <div className="rounded-3xl bg-white p-6 md:p-10">
+                  <header className="mb-10 text-center">
+                    {label && (
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-3"
+                        style={{ backgroundColor: `${WINE_COLOR}15`, color: WINE_COLOR }}>
+                        {label}
+                      </span>
+                    )}
+                    <h2 className="text-2xl font-bold uppercase tracking-[0.18em] text-[#1C1C1C] md:text-[32px]">
+                      {title || 'Tiêu đề'}
+                    </h2>
+                    <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-[#ECAA4D]" />
+                    {description && (
+                      <p className="max-w-2xl mx-auto text-slate-600 mt-4">{description}</p>
+                    )}
+                  </header>
               
               {isLoading ? (
                 <div className="text-center py-12">
@@ -379,8 +388,8 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                 </div>
               ) : articles && articles.length > 0 ? (
                 <div className={cn(
-                  "grid gap-4",
-                  device === 'mobile' ? 'grid-cols-1' : device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3'
+                  "grid gap-8",
+                  device === 'mobile' ? 'grid-cols-1' : device === 'tablet' ? 'sm:grid-cols-2' : 'xl:grid-cols-3'
                 )}>
                   {articles.slice(0, 3).map((article: any) => {
                     // Fix image URL if relative
@@ -389,15 +398,22 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                       imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
                     }
                     return (
-                      <div key={article.id} className="border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                      <div key={article.id} className="group flex h-full flex-col overflow-hidden border border-[#efefef] bg-white/95 p-0 rounded-lg transition hover:-translate-y-1 hover:border-[#ECAA4D]/60">
                         {imageUrl && (
-                          <img src={imageUrl} alt={article.title} className="w-full aspect-video object-cover" />
+                          <div className="relative aspect-video w-full overflow-hidden bg-[#FAFAFA]">
+                            <img src={imageUrl} alt={article.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.02]" />
+                          </div>
                         )}
-                        <div className="p-4">
-                          <h3 className="font-semibold text-sm line-clamp-2 mb-2">{article.title}</h3>
-                          <p className="text-xs text-slate-500">
-                            {article.published_at ? new Date(article.published_at).toLocaleDateString('vi-VN') : ''}
-                          </p>
+                        <div className="flex flex-1 flex-col p-5">
+                          <h3 className="text-lg font-semibold text-[#1C1C1C] transition-colors group-hover:text-[#9B2C3B]">
+                            {article.title}
+                          </h3>
+                          <div className="mt-auto flex items-center justify-between border-t border-[#f5f5f5] pt-4">
+                            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B2C3B]">Thien Kim Wine</span>
+                            <span className="text-xs text-slate-500">
+                              {article.published_at ? new Date(article.published_at).toLocaleDateString('vi-VN') : ''}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );
@@ -411,6 +427,8 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                   </p>
                 </div>
               )}
+                </div>
+              </div>
             </div>
           </BrowserFrame>
         </div>
@@ -467,52 +485,77 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
       <CardContent>
         <div className={cn("mx-auto transition-all duration-300", deviceWidths[device])}>
           <BrowserFrame>
-            <div className="p-6 bg-white">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">{title || 'Tiêu đề'}</h2>
-              {subtitle && <p className="text-sm text-slate-600 mb-6">{subtitle}</p>}
-              
-              {isLoading ? (
-                <div className="text-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-400" />
-                  <p className="text-sm text-slate-500 mt-2">Đang tải sản phẩm...</p>
-                </div>
-              ) : products && products.length > 0 ? (
-                <div className={cn(
-                  "grid gap-4",
-                  device === 'mobile' ? 'grid-cols-2' : device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4 lg:grid-cols-6'
-                )}>
-                  {products.slice(0, 6).map((product: any) => {
-                    // Fix image URL if relative
-                    let imageUrl = product.cover_image?.url || '';
-                    if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                    }
-                    return (
-                      <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                        {imageUrl && (
-                          <img src={imageUrl} alt={product.name} className="w-full aspect-square object-cover rounded mb-2" />
-                        )}
-                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
-                        <p className="text-sm font-bold" style={{ color: WINE_COLOR }}>
-                          {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Package size={48} className="mx-auto text-slate-300 mb-2" />
-                  <p className="text-sm text-slate-500">
-                    {ids.length === 0 ? 'Chưa nhập Product IDs' : 'Không tìm thấy sản phẩm'}
-                  </p>
-                </div>
-              )}
+            <div className="py-6 md:py-8 bg-white">
+              <div className="mx-auto w-full max-w-6xl px-4">
+                {/* Heading */}
+                <header className="mb-4 md:mb-5">
+                  <h2 className="text-lg font-bold text-[#1C1C1C] tracking-tight md:text-xl">{title || 'Tiêu đề'}</h2>
+                  {subtitle && <p className="text-sm text-slate-600 mt-1">{subtitle}</p>}
+                </header>
+
+                {/* Scroll row - HORIZONTAL LAYOUT */}
+                {isLoading ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-400" />
+                    <p className="text-sm text-slate-500 mt-2">Đang tải sản phẩm...</p>
+                  </div>
+                ) : products && products.length > 0 ? (
+                  <div className="overflow-x-auto pb-2 -mx-3 md:-mx-1.5">
+                    <div className="flex gap-3 md:gap-4 px-3 md:px-1.5">
+                      {products.slice(0, 6).map((product: any) => {
+                        // Fix image URL if relative
+                        let imageUrl = product.cover_image?.url || '';
+                        if (imageUrl && !imageUrl.startsWith('http')) {
+                          imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                        }
+                        const itemWidth = device === 'mobile' ? 'w-[140px]' : device === 'tablet' ? 'w-[150px]' : 'w-[170px]';
+                        return (
+                          <div key={product.id} className={cn("flex-shrink-0", itemWidth)}>
+                            <div className="flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100">
+                              {/* Image */}
+                              {imageUrl && (
+                                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg">
+                                  <img src={imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                                  <span className="absolute left-2 top-2 rounded-full bg-[#9B2C3B] px-1.5 py-0.5 text-[9px] font-bold text-white z-20">
+                                    NEW
+                                  </span>
+                                </div>
+                              )}
+                              {/* Content */}
+                              <div className="flex flex-1 flex-col p-2 text-[#1C1C1C]">
+                                <p className="mb-1 text-xs font-bold leading-tight line-clamp-2 h-8">{product.name}</p>
+                                <p className="text-xs font-bold text-[#ECAA4D]">
+                                  {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Package size={48} className="mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm text-slate-500">
+                      {ids.length === 0 ? 'Chưa nhập Product IDs' : 'Không tìm thấy sản phẩm'}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </BrowserFrame>
         </div>
         <div className="mt-3 text-xs text-slate-500">
-          {device} • {products?.length || 0} sản phẩm
+          {device} • {products?.length || 0} sản phẩm • Horizontal scroll layout
+        </div>
+        <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-start gap-2">
+            <Package size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              <strong>Horizontal scroll</strong> • Mobile: 140px, Tablet: 150px, Desktop: 170px per item
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
