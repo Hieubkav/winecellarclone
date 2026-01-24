@@ -19,6 +19,9 @@ import {
 } from '../../FormComponents';
 import {
   HeroCarouselPreview,
+  DualBannerPreview,
+  CategoryGridPreview,
+  BrandShowcasePreview,
   CollectionShowcasePreview,
   EditorialSpotlightPreview,
   FavouriteProductsPreview,
@@ -482,20 +485,29 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         )}
 
         {componentType === 'dual_banner' && (
-          <DualBannerForm banners={dualBanners} onChange={setDualBanners} />
+          <>
+            <DualBannerForm banners={dualBanners} onChange={setDualBanners} />
+            <DualBannerPreview banners={dualBanners.map(b => ({ id: b.id, image: b.image, path: b.path, link: b.link, alt: b.alt }))} />
+          </>
         )}
 
         {componentType === 'category_grid' && (
-          <CategoryGridForm categories={categories} onChange={setCategories} />
+          <>
+            <CategoryGridForm categories={categories} onChange={setCategories} />
+            <CategoryGridPreview categories={categories.map(c => ({ id: c.id, title: c.title, href: c.href, image: c.image, path: c.path }))} />
+          </>
         )}
 
         {componentType === 'brand_showcase' && (
-          <BrandShowcaseForm
-            title={brandTitle}
-            brands={brands}
-            onTitleChange={setBrandTitle}
-            onBrandsChange={setBrands}
-          />
+          <>
+            <BrandShowcaseForm
+              title={brandTitle}
+              brands={brands}
+              onTitleChange={setBrandTitle}
+              onBrandsChange={setBrands}
+            />
+            <BrandShowcasePreview title={brandTitle} brands={brands.map(b => ({ id: b.id, image: b.image, path: b.path, href: b.href, alt: b.alt }))} />
+          </>
         )}
 
         {componentType === 'collection_showcase' && (

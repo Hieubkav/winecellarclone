@@ -518,3 +518,366 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
     </Card>
   );
 };
+
+// ============ DUAL BANNER PREVIEW ============
+interface DualBannerItem {
+  id: number;
+  image: string;
+  path?: string;
+  link: string;
+  alt: string;
+}
+
+export const DualBannerPreview = ({ banners }: { banners: DualBannerItem[] }) => {
+  const [device, setDevice] = useState<PreviewDevice>('desktop');
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            Preview Dual Banner
+          </CardTitle>
+          <div className="flex gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+            {devices.map((d) => (
+              <button key={d.id} type="button" onClick={() => setDevice(d.id)} title={d.label}
+                className={cn("p-1.5 rounded-md transition-all",
+                  device === d.id ? "bg-white dark:bg-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-600")}>
+                <d.icon size={16} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className={cn("mx-auto transition-all duration-300", deviceWidths[device])}>
+          <BrowserFrame>
+            {/* Fake header */}
+            <div className="relative px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: WINE_COLOR, opacity: 0.6 }} />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: WINE_COLOR }}></div>
+                <div className="w-20 h-3 bg-slate-200 dark:bg-slate-700 rounded"></div>
+              </div>
+              {device !== 'mobile' && <div className="flex gap-4">{[1,2,3,4].map(i => (<div key={i} className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded"></div>))}</div>}
+            </div>
+
+            {/* Dual Banner section */}
+            <section className="relative bg-white py-4">
+              <div className="mx-auto max-w-7xl px-2">
+                {banners.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {banners.slice(0, 2).map((banner, idx) => {
+                      let imageUrl = banner.image || banner.path || '';
+                      if (imageUrl && !imageUrl.startsWith('http')) {
+                        imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                      }
+                      return (
+                        <div key={banner.id} className="group relative block rounded-lg border border-slate-200 bg-white/95 p-1 shadow-md transition-all hover:-translate-y-1 hover:border-[#9B2C3B]/40">
+                          <div className="relative overflow-hidden rounded-md">
+                            {imageUrl ? (
+                              <div className="relative aspect-[1000/407] w-full">
+                                <img src={imageUrl} alt={banner.alt || `Banner ${idx + 1}`} className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.02]" />
+                              </div>
+                            ) : (
+                              <div className="relative aspect-[1000/407] w-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: `${WINE_COLOR}25` }}>
+                                  <ImageIcon size={20} style={{ color: WINE_COLOR }} />
+                                </div>
+                                <span className="text-xs font-medium text-slate-500">Banner #{idx + 1}</span>
+                                <span className="text-[10px] text-slate-400 mt-1">1000x407px</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <ImageIcon size={48} className="mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm text-slate-500">Chưa có banner</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Fake content below */}
+            <div className="p-4 space-y-3">
+              <div className="flex gap-3">{[1,2,3,4].slice(0, device === 'mobile' ? 2 : 4).map(i => (<div key={i} className="flex-1 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>))}</div>
+            </div>
+          </BrowserFrame>
+        </div>
+        <div className="mt-3 text-xs text-slate-500">
+          {device === 'desktop' && 'Desktop max-w-7xl (1280px)'}{device === 'tablet' && 'Tablet (768px)'}{device === 'mobile' && 'Mobile (375px)'}
+          {' • '}{banners.length} banner(s)
+        </div>
+        <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-start gap-2">
+            <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              <strong>1000×407px</strong> (aspect-ratio ~2.46:1) • 2 banners ngang nhau, responsive grid
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============ CATEGORY GRID PREVIEW ============
+interface CategoryItem {
+  id: number;
+  title: string;
+  href: string;
+  image: string;
+  path?: string;
+}
+
+export const CategoryGridPreview = ({ categories }: { categories: CategoryItem[] }) => {
+  const [device, setDevice] = useState<PreviewDevice>('desktop');
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            Preview Category Grid
+          </CardTitle>
+          <div className="flex gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+            {devices.map((d) => (
+              <button key={d.id} type="button" onClick={() => setDevice(d.id)} title={d.label}
+                className={cn("p-1.5 rounded-md transition-all",
+                  device === d.id ? "bg-white dark:bg-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-600")}>
+                <d.icon size={16} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className={cn("mx-auto transition-all duration-300", deviceWidths[device])}>
+          <BrowserFrame>
+            {/* Fake header */}
+            <div className="relative px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: WINE_COLOR, opacity: 0.6 }} />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: WINE_COLOR }}></div>
+                <div className="w-20 h-3 bg-slate-200 dark:bg-slate-700 rounded"></div>
+              </div>
+              {device !== 'mobile' && <div className="flex gap-4">{[1,2,3,4].map(i => (<div key={i} className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded"></div>))}</div>}
+            </div>
+
+            {/* Category Grid section */}
+            <section className="bg-white py-2">
+              <div className="mx-auto max-w-7xl px-2">
+                {categories.length > 0 ? (
+                  <div className={cn(
+                    "grid gap-1.5",
+                    device === 'mobile' ? 'grid-cols-3' : 'grid-cols-6'
+                  )}>
+                    {categories.map((cat, idx) => {
+                      let imageUrl = cat.image || cat.path || '';
+                      if (imageUrl && !imageUrl.startsWith('http')) {
+                        imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                      }
+                      return (
+                        <div key={cat.id} className="group">
+                          <div className="rounded-lg overflow-hidden border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-[#ECAA4D]/45 hover:shadow-lg">
+                            <div className="relative aspect-[15/16] sm:aspect-[25/12] overflow-hidden">
+                              {imageUrl ? (
+                                <>
+                                  <img src={imageUrl} alt={cat.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-[1.03]" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-transparent" />
+                                  <div className="absolute inset-x-1 bottom-1 flex items-center justify-center rounded-md bg-black/40 px-1.5 py-0.5 text-center text-[0.65rem] font-normal uppercase tracking-[0.15em] text-white shadow-lg backdrop-blur-sm border border-[#ECAA4D]/20">
+                                    {cat.title}
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-1.5" style={{ backgroundColor: `${WINE_COLOR}25` }}>
+                                    <ImageIcon size={16} style={{ color: WINE_COLOR }} />
+                                  </div>
+                                  <span className="text-[10px] font-medium text-slate-600 px-2 text-center">{cat.title}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <ImageIcon size={48} className="mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm text-slate-500">Chưa có danh mục</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Fake content below */}
+            <div className="p-4 space-y-3">
+              <div className="flex gap-3">{[1,2,3,4].slice(0, device === 'mobile' ? 2 : 4).map(i => (<div key={i} className="flex-1 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>))}</div>
+            </div>
+          </BrowserFrame>
+        </div>
+        <div className="mt-3 text-xs text-slate-500">
+          {device === 'desktop' && 'Desktop max-w-7xl (1280px)'}{device === 'tablet' && 'Tablet (768px)'}{device === 'mobile' && 'Mobile (375px)'}
+          {' • '}{categories.length} categories • Grid: {device === 'mobile' ? '3' : '6'} cols
+        </div>
+        <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-start gap-2">
+            <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              <strong>Square images</strong> • Mobile: 3 cols, Desktop: 6 cols • Overlay gradient + title
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============ BRAND SHOWCASE PREVIEW ============
+interface BrandItem {
+  id: number;
+  image: string;
+  path?: string;
+  href: string;
+  alt: string;
+}
+
+export const BrandShowcasePreview = ({ title, brands }: { title: string; brands: BrandItem[] }) => {
+  const [device, setDevice] = useState<PreviewDevice>('desktop');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Simulate carousel - show 5 items at a time on desktop, 3 on tablet, 1 on mobile
+  const itemsPerView = device === 'mobile' ? 3 : device === 'tablet' ? 4 : 5;
+  const visibleBrands = brands.slice(currentIndex, currentIndex + itemsPerView);
+
+  const handleNext = () => {
+    if (currentIndex + itemsPerView < brands.length) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setCurrentIndex(0); // Loop
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    } else {
+      setCurrentIndex(Math.max(0, brands.length - itemsPerView)); // Loop to end
+    }
+  };
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            Preview Brand Showcase
+          </CardTitle>
+          <div className="flex gap-2 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+            {devices.map((d) => (
+              <button key={d.id} type="button" onClick={() => setDevice(d.id)} title={d.label}
+                className={cn("p-1.5 rounded-md transition-all",
+                  device === d.id ? "bg-white dark:bg-slate-700 shadow-sm" : "text-slate-400 hover:text-slate-600")}>
+                <d.icon size={16} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className={cn("mx-auto transition-all duration-300", deviceWidths[device])}>
+          <BrowserFrame>
+            {/* Fake header */}
+            <div className="relative px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: WINE_COLOR, opacity: 0.6 }} />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: WINE_COLOR }}></div>
+                <div className="w-20 h-3 bg-slate-200 dark:bg-slate-700 rounded"></div>
+              </div>
+              {device !== 'mobile' && <div className="flex gap-4">{[1,2,3,4].map(i => (<div key={i} className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded"></div>))}</div>}
+            </div>
+
+            {/* Brand Showcase section */}
+            <section className="bg-white py-6">
+              <div className="mx-auto max-w-6xl">
+                <header className="mb-4 text-center">
+                  <h2 className="text-2xl font-bold uppercase tracking-wide text-[#1C1C1C]">
+                    {title || 'Thương hiệu đối tác'}
+                  </h2>
+                </header>
+                {brands.length > 0 ? (
+                  <div className="relative px-4">
+                    {/* Carousel items */}
+                    <div className="flex gap-4 justify-center items-center">
+                      {visibleBrands.map((brand, idx) => {
+                        let imageUrl = brand.image || brand.path || '';
+                        if (imageUrl && !imageUrl.startsWith('http')) {
+                          imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                        }
+                        return (
+                          <div key={brand.id} className="flex-shrink-0" style={{ width: `${100 / itemsPerView}%` }}>
+                            <div className="flex h-full items-center justify-center rounded-xl border border-transparent p-2 transition-all hover:-translate-y-0.5 hover:border-[#ECAA4D]/40 hover:shadow-md">
+                              {imageUrl ? (
+                                <img src={imageUrl} alt={brand.alt} className="w-auto h-20 object-contain transition-transform hover:scale-105" />
+                              ) : (
+                                <div className="w-full h-20 flex flex-col items-center justify-center bg-slate-100 rounded-lg">
+                                  <ImageIcon size={20} className="text-slate-400 mb-1" />
+                                  <span className="text-[10px] text-slate-500">Brand {currentIndex + idx + 1}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {/* Navigation arrows */}
+                    {brands.length > itemsPerView && (
+                      <>
+                        <button type="button" onClick={handlePrev}
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-50 shadow-md flex items-center justify-center transition-all z-10">
+                          <ChevronLeft size={16} className="text-slate-600" />
+                        </button>
+                        <button type="button" onClick={handleNext}
+                          className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-50 shadow-md flex items-center justify-center transition-all z-10">
+                          <ChevronRight size={16} className="text-slate-600" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <ImageIcon size={48} className="mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm text-slate-500">Chưa có thương hiệu</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Fake content below */}
+            <div className="p-4 space-y-3">
+              <div className="flex gap-3">{[1,2,3,4].slice(0, device === 'mobile' ? 2 : 4).map(i => (<div key={i} className="flex-1 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>))}</div>
+            </div>
+          </BrowserFrame>
+        </div>
+        <div className="mt-3 text-xs text-slate-500">
+          {device === 'desktop' && 'Desktop max-w-7xl (1280px)'}{device === 'tablet' && 'Tablet (768px)'}{device === 'mobile' && 'Mobile (375px)'}
+          {' • '}{brands.length} brands • Carousel với autoplay
+        </div>
+        <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-start gap-2">
+            <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              <strong>Logo images</strong> • Carousel tự động chuyển • Hover scale effect
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
