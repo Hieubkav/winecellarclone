@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { Montserrat } from "next/font/google"
 import { ArrowUpRight } from "lucide-react"
 
 import type { HomeShowcaseProduct } from "@/data/homeCollections"
@@ -9,11 +8,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/ui/product-image"
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-})
+import { BRAND_COLORS } from "@/lib/constants/colors"
 
 type CollectionShowcaseProps = {
   title: string
@@ -34,21 +29,22 @@ export default function CollectionShowcase({
   products,
   tone = "wine",
 }: CollectionShowcaseProps) {
-  const accent = tone === "spirit" ? "#ECAA4D" : "#9B2C3B"
+  const accent = tone === "spirit" ? BRAND_COLORS.spirit : BRAND_COLORS.wine
   const contextLabel = subtitle ?? title
   const resolvedCtaLabel = ctaLabel ?? "Xem thêm"
 
+  if (products.length === 0) {
+    return null
+  }
+
   return (
-    <section className="bg-white py-6" aria-label={contextLabel}>
+    <section className="bg-white py-6" aria-label={`Bộ sưu tập - ${contextLabel}`}>
       <div className="mx-auto w-full max-w-6xl px-4 lg:px-2">
         <Card className="border-[#f1f1f1] bg-white/95">
           <CardHeader className="flex flex-row items-end justify-between pb-6">
             <div className="space-y-2 flex-1 min-w-0">
               <CardTitle
-                className={cn(
-                  montserrat.className,
-                  "text-xl font-bold uppercase tracking-[0.18em] text-[#1C1C1C] sm:text-2xl",
-                )}
+                className="text-xl font-bold uppercase tracking-[0.18em] text-[#1C1C1C] sm:text-2xl"
               >
                 {title}
               </CardTitle>
@@ -58,7 +54,7 @@ export default function CollectionShowcase({
             </div>
             <Button
               asChild
-              aria-label={resolvedCtaLabel}
+              aria-label={`${resolvedCtaLabel} - Xem tất cả sản phẩm`}
               className="group h-10 rounded-full border border-[#ECAA4D] bg-white px-5 text-xs font-semibold uppercase tracking-[0.28em] text-[#1C1C1C] transition-colors hover:bg-[#ECAA4D] hover:text-[#1C1C1C] ml-4"
             >
               <Link href={ctaHref}>
@@ -72,8 +68,8 @@ export default function CollectionShowcase({
 
           <CardContent className="pt-0">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {products.slice(0, 8).map((product) => (
-                <ProductTile key={product.id} product={product} accent={accent} />
+              {products.slice(0, 8).map((product, index) => (
+                <ProductTile key={product.id} product={product} accent={accent} index={index} />
               ))}
             </div>
           </CardContent>
@@ -86,12 +82,14 @@ export default function CollectionShowcase({
 type ProductTileProps = {
   product: HomeShowcaseProduct
   accent: string
+  index: number
 }
 
-function ProductTile({ product, accent }: ProductTileProps) {
+function ProductTile({ product, accent, index }: ProductTileProps) {
   return (
     <Link
       href={product.href}
+      aria-label={`Xem sản phẩm ${product.name}`}
       className="group flex h-full flex-col rounded-2xl border border-[#eeeeee] bg-white p-2.5 shadow-[0_14px_30px_rgba(28,28,28,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(28,28,28,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
     >
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/70 bg-[#fafafa]">
@@ -99,6 +97,7 @@ function ProductTile({ product, accent }: ProductTileProps) {
           src={product.image}
           alt={product.name}
           fill
+          priority={index < 4}
           sizes="(max-width: 768px) 50vw, (min-width: 1024px) 20vw, 25vw"
           className="object-cover transition duration-500 ease-out group-hover:scale-[1.03]"
         />
@@ -112,23 +111,13 @@ function ProductTile({ product, accent }: ProductTileProps) {
         )}
       </div>
       <div className="mt-2 flex flex-1 flex-col gap-1">
-        <p
-          className={cn(
-            montserrat.className,
-            "text-sm font-semibold text-[#1C1C1C] transition group-hover:text-[#9B2C3B]",
-          )}
-        >
+        <p className="text-sm font-semibold text-[#1C1C1C] transition group-hover:text-[#9B2C3B]">
           {product.name}
         </p>
         <p className="text-[0.65rem] uppercase tracking-[0.2em] text-[#1C1C1C]/55">
           {product.country} - {product.style}
         </p>
-        <p
-          className={cn(
-            montserrat.className,
-            "mt-auto text-base font-bold text-[#ECAA4D]",
-          )}
-        >
+        <p className="mt-auto text-base font-bold text-[#ECAA4D]">
           {product.price}
         </p>
       </div>
