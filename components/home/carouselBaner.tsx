@@ -93,21 +93,22 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                   className="border-none bg-transparent p-0 pl-0 shadow-none"
                 >
                   <div className="relative block">
-                    {/* Responsive aspect ratio */}
-                    <div className="relative block w-full overflow-hidden bg-slate-900 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9]">
-                      {/* Blurred background layer */}
+                    {/* Container với aspect ratio */}
+                    <div className="relative block w-full bg-slate-900 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9] overflow-hidden">
+                      {/* Blurred background - FULL SCREEN không bị giới hạn */}
                       <div
-                        className="absolute inset-0 scale-110"
+                        className="absolute inset-0"
                         style={{
                           backgroundImage: `url(${slide.image})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          filter: 'blur(30px)',
+                          filter: 'blur(40px)',
+                          transform: 'scale(1.2)', // Scale ra để không thấy edge
                         }}
                       />
-                      {/* Dark overlay */}
-                      <div className="absolute inset-0 bg-black/20" />
-                      {/* Main image - object-contain */}
+                      {/* Dark overlay để làm mờ background */}
+                      <div className="absolute inset-0 bg-black/30" />
+                      {/* Main image - object-contain ở giữa */}
                       <img
                         src={slide.image}
                         alt={slide.alt || `Slide ${index + 1}`}

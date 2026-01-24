@@ -123,17 +123,18 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
                           idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
                           {imageUrl ? (
                             <div className="w-full h-full relative">
-                              {/* Blurred background */}
+                              {/* Blurred background - FULL không letterbox */}
                               <div 
-                                className="absolute inset-0 scale-110"
+                                className="absolute inset-0"
                                 style={{
                                   backgroundImage: `url(${imageUrl})`,
                                   backgroundSize: 'cover',
                                   backgroundPosition: 'center',
-                                  filter: 'blur(30px)',
+                                  filter: 'blur(40px)',
+                                  transform: 'scale(1.2)',
                                 }}
                               />
-                              <div className="absolute inset-0 bg-black/20" />
+                              <div className="absolute inset-0 bg-black/30" />
                               {/* Main image - object-contain */}
                               <img src={imageUrl} alt={slide.alt || `Slide ${idx + 1}`} className="relative w-full h-full object-contain z-10" />
                             </div>
