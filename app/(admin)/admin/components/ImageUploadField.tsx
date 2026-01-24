@@ -92,7 +92,7 @@ export function ImageUploadField({
     square: 'aspect-square',
     video: 'aspect-video',
     '21:9': 'aspect-[21/9]',
-    auto: '',
+    auto: 'min-h-[120px]',
   };
 
   const uploadFile = useCallback(async (file: File) => {
