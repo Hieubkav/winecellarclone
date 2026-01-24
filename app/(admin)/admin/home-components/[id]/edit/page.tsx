@@ -17,6 +17,12 @@ import {
   EditorialSpotlightForm,
   FavouriteProductsForm,
 } from '../../FormComponents';
+import {
+  HeroCarouselPreview,
+  CollectionShowcasePreview,
+  EditorialSpotlightPreview,
+  FavouriteProductsPreview,
+} from '../../previews';
 
 interface HeroSlide {
   id: number;
@@ -437,7 +443,10 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         </Card>
 
         {componentType === 'hero_carousel' && (
-          <HeroCarouselForm slides={heroSlides} onChange={setHeroSlides} />
+          <>
+            <HeroCarouselForm slides={heroSlides} onChange={setHeroSlides} />
+            <HeroCarouselPreview slides={heroSlides.map(s => ({ id: s.id, image: s.image, link: s.link, alt: s.alt }))} />
+          </>
         )}
 
         {componentType === 'dual_banner' && (
@@ -458,46 +467,70 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         )}
 
         {componentType === 'collection_showcase' && (
-          <CollectionShowcaseForm
-            title={collectionTitle}
-            subtitle={collectionSubtitle}
-            description={collectionDescription}
-            ctaLabel={collectionCtaLabel}
-            ctaHref={collectionCtaHref}
-            tone={collectionTone}
-            productIds={collectionProductIds}
-            onTitleChange={setCollectionTitle}
-            onSubtitleChange={setCollectionSubtitle}
-            onDescriptionChange={setCollectionDescription}
-            onCtaLabelChange={setCollectionCtaLabel}
-            onCtaHrefChange={setCollectionCtaHref}
-            onToneChange={setCollectionTone}
-            onProductIdsChange={setCollectionProductIds}
-          />
+          <>
+            <CollectionShowcaseForm
+              title={collectionTitle}
+              subtitle={collectionSubtitle}
+              description={collectionDescription}
+              ctaLabel={collectionCtaLabel}
+              ctaHref={collectionCtaHref}
+              tone={collectionTone}
+              productIds={collectionProductIds}
+              onTitleChange={setCollectionTitle}
+              onSubtitleChange={setCollectionSubtitle}
+              onDescriptionChange={setCollectionDescription}
+              onCtaLabelChange={setCollectionCtaLabel}
+              onCtaHrefChange={setCollectionCtaHref}
+              onToneChange={setCollectionTone}
+              onProductIdsChange={setCollectionProductIds}
+            />
+            <CollectionShowcasePreview
+              title={collectionTitle}
+              subtitle={collectionSubtitle}
+              description={collectionDescription}
+              productIds={collectionProductIds}
+              tone={collectionTone}
+            />
+          </>
         )}
 
         {componentType === 'editorial_spotlight' && (
-          <EditorialSpotlightForm
-            label={editorialLabel}
-            title={editorialTitle}
-            description={editorialDescription}
-            articleIds={editorialArticleIds}
-            onLabelChange={setEditorialLabel}
-            onTitleChange={setEditorialTitle}
-            onDescriptionChange={setEditorialDescription}
-            onArticleIdsChange={setEditorialArticleIds}
-          />
+          <>
+            <EditorialSpotlightForm
+              label={editorialLabel}
+              title={editorialTitle}
+              description={editorialDescription}
+              articleIds={editorialArticleIds}
+              onLabelChange={setEditorialLabel}
+              onTitleChange={setEditorialTitle}
+              onDescriptionChange={setEditorialDescription}
+              onArticleIdsChange={setEditorialArticleIds}
+            />
+            <EditorialSpotlightPreview
+              label={editorialLabel}
+              title={editorialTitle}
+              description={editorialDescription}
+              articleIds={editorialArticleIds}
+            />
+          </>
         )}
 
         {componentType === 'favourite_products' && (
-          <FavouriteProductsForm
-            title={favouriteTitle}
-            subtitle={favouriteSubtitle}
-            productIds={favouriteProductIds}
-            onTitleChange={setFavouriteTitle}
-            onSubtitleChange={setFavouriteSubtitle}
-            onProductIdsChange={setFavouriteProductIds}
-          />
+          <>
+            <FavouriteProductsForm
+              title={favouriteTitle}
+              subtitle={favouriteSubtitle}
+              productIds={favouriteProductIds}
+              onTitleChange={setFavouriteTitle}
+              onSubtitleChange={setFavouriteSubtitle}
+              onProductIdsChange={setFavouriteProductIds}
+            />
+            <FavouriteProductsPreview
+              title={favouriteTitle}
+              subtitle={favouriteSubtitle}
+              productIds={favouriteProductIds}
+            />
+          </>
         )}
 
         <div className="flex justify-end gap-3">
