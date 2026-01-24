@@ -115,6 +115,15 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           console.log('parseConfig hero_carousel - raw config:', config);
           if (config.slides && Array.isArray(config.slides)) {
             console.log('parseConfig hero_carousel - slides:', config.slides);
+            // Debug: log chi tiết từng slide
+            config.slides.forEach((slide: any, idx: number) => {
+              console.log(`Slide ${idx + 1} RAW:`, slide);
+              console.log(`  - slide.image:`, slide.image);
+              console.log(`  - slide.image?.url:`, slide.image?.url);
+              console.log(`  - slide.href:`, slide.href);
+              console.log(`  - slide.alt:`, slide.alt);
+            });
+            
             setHeroSlides(config.slides.map((slide: any, idx: number) => ({
               id: Date.now() + idx,
               image: slide.image?.url || '',
