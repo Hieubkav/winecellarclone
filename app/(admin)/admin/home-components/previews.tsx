@@ -46,6 +46,7 @@ const BrowserFrame = ({ children, url = 'yoursite.com' }: { children: React.Reac
 interface HeroSlide {
   id: number;
   image: string;
+  path?: string; // Fallback field
   link: string;
   alt: string;
 }
@@ -56,6 +57,9 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+
+  // Debug: log slides data
+  console.log('HeroCarouselPreview slides:', slides);
 
   return (
     <Card className="mt-6">
@@ -81,19 +85,23 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
             <div className="relative w-full aspect-[21/9] bg-slate-900">
               {slides.length > 0 ? (
                 <>
-                  {slides.map((slide, idx) => (
-                    <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700",
-                      idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
-                      {slide.image ? (
-                        <img src={slide.image} alt={slide.alt || `Slide ${idx + 1}`} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800">
-                          <Package size={48} className="text-slate-400 mb-2" />
-                          <span className="text-slate-400 text-sm">Slide #{idx + 1}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  {slides.map((slide, idx) => {
+                    // Use image or fallback to path
+                    const imageUrl = slide.image || slide.path || '';
+                    return (
+                      <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700",
+                        idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
+                        {imageUrl ? (
+                          <img src={imageUrl} alt={slide.alt || `Slide ${idx + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800">
+                            <Package size={48} className="text-slate-400 mb-2" />
+                            <span className="text-slate-400 text-sm">Slide #{idx + 1}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   {slides.length > 1 && (
                     <>
                       <button type="button" onClick={prevSlide} 
