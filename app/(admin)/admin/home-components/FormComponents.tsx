@@ -397,6 +397,7 @@ interface BrandItem {
   id: number;
   image: string;
   path: string;
+  imageId?: number;
   href: string;
   alt: string;
 }
@@ -414,6 +415,7 @@ export function BrandShowcaseForm({ title, brands, onTitleChange, onBrandsChange
       id: Date.now(),
       image: '',
       path: '',
+      imageId: undefined,
       href: '',
       alt: '',
     };
@@ -427,9 +429,9 @@ export function BrandShowcaseForm({ title, brands, onTitleChange, onBrandsChange
     onBrandsChange(updated);
   };
 
-  const updateBrandImage = (index: number, url: string, path: string) => {
+  const updateBrandImage = (index: number, url: string, path: string, imageId?: number) => {
     const updated = brands.map((brand, i) =>
-      i === index ? { ...brand, image: url, path } : brand
+      i === index ? { ...brand, image: url, path, imageId } : brand
     );
     onBrandsChange(updated);
   };
@@ -440,7 +442,7 @@ export function BrandShowcaseForm({ title, brands, onTitleChange, onBrandsChange
 
   const removeBrandImage = (index: number) => {
     const updated = brands.map((brand, i) =>
-      i === index ? { ...brand, image: '', path: '' } : brand
+      i === index ? { ...brand, image: '', path: '', imageId: undefined } : brand
     );
     onBrandsChange(updated);
   };
@@ -486,7 +488,7 @@ export function BrandShowcaseForm({ title, brands, onTitleChange, onBrandsChange
                       label="Logo thương hiệu"
                       value={brand.image}
                       path={brand.path}
-                      onChange={(url, path) => updateBrandImage(idx, url, path)}
+                      onChange={(url, path, imageId) => updateBrandImage(idx, url, path, imageId)}
                       onRemove={() => removeBrandImage(idx)}
                       aspectRatio="auto"
                       folder="home-components/brands"

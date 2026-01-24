@@ -57,6 +57,7 @@ interface BrandItem {
   id: number;
   image: string;
   path: string;
+  imageId?: number;
   href: string;
   alt: string;
 }
@@ -246,20 +247,39 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         case 'brand_showcase':
           setBrandTitle(config.title || '');
           if (config.brands && Array.isArray(config.brands)) {
-            setBrands(config.brands.map((brand: any, idx: number) => {
-              // Handle both string URL and object {url} formats
-              const imageUrl = typeof brand.image === 'string'
-                ? brand.image
-                : (brand.image?.url || '');
-              
-              return {
-                id: Date.now() + idx,
-                image: imageUrl,
-                path: imageUrl,
-                href: brand.href || '',
-                alt: brand.alt || '',
-              };
-            }));
+            // Fetch images for brands with image_id
+            const brandsWithImages = await Promise.all(
+              config.brands.map(async (brand: any, idx: number) => {
+                let imageUrl = '';
+                
+                // Try brand.image.url first (new format)
+                if (brand.image?.url) {
+                  imageUrl = brand.image.url;
+                }
+                // Fallback to fetch from image_id (old format)
+                else if (brand.image_id) {
+                  try {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'}/v1/admin/images/${brand.image_id}`);
+                    if (response.ok) {
+                      const data = await response.json();
+                      imageUrl = data.data?.url || '';
+                    }
+                  } catch (error) {
+                    console.error(`Failed to fetch image ${brand.image_id}:`, error);
+                  }
+                }
+                
+                return {
+                  id: Date.now() + idx,
+                  image: imageUrl,
+                  path: imageUrl,
+                  imageId: brand.image_id || brand.image?.id,
+                  href: brand.href || '',
+                  alt: brand.alt || '',
+                };
+              })
+            );
+            setBrands(brandsWithImages);
           }
           break;
 
@@ -391,9 +411,9 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         return {
           title: brandTitle,
           brands: brands.map(brand => ({
-            image: { id: 0, url: brand.image, alt: brand.alt },
+            image_id: brand.imageId || null,
             href: brand.href || null,
-            alt: brand.alt,
+            alt: brand.alt || null,
           })),
         };
 
