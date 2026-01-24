@@ -112,14 +112,19 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     try {
       switch (type) {
         case 'hero_carousel':
+          console.log('parseConfig hero_carousel - raw config:', config);
           if (config.slides && Array.isArray(config.slides)) {
-            setHeroSlides(config.slides.map((slide: any, idx: number) => ({
-              id: Date.now() + idx,
-              image: slide.image?.url || '',
-              path: slide.image?.url || '',
-              link: slide.href || '',
-              alt: slide.alt || '',
-            })));
+            console.log('parseConfig hero_carousel - slides:', config.slides);
+            setHeroSlides(config.slides.map((slide: any, idx: number) => {
+              console.log(`parseConfig slide ${idx}:`, slide);
+              return {
+                id: Date.now() + idx,
+                image: slide.image?.url || '',
+                path: slide.image?.url || '',
+                link: slide.href || '',
+                alt: slide.alt || '',
+              };
+            }));
           }
           break;
 
