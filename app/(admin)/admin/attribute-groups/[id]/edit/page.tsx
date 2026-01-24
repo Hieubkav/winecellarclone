@@ -2,19 +2,17 @@
 
 import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ArrowLeft, Tag, Info } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
 import { Button, Card, CardContent, Input, Label, Skeleton, Badge } from '../../../components/ui';
 import { IconPicker } from '../../../components/IconPicker';
 import { 
   fetchAdminCatalogAttributeGroup, 
-  updateCatalogAttributeGroup,
-  type AdminCatalogAttributeGroup 
+  updateCatalogAttributeGroup
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
 import { TermsManager } from './TermsManager';
+import { useRouter } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -49,7 +47,7 @@ const normalizeFilterTypeForApi = (value: string): FilterType => {
 
 export default function AttributeGroupEditPage({ params }: PageProps) {
   const { id } = use(params);
-  const router = useRouter();
+  const _router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

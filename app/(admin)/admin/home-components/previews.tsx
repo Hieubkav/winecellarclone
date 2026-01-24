@@ -4,13 +4,12 @@ import React, { useState } from 'react';
 import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/lib/api/client';
 
 // Fixed colors từ site
 const WINE_COLOR = "#9B2C3B";  // Đỏ burgundy
-const SPIRIT_COLOR = "#ECAA4D"; // Vàng gold
+const _SPIRIT_COLOR = "#ECAA4D"; // Vàng gold
 
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 
@@ -729,7 +728,7 @@ export const CategoryGridPreview = ({ categories }: { categories: CategoryItem[]
                     "grid gap-1.5",
                     device === 'mobile' ? 'grid-cols-3' : 'grid-cols-6'
                   )}>
-                    {categories.map((cat, idx) => {
+                    {categories.map((cat, _idx) => {
                       let imageUrl = cat.image || cat.path || '';
                       if (imageUrl && !imageUrl.startsWith('http')) {
                         imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;

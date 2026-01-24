@@ -634,9 +634,8 @@ const generateSlug = (text: string): string => {
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                         {(() => {
                           const iconName = group.icon_name || group.icon_url?.split('/').pop();
-                          const IconComponent = iconName && (LucideIcons as Record<string, React.ComponentType<{className?: string}>>)[iconName]
-                            ? (LucideIcons as Record<string, React.ComponentType<{className?: string}>>)[iconName]
-                            : null;
+                          const allIcons = LucideIcons as unknown as Record<string, React.ComponentType<{className?: string}>>;
+                          const IconComponent = iconName && allIcons[iconName] ? allIcons[iconName] : null;
                           return IconComponent ? <IconComponent className="w-4 h-4 text-red-500" /> : null;
                         })()}
                         {group.name}

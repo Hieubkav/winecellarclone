@@ -50,7 +50,8 @@ function SortableCard({ card, onUpdate, onDelete }: SortableCardProps) {
   const SelectedIcon = ICON_OPTIONS.find(i => i.value === card.icon)?.Icon || HelpCircle;
 
   return (
-    <Card ref={setNodeRef} style={style} className={cn('p-4', !card.active && 'opacity-50')}>
+    <div ref={setNodeRef} style={style}>
+    <Card className={cn('p-4', !card.active && 'opacity-50')}>
       <div className="flex items-center gap-2 mb-4">
         <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
           <GripVertical size={18} className="text-slate-400" />
@@ -127,6 +128,7 @@ function SortableCard({ card, onUpdate, onDelete }: SortableCardProps) {
         )}
       </div>
     </Card>
+    </div>
   );
 }
 
@@ -149,7 +151,7 @@ export default function ContactConfigPage() {
       const data = res.data;
       setSiteName(data.site_name || 'Wine Cellar');
       if (data.contact_config) {
-        setConfig(data.contact_config as ContactConfig);
+        setConfig(data.contact_config as unknown as ContactConfig);
       }
     } catch (error) {
       console.error('Failed to load contact config:', error);

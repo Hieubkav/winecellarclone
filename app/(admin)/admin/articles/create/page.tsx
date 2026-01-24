@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles } from 'lucide-react';
-import { Button, Card, Input, Label, Skeleton } from '../../components/ui';
+import { Button, Card, Input, Label } from '../../components/ui';
 import { createArticle } from '@/lib/api/admin';
 import { API_BASE_URL } from '@/lib/api/client';
 import { LexicalEditor } from '../../components/LexicalEditor';

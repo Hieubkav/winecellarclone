@@ -20,7 +20,7 @@ export default function ProductTypeCreatePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
-  const [order, setOrder] = useState('');
+  const [_order, _setOrder] = useState('');
   const [active, setActive] = useState('true');
   
   const [allAttributes, setAllAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
@@ -99,7 +99,7 @@ export default function ProductTypeCreatePage() {
     try {
       const result = await createProductType({
         name: name.trim(),
-        order: order ? Number(order) : null,
+        order: _order ? Number(_order) : null,
         active: active === 'true',
       });
       

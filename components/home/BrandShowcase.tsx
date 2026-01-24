@@ -6,7 +6,7 @@ import { useRef } from "react"
 import Autoplay, { type AutoplayType } from "embla-carousel-autoplay"
 
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
-import { BRAND_COLORS, ANIMATION_TIMINGS } from "@/lib/constants/colors"
+import { ANIMATION_TIMINGS } from "@/lib/constants/colors"
 
 type BrandShowcaseProps = {
   title: string;
@@ -51,28 +51,42 @@ export default function BrandShowcase({ title, brands = [] }: BrandShowcaseProps
           <CarouselContent className="ml-0 px-4">
             {brands.map((brand, index) => {
               const hasLink = brand.href && brand.href !== "#"
-              const Component = hasLink ? Link : "div"
-              const linkProps = hasLink ? { href: brand.href as string } : {}
 
               return (
                 <CarouselItem
                   key={`${brand.image}-${index}`}
                   className="basis-1/3 sm:basis-1/3 md:basis-1/4 lg:basis-1/5"
                 >
-                  <Component
-                    {...linkProps}
-                    aria-label={brand.alt || `Logo thương hiệu ${index + 1}`}
-                    className="flex h-full items-center justify-center rounded-xl border border-transparent p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ECAA4D]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                  >
-                    <Image
-                      src={brand.image}
-                      alt={brand.alt}
-                      width={180}
-                      height={80}
-                      priority={index < 5}
-                      className="w-auto h-auto max-h-[80px] object-contain transition-transform duration-300 hover:scale-105"
-                    />
-                  </Component>
+                  {hasLink ? (
+                    <Link
+                      href={brand.href as string}
+                      aria-label={brand.alt || `Logo thương hiệu ${index + 1}`}
+                      className="flex h-full items-center justify-center rounded-xl border border-transparent p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ECAA4D]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                    >
+                      <Image
+                        src={brand.image}
+                        alt={brand.alt}
+                        width={180}
+                        height={80}
+                        priority={index < 5}
+                        className="w-auto h-auto max-h-[80px] object-contain transition-transform duration-300 hover:scale-105"
+                      />
+                    </Link>
+                  ) : (
+                    <div
+                      aria-label={brand.alt || `Logo thương hiệu ${index + 1}`}
+                      className="flex h-full items-center justify-center rounded-xl border border-transparent p-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#ECAA4D]/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                    >
+                      <Image
+                        src={brand.image}
+                        alt={brand.alt}
+                        width={180}
+                        height={80}
+                        priority={index < 5}
+                        className="w-auto h-auto max-h-[80px] object-contain transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
+                  )}
                 </CarouselItem>
               )
             })}

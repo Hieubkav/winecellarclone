@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Link as LinkIcon, Trash2, Edit, AlertTriangle } from 'lucide-react';
-import { Button, Card, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { Button, Card, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
 import { fetchAdminSocialLinks, deleteSocialLink, bulkDeleteSocialLinks, updateSocialLink, type AdminSocialLink } from '@/lib/api/admin';
 import { toast } from 'sonner';

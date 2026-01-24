@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, Loader2, Menu as MenuIcon, Layers, Link as LinkIcon } from 'lucide-react';
+import { RefreshCw, Menu as MenuIcon, Layers, Link as LinkIcon } from 'lucide-react';
 import { Button, Card, Skeleton } from '../components/ui';
 import { 
   fetchAdminMenus, 

@@ -35,7 +35,7 @@ export default function ProductTypesPage() {
     return 25;
   });
   const [attributes, setAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
-  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
+  const [_togglingStatus, _setTogglingStatus] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState('');
@@ -175,8 +175,8 @@ export default function ProductTypesPage() {
     }
   };
 
-  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
-    setTogglingStatus(id);
+  const _handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    _setTogglingStatus(id);
     try {
       await updateProductType(id, { active: !currentStatus });
       setTypes(prev => prev.map(t => 
@@ -190,7 +190,7 @@ export default function ProductTypesPage() {
       console.error('Failed to toggle status:', error);
       toast.error('Cập nhật trạng thái thất bại. Vui lòng thử lại.');
     } finally {
-      setTogglingStatus(null);
+      _setTogglingStatus(null);
     }
   };
 

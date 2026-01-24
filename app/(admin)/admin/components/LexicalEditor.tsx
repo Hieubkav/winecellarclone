@@ -28,7 +28,6 @@
    $isTextNode,
   TextNode,
   $applyNodeReplacement,
-  type NodeKey,
   type DOMConversionMap,
   type DOMConversion,
   type DOMConversionOutput,

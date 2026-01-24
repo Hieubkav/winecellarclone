@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, type MouseEvent } from "react";
-import { ArrowRight, Globe, Droplets, FlaskConical, ShoppingCart } from "lucide-react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import type { ProductListItem } from "@/lib/api/products";
 import { ProductImage } from "@/components/ui/product-image";
 import { Button } from "@/components/ui/button";
@@ -26,27 +26,27 @@ export default function RelatedProductsSection({
   viewAllLabel = "Xem tất cả" 
 }: RelatedProductsSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const [_isDragging, setIsDragging] = useState(false);
+  const [_startX, setStartX] = useState(0);
+  const [_scrollLeft, setScrollLeft] = useState(0);
 
-  const handleMouseDown = (e: MouseEvent) => {
+  const _handleMouseDown = (e: MouseEvent) => {
     if (!scrollRef.current) return;
     setIsDragging(true);
     setStartX(e.pageX - scrollRef.current.offsetLeft);
     setScrollLeft(scrollRef.current.scrollLeft);
   };
 
-  const handleMouseUpOrLeave = () => {
+  const _handleMouseUpOrLeave = () => {
     setIsDragging(false);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
+  const _handleMouseMove = (e: MouseEvent) => {
+    if (!_isDragging || !scrollRef.current) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
+    const walk = (x - _startX) * 2;
+    scrollRef.current.scrollLeft = _scrollLeft - walk;
   };
 
   if (!products || products.length === 0) {

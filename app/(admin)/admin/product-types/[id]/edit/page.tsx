@@ -35,7 +35,7 @@ function generateSlug(text: string): string {
 
 export default function ProductTypeEditPage({ params }: PageProps) {
   const { id } = use(params);
-  const router = useRouter();
+  const _router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

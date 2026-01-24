@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Filter, Search, Tag } from 'lucide-react';
+import { Plus, Edit, Filter, Search } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, ColumnToggle } from '../components/TableUtilities';

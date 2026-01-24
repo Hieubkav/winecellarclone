@@ -74,7 +74,7 @@ async function convertToWebP(file: File, quality: number = 0.85): Promise<Blob> 
 
 export function ImageUploadField({
   value,
-  path,
+  path: _path,
   onChange,
   onRemove,
   label = 'Hình ảnh',

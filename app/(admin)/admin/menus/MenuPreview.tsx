@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { ChevronDown, Monitor, Tablet, Smartphone, Eye } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, Button, cn } from '../components/ui';
+import { Card, CardHeader, CardTitle, CardContent, cn } from '../components/ui';
 import type { AdminMenuDetail } from '@/lib/api/admin';
 
 interface MenuPreviewProps {

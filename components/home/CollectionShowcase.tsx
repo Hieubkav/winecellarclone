@@ -4,7 +4,6 @@ import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
 
 import type { HomeShowcaseProduct } from "@/data/homeCollections"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImage } from "@/components/ui/product-image"

@@ -10,8 +10,7 @@ import { createCatalogAttributeGroup } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
 
-const FILTER_TYPE_OPTIONS = ['checkbox', 'radio', 'range', 'color'] as const;
-type FilterType = (typeof FILTER_TYPE_OPTIONS)[number];
+type FilterType = 'checkbox' | 'radio' | 'range' | 'color';
 
 function generateCode(text: string): string {
   return text

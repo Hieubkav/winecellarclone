@@ -34,12 +34,10 @@ import {
   Menu as MenuIcon,
   Layers,
   Link as LinkIcon,
-  Database,
   Sparkles,
 } from 'lucide-react';
 import {
   Button,
-  Card,
   Input,
   Badge,
   cn,
@@ -763,7 +761,7 @@ function GenerateMenuButton({ onGenerate, isGenerating }: GenerateMenuDialogProp
 
 // ==================== MAIN COMPONENT ====================
 
-export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps) {
+export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: MenuBuilderProps) {
   const [menus, setMenus] = useState<AdminMenuDetail[]>(initialMenus);
   const [expandedMenus, setExpandedMenus] = useState<Set<number>>(new Set(initialMenus.map(m => m.id)));
   const [expandedBlocks, setExpandedBlocks] = useState<Set<number>>(new Set());

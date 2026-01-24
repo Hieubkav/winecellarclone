@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Trash2, Edit, AlertTriangle, GripVertical } from 'lucide-react';
-import { Button, Card, Badge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
+import { Button, Card, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
 import { fetchAdminHomeComponents, deleteHomeComponent, bulkDeleteHomeComponents, reorderHomeComponents, updateHomeComponent, type AdminHomeComponent } from '@/lib/api/admin';
 import { toast } from 'sonner';
