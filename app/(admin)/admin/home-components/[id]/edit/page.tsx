@@ -172,38 +172,59 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
 
         case 'dual_banner':
           if (config.banners && Array.isArray(config.banners)) {
-            setDualBanners(config.banners.slice(0, 2).map((banner: any, idx: number) => ({
-              id: idx + 1,
-              image: banner.image?.url || '',
-              path: banner.image?.url || '',
-              link: banner.href || '',
-              alt: banner.alt || '',
-            })));
+            setDualBanners(config.banners.slice(0, 2).map((banner: any, idx: number) => {
+              // Handle both string URL and object {url} formats
+              const imageUrl = typeof banner.image === 'string' 
+                ? banner.image 
+                : (banner.image?.url || '');
+              
+              return {
+                id: idx + 1,
+                image: imageUrl,
+                path: imageUrl,
+                link: banner.href || '',
+                alt: banner.alt || '',
+              };
+            }));
           }
           break;
 
         case 'category_grid':
           if (config.categories && Array.isArray(config.categories)) {
-            setCategories(config.categories.map((cat: any, idx: number) => ({
-              id: Date.now() + idx,
-              title: cat.title || '',
-              href: cat.href || '',
-              image: cat.image?.url || '',
-              path: cat.image?.url || '',
-            })));
+            setCategories(config.categories.map((cat: any, idx: number) => {
+              // Handle both string URL and object {url} formats
+              const imageUrl = typeof cat.image === 'string'
+                ? cat.image
+                : (cat.image?.url || '');
+              
+              return {
+                id: Date.now() + idx,
+                title: cat.title || '',
+                href: cat.href || '',
+                image: imageUrl,
+                path: imageUrl,
+              };
+            }));
           }
           break;
 
         case 'brand_showcase':
           setBrandTitle(config.title || '');
           if (config.brands && Array.isArray(config.brands)) {
-            setBrands(config.brands.map((brand: any, idx: number) => ({
-              id: Date.now() + idx,
-              image: brand.image?.url || '',
-              path: brand.image?.url || '',
-              href: brand.href || '',
-              alt: brand.alt || '',
-            })));
+            setBrands(config.brands.map((brand: any, idx: number) => {
+              // Handle both string URL and object {url} formats
+              const imageUrl = typeof brand.image === 'string'
+                ? brand.image
+                : (brand.image?.url || '');
+              
+              return {
+                id: Date.now() + idx,
+                image: imageUrl,
+                path: imageUrl,
+                href: brand.href || '',
+                alt: brand.alt || '',
+              };
+            }));
           }
           break;
 
