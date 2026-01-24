@@ -219,7 +219,9 @@ export function ImageUploadField({
               src={value}
               alt="Preview"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover"
+              style={{ width: '100%', height: '100%' }}
               unoptimized
             />
             {onRemove && (
