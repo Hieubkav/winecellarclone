@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { API_BASE_URL } from '@/lib/api/client';
 
 // Fixed colors từ site
 const WINE_COLOR = "#9B2C3B";  // Đỏ burgundy
@@ -100,7 +101,7 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
                     let imageUrl = slide.image || slide.path || '';
                     // Fix: Add backend URL if path is relative
                     if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
                     }
                     return (
                       <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700",
@@ -177,7 +178,7 @@ export const CollectionShowcasePreview = ({ title, subtitle, description, produc
     queryKey: ['products', 'by-ids', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/products?ids=${ids.join(',')}&per_page=100`);
+      const response = await fetch(`${API_BASE_URL}/v1/products?ids=${ids.join(',')}&per_page=100`);
       if (!response.ok) throw new Error('Failed to fetch products');
       const json = await response.json();
       return json.data || [];
@@ -236,7 +237,7 @@ export const CollectionShowcasePreview = ({ title, subtitle, description, produc
                     // Fix image URL if relative
                     let imageUrl = product.cover_image?.url || '';
                     if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
                     }
                     return (
                       <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
@@ -287,7 +288,7 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
     queryKey: ['articles', 'by-ids', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/articles?ids=${ids.join(',')}&per_page=100`);
+      const response = await fetch(`${API_BASE_URL}/v1/articles?ids=${ids.join(',')}&per_page=100`);
       if (!response.ok) throw new Error('Failed to fetch articles');
       const json = await response.json();
       return json.data || [];
@@ -340,7 +341,7 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                     // Fix image URL if relative
                     let imageUrl = article.cover_image?.url || '';
                     if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
                     }
                     return (
                       <div key={article.id} className="border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
@@ -392,7 +393,7 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
     queryKey: ['products', 'favourite', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/products?ids=${ids.join(',')}&per_page=100`);
+      const response = await fetch(`${API_BASE_URL}/v1/products?ids=${ids.join(',')}&per_page=100`);
       if (!response.ok) throw new Error('Failed to fetch products');
       const json = await response.json();
       return json.data || [];
@@ -439,7 +440,7 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                     // Fix image URL if relative
                     let imageUrl = product.cover_image?.url || '';
                     if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
                     }
                     return (
                       <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
