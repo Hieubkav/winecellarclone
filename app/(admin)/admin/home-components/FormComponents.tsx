@@ -835,11 +835,9 @@ export function SpeedDialForm({ items, onChange }: SpeedDialFormProps) {
         </div>
 
         {items.length > 0 ? (
-          <SortableList
-            items={items}
-            onChange={onChange}
-            renderItem={(item: SpeedDialItem, idx: number) => (
-              <div className="border rounded-lg p-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {items.map((item, idx) => (
+              <div key={item.id} className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold">Nút {idx + 1}</Label>
                   <Button
@@ -853,7 +851,7 @@ export function SpeedDialForm({ items, onChange }: SpeedDialFormProps) {
                   </Button>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor={`dial-label-${idx}`}>Tên nút *</Label>
                   <Input
                     id={`dial-label-${idx}`}
@@ -864,7 +862,7 @@ export function SpeedDialForm({ items, onChange }: SpeedDialFormProps) {
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor={`dial-href-${idx}`}>Link đích *</Label>
                   <Input
                     id={`dial-href-${idx}`}
@@ -874,37 +872,39 @@ export function SpeedDialForm({ items, onChange }: SpeedDialFormProps) {
                     required
                   />
                   <p className="text-xs text-slate-500">
-                    VD: tel:0123456789, https://zalo.me/..., /trang-lien-he
+                    VD: tel:0123456789, https://zalo.me/...
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`dial-target-${idx}`}>Target</Label>
-                  <select
-                    id={`dial-target-${idx}`}
-                    value={item.target}
-                    onChange={(e) => updateItem(idx, 'target', e.target.value as '_self' | '_blank')}
-                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                  >
-                    <option value="_self">Mở cùng tab (_self)</option>
-                    <option value="_blank">Mở tab mới (_blank)</option>
-                  </select>
-                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor={`dial-target-${idx}`}>Target</Label>
+                    <select
+                      id={`dial-target-${idx}`}
+                      value={item.target}
+                      onChange={(e) => updateItem(idx, 'target', e.target.value as '_self' | '_blank')}
+                      className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                    >
+                      <option value="_self">Mở cùng tab (_self)</option>
+                      <option value="_blank">Mở tab mới (_blank)</option>
+                    </select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`dial-icon-type-${idx}`}>Loại icon</Label>
-                  <select
-                    id={`dial-icon-type-${idx}`}
-                    value={item.iconType}
-                    onChange={(e) => updateItem(idx, 'iconType', e.target.value)}
-                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                  >
-                    <option value="home">Trang chủ (Home)</option>
-                    <option value="phone">Điện thoại (Phone)</option>
-                    <option value="zalo">Zalo</option>
-                    <option value="messenger">Messenger</option>
-                    <option value="custom">Custom (upload ảnh)</option>
-                  </select>
+                  <div className="space-y-1">
+                    <Label htmlFor={`dial-icon-type-${idx}`}>Loại icon</Label>
+                    <select
+                      id={`dial-icon-type-${idx}`}
+                      value={item.iconType}
+                      onChange={(e) => updateItem(idx, 'iconType', e.target.value)}
+                      className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                    >
+                      <option value="home">Trang chủ (Home)</option>
+                      <option value="phone">Điện thoại (Phone)</option>
+                      <option value="zalo">Zalo</option>
+                      <option value="messenger">Messenger</option>
+                      <option value="custom">Custom (upload ảnh)</option>
+                    </select>
+                  </div>
                 </div>
 
                 {item.iconType === 'custom' && (
@@ -919,8 +919,8 @@ export function SpeedDialForm({ items, onChange }: SpeedDialFormProps) {
                   />
                 )}
               </div>
-            )}
-          />
+            ))}
+          </div>
         ) : (
           <p className="text-sm text-slate-500 text-center py-4">
             Chưa có nút nào. Click &quot;Thêm nút&quot; để bắt đầu.
