@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, Save, Download, Eye, EyeOff, Plus, Trash2, GripVertical } from 'lucide-react';
+import { Loader2, Save, Download, Plus, Trash2, GripVertical, Facebook, Instagram, Youtube, Linkedin, Twitter, ArrowUp, Eye, EyeOff } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { fetchAdminSettings, updateSettings, fetchAdminSocialLinks, type AdminSocialLink } from '@/lib/api/admin';
 import { toast } from 'sonner';
@@ -193,7 +193,6 @@ export default function FooterConfigPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [config, setConfig] = useState<FooterConfig>(DEFAULT_FOOTER_CONFIG);
-  const [showPreview, setShowPreview] = useState(false);
   const [siteName, setSiteName] = useState('');
 
   const sensors = useSensors(
@@ -345,16 +344,10 @@ export default function FooterConfigPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cấu hình Footer</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Tùy chỉnh nội dung và bố cục footer trang web</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={loadFromSettings} disabled={isLoadingData} className="gap-2">
-            {isLoadingData ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-            Tải từ Settings
-          </Button>
-          <Button variant="outline" onClick={() => setShowPreview(!showPreview)} className="gap-2">
-            {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
-            {showPreview ? 'Ẩn preview' : 'Xem preview'}
-          </Button>
-        </div>
+        <Button variant="outline" onClick={loadFromSettings} disabled={isLoadingData} className="gap-2">
+          {isLoadingData ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+          Tải từ Settings
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -421,15 +414,13 @@ export default function FooterConfigPage() {
           </div>
         </Card>
 
-        {/* Preview */}
-        {showPreview && (
-          <Card className="mb-6 overflow-hidden">
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="font-semibold text-slate-900 dark:text-slate-100">Preview Footer</h2>
-            </div>
-            <FooterPreview config={config} siteName={siteName} />
-          </Card>
-        )}
+        {/* Preview - Always visible */}
+        <Card className="mb-6 overflow-hidden">
+          <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Preview Footer</h2>
+          </div>
+          <FooterPreview config={config} siteName={siteName} />
+        </Card>
 
         {/* Submit */}
         <div className="flex justify-end">
@@ -454,14 +445,14 @@ export default function FooterConfigPage() {
 
 function FooterPreview({ config, siteName }: { config: FooterConfig; siteName: string }) {
   const currentYear = new Date().getFullYear();
-  const parsedCopyright = config.copyright.replace('{year}', String(currentYear)).replace('{siteName}', siteName);
+  const parsedCopyright = (config.copyright ?? '').replace('{year}', String(currentYear)).replace('{siteName}', siteName);
 
   const activeColumns = config.columns.filter((c) => c.active);
 
   if (activeColumns.length === 0) {
     return (
       <div className="bg-[#1a1a1a] text-amber-100 p-8 text-center">
-        <p className="text-sm">{parsedCopyright}</p>
+        <p className="text-sm">{parsedCopyright || `© ${currentYear} ${siteName}. All rights reserved.`}</p>
         {config.tagline && <p className="text-xs mt-1 opacity-60">{config.tagline}</p>}
       </div>
     );
@@ -470,44 +461,118 @@ function FooterPreview({ config, siteName }: { config: FooterConfig; siteName: s
   return (
     <div className="bg-[#1a1a1a] text-amber-100 p-6">
       <div className={cn('grid gap-6', activeColumns.length === 1 && 'grid-cols-1', activeColumns.length === 2 && 'grid-cols-1 sm:grid-cols-2', activeColumns.length >= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3')}>
-        {activeColumns.map((column) => (
-          <div key={column.id} className={cn('text-center', activeColumns.length === 1 ? 'text-center' : 'sm:text-left last:sm:text-right')}>
-            <p className="text-sm font-semibold text-amber-200 mb-2">{column.title}</p>
-            {column.type === 'social' ? (
-              <div className="flex gap-2 justify-center sm:justify-start last:sm:justify-end">
-                {column.items.length > 0 ? (
-                  column.items.map((item) => (
-                    <span key={item.id} className="w-10 h-10 flex items-center justify-center rounded-full border border-red-400 text-red-400 text-xs">
-                      {item.value.slice(0, 2)}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-xs text-white/50">Đang cập nhật</span>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {column.items.map((item) => (
-                  <div key={item.id}>
-                    {item.type === 'phone' ? (
-                      <span className="text-lg font-bold text-red-400">{item.value || 'Chưa có số'}</span>
-                    ) : item.type === 'link' ? (
-                      <a href={item.href} className="text-sm text-white/80 hover:text-white">{item.value}</a>
-                    ) : (
-                      <p className="text-sm text-white/80">{item.value || item.label}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        {activeColumns.map((column, idx) => (
+          <PreviewColumn 
+            key={column.id} 
+            column={column} 
+            isFirst={idx === 0}
+            isLast={idx === activeColumns.length - 1}
+            totalColumns={activeColumns.length}
+          />
         ))}
       </div>
 
       <div className="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-white/60">
-        <span>{parsedCopyright}</span>
+        <span>{parsedCopyright || `© ${currentYear} ${siteName}. All rights reserved.`}</span>
         {config.tagline && <span>{config.tagline}</span>}
       </div>
+
+      {config.showBackToTop && (
+        <div className="mt-6 flex justify-center">
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-red-400 text-red-400 cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+          </span>
+        </div>
+      )}
     </div>
   );
+}
+
+const SOCIAL_ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
+  Facebook,
+  Instagram,
+  YouTube: Youtube,
+  LinkedIn: Linkedin,
+  Twitter,
+  TikTok: Youtube,
+  Zalo: Facebook,
+};
+
+function PreviewColumn({ column, isFirst, isLast, totalColumns }: { 
+  column: FooterColumn; 
+  isFirst: boolean; 
+  isLast: boolean; 
+  totalColumns: number;
+}) {
+  const alignment = cn(
+    'text-center',
+    totalColumns > 1 && isFirst && 'sm:text-left',
+    totalColumns > 1 && isLast && 'sm:text-right'
+  );
+
+  const flexAlignment = cn(
+    'flex gap-3 justify-center',
+    totalColumns > 1 && isFirst && 'sm:justify-start',
+    totalColumns > 1 && isLast && 'sm:justify-end'
+  );
+
+  return (
+    <div className={alignment}>
+      <p className="text-sm font-semibold text-amber-200 mb-2">{column.title}</p>
+      {column.type === 'social' ? (
+        <div className={flexAlignment}>
+          {column.items.length > 0 ? (
+            column.items.map((item) => {
+              const IconComponent = SOCIAL_ICON_MAP[item.value] || SOCIAL_ICON_MAP[item.label];
+              return (
+                <span
+                  key={item.id}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-red-400 text-red-400 transition hover:-translate-y-0.5 hover:opacity-90"
+                  title={item.label}
+                >
+                  {IconComponent ? (
+                    <IconComponent className="h-4 w-4" strokeWidth={1.6} />
+                  ) : (
+                    <span className="text-xs font-bold">{(item.value || item.label).slice(0, 2)}</span>
+                  )}
+                </span>
+              );
+            })
+          ) : (
+            <span className="text-xs text-white/50">Đang cập nhật</span>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {column.items.map((item) => (
+            <PreviewItem key={item.id} item={item} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PreviewItem({ item }: { item: FooterItem }) {
+  const value = item.value || item.label;
+
+  if (item.type === 'phone') {
+    return <span className="block text-lg font-bold text-red-400">{value || 'Chưa có số'}</span>;
+  }
+
+  if (item.type === 'email') {
+    return <span className="block text-sm text-white/80">{value}</span>;
+  }
+
+  if (item.type === 'link' && item.href) {
+    return <span className="block text-sm text-white/80 hover:text-white cursor-pointer">{value}</span>;
+  }
+
+  if (item.type === 'address') {
+    return <address className="not-italic text-sm text-white/90">{value}</address>;
+  }
+
+  return <p className="text-sm text-white/80">{value}</p>;
 }
