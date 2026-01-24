@@ -133,12 +133,12 @@ export function adaptBrandShowcaseProps(config: BrandShowcaseConfig) {
 export function adaptCategoryGridProps(config: CategoryGridConfig) {
   return {
     categories: (config.categories || [])
-      .filter((item) => item?.title && item?.image?.url) // Filter out items without title or image
+      .filter((item) => item?.title) // Only require title, image is optional
       .map((item) => ({
         title: item.title,
         href: item.href,
-        image: item.image.url,
-        alt: item.image.alt || item.title,
+        image: item.image?.url || null, // Allow null image
+        alt: item.image?.alt || item.title,
       })),
   };
 }
