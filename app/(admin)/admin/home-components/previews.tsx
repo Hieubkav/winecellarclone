@@ -87,7 +87,11 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
                 <>
                   {slides.map((slide, idx) => {
                     // Use image or fallback to path
-                    const imageUrl = slide.image || slide.path || '';
+                    let imageUrl = slide.image || slide.path || '';
+                    // Fix: Add backend URL if path is relative
+                    if (imageUrl && !imageUrl.startsWith('http')) {
+                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                    }
                     return (
                       <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700",
                         idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
@@ -218,17 +222,24 @@ export const CollectionShowcasePreview = ({ title, subtitle, description, produc
                   "grid gap-4",
                   device === 'mobile' ? 'grid-cols-2' : device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4'
                 )}>
-                  {products.slice(0, 8).map((product: any) => (
-                    <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                      {product.cover_image?.url && (
-                        <img src={product.cover_image.url} alt={product.name} className="w-full aspect-square object-cover rounded mb-2" />
-                      )}
-                      <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
-                      <p className="text-sm font-bold" style={{ color: accentColor }}>
-                        {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
-                      </p>
-                    </div>
-                  ))}
+                  {products.slice(0, 8).map((product: any) => {
+                    // Fix image URL if relative
+                    let imageUrl = product.cover_image?.url || '';
+                    if (imageUrl && !imageUrl.startsWith('http')) {
+                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                    }
+                    return (
+                      <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                        {imageUrl && (
+                          <img src={imageUrl} alt={product.name} className="w-full aspect-square object-cover rounded mb-2" />
+                        )}
+                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
+                        <p className="text-sm font-bold" style={{ color: accentColor }}>
+                          {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -315,19 +326,26 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                   "grid gap-4",
                   device === 'mobile' ? 'grid-cols-1' : device === 'tablet' ? 'grid-cols-2' : 'grid-cols-3'
                 )}>
-                  {articles.slice(0, 3).map((article: any) => (
-                    <div key={article.id} className="border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                      {article.cover_image?.url && (
-                        <img src={article.cover_image.url} alt={article.title} className="w-full aspect-video object-cover" />
-                      )}
-                      <div className="p-4">
-                        <h3 className="font-semibold text-sm line-clamp-2 mb-2">{article.title}</h3>
-                        <p className="text-xs text-slate-500">
-                          {article.published_at ? new Date(article.published_at).toLocaleDateString('vi-VN') : ''}
-                        </p>
+                  {articles.slice(0, 3).map((article: any) => {
+                    // Fix image URL if relative
+                    let imageUrl = article.cover_image?.url || '';
+                    if (imageUrl && !imageUrl.startsWith('http')) {
+                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                    }
+                    return (
+                      <div key={article.id} className="border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                        {imageUrl && (
+                          <img src={imageUrl} alt={article.title} className="w-full aspect-video object-cover" />
+                        )}
+                        <div className="p-4">
+                          <h3 className="font-semibold text-sm line-clamp-2 mb-2">{article.title}</h3>
+                          <p className="text-xs text-slate-500">
+                            {article.published_at ? new Date(article.published_at).toLocaleDateString('vi-VN') : ''}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -407,17 +425,24 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                   "grid gap-4",
                   device === 'mobile' ? 'grid-cols-2' : device === 'tablet' ? 'grid-cols-3' : 'grid-cols-4 lg:grid-cols-6'
                 )}>
-                  {products.slice(0, 6).map((product: any) => (
-                    <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
-                      {product.cover_image?.url && (
-                        <img src={product.cover_image.url} alt={product.name} className="w-full aspect-square object-cover rounded mb-2" />
-                      )}
-                      <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
-                      <p className="text-sm font-bold" style={{ color: WINE_COLOR }}>
-                        {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
-                      </p>
-                    </div>
-                  ))}
+                  {products.slice(0, 6).map((product: any) => {
+                    // Fix image URL if relative
+                    let imageUrl = product.cover_image?.url || '';
+                    if (imageUrl && !imageUrl.startsWith('http')) {
+                      imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${imageUrl}`;
+                    }
+                    return (
+                      <div key={product.id} className="border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                        {imageUrl && (
+                          <img src={imageUrl} alt={product.name} className="w-full aspect-square object-cover rounded mb-2" />
+                        )}
+                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
+                        <p className="text-sm font-bold" style={{ color: WINE_COLOR }}>
+                          {product.price ? `${product.price.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">
