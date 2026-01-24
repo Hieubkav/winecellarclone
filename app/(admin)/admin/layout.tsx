@@ -1,14 +1,29 @@
  'use client';
  
 import React, { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
  import { Sidebar } from './components/Sidebar';
  import { Header } from './components/Header';
 import { Toaster } from 'sonner';
+import { isAuthenticated } from '@/lib/admin-auth';
  
  function AdminLayoutContent({ children }: { children: React.ReactNode }) {
+   const pathname = usePathname();
+   const router = useRouter();
    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
    const [isDarkMode, setIsDarkMode] = useState(false);
- 
+   const [authChecked, setAuthChecked] = useState(false);
+
+   const isLoginPage = pathname === '/admin/login';
+
+   useEffect(() => {
+     if (!isLoginPage && !isAuthenticated()) {
+       router.replace('/admin/login');
+     } else {
+       setAuthChecked(true);
+     }
+   }, [pathname, router, isLoginPage]);
+
    useEffect(() => {
      const isDark = localStorage.getItem('admin-theme') === 'dark' || 
        (!localStorage.getItem('admin-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -31,6 +46,23 @@ import { Toaster } from 'sonner';
      }
    };
  
+   if (isLoginPage) {
+     return (
+       <>
+         <Toaster position="top-right" richColors closeButton />
+         {children}
+       </>
+     );
+   }
+
+   if (!authChecked) {
+     return (
+       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+       </div>
+     );
+   }
+
    return (
      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex font-sans admin-theme">
        <Toaster position="top-right" richColors closeButton />

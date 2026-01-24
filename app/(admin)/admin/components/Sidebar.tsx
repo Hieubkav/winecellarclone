@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import { fetchSettings } from '@/lib/api/settings';
+ import { logout } from '@/lib/admin-auth';
+ import { useRouter } from 'next/navigation';
  
  interface SidebarItemProps {
    icon: React.ElementType;
@@ -120,6 +122,12 @@ import {
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
    const [siteName, setSiteName] = useState<string>('Thương Hiệu');
    const pathname = usePathname();
+   const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/admin/login');
+  };
  
   const isActive = useCallback((route: string) => pathname.startsWith(route), [pathname]);
  
@@ -138,7 +146,7 @@ import {
       setExpandedMenu('Sản phẩm');
     } else if (isActive('/admin/menus') || isActive('/admin/home-components') || isActive('/admin/social-links') || isActive('/admin/footer-config') || isActive('/admin/contact-config')) {
       setExpandedMenu('Website');
-    } else if (isActive('/admin/settings')) {
+    } else if (isActive('/admin/settings') || isActive('/admin/users')) {
       setExpandedMenu('Hệ thống');
     }
   }, [isActive]);
@@ -195,6 +203,7 @@ import {
           href: '/admin/settings',
           subItems: [
             { label: 'Cấu hình chung', href: '/admin/settings' },
+            { label: 'Quản lý Users', href: '/admin/users' },
           ]
         },
        ]
@@ -279,7 +288,11 @@ import {
                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@winecellar.com</div>
                </div>
              )}
-             {!isCollapsed && <LogOut size={16} className="text-slate-400 hover:text-red-500 transition-colors duration-200" />}
+             {!isCollapsed && (
+               <button onClick={handleLogout} title="Đăng xuất">
+                 <LogOut size={16} className="text-slate-400 hover:text-red-500 transition-colors duration-200" />
+               </button>
+             )}
            </div>
          </div>
        </aside>

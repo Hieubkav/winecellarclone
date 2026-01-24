@@ -940,3 +940,54 @@ export async function deleteMenuBlockItem(blockId: number, itemId: number): Prom
     method: 'DELETE',
   });
 }
+
+// Admin Users
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminUsersResponse {
+  data: AdminUser[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+}
+
+export async function fetchAdminUsers(params?: Record<string, string | number>): Promise<AdminUsersResponse> {
+  const query = params ? '?' + new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)])
+  ).toString() : '';
+  return apiFetch<AdminUsersResponse>(`v1/admin/users${query}`);
+}
+
+export async function fetchAdminUser(id: number): Promise<{ data: AdminUser }> {
+  return apiFetch(`v1/admin/users/${id}`);
+}
+
+export async function createUser(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateUser(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteUser(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/users/${id}`, {
+    method: 'DELETE',
+  });
+}
