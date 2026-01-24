@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Upload, Trash2 } from 'lucide-react';
 import { Button, Input, Label } from './ui';
 import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/article-content';
 import { toast } from 'sonner';
 
 interface ImageUploadFieldProps {
@@ -87,6 +88,9 @@ export function ImageUploadField({
   const [urlInput, setUrlInput] = useState('');
   const [showUrlInput, setShowUrlInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Convert localhost URLs to production URL for display
+  const displayValue = value ? getImageUrl(value) : undefined;
 
   const aspectRatioClasses = {
     square: 'aspect-square',
@@ -216,7 +220,7 @@ export function ImageUploadField({
         <div className="space-y-2">
           <div className={`relative border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden ${aspectRatioClasses[aspectRatio]}`}>
             <Image
-              src={value}
+              src={displayValue || ''}
               alt="Preview"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
