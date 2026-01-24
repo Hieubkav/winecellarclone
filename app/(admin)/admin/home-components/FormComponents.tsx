@@ -5,6 +5,30 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../components/ui';
 import { ImageUploadField } from '../components/ImageUploadField';
 import { SortableList } from '../components/SortableList';
+import { MultiSelect } from '../components/MultiSelect';
+
+// API helper functions
+async function fetchProductsForSelect(query: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+  const url = `${apiUrl}/v1/admin/products/list-for-select?q=${encodeURIComponent(query)}&limit=50`;
+  
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch products');
+  
+  const json = await response.json();
+  return json.data || [];
+}
+
+async function fetchArticlesForSelect(query: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
+  const url = `${apiUrl}/v1/admin/articles/list-for-select?q=${encodeURIComponent(query)}&limit=50`;
+  
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch articles');
+  
+  const json = await response.json();
+  return json.data || [];
+}
 
 interface Slide {
   id: number;
@@ -515,6 +539,15 @@ export function CollectionShowcaseForm({
   onToneChange,
   onProductIdsChange,
 }: CollectionShowcaseFormProps) {
+  // Parse productIds string to array
+  const productIdsArray = productIds
+    ? productIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+    : [];
+
+  const handleProductIdsChange = (ids: number[]) => {
+    onProductIdsChange(ids.join(','));
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -587,19 +620,15 @@ export function CollectionShowcaseForm({
           </select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="collection-product-ids">Product IDs *</Label>
-          <Input
-            id="collection-product-ids"
-            placeholder="1,2,3,4,5"
-            value={productIds}
-            onChange={(e) => onProductIdsChange(e.target.value)}
-            required
-          />
-          <p className="text-xs text-slate-500">
-            Nhập ID sản phẩm cách nhau bởi dấu phẩy. Backend sẽ tự động fetch thông tin sản phẩm.
-          </p>
-        </div>
+        <MultiSelect
+          label="Sản phẩm"
+          value={productIdsArray}
+          onChange={handleProductIdsChange}
+          fetchOptions={fetchProductsForSelect}
+          placeholder="Chọn sản phẩm..."
+          required
+          helpText="Chọn các sản phẩm để hiển thị trong bộ sưu tập này"
+        />
       </CardContent>
     </Card>
   );
@@ -626,6 +655,14 @@ export function EditorialSpotlightForm({
   onDescriptionChange,
   onArticleIdsChange,
 }: EditorialSpotlightFormProps) {
+  const articleIdsArray = articleIds
+    ? articleIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+    : [];
+
+  const handleArticleIdsChange = (ids: number[]) => {
+    onArticleIdsChange(ids.join(','));
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -664,19 +701,15 @@ export function EditorialSpotlightForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="editorial-article-ids">Article IDs *</Label>
-          <Input
-            id="editorial-article-ids"
-            placeholder="1,2,3"
-            value={articleIds}
-            onChange={(e) => onArticleIdsChange(e.target.value)}
-            required
-          />
-          <p className="text-xs text-slate-500">
-            Nhập ID bài viết cách nhau bởi dấu phẩy. Backend sẽ tự động fetch thông tin bài viết.
-          </p>
-        </div>
+        <MultiSelect
+          label="Bài viết"
+          value={articleIdsArray}
+          onChange={handleArticleIdsChange}
+          fetchOptions={fetchArticlesForSelect}
+          placeholder="Chọn bài viết..."
+          required
+          helpText="Chọn các bài viết để hiển thị trong section này"
+        />
       </CardContent>
     </Card>
   );
@@ -699,6 +732,14 @@ export function FavouriteProductsForm({
   onSubtitleChange,
   onProductIdsChange,
 }: FavouriteProductsFormProps) {
+  const productIdsArray = productIds
+    ? productIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+    : [];
+
+  const handleProductIdsChange = (ids: number[]) => {
+    onProductIdsChange(ids.join(','));
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -726,19 +767,183 @@ export function FavouriteProductsForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="fav-product-ids">Product IDs *</Label>
-          <Input
-            id="fav-product-ids"
-            placeholder="1,2,3,4,5,6"
-            value={productIds}
-            onChange={(e) => onProductIdsChange(e.target.value)}
-            required
-          />
-          <p className="text-xs text-slate-500">
-            Nhập ID sản phẩm cách nhau bởi dấu phẩy. Backend sẽ tự động fetch thông tin sản phẩm.
+        <MultiSelect
+          label="Sản phẩm"
+          value={productIdsArray}
+          onChange={handleProductIdsChange}
+          fetchOptions={fetchProductsForSelect}
+          placeholder="Chọn sản phẩm..."
+          required
+          helpText="Chọn các sản phẩm yêu thích để hiển thị"
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+interface SpeedDialItem {
+  id: number;
+  iconType: 'home' | 'phone' | 'zalo' | 'messenger' | 'custom';
+  iconUrl: string;
+  label: string;
+  href: string;
+  target: '_self' | '_blank';
+}
+
+interface SpeedDialFormProps {
+  items: SpeedDialItem[];
+  onChange: (items: SpeedDialItem[]) => void;
+}
+
+export function SpeedDialForm({ items, onChange }: SpeedDialFormProps) {
+  const addItem = () => {
+    const newItem: SpeedDialItem = {
+      id: Date.now(),
+      iconType: 'phone',
+      iconUrl: '',
+      label: '',
+      href: '',
+      target: '_self',
+    };
+    onChange([...items, newItem]);
+  };
+
+  const updateItem = (index: number, field: keyof SpeedDialItem, value: string) => {
+    const updated = items.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    );
+    onChange(updated);
+  };
+
+  const updateItemImage = (index: number, url: string) => {
+    const updated = items.map((item, i) =>
+      i === index ? { ...item, iconUrl: url } : item
+    );
+    onChange(updated);
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  const removeItemImage = (index: number) => {
+    const updated = items.map((item, i) =>
+      i === index ? { ...item, iconUrl: '' } : item
+    );
+    onChange(updated);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Speed Dial - Nút liên hệ nhanh</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+          <p className="text-sm text-blue-900 dark:text-blue-100">
+            <strong>Desktop:</strong> Hiển thị dọc bên phải màn hình
+            <br />
+            <strong>Mobile:</strong> Hiển thị thanh ngang ở dưới cùng
           </p>
         </div>
+
+        {items.length > 0 ? (
+          <SortableList
+            items={items}
+            onChange={onChange}
+            renderItem={(item: SpeedDialItem, idx: number) => (
+              <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold">Nút {idx + 1}</Label>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeItem(idx)}
+                  >
+                    <Trash2 size={14} className="mr-1" />
+                    Xóa
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`dial-label-${idx}`}>Tên nút *</Label>
+                  <Input
+                    id={`dial-label-${idx}`}
+                    placeholder="Hotline"
+                    value={item.label}
+                    onChange={(e) => updateItem(idx, 'label', e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`dial-href-${idx}`}>Link đích *</Label>
+                  <Input
+                    id={`dial-href-${idx}`}
+                    placeholder="tel:0946698008"
+                    value={item.href}
+                    onChange={(e) => updateItem(idx, 'href', e.target.value)}
+                    required
+                  />
+                  <p className="text-xs text-slate-500">
+                    VD: tel:0123456789, https://zalo.me/..., /trang-lien-he
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`dial-target-${idx}`}>Target</Label>
+                  <select
+                    id={`dial-target-${idx}`}
+                    value={item.target}
+                    onChange={(e) => updateItem(idx, 'target', e.target.value as '_self' | '_blank')}
+                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="_self">Mở cùng tab (_self)</option>
+                    <option value="_blank">Mở tab mới (_blank)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`dial-icon-type-${idx}`}>Loại icon</Label>
+                  <select
+                    id={`dial-icon-type-${idx}`}
+                    value={item.iconType}
+                    onChange={(e) => updateItem(idx, 'iconType', e.target.value)}
+                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  >
+                    <option value="home">Trang chủ (Home)</option>
+                    <option value="phone">Điện thoại (Phone)</option>
+                    <option value="zalo">Zalo</option>
+                    <option value="messenger">Messenger</option>
+                    <option value="custom">Custom (upload ảnh)</option>
+                  </select>
+                </div>
+
+                {item.iconType === 'custom' && (
+                  <ImageUploadField
+                    label="Icon custom"
+                    value={item.iconUrl}
+                    path={item.iconUrl}
+                    onChange={(url) => updateItemImage(idx, url)}
+                    onRemove={() => removeItemImage(idx)}
+                    aspectRatio="square"
+                    folder="home-components/speed-dial"
+                  />
+                )}
+              </div>
+            )}
+          />
+        ) : (
+          <p className="text-sm text-slate-500 text-center py-4">
+            Chưa có nút nào. Click &quot;Thêm nút&quot; để bắt đầu.
+          </p>
+        )}
+
+        <Button type="button" onClick={addItem} className="w-full">
+          <Plus size={16} className="mr-2" />
+          Thêm nút
+        </Button>
       </CardContent>
     </Card>
   );

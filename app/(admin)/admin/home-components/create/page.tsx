@@ -16,6 +16,7 @@ import {
   CollectionShowcaseForm,
   EditorialSpotlightForm,
   FavouriteProductsForm,
+  SpeedDialForm,
 } from '../FormComponents';
 
 interface HeroSlide {
@@ -48,6 +49,15 @@ interface BrandItem {
   path: string;
   href: string;
   alt: string;
+}
+
+interface SpeedDialItem {
+  id: number;
+  iconType: 'home' | 'phone' | 'zalo' | 'messenger' | 'custom';
+  iconUrl: string;
+  label: string;
+  href: string;
+  target: '_self' | '_blank';
 }
 
 export default function HomeComponentCreatePage() {
@@ -92,6 +102,9 @@ export default function HomeComponentCreatePage() {
   const [favouriteSubtitle, setFavouriteSubtitle] = useState('');
   const [favouriteProductIds, setFavouriteProductIds] = useState('');
 
+  // Speed Dial state
+  const [speedDialItems, setSpeedDialItems] = useState<SpeedDialItem[]>([]);
+
   // Reset form when type changes
   useEffect(() => {
     // Reset all states
@@ -114,6 +127,7 @@ export default function HomeComponentCreatePage() {
     setFavouriteTitle('');
     setFavouriteSubtitle('');
     setFavouriteProductIds('');
+    setSpeedDialItems([]);
   }, [selectedType]);
 
   const buildConfig = (): Record<string, unknown> | null => {
@@ -223,6 +237,21 @@ export default function HomeComponentCreatePage() {
           title: favouriteTitle,
           subtitle: favouriteSubtitle || null,
           product_ids: favouriteProductIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)),
+        };
+
+      case 'speed_dial':
+        if (speedDialItems.length === 0) {
+          toast.error('Vui lòng thêm ít nhất 1 nút');
+          return null;
+        }
+        return {
+          items: speedDialItems.map(item => ({
+            iconType: item.iconType,
+            iconUrl: item.iconUrl || null,
+            label: item.label,
+            href: item.href,
+            target: item.target,
+          })),
         };
 
       default:
@@ -389,6 +418,10 @@ export default function HomeComponentCreatePage() {
             onSubtitleChange={setFavouriteSubtitle}
             onProductIdsChange={setFavouriteProductIds}
           />
+        )}
+
+        {selectedType === 'speed_dial' && (
+          <SpeedDialForm items={speedDialItems} onChange={setSpeedDialItems} />
         )}
 
         <div className="flex justify-end gap-3">
