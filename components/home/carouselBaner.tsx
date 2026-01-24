@@ -116,7 +116,7 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                         alt={slide.alt || `Banner ${index + 1}`}
                         className="relative w-full h-full object-contain z-10"
                         loading={index === 0 ? "eager" : "lazy"}
-                        fetchpriority={index === 0 ? "high" : "low"}
+                        fetchPriority={index === 0 ? "high" : "low"}
                       />
                     </div>
                     <span className="sr-only">{slide.alt}</span>
