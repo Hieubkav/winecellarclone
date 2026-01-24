@@ -6,6 +6,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '
 import { ImageUploadField } from '../components/ImageUploadField';
 import { SortableList } from '../components/SortableList';
 import { MultiSelect } from '../components/MultiSelect';
+import { ProductGridSelector } from '../components/ProductGridSelector';
 
 // API helper functions
 async function fetchProductsForSelect(query: string) {
@@ -649,14 +650,14 @@ export function CollectionShowcaseForm({
           </select>
         </div>
 
-        <MultiSelect
+        <ProductGridSelector
           label="Sản phẩm"
           value={productIdsArray}
           onChange={handleProductIdsChange}
-          fetchOptions={fetchProductsForSelect}
-          placeholder="Chọn sản phẩm..."
+          fetchProducts={fetchProductsForSelect}
           required
-          helpText="Chọn các sản phẩm để hiển thị trong bộ sưu tập này"
+          helpText="Chọn các sản phẩm để hiển thị trong bộ sưu tập này (khuyến nghị 4-8 sản phẩm)"
+          maxSelection={8}
         />
       </CardContent>
     </Card>
@@ -796,14 +797,13 @@ export function FavouriteProductsForm({
           />
         </div>
 
-        <MultiSelect
+        <ProductGridSelector
           label="Sản phẩm"
           value={productIdsArray}
           onChange={handleProductIdsChange}
-          fetchOptions={fetchProductsForSelect}
-          placeholder="Chọn sản phẩm..."
+          fetchProducts={fetchProductsForSelect}
           required
-          helpText="Chọn các sản phẩm yêu thích để hiển thị"
+          helpText="Chọn các sản phẩm yêu thích để hiển thị (khuyến nghị 6-8 sản phẩm)"
         />
       </CardContent>
     </Card>
