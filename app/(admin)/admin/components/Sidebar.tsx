@@ -9,6 +9,7 @@ import {
   ChevronsLeft, ChevronsRight
 } from 'lucide-react';
  import { cn } from '@/lib/utils';
+ import { fetchSettings } from '@/lib/api/settings';
  
  interface SidebarItemProps {
    icon: React.ElementType;
@@ -117,10 +118,21 @@ import {
  export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen }) => {
    const [isCollapsed, setIsCollapsed] = useState(false);
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
+   const [siteName, setSiteName] = useState<string>('Thương Hiệu');
    const pathname = usePathname();
  
   const isActive = useCallback((route: string) => pathname.startsWith(route), [pathname]);
  
+  useEffect(() => {
+    fetchSettings()
+      .then((settings) => {
+        if (settings.site_name) {
+          setSiteName(settings.site_name);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/product-types')) {
       setExpandedMenu('Sản phẩm');
@@ -204,10 +216,10 @@ import {
          <div className={cn("h-16 flex items-center border-b border-slate-100 dark:border-slate-800 transition-all duration-300", isCollapsed ? "justify-center px-0" : "px-6 justify-between")}>
            <div className="flex items-center gap-3 overflow-hidden">
              <div className="w-9 h-9 bg-gradient-to-br from-amber-600 to-amber-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-               <span className="font-bold text-lg">W</span>
+               <span className="font-bold text-lg">{siteName.charAt(0).toUpperCase()}</span>
              </div>
              <span className={cn("font-bold text-xl text-slate-800 dark:text-slate-100 whitespace-nowrap transition-opacity duration-300", isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto")}>
-               WineCellar
+               {siteName}
              </span>
            </div>
            <button className="lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
