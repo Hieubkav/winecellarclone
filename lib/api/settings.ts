@@ -1,5 +1,6 @@
 import { apiFetch } from "./client";
 import type { FooterConfig } from "@/lib/types/footer";
+import type { ContactConfig } from "@/lib/types/contact";
 
 // TypeScript types matching Laravel API response structure
 export type WatermarkPosition = 'none' | 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
@@ -19,6 +20,7 @@ export interface SettingsResponse {
     email: string | null;
     google_map_embed: string | null;
     footer_config: FooterConfig | null;
+    contact_config: ContactConfig | null;
     product_watermark_url: string | null;
     product_watermark_position: WatermarkPosition | null;
     product_watermark_size: WatermarkSize | null;
@@ -46,6 +48,7 @@ export interface Settings {
   email: string | null;
   google_map_embed: string | null;
   footer_config: FooterConfig | null;
+  contact_config: ContactConfig | null;
   product_watermark_url: string | null;
   product_watermark_position: WatermarkPosition | null;
   product_watermark_size: WatermarkSize | null;
@@ -88,6 +91,7 @@ export const FALLBACK_SETTINGS: Settings = {
   email: null,
   google_map_embed: null,
   footer_config: null,
+  contact_config: null,
   product_watermark_url: null,
   product_watermark_position: 'none',
   product_watermark_size: '128x128',

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Phone, MapPin, Clock, Mail } from "lucide-react";
+import { Phone, MapPin, Clock, Mail, HelpCircle, type LucideIcon } from "lucide-react";
 import { Montserrat } from "next/font/google";
+import type { ContactCard } from "@/lib/types/contact";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -10,13 +11,22 @@ const montserrat = Montserrat({
 });
 
 interface ContactInfoGridProps {
-  hotline: string | null;
-  address: string | null;
-  hours: string | null;
-  email: string | null;
+  hotline?: string | null;
+  address?: string | null;
+  hours?: string | null;
+  email?: string | null;
+  cards?: ContactCard[];
 }
 
-interface ContactCardProps {
+const ICON_MAP: Record<string, LucideIcon> = {
+  Phone,
+  MapPin,
+  Clock,
+  Mail,
+  HelpCircle,
+};
+
+interface ContactCardComponentProps {
   icon: React.ReactNode;
   title: string;
   content: string;
@@ -33,7 +43,7 @@ interface ContactCardProps {
  * - Accessible: 44x44px touch targets
  * - Responsive: stack on mobile, grid on desktop
  */
-function ContactCard({ icon, title, content, href, ariaLabel }: ContactCardProps) {
+function ContactCardComponent({ icon, title, content, href, ariaLabel }: ContactCardComponentProps) {
   const cardContent = (
     <>
       {/* Icon */}
@@ -75,20 +85,46 @@ function ContactCard({ icon, title, content, href, ariaLabel }: ContactCardProps
 }
 
 /**
- * ContactInfoGrid - Grid layout cho 4 contact cards
+ * ContactInfoGrid - Grid layout cho contact cards
  * 
  * Responsive:
  * - Mobile: 1 column
  * - Tablet: 2 columns
  * - Desktop: 4 columns
+ * 
+ * Supports both legacy props (hotline, address, hours, email) and new cards array
  */
 export default function ContactInfoGrid({
   hotline,
   address,
   hours,
   email,
+  cards,
 }: ContactInfoGridProps) {
-  // Format phone number for tel: link
+  // If cards are provided, use them; otherwise fall back to legacy props
+  if (cards && cards.length > 0) {
+    const activeCards = cards.filter(c => c.active);
+    
+    return (
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {activeCards.map(card => {
+          const IconComponent = ICON_MAP[card.icon] || HelpCircle;
+          return (
+            <ContactCardComponent
+              key={card.id}
+              icon={<IconComponent className="h-6 w-6" strokeWidth={2} />}
+              title={card.title}
+              content={card.content}
+              href={card.href}
+              ariaLabel={card.href ? `${card.title}: ${card.content}` : undefined}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Legacy mode: use individual props
   const hotlineHref = hotline
     ? `tel:+84${hotline.replace(/\D/g, '').slice(-9)}`
     : undefined;
@@ -99,7 +135,7 @@ export default function ContactInfoGrid({
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {/* Hotline Card */}
       {hotline && (
-        <ContactCard
+        <ContactCardComponent
           icon={<Phone className="h-6 w-6" strokeWidth={2} />}
           title="Hotline"
           content={hotline}
@@ -110,7 +146,7 @@ export default function ContactInfoGrid({
 
       {/* Address Card */}
       {address && (
-        <ContactCard
+        <ContactCardComponent
           icon={<MapPin className="h-6 w-6" strokeWidth={2} />}
           title="Địa chỉ"
           content={address}
@@ -119,7 +155,7 @@ export default function ContactInfoGrid({
 
       {/* Hours Card */}
       {hours && (
-        <ContactCard
+        <ContactCardComponent
           icon={<Clock className="h-6 w-6" strokeWidth={2} />}
           title="Giờ mở cửa"
           content={hours}
@@ -128,7 +164,7 @@ export default function ContactInfoGrid({
 
       {/* Email Card */}
       {email && (
-        <ContactCard
+        <ContactCardComponent
           icon={<Mail className="h-6 w-6" strokeWidth={2} />}
           title="Email"
           content={email}

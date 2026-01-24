@@ -5,6 +5,8 @@ import ContactHero from "@/components/contact/ContactHero";
 import ContactInfoGrid from "@/components/contact/ContactInfoGrid";
 import ContactMap from "@/components/contact/ContactMap";
 import ContactSocial from "@/components/contact/ContactSocial";
+import type { ContactConfig } from "@/lib/types/contact";
+import { DEFAULT_CONTACT_CONFIG } from "@/lib/types/contact";
 
 /**
  * Contact Page - Server Component
@@ -63,34 +65,60 @@ export default async function ContactPage() {
     // Fallback to empty array
   }
 
+  // Get contact config from settings, fallback to default
+  const contactConfig: ContactConfig = settings.contact_config || DEFAULT_CONTACT_CONFIG;
+  
+  // Determine map embed URL (prefer from contact_config, fallback to settings.google_map_embed)
+  const mapEmbedUrl = contactConfig.map?.embedUrl || settings.google_map_embed;
+  const showMap = contactConfig.map?.active !== false && mapEmbedUrl;
+  
+  // Determine if social section should be shown
+  const showSocial = contactConfig.social?.active !== false;
+
   return (
     <main className="min-h-screen bg-white">
       {/* Hero Section */}
-      <ContactHero siteName={settings.site_name} />
+      <ContactHero 
+        siteName={settings.site_name}
+        title={contactConfig.hero?.title}
+        subtitle={contactConfig.hero?.subtitle}
+        showDecorative={contactConfig.hero?.showDecorative}
+      />
 
-      {/* Contact Info Grid (4 cards: Hotline, Địa chỉ, Giờ mở cửa, Email) */}
+      {/* Contact Info Grid */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <ContactInfoGrid
-          hotline={settings.hotline}
-          address={settings.address}
-          hours={settings.hours}
-          email={settings.email}
-        />
+        {contactConfig.cards && contactConfig.cards.length > 0 ? (
+          <ContactInfoGrid cards={contactConfig.cards} />
+        ) : (
+          <ContactInfoGrid
+            hotline={settings.hotline}
+            address={settings.address}
+            hours={settings.hours}
+            email={settings.email}
+          />
+        )}
       </section>
 
-      {/* Map Section (Lazy loaded) - Hiển thị nếu có google_map_embed */}
-      {settings.google_map_embed && (
+      {/* Map Section (Lazy loaded) */}
+      {showMap && (
         <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-          <ContactMap mapEmbedUrl={settings.google_map_embed} />
+          <ContactMap mapEmbedUrl={mapEmbedUrl} />
         </section>
       )}
 
       {/* Social Links */}
-      <section className="border-t border-gray-100 bg-gray-50 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ContactSocial socialLinks={socialLinks} />
-        </div>
-      </section>
+      {showSocial && socialLinks.length > 0 && (
+        <section className="border-t border-gray-100 bg-gray-50 py-12">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <ContactSocial 
+              socialLinks={socialLinks}
+              title={contactConfig.social?.title}
+              subtitle={contactConfig.social?.subtitle}
+              footerText={contactConfig.social?.footerText}
+            />
+          </div>
+        </section>
+      )}
     </main>
   );
 }

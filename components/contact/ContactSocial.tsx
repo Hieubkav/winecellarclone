@@ -13,6 +13,9 @@ const montserrat = Montserrat({
 
 interface ContactSocialProps {
   socialLinks: SocialLink[];
+  title?: string;
+  subtitle?: string;
+  footerText?: string;
 }
 
 // Icon mapping fallback cho các platforms chưa có icon từ backend
@@ -51,7 +54,12 @@ const SOCIAL_ICON_FALLBACK: Record<
  * - Fetch từ API /api/v1/social-links
  * - Hiển thị icon từ backend hoặc fallback Lucide icons
  */
-export default function ContactSocial({ socialLinks }: ContactSocialProps) {
+export default function ContactSocial({ 
+  socialLinks,
+  title = "Kết nối với chúng tôi",
+  subtitle = "Theo dõi chúng tôi trên mạng xã hội để cập nhật thông tin mới nhất",
+  footerText = "Chúng tôi luôn sẵn sàng lắng nghe"
+}: ContactSocialProps) {
   // Nếu không có social links, không render gì
   if (!socialLinks || socialLinks.length === 0) {
     return null;
@@ -61,11 +69,11 @@ export default function ContactSocial({ socialLinks }: ContactSocialProps) {
     <div className="text-center">
       {/* Heading */}
       <h2 className={`${montserrat.className} mb-2 text-2xl font-bold text-[#1C1C1C] sm:text-3xl`}>
-        Kết nối với chúng tôi
+        {title}
       </h2>
       
       <p className={`${montserrat.className} mb-8 text-base text-[#1C1C1C]/70 sm:text-lg`}>
-        Theo dõi chúng tôi trên mạng xã hội để cập nhật thông tin mới nhất
+        {subtitle}
       </p>
 
       {/* Social Icons */}
@@ -113,9 +121,11 @@ export default function ContactSocial({ socialLinks }: ContactSocialProps) {
       </div>
 
       {/* Decorative Text */}
-      <p className={`${montserrat.className} mt-8 text-xs uppercase tracking-wider text-[#1C1C1C]/50`}>
-        Chúng tôi luôn sẵn sàng lắng nghe
-      </p>
+      {footerText && (
+        <p className={`${montserrat.className} mt-8 text-xs uppercase tracking-wider text-[#1C1C1C]/50`}>
+          {footerText}
+        </p>
+      )}
     </div>
   );
 }

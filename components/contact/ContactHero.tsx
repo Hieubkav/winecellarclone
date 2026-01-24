@@ -9,6 +9,9 @@ const montserrat = Montserrat({
 
 interface ContactHeroProps {
   siteName: string;
+  title?: string;
+  subtitle?: string;
+  showDecorative?: boolean;
 }
 
 /**
@@ -21,7 +24,14 @@ interface ContactHeroProps {
  * - Responsive typography
  * - Subtle animation on mount
  */
-export default function ContactHero({ siteName }: ContactHeroProps) {
+export default function ContactHero({ 
+  siteName, 
+  title = "Liên hệ với chúng tôi",
+  subtitle,
+  showDecorative = true 
+}: ContactHeroProps) {
+  const defaultSubtitle = `${siteName} luôn sẵn sàng hỗ trợ bạn với các câu hỏi về rượu vang, dịch vụ và đơn hàng. Hãy liên hệ với chúng tôi qua bất kỳ kênh nào dưới đây.`;
+  const displaySubtitle = subtitle ? subtitle.replace('{siteName}', siteName) : defaultSubtitle;
   return (
     <section
       className="relative overflow-hidden bg-[#ECAA4D] py-16 sm:py-20 lg:py-24"
@@ -39,22 +49,23 @@ export default function ContactHero({ siteName }: ContactHeroProps) {
           className={`${montserrat.className} mb-4 text-4xl font-bold tracking-tight text-[#1C1C1C] sm:text-5xl lg:text-6xl`}
           style={{ animation: "fadeInUp 0.6s ease-out" }}
         >
-          Liên hệ với chúng tôi
+          {title}
         </h1>
         
         <p
           className={`${montserrat.className} mx-auto max-w-2xl text-base text-[#1C1C1C]/80 sm:text-lg lg:text-xl`}
           style={{ animation: "fadeInUp 0.8s ease-out" }}
         >
-          {siteName} luôn sẵn sàng hỗ trợ bạn với các câu hỏi về rượu vang, dịch vụ và đơn hàng.
-          Hãy liên hệ với chúng tôi qua bất kỳ kênh nào dưới đây.
+          {displaySubtitle}
         </p>
 
         {/* Decorative Line */}
-        <div
-          className="mx-auto mt-8 h-1 w-24 bg-[#9B2C3B]"
-          style={{ animation: "fadeInUp 1s ease-out" }}
-        />
+        {showDecorative && (
+          <div
+            className="mx-auto mt-8 h-1 w-24 bg-[#9B2C3B]"
+            style={{ animation: "fadeInUp 1s ease-out" }}
+          />
+        )}
       </div>
 
       <style jsx>{`
