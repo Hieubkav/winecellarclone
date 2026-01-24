@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ const deviceWidths = {
 };
 
 const devices = [
-  { id: 'desktop' as const, icon: Monitor, label: 'Desktop' },
+  { id: 'desktop' as const, icon: Monitor, label: 'Desktop (max-w-7xl)' },
   { id: 'tablet' as const, icon: Tablet, label: 'Tablet (768px)' },
   { id: 'mobile' as const, icon: Smartphone, label: 'Mobile (375px)' }
 ];
@@ -93,65 +93,109 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
       <CardContent>
         <div className={cn("mx-auto transition-all duration-300", deviceWidths[device])}>
           <BrowserFrame>
-            <div className="relative w-full aspect-[21/9] bg-slate-900">
-              {slides.length > 0 ? (
-                <>
-                  {slides.map((slide, idx) => {
-                    // Use image or fallback to path
-                    let imageUrl = slide.image || slide.path || '';
-                    // Fix: Add backend URL if path is relative
-                    if (imageUrl && !imageUrl.startsWith('http')) {
-                      imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-                    }
-                    return (
-                      <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700",
-                        idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
-                        {imageUrl ? (
-                          <img src={imageUrl} alt={slide.alt || `Slide ${idx + 1}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800">
-                            <Package size={48} className="text-slate-400 mb-2" />
-                            <span className="text-slate-400 text-sm">Slide #{idx + 1}</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {slides.length > 1 && (
-                    <>
-                      <button type="button" onClick={prevSlide} 
-                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center z-10">
-                        <ChevronLeft size={16} style={{ color: WINE_COLOR }} />
-                      </button>
-                      <button type="button" onClick={nextSlide}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center z-10">
-                        <ChevronRight size={16} style={{ color: WINE_COLOR }} />
-                      </button>
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                        {slides.map((_, idx) => (
-                          <button key={idx} type="button" onClick={() => setCurrentSlide(idx)}
-                            className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "bg-white/50")}
-                            style={idx === currentSlide ? { backgroundColor: WINE_COLOR } : {}} />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-slate-800">
-                  <span className="text-slate-400 text-sm">Chưa có banner</span>
-                </div>
-              )}
+            {/* Fake header */}
+            <div className="relative px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ backgroundColor: WINE_COLOR, opacity: 0.6 }} />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: WINE_COLOR }}></div>
+                <div className="w-20 h-3 bg-slate-200 dark:bg-slate-700 rounded"></div>
+              </div>
+              {device !== 'mobile' && <div className="flex gap-4">{[1,2,3,4].map(i => (<div key={i} className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded"></div>))}</div>}
+            </div>
+            
+            {/* Hero section - responsive aspect ratio */}
+            <section className="relative w-full bg-slate-900 overflow-hidden">
+              <div className={cn(
+                "relative w-full",
+                device === 'mobile' ? 'aspect-[16/9] max-h-[200px]' : device === 'tablet' ? 'aspect-[16/9] max-h-[250px]' : 'aspect-[21/9] max-h-[280px]'
+              )}>
+                {slides.length > 0 ? (
+                  <>
+                    {slides.map((slide, idx) => {
+                      // Use image or fallback to path
+                      let imageUrl = slide.image || slide.path || '';
+                      // Fix: Add backend URL if path is relative
+                      if (imageUrl && !imageUrl.startsWith('http')) {
+                        imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
+                      }
+                      return (
+                        <div key={slide.id} className={cn("absolute inset-0 transition-opacity duration-700",
+                          idx === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none")}>
+                          {imageUrl ? (
+                            <div className="w-full h-full relative">
+                              {/* Blurred background */}
+                              <div 
+                                className="absolute inset-0 scale-110"
+                                style={{
+                                  backgroundImage: `url(${imageUrl})`,
+                                  backgroundSize: 'cover',
+                                  backgroundPosition: 'center',
+                                  filter: 'blur(30px)',
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black/20" />
+                              {/* Main image - object-contain */}
+                              <img src={imageUrl} alt={slide.alt || `Slide ${idx + 1}`} className="relative w-full h-full object-contain z-10" />
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2" style={{ backgroundColor: `${WINE_COLOR}25` }}>
+                                <ImageIcon size={24} style={{ color: WINE_COLOR }} />
+                              </div>
+                              <span className="text-sm font-medium text-slate-400">Banner #{idx + 1}</span>
+                              <span className="text-xs text-slate-500 mt-1">Khuyến nghị: 1920x600px</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {slides.length > 1 && (
+                      <>
+                        <button type="button" onClick={prevSlide} 
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center z-20 border-2 border-transparent hover:scale-105 transition-all"
+                          style={{ borderColor: `${WINE_COLOR}40` }}>
+                          <ChevronLeft size={14} style={{ color: WINE_COLOR }} />
+                        </button>
+                        <button type="button" onClick={nextSlide}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center z-20 border-2 border-transparent hover:scale-105 transition-all"
+                          style={{ borderColor: `${WINE_COLOR}40` }}>
+                          <ChevronRight size={14} style={{ color: WINE_COLOR }} />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                          {slides.map((_, idx) => (
+                            <button key={idx} type="button" onClick={() => setCurrentSlide(idx)}
+                              className={cn("w-2 h-2 rounded-full transition-all", idx === currentSlide ? "w-6" : "bg-white/50")}
+                              style={idx === currentSlide ? { backgroundColor: WINE_COLOR } : {}} />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-800">
+                    <span className="text-slate-400 text-sm">Chưa có banner</span>
+                  </div>
+                )}
+              </div>
+            </section>
+            
+            {/* Fake content below */}
+            <div className="p-4 space-y-3">
+              <div className="flex gap-3">{[1,2,3,4].slice(0, device === 'mobile' ? 2 : 4).map(i => (<div key={i} className="flex-1 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg"></div>))}</div>
             </div>
           </BrowserFrame>
         </div>
         <div className="mt-3 text-xs text-slate-500">
-          {device} • Slide {currentSlide + 1} / {slides.length || 1}
+          {device === 'desktop' && 'Desktop max-w-7xl (1280px)'}{device === 'tablet' && 'Tablet (768px)'}{device === 'mobile' && 'Mobile (375px)'}
+          {' • '}Slide {currentSlide + 1} / {slides.length || 1}
         </div>
-        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-900 dark:text-blue-100">
-            <strong>Khuyến nghị:</strong> 1920×600px (21:9) - Đặt subject vào 2/3 phải để tránh bị che bởi text overlay
-          </p>
+        <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="flex items-start gap-2">
+            <ImageIcon size={14} className="text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              <strong>1920×600px</strong> (16:5) • Preview sử dụng blurred background + object-contain để hiển thị toàn bộ ảnh
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
