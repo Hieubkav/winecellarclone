@@ -58,8 +58,18 @@ export const HeroCarouselPreview = ({ slides }: { slides: HeroSlide[] }) => {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
-  // Debug: log slides data
+  // Debug: log slides data with details
   console.log('HeroCarouselPreview slides:', slides);
+  slides.forEach((slide, idx) => {
+    console.log(`Slide ${idx + 1}:`, {
+      id: slide.id,
+      image: slide.image,
+      path: slide.path,
+      link: slide.link,
+      alt: slide.alt,
+      finalUrl: slide.image || slide.path || 'NO IMAGE'
+    });
+  });
 
   return (
     <Card className="mt-6">
