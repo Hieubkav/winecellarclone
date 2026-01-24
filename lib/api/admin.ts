@@ -778,6 +778,7 @@ export interface AdminSetting {
   address: string | null;
   hours: string | null;
   google_map_embed: string | null;
+  footer_config: Record<string, unknown> | null;
   meta_default_title: string | null;
   meta_default_description: string | null;
   meta_default_keywords: string | string[] | null;

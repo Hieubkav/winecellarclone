@@ -136,7 +136,7 @@ import {
   useEffect(() => {
     if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/product-types')) {
       setExpandedMenu('Sản phẩm');
-    } else if (isActive('/admin/menus') || isActive('/admin/home-components') || isActive('/admin/social-links')) {
+    } else if (isActive('/admin/menus') || isActive('/admin/home-components') || isActive('/admin/social-links') || isActive('/admin/footer-config')) {
       setExpandedMenu('Website');
     } else if (isActive('/admin/settings')) {
       setExpandedMenu('Hệ thống');
@@ -185,6 +185,7 @@ import {
              { label: 'Trang chủ', href: '/admin/home-components' },
             { label: 'Menu', href: '/admin/menus' },
              { label: 'Mạng xã hội', href: '/admin/social-links' },
+             { label: 'Cấu hình Footer', href: '/admin/footer-config' },
            ]
          },
         { 
