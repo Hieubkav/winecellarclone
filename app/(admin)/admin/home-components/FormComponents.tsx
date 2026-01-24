@@ -503,17 +503,6 @@ export function BrandShowcaseForm({ title, brands, onTitleChange, onBrandsChange
                         onChange={(e) => updateBrand(idx, 'href', e.target.value)}
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor={`brand-alt-${idx}`}>Tên thương hiệu (Alt text) *</Label>
-                      <Input
-                        id={`brand-alt-${idx}`}
-                        placeholder="Moët & Chandon"
-                        value={brand.alt}
-                        onChange={(e) => updateBrand(idx, 'alt', e.target.value)}
-                        required
-                      />
-                    </div>
                   </div>
                 ))}
               </div>
