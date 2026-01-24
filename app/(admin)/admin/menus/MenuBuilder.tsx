@@ -1065,7 +1065,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
         // Create menu
         const menuResult = await createMenu({
           title: productType.name,
-          href: `/san-pham?type=${productType.slug}`,
+          href: `/filter?type=${productType.slug}`,
           type: 'mega',
           active: true,
           order: i + 1,
@@ -1090,14 +1090,14 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
             const category = typeCategories[j];
             const itemResult = await createMenuBlockItem(blockResult.data.id, {
               label: category.name,
-              href: `/san-pham?type=${productType.slug}&category=${category.slug}`,
+              href: `/filter?type=${productType.slug}&category=${category.slug}`,
               active: true,
             });
 
             items.push({
               id: itemResult.data.id,
               label: category.name,
-              href: `/san-pham?type=${productType.slug}&category=${category.slug}`,
+              href: `/filter?type=${productType.slug}&category=${category.slug}`,
               badge: null,
               order: j,
               active: true,
@@ -1116,7 +1116,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh }: MenuBuilderProps
         newMenus.push({
           id: menuResult.data.id,
           title: productType.name,
-          href: `/san-pham?type=${productType.slug}`,
+          href: `/filter?type=${productType.slug}`,
           type: 'mega',
           order: i + 1,
           active: true,
