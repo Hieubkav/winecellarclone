@@ -8,6 +8,7 @@ import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../../../components/ui';
 import { fetchAdminArticle, updateArticle } from '@/lib/api/admin';
 import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/image';
 import { LexicalEditor } from '../../../components/LexicalEditor';
 import { toast } from 'sonner';
 
@@ -368,7 +369,7 @@ export default function ArticleEditPage({ params }: { params: Promise<{ id: stri
                       className="relative group cursor-move"
                     >
                       <Image
-                        src={image.url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${image.url}` : image.url}
+                        src={getImageUrl(image.url)}
                         alt={`Gallery ${index + 1}`}
                         width={80}
                         height={80}

@@ -8,6 +8,7 @@ import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, updateArticle, type AdminArticle } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
+import { getArticleImageUrl } from '@/lib/utils/image';
 import { toast } from 'sonner';
  
  export default function ArticlesListPage() {
@@ -275,7 +276,7 @@ import { toast } from 'sonner';
                    <div className="flex items-center gap-3">
                     {article.cover_image_url ? (
                       <Image
-                        src={article.cover_image_url}
+                        src={getArticleImageUrl(article.cover_image_url)}
                         alt={article.title}
                         width={40}
                         height={40}

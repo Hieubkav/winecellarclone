@@ -8,6 +8,7 @@ import { Loader2, ArrowLeft, Upload, Link as LinkIcon, X } from 'lucide-react';
 import { Button, Card, Input, Label } from '../../components/ui';
 import { createImage } from '@/lib/api/admin';
 import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/image';
 import { toast } from 'sonner';
 
 export default function ImageCreatePage() {
@@ -188,7 +189,7 @@ export default function ImageCreatePage() {
                 <Label>Ảnh đã tải lên</Label>
                 <div className="relative inline-block">
                   <Image
-                    src={uploadedUrl}
+                    src={getImageUrl(uploadedUrl)}
                     alt="Preview"
                     width={400}
                     height={300}

@@ -6,6 +6,7 @@ import { Loader2, X, Upload, Link as LinkIcon, ExternalLink } from 'lucide-react
 import { Button, Input, Label } from '../../components/ui';
 import { fetchAdminImage, updateImage, type AdminImageDetail } from '@/lib/api/admin';
 import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/image';
 import { toast } from 'sonner';
 
 interface ImageEditModalProps {
@@ -184,7 +185,7 @@ export function ImageEditModal({ imageId, onClose, onSuccess }: ImageEditModalPr
               <Label>{newImageUrl ? 'Ảnh mới' : 'Ảnh hiện tại'}</Label>
               <div className="relative inline-block">
                 <Image
-                  src={currentDisplayUrl}
+                  src={getImageUrl(currentDisplayUrl)}
                   alt={alt || 'Preview'}
                   width={600}
                   height={400}

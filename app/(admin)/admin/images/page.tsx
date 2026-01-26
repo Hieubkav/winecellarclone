@@ -9,6 +9,7 @@ import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnT
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getImageUrl } from '@/lib/utils/image';
 import { ImageEditModal } from './components/ImageEditModal';
 
 export default function ImagesListPage() {
@@ -248,7 +249,7 @@ export default function ImagesListPage() {
                     {visibleColumns.includes('preview') && (
                       <TableCell>
                         {img.url ? (
-                          <Image src={img.url} alt={img.alt || ''} width={60} height={60} className="w-15 h-15 object-cover rounded" />
+                          <Image src={getImageUrl(img.url)} alt={img.alt || ''} width={60} height={60} className="w-15 h-15 object-cover rounded" />
                         ) : (
                           <div className="w-15 h-15 bg-slate-200 rounded flex items-center justify-center"><ImageIcon size={16} className="text-slate-400" /></div>
                         )}
@@ -326,7 +327,7 @@ export default function ImagesListPage() {
                       </div>
                       {img.url ? (
                         <Image
-                          src={img.url}
+                          src={getImageUrl(img.url)}
                           alt={img.alt || img.file_path}
                           fill
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, (max-width: 1536px) 16vw, 12vw"

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Package, FileText, Eye, TrendingUp, TrendingDown, Users } from 'lucide-react';
 import { Card, Skeleton, Badge } from '../components/ui';
 import { cn } from '@/lib/utils';
+import { getProductImageUrl, getArticleImageUrl } from '@/lib/utils/image';
 import {
   AreaChart,
   Area,
@@ -320,7 +321,7 @@ export default function DashboardPage() {
                   <span className="w-6 text-center text-sm font-bold text-slate-400">#{index + 1}</span>
                   {product.image_url ? (
                     <Image
-                      src={product.image_url}
+                      src={getProductImageUrl(product.image_url)}
                       alt={product.name}
                       width={48}
                       height={48}
@@ -376,7 +377,7 @@ export default function DashboardPage() {
                   <span className="w-6 text-center text-sm font-bold text-slate-400">#{index + 1}</span>
                   {article.image_url ? (
                     <Image
-                      src={article.image_url}
+                      src={getArticleImageUrl(article.image_url)}
                       alt={article.title}
                       width={48}
                       height={48}

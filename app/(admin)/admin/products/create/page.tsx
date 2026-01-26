@@ -8,6 +8,7 @@ import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
 import { createProduct } from '@/lib/api/admin';
 import { API_BASE_URL } from '@/lib/api/client';
+import { getImageUrl } from '@/lib/utils/image';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../components/LexicalEditor';
 import { toast } from 'sonner';
@@ -372,7 +373,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                       className="relative group cursor-move"
                     >
                       <Image
-                        src={image.url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${image.url}` : image.url}
+                        src={getImageUrl(image.url)}
                         alt={`Gallery ${index + 1}`}
                         width={80}
                         height={80}
@@ -558,7 +559,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                     <div key={group.code} className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                         {group.icon_url && (
-                          <Image src={group.icon_url} alt="" width={16} height={16} sizes="16px" className="w-4 h-4" />
+                          <Image src={getImageUrl(group.icon_url)} alt="" width={16} height={16} sizes="16px" className="w-4 h-4" />
                         )}
                         {group.name}
                         {group.filter_type === 'chon_don' && (

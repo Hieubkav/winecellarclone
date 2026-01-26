@@ -8,6 +8,7 @@ import * as LucideIcons from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
  import { fetchAdminProduct, updateProduct } from '@/lib/api/admin';
  import { API_BASE_URL } from '@/lib/api/client';
+ import { getImageUrl } from '@/lib/utils/image';
  import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../../components/LexicalEditor';
 import { toast } from 'sonner';
@@ -448,7 +449,7 @@ const generateSlug = (text: string): string => {
                       className="relative group cursor-move"
                     >
                       <Image
-                        src={image.url.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${image.url}` : image.url}
+                        src={getImageUrl(image.url)}
                         alt={`Gallery ${index + 1}`}
                         width={80}
                         height={80}

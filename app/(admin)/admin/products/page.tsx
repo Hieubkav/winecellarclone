@@ -9,6 +9,7 @@ import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle, FileD
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, updateProduct, type AdminProduct } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
+import { getProductImageUrl } from '@/lib/utils/image';
 import { toast } from 'sonner';
 import { useProductExcel } from '@/lib/hooks/useProductExcel';
 import { ImportProductsDialog } from './components/ImportProductsDialog';
@@ -416,7 +417,7 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
                    <TableCell>
                   {product.cover_image_url ? (
                     <Image
-                      src={product.cover_image_url}
+                      src={getProductImageUrl(product.cover_image_url)}
                       alt={product.name}
                       width={40}
                       height={40}

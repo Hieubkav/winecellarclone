@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../../../components/ui';
 import { fetchAdminImage, updateImage } from '@/lib/api/admin';
+import { getImageUrl } from '@/lib/utils/image';
 import { toast } from 'sonner';
 
 export default function ImageEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -113,7 +114,7 @@ export default function ImageEditPage({ params }: { params: Promise<{ id: string
                 <Label>Xem trước</Label>
                 <div className="relative inline-block">
                   <Image
-                    src={imageUrl}
+                    src={getImageUrl(imageUrl)}
                     alt={alt || 'Preview'}
                     width={600}
                     height={400}
