@@ -96,16 +96,6 @@ export async function generateMetadata(): Promise<Metadata> {
       // google: 'google-site-verification-code',
     },
     manifest: '/manifest.json',
-    themeColor: [
-      { media: '(prefers-color-scheme: light)', color: '#9B2C3B' },
-      { media: '(prefers-color-scheme: dark)', color: '#9B2C3B' },
-    ],
-    viewport: {
-      width: 'device-width',
-      initialScale: 1,
-      maximumScale: 5,
-      userScalable: true,
-    },
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
@@ -118,6 +108,20 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
+
+/**
+ * Viewport configuration (moved from generateMetadata)
+ */
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#9B2C3B' },
+    { media: '(prefers-color-scheme: dark)', color: '#9B2C3B' },
+  ],
+};
 
 export default async function RootLayout({
   children,

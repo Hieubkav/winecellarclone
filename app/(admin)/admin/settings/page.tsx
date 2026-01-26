@@ -55,13 +55,14 @@ export default function SettingsPage() {
       setMetaTitle(data.meta_default_title || '');
       setMetaDescription(data.meta_default_description || '');
       
-      // Images
+      // Images - prepend API base URL for relative paths
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
       setLogoImageId(data.logo_image_id || null);
-      setLogoImageUrl(data.logo_image_url || null);
+      setLogoImageUrl(data.logo_image_url ? `${apiBaseUrl}${data.logo_image_url}` : null);
       setFaviconImageId(data.favicon_image_id || null);
-      setFaviconImageUrl(data.favicon_image_url || null);
+      setFaviconImageUrl(data.favicon_image_url ? `${apiBaseUrl}${data.favicon_image_url}` : null);
       setOgImageId(data.og_image_id || null);
-      setOgImageUrl(data.og_image_url || null);
+      setOgImageUrl(data.og_image_url ? `${apiBaseUrl}${data.og_image_url}` : null);
       
       // Parse keywords
       let keywords: string[] = [];
