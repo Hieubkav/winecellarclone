@@ -24,6 +24,7 @@ import {
 } from "./header.data"
 import type { MenuItem } from "@/lib/api/menus"
 import { useSettingsStore } from "@/lib/stores/settingsStore"
+import { getImageUrl } from "@/lib/utils/article-content"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -89,7 +90,7 @@ function MainBar({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
   const hasHydrated = useSettingsStore((state) => state._hasHydrated);
 
   // Fallback values nếu chưa hydrate hoặc settings null
-  const logoUrl = hasHydrated && settings?.logo_url ? settings.logo_url : "/media/logo.webp";
+  const logoUrl = hasHydrated && settings?.logo_url ? getImageUrl(settings.logo_url) : "/media/logo.webp";
   const siteName = hasHydrated && settings?.site_name ? settings.site_name : "Thiên Kim Wine";
 
   return (
