@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Tag, MapPin, Sparkles, Hourglass, Droplets, Percent, Layers, Grape, Award, Thermometer, Coffee, Square, Package, Flag } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
 import type { Wine } from "@/data/filter/store";
+import { getImageUrl } from "@/lib/utils/article-content";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -92,7 +93,7 @@ const AttributeIcon = ({ url, iconName, fallbackIcon }: { url?: string | null; i
   if (url) {
     return (
       <Image
-        src={url}
+        src={getImageUrl(url)}
         alt="attribute"
         width={12}
         height={12}

@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useWineStore } from "@/data/filter/store"
+import { getImageUrl } from "@/lib/utils/article-content"
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -48,7 +49,7 @@ function FilterIcon({ iconUrl, iconName, title }: FilterIconProps) {
     if (iconUrl) {
         return (
             <Image
-                src={iconUrl}
+                src={getImageUrl(iconUrl)}
                 alt={`${title} icon`}
                 width={20}
                 height={20}
