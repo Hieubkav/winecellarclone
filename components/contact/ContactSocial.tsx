@@ -79,8 +79,12 @@ export default function ContactSocial({
       {/* Social Icons */}
       <div className="flex flex-wrap justify-center gap-4">
         {socialLinks.map((link) => {
-          // Check if có custom icon từ backend
-          const hasCustomIcon = link.icon_url && !link.icon_url.includes('placehold.co');
+          // Check if có custom icon từ backend (không phải placeholder)
+          const isPlaceholder = !link.icon_url || 
+            link.icon_url.includes('placehold') || 
+            link.icon_url.includes('placeholder') ||
+            link.icon_url.endsWith('term.svg');
+          const hasCustomIcon = !isPlaceholder;
           
           // Get fallback Lucide icon nếu không có custom icon
           const FallbackIcon = SOCIAL_ICON_FALLBACK[link.platform];

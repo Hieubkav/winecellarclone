@@ -251,7 +251,12 @@ function FooterItemComponent({ item }: { item: FooterItem }) {
 }
 
 function SocialLinkIcon({ link }: { link: SocialLink }) {
-  const hasCustomIcon = link.icon_url && !link.icon_url.includes('placehold.co');
+  // Check if có custom icon (không phải placeholder)
+  const isPlaceholder = !link.icon_url || 
+    link.icon_url.includes('placehold') || 
+    link.icon_url.includes('placeholder') ||
+    link.icon_url.endsWith('term.svg');
+  const hasCustomIcon = !isPlaceholder;
   const FallbackIcon = SOCIAL_ICON_FALLBACK[link.platform];
 
   return (
