@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Search, FileText, ExternalLink, Edit, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { Search, ExternalLink, Edit, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, updateArticle, type AdminArticle } from '@/lib/api/admin';

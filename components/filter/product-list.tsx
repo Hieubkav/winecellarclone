@@ -10,11 +10,17 @@ import { useWineStore, type SortOption, type Wine } from "@/data/filter/store"
 import { useFilterUrlSync } from "@/hooks/use-filter-url-sync"
 import { FilterSearchBar } from "./search-bar"
 import { ProductSkeleton } from "./product-skeleton"
+import type { ProductFiltersPayload, ProductListResponse } from "@/lib/api/products"
 
 const FilterSidebar = lazy(() => import("./filter-sidebar").then(mod => ({ default: mod.FilterSidebar })))
 const FilterProductCard = lazy(() => import("./product-card").then(mod => ({ default: mod.FilterProductCard })))
 
-export default function WineList() {
+interface ProductListProps {
+  initialFilterOptions?: ProductFiltersPayload | null
+  initialProducts?: ProductListResponse | null
+}
+
+export default function WineList({ initialFilterOptions, initialProducts }: ProductListProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   
   useFilterUrlSync()
@@ -49,11 +55,12 @@ export default function WineList() {
 
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
+  // Hydrate store với server-prefetched data
   useEffect(() => {
     if (!initialized) {
-      initialize().catch(() => undefined)
+      initialize(initialFilterOptions, initialProducts).catch(() => undefined)
     }
-  }, [initialized, initialize])
+  }, [initialized, initialize, initialFilterOptions, initialProducts])
 
   const totalProducts = meta?.total ?? wines.length
   const totalPages = meta && meta.per_page > 0 ? Math.ceil(meta.total / meta.per_page) : 0

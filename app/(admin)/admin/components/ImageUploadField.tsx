@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import Image from 'next/image';
 import { Upload, Trash2 } from 'lucide-react';
 import { Button, Input, Label } from './ui';
 import { API_BASE_URL } from '@/lib/api/client';
-import { getImageUrl } from '@/lib/utils/image';
 import { ImageWithFallback } from './ImageWithFallback';
 import { toast } from 'sonner';
 

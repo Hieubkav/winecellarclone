@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { fetchProductFilters, fetchProductList } from "@/lib/api/products";
 import ProductList from "@/components/filter/product-list";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -26,6 +27,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <ProductList />;
+export default async function Page() {
+  // Parallel fetch filter options và products ngay từ server
+  // Tránh waterfall request chain khi client mount
+  const [filterOptions, initialProducts] = await Promise.all([
+    fetchProductFilters().catch(() => null),
+    fetchProductList({ 
+      page: 1, 
+      per_page: 24,
+      sort: 'name',
+    }).catch(() => null),
+  ]);
+
+  return (
+    <ProductList 
+      initialFilterOptions={filterOptions} 
+      initialProducts={initialProducts}
+    />
+  );
 }

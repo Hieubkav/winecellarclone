@@ -117,7 +117,12 @@ export function useFilterUrlSync() {
         let attributeFiltersToUse = options.attributeFilters
         const currentTypeId = useWineStore.getState().filters.productTypeId
         
-        if (typeId && typeId !== currentTypeId) {
+        // Chỉ fetch type-specific filters nếu có URL params không phải default
+        // Nếu không có params gì (fresh load /filter), đã có prefetched data rồi
+        const hasNonDefaultParams = typeId || categoryId || searchQuery || 
+          sortBy !== "name-asc" || priceMin !== options.priceRange[0] || priceMax !== options.priceRange[1]
+        
+        if (typeId && typeId !== currentTypeId && hasNonDefaultParams) {
           try {
             const payload = await fetchProductFilters(typeId)
             attributeFiltersToUse = payload.attribute_filters
@@ -133,7 +138,7 @@ export function useFilterUrlSync() {
           } catch (error) {
             console.error('Failed to fetch type-specific filters:', error)
           }
-        } else if (!typeId && currentTypeId) {
+        } else if (!typeId && currentTypeId && hasNonDefaultParams) {
           // Type was cleared, fetch common filters
           try {
             const payload = await fetchProductFilters(null)
@@ -178,6 +183,17 @@ export function useFilterUrlSync() {
           }
         })
 
+        // Check if filters actually changed
+        const currentFilters = useWineStore.getState().filters
+        const filtersChanged =
+          currentFilters.categoryId !== categoryId ||
+          currentFilters.productTypeId !== typeId ||
+          currentFilters.searchQuery !== searchQuery ||
+          currentFilters.sortBy !== sortBy ||
+          currentFilters.priceRange[0] !== priceMin ||
+          currentFilters.priceRange[1] !== priceMax ||
+          JSON.stringify(currentFilters.attributeSelections) !== JSON.stringify(attributeSelections)
+
         // Apply ALL filters at once directly to store (atomic update)
         // This prevents partial state updates and is more predictable
         useWineStore.setState((state) => ({
@@ -193,8 +209,11 @@ export function useFilterUrlSync() {
           }
         }))
 
-        // Fetch products once with all filters applied
-        await useWineStore.getState().fetchProducts()
+        // Chỉ fetch products nếu có params không phải default
+        // Tránh fetch lại khi đã có prefetched data
+        if (filtersChanged && hasNonDefaultParams) {
+          await useWineStore.getState().fetchProducts()
+        }
       } catch (error) {
         console.error('Error applying URL filters:', error)
       } finally {

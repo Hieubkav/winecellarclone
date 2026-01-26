@@ -7,6 +7,8 @@ import {
   type ProductFilterOption,
   type ProductListItem,
   type ProductListMeta,
+  type ProductFiltersPayload,
+  type ProductListResponse,
 } from "@/lib/api/products"
 import { getImageUrl } from "@/lib/utils/article-content"
 import { matchesSearch } from "@/lib/utils/text-normalization"
@@ -117,7 +119,10 @@ interface WineStoreState {
 }
 
 interface WineStoreActions {
-  initialize: () => Promise<void>
+  initialize: (
+    prefetchedOptions?: ProductFiltersPayload | null,
+    prefetchedProducts?: ProductListResponse | null
+  ) => Promise<void>
   fetchProducts: (append?: boolean) => Promise<boolean>
   fetchProductsDebounced: () => void
   resetFilters: () => Promise<void>
@@ -381,11 +386,49 @@ const initialState: WineStoreState = {
 
 export const useWineStore = create<WineStore>((set, get) => ({
   ...initialState,
-  initialize: async () => {
+  initialize: async (prefetchedOptions, prefetchedProducts) => {
     if (get().initialized) {
       return
     }
 
+    // Nếu có prefetched data từ server, hydrate ngay lập tức
+    if (prefetchedOptions && prefetchedProducts) {
+      const options = transformOptions(prefetchedOptions)
+      const mapped = prefetchedProducts.data.map((item) => 
+        mapProductToWine(item, options.attributeFilters)
+      )
+
+      set((state) => ({
+        options,
+        filters: {
+          ...state.filters,
+          priceRange: options.priceRange,
+        },
+        products: mapped,
+        wines: mapped,
+        meta: prefetchedProducts.meta,
+        initialized: true,
+        loading: false,
+        loadingMore: false,
+        error: null,
+      }))
+
+      // Cache vào localStorage
+      writeCache(FILTER_OPTIONS_CACHE_KEY, options, FILTER_OPTIONS_TTL)
+      writeCache(
+        PRODUCT_LIST_CACHE_KEY,
+        { 
+          products: mapped, 
+          meta: prefetchedProducts.meta, 
+          perPage: prefetchedProducts.meta.per_page 
+        },
+        PRODUCT_LIST_TTL,
+      )
+
+      return
+    }
+
+    // Fallback: Load từ cache hoặc fetch từ API (legacy flow)
     const cachedOptions = readCache<FilterOptionsState>(FILTER_OPTIONS_CACHE_KEY)
     if (cachedOptions) {
       set((state) => ({
