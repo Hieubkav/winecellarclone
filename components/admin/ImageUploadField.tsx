@@ -58,7 +58,9 @@ export function ImageUploadField({
 
         const result = await response.json();
         if (result.success && result.data) {
-          const fullUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${result.data.url}`;
+          // Remove /api from base URL for storage path
+          const backendUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/api$/, '');
+          const fullUrl = `${backendUrl}${result.data.url}`;
           onChange(result.data.id, fullUrl);
           toast.success('Upload ảnh thành công');
         } else {
@@ -90,7 +92,9 @@ export function ImageUploadField({
 
         const result = await response.json();
         if (result.success && result.data) {
-          const fullUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${result.data.url}`;
+          // Remove /api from base URL for storage path
+          const backendUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || '').replace(/\/api$/, '');
+          const fullUrl = `${backendUrl}${result.data.url}`;
           onChange(result.data.id, fullUrl);
           toast.success('Upload ảnh từ URL thành công');
           setUrlInput('');
