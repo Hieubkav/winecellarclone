@@ -231,27 +231,48 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const attributeItems: AttributeDisplayItem[] = useMemo(() => {
     const attrs: AttributeDisplayItem[] = [];
     const addedCodes = new Set<string>();
+    
+    // Base filter URL với type (nếu có)
+    const typeSlug = product.type?.slug;
+    const baseFilterUrl = typeSlug ? `/filter?type=${typeSlug}` : '/filter';
+    const buildFilterUrl = (paramKey: string, paramValue: string) => {
+      return typeSlug 
+        ? `${baseFilterUrl}&${paramKey}=${paramValue}`
+        : `/filter?${paramKey}=${paramValue}`;
+    };
 
+    // Brand và Origin - tìm từ attributes để lấy đúng group_code động
+    // Nếu không tìm thấy trong attributes, không tạo filterUrl (vì không biết group_code)
     if (product.brand_term) {
+      // Tìm group_code cho brand từ attributes
+      const brandAttr = product.attributes?.find(a => 
+        a.terms.some(t => t.id === product.brand_term?.id)
+      );
+      
       attrs.push({
-        iconName: 'Award',
-        groupCode: 'thuong_hieu',
-        label: "Thương hiệu",
+        iconName: brandAttr?.icon_name || 'Award',
+        groupCode: brandAttr?.group_code || 'brand',
+        label: brandAttr?.group_name || "Thương hiệu",
         value: product.brand_term.name,
-        filterUrl: `/filter?thuong_hieu=${product.brand_term.slug}`,
+        filterUrl: brandAttr ? buildFilterUrl(brandAttr.group_code, product.brand_term.slug) : undefined,
       });
-      addedCodes.add('thuong_hieu');
+      if (brandAttr) addedCodes.add(brandAttr.group_code);
     }
 
     if (product.country_term) {
+      // Tìm group_code cho country từ attributes
+      const countryAttr = product.attributes?.find(a => 
+        a.terms.some(t => t.id === product.country_term?.id)
+      );
+      
       attrs.push({
-        iconName: 'Flag',
-        groupCode: 'xuat_xu',
-        label: "Xuất xứ",
+        iconName: countryAttr?.icon_name || 'Flag',
+        groupCode: countryAttr?.group_code || 'origin',
+        label: countryAttr?.group_name || "Xuất xứ",
         value: product.country_term.name,
-        filterUrl: `/filter?xuat_xu=${product.country_term.slug}`,
+        filterUrl: countryAttr ? buildFilterUrl(countryAttr.group_code, product.country_term.slug) : undefined,
       });
-      addedCodes.add('xuat_xu');
+      if (countryAttr) addedCodes.add(countryAttr.group_code);
     }
 
     if (product.extra_attrs && Object.keys(product.extra_attrs).length > 0) {
@@ -283,7 +304,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             groupCode: attrGroup.group_code,
             label: attrGroup.group_name || attrGroup.group_code,
             value: termNames,
-            filterUrl: `/filter?${attrGroup.group_code}=${firstTerm.slug}`,
+            filterUrl: buildFilterUrl(attrGroup.group_code, firstTerm.slug),
           });
           addedCodes.add(attrGroup.group_code);
         }
