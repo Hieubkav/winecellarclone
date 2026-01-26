@@ -235,23 +235,23 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     if (product.brand_term) {
       attrs.push({
         iconName: 'Award',
-        groupCode: 'brand',
+        groupCode: 'thuong_hieu',
         label: "Thương hiệu",
         value: product.brand_term.name,
-        filterUrl: `/filter?brand=${product.brand_term.slug}`,
+        filterUrl: `/filter?thuong_hieu=${product.brand_term.slug}`,
       });
-      addedCodes.add('brand');
+      addedCodes.add('thuong_hieu');
     }
 
     if (product.country_term) {
       attrs.push({
         iconName: 'Flag',
-        groupCode: 'origin',
+        groupCode: 'xuat_xu',
         label: "Xuất xứ",
         value: product.country_term.name,
-        filterUrl: `/filter?origin=${product.country_term.slug}`,
+        filterUrl: `/filter?xuat_xu=${product.country_term.slug}`,
       });
-      addedCodes.add('origin');
+      addedCodes.add('xuat_xu');
     }
 
     if (product.extra_attrs && Object.keys(product.extra_attrs).length > 0) {

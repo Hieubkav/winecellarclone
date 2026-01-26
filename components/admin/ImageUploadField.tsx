@@ -20,7 +20,7 @@ interface ImageUploadFieldProps {
 export function ImageUploadField({
   label,
   value,
-  imageId,
+  imageId: _imageId,
   onChange,
   description,
   accept = 'image/jpeg,image/png,image/gif,image/webp',

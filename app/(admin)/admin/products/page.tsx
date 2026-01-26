@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle, FileDown, FileUp, FileSpreadsheet, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Search, AlertTriangle, FileDown, FileUp, FileSpreadsheet, ChevronDown } from 'lucide-react';
  import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
  import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
