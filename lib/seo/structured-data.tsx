@@ -251,3 +251,274 @@ export function WebSiteSchema({
     />
   )
 }
+
+// ========== FAQPage Schema ==========
+interface FAQItem {
+  question: string
+  answer: string
+}
+
+interface FAQPageSchemaProps {
+  items: FAQItem[]
+}
+
+export function FAQPageSchema({ items }: FAQPageSchemaProps) {
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return null
+  }
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  }
+
+  return (
+    <Script
+      id="faq-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}
+
+// ========== CollectionPage Schema ==========
+interface CollectionPageSchemaProps {
+  name: string
+  description?: string
+  url: string
+  numberOfItems?: number
+}
+
+export function CollectionPageSchema({
+  name,
+  description,
+  url,
+  numberOfItems,
+}: CollectionPageSchemaProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name,
+    description,
+    url,
+    numberOfItems,
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems,
+    },
+  }
+
+  return (
+    <Script
+      id="collection-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}
+
+// ========== ItemList Schema (for product listings) ==========
+interface ItemListProduct {
+  name: string
+  url: string
+  image?: string
+  price?: number
+  currency?: string
+}
+
+interface ItemListSchemaProps {
+  name: string
+  description?: string
+  items: ItemListProduct[]
+  url?: string
+}
+
+export function ItemListSchema({
+  name,
+  description,
+  items,
+  url,
+}: ItemListSchemaProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    description,
+    url,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'Product',
+        name: item.name,
+        url: item.url,
+        image: item.image,
+        offers: item.price ? {
+          '@type': 'Offer',
+          price: item.price.toString(),
+          priceCurrency: item.currency || 'VND',
+        } : undefined,
+      },
+    })),
+  }
+
+  return (
+    <Script
+      id="itemlist-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}
+
+// ========== Review Schema ==========
+interface ReviewSchemaProps {
+  itemReviewed: {
+    type: 'Product' | 'Article' | 'Organization'
+    name: string
+  }
+  author: string
+  reviewRating: number
+  reviewBody: string
+  datePublished?: string
+}
+
+export function ReviewSchema({
+  itemReviewed,
+  author,
+  reviewRating,
+  reviewBody,
+  datePublished = new Date().toISOString(),
+}: ReviewSchemaProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Review',
+    itemReviewed: {
+      '@type': itemReviewed.type,
+      name: itemReviewed.name,
+    },
+    author: {
+      '@type': 'Person',
+      name: author,
+    },
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue: reviewRating,
+      bestRating: 5,
+      worstRating: 1,
+    },
+    reviewBody,
+    datePublished,
+  }
+
+  return (
+    <Script
+      id="review-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}
+
+// ========== VideoObject Schema (for embedded videos) ==========
+interface VideoSchemaProps {
+  name: string
+  description: string
+  thumbnailUrl: string
+  uploadDate: string
+  contentUrl?: string
+  embedUrl?: string
+  duration?: string // ISO 8601 format: PT1H30M
+}
+
+export function VideoSchema({
+  name,
+  description,
+  thumbnailUrl,
+  uploadDate,
+  contentUrl,
+  embedUrl,
+  duration,
+}: VideoSchemaProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name,
+    description,
+    thumbnailUrl,
+    uploadDate,
+    contentUrl,
+    embedUrl,
+    duration,
+  }
+
+  return (
+    <Script
+      id="video-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}
+
+// ========== HowTo Schema (for guides/tutorials) ==========
+interface HowToStep {
+  name: string
+  text: string
+  image?: string
+}
+
+interface HowToSchemaProps {
+  name: string
+  description: string
+  steps: HowToStep[]
+  totalTime?: string // ISO 8601 format
+  image?: string
+}
+
+export function HowToSchema({
+  name,
+  description,
+  steps,
+  totalTime,
+  image,
+}: HowToSchemaProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name,
+    description,
+    image,
+    totalTime,
+    step: steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+      image: step.image,
+    })),
+  }
+
+  return (
+    <Script
+      id="howto-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}

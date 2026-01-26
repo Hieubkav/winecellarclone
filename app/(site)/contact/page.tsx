@@ -5,6 +5,8 @@ import ContactHero from "@/components/contact/ContactHero";
 import ContactInfoGrid from "@/components/contact/ContactInfoGrid";
 import ContactMap from "@/components/contact/ContactMap";
 import ContactSocial from "@/components/contact/ContactSocial";
+import FAQSection, { DEFAULT_WINE_FAQ } from "@/components/seo/FAQSection";
+import { FAQPageSchema } from "@/lib/seo/structured-data";
 import type { ContactConfig } from "@/lib/types/contact";
 import { DEFAULT_CONTACT_CONFIG } from "@/lib/types/contact";
 
@@ -77,6 +79,9 @@ export default async function ContactPage() {
 
   return (
     <main className="min-h-screen bg-white">
+      {/* SEO: FAQ Structured Data */}
+      <FAQPageSchema items={DEFAULT_WINE_FAQ} />
+
       {/* Hero Section */}
       <ContactHero 
         siteName={settings.site_name}
@@ -119,6 +124,14 @@ export default async function ContactPage() {
           </div>
         </section>
       )}
+
+      {/* FAQ Section for SEO */}
+      <FAQSection
+        title="Câu hỏi thường gặp"
+        subtitle="Những thắc mắc phổ biến về rượu vang và dịch vụ của chúng tôi"
+        items={DEFAULT_WINE_FAQ}
+        className="bg-white"
+      />
     </main>
   );
 }

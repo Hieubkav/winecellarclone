@@ -92,8 +92,11 @@ export async function generateMetadata(): Promise<Metadata> {
       other: [{ rel: "icon", url: faviconUrl, type: "image/webp" }],
     },
     verification: {
-      // Add later: google, yandex, bing verification codes
-      // google: 'google-site-verification-code',
+      google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || undefined,
+      yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || undefined,
+      other: {
+        'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
+      },
     },
     manifest: '/manifest.json',
     appleWebApp: {
