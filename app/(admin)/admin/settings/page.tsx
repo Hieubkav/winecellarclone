@@ -121,7 +121,7 @@ export default function SettingsPage() {
         google_map_embed: googleMapEmbed || null,
         meta_default_title: metaTitle || null,
         meta_default_description: metaDescription || null,
-        meta_default_keywords: metaKeywords.length > 0 ? metaKeywords : null,
+        meta_default_keywords: metaKeywords.length > 0 ? metaKeywords.join(', ') : null,
         // Images
         logo_image_id: logoImageId,
         favicon_image_id: faviconImageId,
