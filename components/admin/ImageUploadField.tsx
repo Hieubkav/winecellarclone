@@ -45,13 +45,15 @@ export function ImageUploadField({
 
       setIsUploading(true);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/upload/image`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/admin/upload/image`, {
           method: 'POST',
           body: formData,
         });
 
         if (!response.ok) {
-          throw new Error('Upload thất bại');
+          const errorData = await response.json().catch(() => ({ message: 'Upload thất bại' }));
+          console.error('Upload failed:', { status: response.status, error: errorData });
+          throw new Error(errorData.message || 'Upload thất bại');
         }
 
         const result = await response.json();
@@ -59,10 +61,12 @@ export function ImageUploadField({
           const fullUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${result.data.url}`;
           onChange(result.data.id, fullUrl);
           toast.success('Upload ảnh thành công');
+        } else {
+          throw new Error(result.message || 'Không nhận được dữ liệu ảnh');
         }
       } catch (error) {
         console.error('Upload error:', error);
-        toast.error('Không thể upload ảnh');
+        toast.error(error instanceof Error ? error.message : 'Không thể upload ảnh');
       } finally {
         setIsUploading(false);
       }
@@ -74,7 +78,7 @@ export function ImageUploadField({
     async (url: string) => {
       setIsUploading(true);
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/admin/upload/image-url`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/admin/upload/image-url`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url, folder: 'settings' }),
