@@ -1,33 +1,22 @@
 /**
- * Utility functions để xử lý image URLs từ backend
+ * Image URL utilities for Next.js frontend
+ * 
+ * IMPORTANT: Backend returns absolute URLs.
+ * This utility is only a SAFETY NET for edge cases.
  */
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
-const BACKEND_BASE = API_BASE_URL.replace('/api', '');
 
 /**
- * Convert relative image URL từ backend thành absolute URL
- * @param url - URL từ backend (có thể là relative hoặc absolute)
- * @param fallback - Fallback image nếu url null/undefined
- * @returns Absolute URL
+ * Get image URL with minimal fallback
+ * Backend already provides absolute URLs with fallback logic
  */
 export function getImageUrl(url: string | null | undefined, fallback?: string): string {
-  if (!url) {
-    return fallback || '/placeholder/no-image.svg';
-  }
-
-  // Nếu đã là absolute URL (http/https), return as is
-  if (url.startsWith('http://') || url.startsWith('https://')) {
+  // Backend already handles all logic, just use the URL
+  if (url) {
     return url;
   }
 
-  // Nếu là relative URL, prepend backend base URL
-  if (url.startsWith('/')) {
-    return `${BACKEND_BASE}${url}`;
-  }
-
-  // Trường hợp khác, cũng prepend backend base
-  return `${BACKEND_BASE}/${url}`;
+  // Safety net fallback (should rarely be used)
+  return fallback || '/placeholder/no-image.svg';
 }
 
 /**
