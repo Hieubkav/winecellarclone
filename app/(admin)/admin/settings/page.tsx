@@ -33,6 +33,8 @@ export default function SettingsPage() {
   
   // Watermark states
   const [watermarkType, setWatermarkType] = useState('image');
+  const [watermarkImageId, setWatermarkImageId] = useState<number | null>(null);
+  const [watermarkImageUrl, setWatermarkImageUrl] = useState<string | null>(null);
   const [watermarkPosition, setWatermarkPosition] = useState('none');
   const [watermarkSize, setWatermarkSize] = useState('128x128');
   const [watermarkText, setWatermarkText] = useState('');
@@ -74,6 +76,8 @@ export default function SettingsPage() {
       setMetaKeywords(keywords);
       // Watermark
       setWatermarkType(data.product_watermark_type || 'image');
+      setWatermarkImageId(data.product_watermark_image_id || null);
+      setWatermarkImageUrl(data.product_watermark_image_url ? `${backendUrl}${data.product_watermark_image_url}` : null);
       setWatermarkPosition(data.product_watermark_position || 'none');
       setWatermarkSize(data.product_watermark_size || '128x128');
       setWatermarkText(data.product_watermark_text || '');
@@ -128,6 +132,7 @@ export default function SettingsPage() {
         og_image_id: ogImageId,
         // Watermark
         product_watermark_type: watermarkType,
+        product_watermark_image_id: watermarkImageId,
         product_watermark_position: watermarkPosition,
         product_watermark_size: watermarkSize,
         product_watermark_text: watermarkText || null,
@@ -352,6 +357,18 @@ export default function SettingsPage() {
                 {watermarkType === 'image' && (
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg space-y-4">
                     <h3 className="font-medium text-slate-700 dark:text-slate-300">Cài đặt watermark hình ảnh</h3>
+                    
+                    <ImageUploadField
+                      label="Ảnh watermark"
+                      value={watermarkImageUrl}
+                      imageId={watermarkImageId}
+                      onChange={(id, url) => {
+                        setWatermarkImageId(id);
+                        setWatermarkImageUrl(url);
+                      }}
+                      description="Ảnh PNG trong suốt được khuyến nghị"
+                    />
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="watermarkPosition">Vị trí</Label>
