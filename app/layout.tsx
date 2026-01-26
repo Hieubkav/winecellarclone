@@ -34,6 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   const faviconUrl = settings.favicon_url || "/media/logo.webp";
+  const ogImageUrl = settings.og_image_url || settings.logo_url || `${SITE_URL}/media/logo.webp`;
   const title = settings.meta_defaults.title;
   const description = settings.meta_defaults.description;
   
@@ -60,7 +61,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: [
         {
-          url: settings.logo_url || `${SITE_URL}/media/logo.webp`,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: settings.site_name,
@@ -71,7 +72,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title,
       description,
-      images: [settings.logo_url || `${SITE_URL}/media/logo.webp`],
+      images: [ogImageUrl],
     },
     robots: {
       index: true,

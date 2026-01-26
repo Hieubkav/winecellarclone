@@ -13,6 +13,7 @@ export interface SettingsResponse {
   data: {
     logo_url: string | null;
     favicon_url: string | null;
+    og_image_url: string | null;
     site_name: string;
     hotline: string | null;
     address: string | null;
@@ -41,6 +42,7 @@ export interface SettingsResponse {
 export interface Settings {
   logo_url: string | null;
   favicon_url: string | null;
+  og_image_url: string | null;
   site_name: string;
   hotline: string | null;
   address: string | null;
@@ -84,6 +86,7 @@ export async function fetchSettings(): Promise<Settings> {
 export const FALLBACK_SETTINGS: Settings = {
   logo_url: "/media/logo.webp",
   favicon_url: "/media/logo.webp",
+  og_image_url: null,
   site_name: "Thiên Kim Wine",
   hotline: "0938 110 888",
   address: "97 Pasteur, P. Bến Nghé, Quận 1",

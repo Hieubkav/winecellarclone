@@ -787,6 +787,8 @@ export interface AdminSetting {
   logo_image_url: string | null;
   favicon_image_id: number | null;
   favicon_image_url: string | null;
+  og_image_id: number | null;
+  og_image_url: string | null;
   product_watermark_image_id: number | null;
   product_watermark_image_url: string | null;
   product_watermark_type: string | null;

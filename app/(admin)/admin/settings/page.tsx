@@ -5,6 +5,7 @@ import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Se
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
@@ -21,6 +22,14 @@ export default function SettingsPage() {
   const [metaDescription, setMetaDescription] = useState('');
   const [metaKeywords, setMetaKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState('');
+  
+  // Image states
+  const [logoImageId, setLogoImageId] = useState<number | null>(null);
+  const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
+  const [faviconImageId, setFaviconImageId] = useState<number | null>(null);
+  const [faviconImageUrl, setFaviconImageUrl] = useState<string | null>(null);
+  const [ogImageId, setOgImageId] = useState<number | null>(null);
+  const [ogImageUrl, setOgImageUrl] = useState<string | null>(null);
   
   // Watermark states
   const [watermarkType, setWatermarkType] = useState('image');
@@ -45,6 +54,14 @@ export default function SettingsPage() {
       setGoogleMapEmbed(data.google_map_embed || '');
       setMetaTitle(data.meta_default_title || '');
       setMetaDescription(data.meta_default_description || '');
+      
+      // Images
+      setLogoImageId(data.logo_image_id || null);
+      setLogoImageUrl(data.logo_image_url || null);
+      setFaviconImageId(data.favicon_image_id || null);
+      setFaviconImageUrl(data.favicon_image_url || null);
+      setOgImageId(data.og_image_id || null);
+      setOgImageUrl(data.og_image_url || null);
       
       // Parse keywords
       let keywords: string[] = [];
@@ -104,6 +121,10 @@ export default function SettingsPage() {
         meta_default_title: metaTitle || null,
         meta_default_description: metaDescription || null,
         meta_default_keywords: metaKeywords.length > 0 ? metaKeywords : null,
+        // Images
+        logo_image_id: logoImageId,
+        favicon_image_id: faviconImageId,
+        og_image_id: ogImageId,
         // Watermark
         product_watermark_type: watermarkType,
         product_watermark_position: watermarkPosition,
@@ -183,10 +204,34 @@ export default function SettingsPage() {
           <TabsContent value="info">
             <Card>
               <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-semibold text-slate-900 dark:text-slate-100">Thông tin liên hệ</h2>
-                <p className="text-sm text-slate-500">Thông tin cơ bản của website</p>
+                <h2 className="font-semibold text-slate-900 dark:text-slate-100">Thông tin cơ bản</h2>
+                <p className="text-sm text-slate-500">Cấu hình logo, favicon và thông tin liên hệ</p>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ImageUploadField
+                    label="Logo"
+                    value={logoImageUrl}
+                    imageId={logoImageId}
+                    onChange={(id, url) => {
+                      setLogoImageId(id);
+                      setLogoImageUrl(url);
+                    }}
+                    description="Hiển thị trên header trang chủ"
+                  />
+                  <ImageUploadField
+                    label="Favicon"
+                    value={faviconImageUrl}
+                    imageId={faviconImageId}
+                    onChange={(id, url) => {
+                      setFaviconImageId(id);
+                      setFaviconImageUrl(url);
+                    }}
+                    description="Icon hiển thị trên browser tab"
+                  />
+                </div>
+                
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4"></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="siteName">Tên website</Label>
@@ -411,9 +456,21 @@ export default function SettingsPage() {
             <Card>
               <div className="p-4 border-b border-slate-100 dark:border-slate-800">
                 <h2 className="font-semibold text-slate-900 dark:text-slate-100">SEO mặc định</h2>
-                <p className="text-sm text-slate-500">Meta tags mặc định cho toàn bộ website</p>
+                <p className="text-sm text-slate-500">Meta tags và OG Image cho toàn bộ website</p>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-6">
+                <ImageUploadField
+                  label="Open Graph Image (OG Image)"
+                  value={ogImageUrl}
+                  imageId={ogImageId}
+                  onChange={(id, url) => {
+                    setOgImageId(id);
+                    setOgImageUrl(url);
+                  }}
+                  description="Ảnh hiển thị khi share link trên Facebook, Twitter, v.v."
+                />
+                
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4"></div>
                 <div className="space-y-2">
                   <Label htmlFor="metaTitle">Tiêu đề mặc định</Label>
                   <Input
