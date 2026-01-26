@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, ExternalLink, Search, Package, AlertTriangle, FileD
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import { fetchAdminProducts, deleteProduct, bulkDeleteProducts, updateProduct, type AdminProduct } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
-import { getProductImageUrl } from '@/lib/utils/image';
+import { ImageWithFallback } from '../components/ImageWithFallback';
 import { toast } from 'sonner';
 import { useProductExcel } from '@/lib/hooks/useProductExcel';
 import { ImportProductsDialog } from './components/ImportProductsDialog';
@@ -415,20 +415,15 @@ import { ImportProductsDialog } from './components/ImportProductsDialog';
                  )}
                  {visibleColumns.includes('image') && (
                    <TableCell>
-                  {product.cover_image_url ? (
-                    <Image
-                      src={getProductImageUrl(product.cover_image_url)}
+                    <ImageWithFallback
+                      src={product.cover_image_url}
                       alt={product.name}
                       width={40}
                       height={40}
                       sizes="40px"
                       className="w-10 h-10 object-cover rounded"
+                      fallbackType="product"
                     />
-                  ) : (
-                    <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
-                      <Package size={16} className="text-slate-400" />
-                    </div>
-                  )}
                    </TableCell>
                  )}
                  {visibleColumns.includes('name') && (

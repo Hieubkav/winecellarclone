@@ -8,7 +8,7 @@ import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminArticles, deleteArticle, bulkDeleteArticles, updateArticle, type AdminArticle } from '@/lib/api/admin';
 import { cn } from '@/lib/utils';
-import { getArticleImageUrl } from '@/lib/utils/image';
+import { ImageWithFallback } from '../components/ImageWithFallback';
 import { toast } from 'sonner';
  
  export default function ArticlesListPage() {
@@ -274,20 +274,15 @@ import { toast } from 'sonner';
                 </TableCell>
                  <TableCell>
                    <div className="flex items-center gap-3">
-                    {article.cover_image_url ? (
-                      <Image
-                        src={getArticleImageUrl(article.cover_image_url)}
-                        alt={article.title}
-                        width={40}
-                        height={40}
-                        sizes="40px"
-                        className="w-10 h-10 rounded object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center shrink-0">
-                        <FileText size={16} className="text-slate-400" />
-                      </div>
-                    )}
+                    <ImageWithFallback
+                      src={article.cover_image_url}
+                      alt={article.title}
+                      width={40}
+                      height={40}
+                      sizes="40px"
+                      className="w-10 h-10 rounded object-cover shrink-0"
+                      fallbackType="article"
+                    />
                      <div className="min-w-0">
                        <p className="font-medium text-slate-900 dark:text-slate-100 truncate max-w-[250px]">
                          {article.title}

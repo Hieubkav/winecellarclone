@@ -9,7 +9,7 @@ import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnT
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { getImageUrl } from '@/lib/utils/image';
+import { ImageWithFallback } from '../components/ImageWithFallback';
 import { ImageEditModal } from './components/ImageEditModal';
 
 export default function ImagesListPage() {
@@ -248,11 +248,14 @@ export default function ImagesListPage() {
                     )}
                     {visibleColumns.includes('preview') && (
                       <TableCell>
-                        {img.url ? (
-                          <Image src={getImageUrl(img.url)} alt={img.alt || ''} width={60} height={60} className="w-15 h-15 object-cover rounded" />
-                        ) : (
-                          <div className="w-15 h-15 bg-slate-200 rounded flex items-center justify-center"><ImageIcon size={16} className="text-slate-400" /></div>
-                        )}
+                        <ImageWithFallback
+                          src={img.url}
+                          alt={img.alt || ''}
+                          width={60}
+                          height={60}
+                          className="w-15 h-15 object-cover rounded"
+                          fallbackType="image"
+                        />
                       </TableCell>
                     )}
                     {visibleColumns.includes('file_path') && (
@@ -325,19 +328,14 @@ export default function ImagesListPage() {
                           onChange={() => toggleSelectItem(img.id)}
                         />
                       </div>
-                      {img.url ? (
-                        <Image
-                          src={getImageUrl(img.url)}
-                          alt={img.alt || img.file_path}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, (max-width: 1536px) 16vw, 12vw"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                          <ImageIcon size={32} className="text-slate-400" />
-                        </div>
-                      )}
+                      <ImageWithFallback
+                        src={img.url}
+                        alt={img.alt || img.file_path}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, (max-width: 1536px) 16vw, 12vw"
+                        className="object-cover"
+                        fallbackType="image"
+                      />
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent p-3 pt-8 opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="text-white text-xs font-medium truncate mb-1">{img.file_path}</p>
                         {img.used_by && (
