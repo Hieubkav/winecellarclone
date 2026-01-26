@@ -131,12 +131,8 @@ export function ImageUploadField({
       const result = await response.json();
       
       if (result.success && result.data) {
-        // Fix relative URL to absolute
-        let imageUrl = result.data.url;
-        if (imageUrl && !imageUrl.startsWith('http')) {
-          imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-        }
-        onChange(imageUrl, result.data.path, result.data.id);
+        // Backend already returns absolute URL
+        onChange(result.data.url, result.data.path, result.data.id);
         toast.success('Đã tải ảnh lên');
         return result.data;
       }
@@ -189,12 +185,8 @@ export function ImageUploadField({
       const result = await response.json();
       
       if (result.success && result.data) {
-        // Fix relative URL to absolute
-        let imageUrl = result.data.url;
-        if (imageUrl && !imageUrl.startsWith('http')) {
-          imageUrl = `${API_BASE_URL.replace('/api', '')}${imageUrl}`;
-        }
-        onChange(imageUrl, result.data.path, result.data.id);
+        // Backend already returns absolute URL
+        onChange(result.data.url, result.data.path, result.data.id);
         setUrlInput('');
         setShowUrlInput(false);
         toast.success('Đã tải ảnh từ URL');
