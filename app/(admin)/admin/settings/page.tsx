@@ -6,6 +6,7 @@ import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
@@ -150,6 +151,7 @@ export default function SettingsPage() {
       const result = await updateSettings(data);
       if (result.success) {
         toast.success(result.message || 'Cập nhật thành công');
+        await loadSettings();
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
@@ -469,15 +471,13 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-2 md:col-span-2">
-                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                          <input
-                            type="checkbox"
+                        <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                          <Checkbox
                             checked={watermarkTextRepeat}
-                            onChange={(e) => setWatermarkTextRepeat(e.target.checked)}
-                            className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                            onCheckedChange={(value) => setWatermarkTextRepeat(Boolean(value))}
                           />
-                          Lặp watermark chữ theo hàng ngang
-                        </label>
+                          <span>Lặp watermark chữ theo hàng ngang</span>
+                        </div>
                         <p className="text-xs text-slate-500">
                           Khi bật, watermark chữ sẽ lặp theo hàng ngang từ trái sang phải đến hết ảnh. Vị trí Trên/Giữa/Dưới chỉ quyết định hàng này nằm ở đâu, không lặp theo chiều dọc.
                         </p>
