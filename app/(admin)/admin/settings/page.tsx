@@ -41,6 +41,7 @@ export default function SettingsPage() {
   const [watermarkTextSize, setWatermarkTextSize] = useState('medium');
   const [watermarkTextPosition, setWatermarkTextPosition] = useState('center');
   const [watermarkTextOpacity, setWatermarkTextOpacity] = useState(50);
+  const [watermarkTextRepeat, setWatermarkTextRepeat] = useState(false);
 
   const loadSettings = useCallback(async () => {
     setIsLoading(true);
@@ -75,7 +76,10 @@ export default function SettingsPage() {
       }
       setMetaKeywords(keywords);
       // Watermark
-      setWatermarkType(data.product_watermark_type || 'image');
+      const resolvedWatermarkType = String(data.product_watermark_type || 'image')
+        .trim()
+        .toLowerCase();
+      setWatermarkType(resolvedWatermarkType === 'text' ? 'text' : 'image');
       setWatermarkImageId(data.product_watermark_image_id || null);
       setWatermarkImageUrl(data.product_watermark_image_url ? `${backendUrl}${data.product_watermark_image_url}` : null);
       setWatermarkPosition(data.product_watermark_position || 'none');
@@ -84,6 +88,7 @@ export default function SettingsPage() {
       setWatermarkTextSize(data.product_watermark_text_size || 'medium');
       setWatermarkTextPosition(data.product_watermark_text_position || 'center');
       setWatermarkTextOpacity(data.product_watermark_text_opacity || 50);
+      setWatermarkTextRepeat(Boolean(data.product_watermark_text_repeat));
     } catch (error) {
       console.error('Failed to load settings:', error);
       toast.error('Không thể tải cấu hình');
@@ -139,6 +144,7 @@ export default function SettingsPage() {
         product_watermark_text_size: watermarkTextSize,
         product_watermark_text_position: watermarkTextPosition,
         product_watermark_text_opacity: watermarkTextOpacity,
+        product_watermark_text_repeat: watermarkTextRepeat,
       };
 
       const result = await updateSettings(data);
@@ -461,6 +467,20 @@ export default function SettingsPage() {
                           onChange={(e) => setWatermarkTextOpacity(Number(e.target.value))}
                           className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
                         />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                          <input
+                            type="checkbox"
+                            checked={watermarkTextRepeat}
+                            onChange={(e) => setWatermarkTextRepeat(e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                          />
+                          Lặp watermark chữ theo hàng ngang
+                        </label>
+                        <p className="text-xs text-slate-500">
+                          Khi bật, watermark chữ sẽ lặp theo hàng ngang từ trái sang phải đến hết ảnh. Vị trí Trên/Giữa/Dưới chỉ quyết định hàng này nằm ở đâu, không lặp theo chiều dọc.
+                        </p>
                       </div>
                     </div>
                   </div>
