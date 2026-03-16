@@ -6,6 +6,7 @@ import { Button, Input, Label } from './ui';
 import { API_BASE_URL } from '@/lib/api/client';
 import { ImageWithFallback } from './ImageWithFallback';
 import { toast } from 'sonner';
+import { getAdminAuthHeaders } from '@/lib/admin-auth';
 
 interface ImageUploadFieldProps {
   value?: string;
@@ -121,6 +122,9 @@ export function ImageUploadField({
 
       const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
         method: 'POST',
+        headers: {
+          ...getAdminAuthHeaders(),
+        },
         body: formData,
       });
 
@@ -174,7 +178,10 @@ export function ImageUploadField({
     try {
       const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image-url`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeaders(),
+        },
         body: JSON.stringify({ url, folder }),
       });
 

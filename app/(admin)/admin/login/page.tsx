@@ -17,12 +17,18 @@ export default function AdminLoginPage() {
     setError('');
     setIsLoading(true);
 
-    await new Promise((r) => setTimeout(r, 300));
+    try {
+      const result = await login(username, password);
 
-    if (login(username, password)) {
+      if (!result.success) {
+        setError(result.message ?? 'Tên đăng nhập hoặc mật khẩu không đúng');
+        return;
+      }
+
       router.replace('/admin/dashboard');
-    } else {
-      setError('Tên đăng nhập hoặc mật khẩu không đúng');
+    } catch {
+      setError('Không thể kết nối tới server admin');
+    } finally {
       setIsLoading(false);
     }
   };

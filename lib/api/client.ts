@@ -1,3 +1,13 @@
+const ADMIN_TOKEN_KEY = 'admin_access_token';
+
+const getAdminToken = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.localStorage.getItem(ADMIN_TOKEN_KEY);
+};
+
 const resolveDefaultBaseUrl = (): string => {
   const fromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -72,38 +82,20 @@ export async function apiFetch<TResponse>(
   init?: RequestInit
 ): Promise<TResponse> {
   const url = normalizeUrl(API_BASE_URL, path);
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const adminToken = normalizedPath.startsWith('/v1/admin/') ? getAdminToken() : null;
 
   const response = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
       ...(init?.headers ?? {}),
     },
     // Cho phép Next.js ISR với revalidate mặc định 5 phút
     next: { revalidate: 300, ...(init?.next ?? {}) },
   });
-
-  if (process.env.NODE_ENV === "development") {
-    let requestBody: unknown = undefined;
-    if (init?.body) {
-      if (typeof init.body === "string") {
-        try {
-          requestBody = JSON.parse(init.body);
-        } catch {
-          requestBody = init.body;
-        }
-      } else {
-        requestBody = init.body;
-      }
-    }
-
-    console.log("[API Request]", {
-      url,
-      method: init?.method ?? "GET",
-      body: requestBody,
-    });
-  }
 
   const contentType = response.headers.get("content-type");
   const payload =

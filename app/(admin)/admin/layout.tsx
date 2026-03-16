@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
  import { Sidebar } from './components/Sidebar';
  import { Header } from './components/Header';
 import { Toaster } from 'sonner';
-import { isAuthenticated } from '@/lib/admin-auth';
+import { verifySession } from '@/lib/admin-auth';
  
  function AdminLayoutContent({ children }: { children: React.ReactNode }) {
    const pathname = usePathname();
@@ -17,11 +17,35 @@ import { isAuthenticated } from '@/lib/admin-auth';
    const isLoginPage = pathname === '/admin/login';
 
    useEffect(() => {
-     if (!isLoginPage && !isAuthenticated()) {
-       router.replace('/admin/login');
-     } else {
+     let cancelled = false;
+
+     const checkSession = async () => {
+       if (isLoginPage) {
+         if (!cancelled) {
+           setAuthChecked(true);
+         }
+         return;
+       }
+
+       const isValid = await verifySession();
+
+       if (cancelled) {
+         return;
+       }
+
+       if (!isValid) {
+         router.replace('/admin/login');
+         return;
+       }
+
        setAuthChecked(true);
-     }
+     };
+
+     void checkSession();
+
+     return () => {
+       cancelled = true;
+     };
    }, [pathname, router, isLoginPage]);
 
    useEffect(() => {
@@ -33,6 +57,40 @@ import { isAuthenticated } from '@/lib/admin-auth';
      } else {
        document.documentElement.classList.remove('dark');
      }
+   }, []);
+
+   useEffect(() => {
+     const originalFetch = window.fetch.bind(window);
+
+     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+       const requestUrl = typeof input === 'string'
+         ? input
+         : input instanceof URL
+           ? input.toString()
+           : input.url;
+
+       const shouldAttachAdminToken = requestUrl.includes('/v1/admin/');
+
+       if (!shouldAttachAdminToken) {
+         return originalFetch(input, init);
+       }
+
+       const token = window.localStorage.getItem('admin_access_token');
+       const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+
+       if (token && !headers.has('Authorization')) {
+         headers.set('Authorization', `Bearer ${token}`);
+       }
+
+       return originalFetch(input, {
+         ...init,
+         headers,
+       });
+     };
+
+     return () => {
+       window.fetch = originalFetch;
+     };
    }, []);
  
    const toggleTheme = () => {

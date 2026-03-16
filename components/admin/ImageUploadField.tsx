@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { getAdminAuthHeaders } from '@/lib/admin-auth';
 
 interface ImageUploadFieldProps {
   label: string;
@@ -47,6 +48,9 @@ export function ImageUploadField({
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/admin/upload/image`, {
           method: 'POST',
+          headers: {
+            ...getAdminAuthHeaders(),
+          },
           body: formData,
         });
 
@@ -82,7 +86,10 @@ export function ImageUploadField({
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/admin/upload/image-url`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAdminAuthHeaders(),
+          },
           body: JSON.stringify({ url, folder: 'settings' }),
         });
 

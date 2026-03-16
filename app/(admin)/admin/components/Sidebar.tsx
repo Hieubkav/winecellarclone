@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import { fetchSettings } from '@/lib/api/settings';
- import { logout } from '@/lib/admin-auth';
+ import { getAdminProfile, logout } from '@/lib/admin-auth';
  import { useRouter } from 'next/navigation';
  
  interface SidebarItemProps {
@@ -121,11 +121,13 @@ import {
    const [isCollapsed, setIsCollapsed] = useState(false);
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
    const [siteName, setSiteName] = useState<string>('Thương Hiệu');
+   const [adminName, setAdminName] = useState<string>('Admin');
+   const [adminEmail, setAdminEmail] = useState<string>('');
    const pathname = usePathname();
    const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.replace('/admin/login');
   };
  
@@ -137,6 +139,17 @@ import {
         if (settings.site_name) {
           setSiteName(settings.site_name);
         }
+      })
+      .catch(() => {});
+
+    getAdminProfile()
+      .then((profile) => {
+        if (!profile) {
+          return;
+        }
+
+        setAdminName(profile.name || 'Admin');
+        setAdminEmail(profile.email || '');
       })
       .catch(() => {});
   }, []);
@@ -277,15 +290,15 @@ import {
            <div className={cn("flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer", isCollapsed ? "justify-center" : "")}>
              <div className="relative">
                <div className="w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 font-medium">
-                 A
+                 {adminName.charAt(0).toUpperCase()}
                </div>
                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
              </div>
              
              {!isCollapsed && (
                <div className="flex-1 overflow-hidden">
-                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">Admin</div>
-                 <div className="text-xs text-slate-500 dark:text-slate-400 truncate">admin@winecellar.com</div>
+                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{adminName}</div>
+                 <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{adminEmail || 'admin@winecellar.local'}</div>
                </div>
              )}
              {!isCollapsed && (
