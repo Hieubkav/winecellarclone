@@ -152,8 +152,41 @@ export const useSettingsForm = () => {
     setMetaKeywords(metaKeywords.filter((item) => item !== keyword));
   };
 
+  const isValidEmail = (value: string) => {
+    if (!value.trim()) return true;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  };
+
+  const validateActiveTab = () => {
+    if (activeTab === "info") {
+      if (!isValidEmail(email)) {
+        toast.error("Email không hợp lệ");
+        return false;
+      }
+    }
+
+    if (activeTab === "watermark") {
+      if (watermarkType === "image" && watermarkPosition !== "none" && !watermarkImageId) {
+        toast.error("Vui lòng chọn ảnh watermark");
+        return false;
+      }
+
+      if (watermarkType === "text" && !watermarkText.trim()) {
+        toast.error("Vui lòng nhập nội dung watermark chữ");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!validateActiveTab()) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     const successMessages: Record<TabValue, string> = {
