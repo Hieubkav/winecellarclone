@@ -8,6 +8,7 @@ import { SortableHeader, SelectCheckbox, BulkActionBar, ColumnToggle } from '../
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getImageUrl } from '@/lib/utils/image';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { ImageEditModal } from './components/ImageEditModal';
 
@@ -252,7 +253,7 @@ export default function ImagesListPage() {
                     {visibleColumns.includes('preview') && (
                       <TableCell>
                         <ImageWithFallback
-                          src={img.url}
+                          src={img.url ? getImageUrl(img.url) : null}
                           alt={img.alt || ''}
                           width={60}
                           height={60}
@@ -332,7 +333,7 @@ export default function ImagesListPage() {
                         />
                       </div>
                       <ImageWithFallback
-                        src={img.url}
+                        src={img.url ? getImageUrl(img.url) : null}
                         alt={img.alt || img.file_path}
                         fill
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, (max-width: 1536px) 16vw, 12vw"

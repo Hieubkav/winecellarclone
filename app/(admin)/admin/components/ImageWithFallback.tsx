@@ -1,5 +1,7 @@
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { Package, FileImage, Image as ImageIcon } from 'lucide-react';
+import { getImageUrl } from '@/lib/utils/image';
 
 interface ImageWithFallbackProps {
   src: string | null | undefined;
@@ -38,17 +40,24 @@ export function ImageWithFallback({
   onError,
 }: ImageWithFallbackProps) {
   const Icon = FallbackIcons[fallbackType];
+  const [hasError, setHasError] = useState(false);
+  const resolvedSrc = src ? getImageUrl(src) : null;
+  const iconSize = Math.min(width ?? 40, height ?? 40) * 0.5;
+
+  useEffect(() => {
+    setHasError(false);
+  }, [resolvedSrc]);
 
   // Nếu không có src, hiển thị fallback ngay
-  if (!src) {
+  if (!resolvedSrc || hasError) {
     return (
       <div 
-        className={`bg-slate-100 dark:bg-slate-800 flex items-center justify-center ${className}`}
+        className={`bg-slate-100 dark:bg-slate-800 flex items-center justify-center ${className} ${fill ? 'absolute inset-0' : ''}`}
         style={fill ? undefined : { width, height }}
       >
         <Icon 
           className="text-slate-400 dark:text-slate-500" 
-          size={Math.min(width || 40, height || 40) * 0.5}
+          size={iconSize}
         />
       </div>
     );
@@ -57,7 +66,7 @@ export function ImageWithFallback({
   // Có src, render Image với error handling
   return (
     <Image
-      src={src}
+      src={resolvedSrc}
       alt={alt}
       width={width}
       height={height}
@@ -66,25 +75,7 @@ export function ImageWithFallback({
       fill={fill}
       priority={priority}
       onError={(e) => {
-        // Thay thế bằng fallback khi lỗi
-        const target = e.currentTarget as HTMLImageElement;
-        target.style.display = 'none';
-        
-        // Tạo fallback element
-        const fallback = document.createElement('div');
-        fallback.className = `bg-slate-100 dark:bg-slate-800 flex items-center justify-center ${className}`;
-        if (!fill) {
-          fallback.style.width = `${width}px`;
-          fallback.style.height = `${height}px`;
-        }
-        
-        // Thêm icon
-        const icon = document.createElement('div');
-        icon.innerHTML = `<svg width="${Math.min(width || 40, height || 40) * 0.5}" height="${Math.min(width || 40, height || 40) * 0.5}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-slate-400"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
-        fallback.appendChild(icon);
-        
-        target.parentNode?.insertBefore(fallback, target);
-        
+        setHasError(true);
         if (onError) onError();
       }}
     />
