@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Search, X } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -10,6 +11,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const validTabs = ['info', 'map', 'watermark', 'seo'] as const;
+  type TabValue = (typeof validTabs)[number];
+  const getValidTab = (value: string | null): TabValue =>
+    validTabs.includes(value as TabValue) ? (value as TabValue) : 'info';
+
+  const [activeTab, setActiveTab] = useState<TabValue>(() =>
+    getValidTab(searchParams?.get('tab'))
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -101,6 +112,24 @@ export default function SettingsPage() {
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  useEffect(() => {
+    const nextTab = getValidTab(searchParams?.get('tab'));
+    if (nextTab !== activeTab) {
+      setActiveTab(nextTab);
+    }
+  }, [activeTab, searchParams]);
+
+  const handleTabChange = (value: string) => {
+    const nextTab = getValidTab(value);
+    setActiveTab(nextTab);
+    const params = new URLSearchParams(searchParams?.toString());
+    params.set('tab', nextTab);
+    const currentTab = getValidTab(searchParams?.get('tab'));
+    if (currentTab !== nextTab || searchParams?.toString() !== params.toString()) {
+      router.replace(`/admin/settings?${params.toString()}`, { scroll: false });
+    }
+  };
 
   const handleKeywordAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -194,7 +223,7 @@ export default function SettingsPage() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Tabs defaultValue="info" className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="info" className="flex items-center gap-2">
               <Globe size={16} />
