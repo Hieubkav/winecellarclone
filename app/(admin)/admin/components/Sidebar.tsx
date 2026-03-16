@@ -16,7 +16,6 @@ import {
   ChevronsRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchSettings } from '@/lib/api/settings';
 import { getAdminProfile, logout } from '@/lib/admin-auth';
 import { useRouter } from 'next/navigation';
 import { ADMIN_NAV_GROUPS, type AdminNavIcon } from '@/lib/admin/registry/modules';
@@ -129,7 +128,7 @@ import { useAdminSession } from '../AdminSessionContext';
  export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen }) => {
    const [isCollapsed, setIsCollapsed] = useState(false);
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
-   const [siteName, setSiteName] = useState<string>('Thương Hiệu');
+   const [siteName] = useState<string>('Thiên Kim Wine');
    const pathname = usePathname();
    const router = useRouter();
    const { adminProfile, setAdminProfile } = useAdminSession();
@@ -141,16 +140,6 @@ import { useAdminSession } from '../AdminSessionContext';
  
   const isActive = useCallback((route: string) => pathname.startsWith(route), [pathname]);
  
-  useEffect(() => {
-    fetchSettings()
-      .then((settings) => {
-        if (settings.site_name) {
-          setSiteName(settings.site_name);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   useEffect(() => {
     if (adminProfile) {
       return;
