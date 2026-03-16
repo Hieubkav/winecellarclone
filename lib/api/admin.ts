@@ -95,64 +95,8 @@
 // Admin Products
 export * from "@/features/admin/products/api/products.api";
  
- // Admin Articles
- export interface AdminArticle {
-   id: number;
-   title: string;
-   slug: string;
-   excerpt: string | null;
-   active: boolean;
-   cover_image_url: string | null;
-   published_at: string | null;
-   created_at: string;
-   images?: Array<{
-     url: string;
-     path: string;
-     image_url?: string;
-     image_path?: string;
-   }>;
- }
- 
- export interface AdminArticlesResponse {
-   data: AdminArticle[];
-   meta: {
-     current_page: number;
-     last_page: number;
-     per_page: number;
-     total: number;
-   };
- }
- 
- export async function fetchAdminArticles(params?: Record<string, string | number>): Promise<AdminArticlesResponse> {
-   const query = params ? '?' + new URLSearchParams(
-     Object.entries(params).map(([k, v]) => [k, String(v)])
-   ).toString() : '';
-   return apiFetch<AdminArticlesResponse>(`v1/admin/articles${query}`);
- }
- 
- export async function fetchAdminArticle(id: number): Promise<{ data: AdminArticle & { content: string } }> {
-   return apiFetch(`v1/admin/articles/${id}`);
- }
- 
- export async function createArticle(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
-   return apiFetch("v1/admin/articles", {
-     method: "POST",
-     body: JSON.stringify(data),
-   });
- }
- 
- export async function updateArticle(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
-   return apiFetch(`v1/admin/articles/${id}`, {
-     method: "PUT",
-     body: JSON.stringify(data),
-   });
- }
- 
- export async function deleteArticle(id: number): Promise<{ success: boolean; message: string }> {
-   return apiFetch(`v1/admin/articles/${id}`, {
-     method: "DELETE",
-   });
- }
+// Admin Articles
+export * from "@/features/admin/articles/api/articles.api";
 
 // Admin Product Types
 export interface AdminProductType {
@@ -357,12 +301,6 @@ export async function reorderCatalogTerms(items: Array<{ id: number; position: n
   });
 }
  
- export async function bulkDeleteArticles(ids: number[]): Promise<{ success: boolean; message: string; count: number }> {
-   return apiFetch("v1/admin/articles/bulk-delete", {
-     method: "POST",
-     body: JSON.stringify({ ids }),
-   });
- }
 
 // Admin Categories
 export interface AdminCategory {
