@@ -10,11 +10,12 @@ export { cn };
    size?: 'default' | 'sm' | 'lg' | 'icon';
  }
  
- export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-   ({ className, variant = 'default', size = 'default', ...props }, ref) => {
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = 'default', size = 'default', type = 'button', ...props }, ref) => {
      return (
        <button
          ref={ref}
+        type={type}
          className={cn(
            "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
            {
