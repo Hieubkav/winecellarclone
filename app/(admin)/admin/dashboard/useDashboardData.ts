@@ -12,5 +12,6 @@ const STALE_TIME = 5 * 60 * 1000;
      queryFn: () => fetchDashboardBootstrap(days, limit),
      staleTime: STALE_TIME,
      placeholderData: keepPreviousData,
+     retry: false,
    });
  }

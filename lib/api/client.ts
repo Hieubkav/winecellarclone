@@ -1,4 +1,16 @@
 const ADMIN_TOKEN_KEY = 'admin_access_token';
+const ADMIN_PROFILE_CACHE_KEY = 'admin_profile_cache';
+const ADMIN_SESSION_EXPIRES_AT_KEY = 'admin_session_expires_at';
+
+const clearAdminSessionCache = (): void => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+  window.sessionStorage.removeItem(ADMIN_PROFILE_CACHE_KEY);
+  window.sessionStorage.removeItem(ADMIN_SESSION_EXPIRES_AT_KEY);
+};
 
 const getAdminToken = (): string | null => {
   if (typeof window === 'undefined') {
@@ -106,13 +118,22 @@ export async function apiFetch<TResponse>(
       : await response.text();
 
   if (!response.ok) {
-    console.error("[API Error]", {
-      url,
-      status: response.status,
-      statusText: response.statusText,
-      payload,
-      responseHeaders: Object.fromEntries(response.headers.entries()),
-    });
+    if (isAdminRequest && response.status === 401) {
+      clearAdminSessionCache();
+
+      if (typeof window !== 'undefined' && window.location.pathname !== '/admin/login') {
+        window.location.replace('/admin/login');
+      }
+    } else {
+      console.error("[API Error]", {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        payload,
+        responseHeaders: Object.fromEntries(response.headers.entries()),
+      });
+    }
+
     throw new ApiError(
       `API request failed with status ${response.status}`,
       response.status,
