@@ -56,6 +56,37 @@ function getCachedAdminProfile(): AdminProfile | null {
   }
 }
 
+export function getCachedSessionExpiresAt(): Date | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const raw = window.sessionStorage.getItem(ADMIN_SESSION_EXPIRES_AT_KEY);
+
+  if (!raw) {
+    return null;
+  }
+
+  const parsed = new Date(raw);
+
+  if (Number.isNaN(parsed.getTime())) {
+    window.sessionStorage.removeItem(ADMIN_SESSION_EXPIRES_AT_KEY);
+    return null;
+  }
+
+  return parsed;
+}
+
+export function isSessionFresh(bufferMs: number = 60 * 1000): boolean {
+  const expiresAt = getCachedSessionExpiresAt();
+
+  if (!expiresAt) {
+    return false;
+  }
+
+  return expiresAt.getTime() - Date.now() > bufferMs;
+}
+
 async function fetchAdminSession(): Promise<AdminSessionResponse | null> {
   const token = getAdminToken();
 

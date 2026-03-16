@@ -2,10 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getAdminToken, type AdminProfile, verifySession } from '@/lib/admin-auth';
+import { getAdminToken, type AdminProfile, isSessionFresh, verifySession } from '@/lib/admin-auth';
 
 const AUTH_CACHE_KEY = 'admin_auth_verified_at';
 const AUTH_CACHE_TTL_MS = 2 * 60 * 1000;
+const SESSION_REFRESH_BUFFER_MS = 60 * 1000;
 
 type AdminSessionStatus = 'checking' | 'authenticated';
 
@@ -51,8 +52,16 @@ export function AdminSessionProvider({ children }: { children: React.ReactNode }
 
       const cachedAt = window.sessionStorage.getItem(AUTH_CACHE_KEY);
       const cachedTime = cachedAt ? Number(cachedAt) : 0;
+      const hasFreshSession = isSessionFresh(SESSION_REFRESH_BUFFER_MS);
 
-      if (cachedTime && Date.now() - cachedTime < AUTH_CACHE_TTL_MS) {
+      if (hasFreshSession) {
+        if (!cancelled) {
+          setAuthChecked(true);
+        }
+        return;
+      }
+
+      if (!hasFreshSession && cachedTime && Date.now() - cachedTime < AUTH_CACHE_TTL_MS) {
         if (!cancelled) {
           setAuthChecked(true);
         }

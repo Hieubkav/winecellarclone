@@ -83,7 +83,8 @@ export async function apiFetch<TResponse>(
 ): Promise<TResponse> {
   const url = normalizeUrl(API_BASE_URL, path);
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  const adminToken = normalizedPath.startsWith('/v1/admin/') ? getAdminToken() : null;
+  const isAdminRequest = normalizedPath.startsWith('/v1/admin/');
+  const adminToken = isAdminRequest ? getAdminToken() : null;
 
   const response = await fetch(url, {
     ...init,
@@ -93,8 +94,9 @@ export async function apiFetch<TResponse>(
       ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
       ...(init?.headers ?? {}),
     },
-    // Cho phép Next.js ISR với revalidate mặc định 5 phút
-    next: { revalidate: 300, ...(init?.next ?? {}) },
+    ...(isAdminRequest
+      ? { cache: init?.cache ?? 'no-store' }
+      : { next: { revalidate: 300, ...(init?.next ?? {}) } }),
   });
 
   const contentType = response.headers.get("content-type");
