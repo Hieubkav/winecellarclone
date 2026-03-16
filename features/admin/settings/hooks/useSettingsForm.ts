@@ -232,11 +232,9 @@ export const useSettingsForm = () => {
       };
 
       const result = await updateSettings(data);
-      if (result.success) {
-        const successMessage = resolveMessage(result.message, successMessages[activeTab]);
-        toast.success(successMessage);
-        await loadSettings();
-      }
+      const successMessage = resolveMessage(result.message, successMessages[activeTab]);
+      toast.success(successMessage);
+      await loadSettings();
     } catch (error) {
       console.error("Failed to update settings:", error);
       toast.error(errorMessages[activeTab]);

@@ -38,7 +38,7 @@ export async function fetchAdminSettings(): Promise<{ data: AdminSetting }> {
 
 export async function updateSettings(
   data: Record<string, unknown>
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ message?: string; data?: { updated_at?: string; watermark_changed?: boolean } }> {
   return apiFetch("v1/admin/settings", {
     method: "PUT",
     body: JSON.stringify(data),
