@@ -16,12 +16,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import {
-  useDashboardStats,
-  useTrafficChart,
-  useTopProducts,
-  useTopArticles,
-} from './useDashboardData';
+import { useDashboardBootstrap } from './useDashboardData';
 import Link from 'next/link';
 
 // Custom Tooltip cho Recharts
@@ -112,10 +107,11 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend, co
 export default function DashboardPage() {
   const [chartDays, setChartDays] = useState(7);
 
-  const { data: stats, isLoading: statsLoading, isPlaceholderData: statsPlaceholder } = useDashboardStats();
-  const { data: trafficChart = [], isLoading: chartLoading, isPlaceholderData: chartPlaceholder } = useTrafficChart(chartDays);
-  const { data: topProducts = [], isLoading: productsLoading, isPlaceholderData: productsPlaceholder } = useTopProducts(7, 5);
-  const { data: topArticles = [], isLoading: articlesLoading, isPlaceholderData: articlesPlaceholder } = useTopArticles(7, 5);
+  const { data: dashboardData, isLoading, isPlaceholderData } = useDashboardBootstrap(chartDays, 5);
+  const stats = dashboardData?.stats;
+  const trafficChart = dashboardData?.traffic_chart ?? [];
+  const topProducts = dashboardData?.top_products ?? [];
+  const topArticles = dashboardData?.top_articles ?? [];
   
   // Format số hiển thị
   const formatNumber = (num: number | string) => {
@@ -126,10 +122,10 @@ export default function DashboardPage() {
   };
 
   // Only show skeleton on initial load (no placeholder data available)
-  const statsInitialLoading = statsLoading && !statsPlaceholder;
-  const chartInitialLoading = chartLoading && !chartPlaceholder;
-  const productsInitialLoading = productsLoading && !productsPlaceholder;
-  const articlesInitialLoading = articlesLoading && !articlesPlaceholder;
+  const statsInitialLoading = isLoading && !isPlaceholderData;
+  const chartInitialLoading = isLoading && !isPlaceholderData;
+  const productsInitialLoading = isLoading && !isPlaceholderData;
+  const articlesInitialLoading = isLoading && !isPlaceholderData;
 
   const statCards = [
     {

@@ -3,11 +3,86 @@
 import { API_BASE_URL } from '@/lib/api/client';
 
 const ADMIN_TOKEN_KEY = 'admin_access_token';
+const ADMIN_PROFILE_CACHE_KEY = 'admin_profile_cache';
+const ADMIN_SESSION_EXPIRES_AT_KEY = 'admin_session_expires_at';
 
 export interface AdminProfile {
   id: number;
   name: string;
   email: string;
+}
+
+interface AdminSessionResponse {
+  data?: {
+    user?: AdminProfile;
+    expires_at?: string | null;
+  };
+}
+
+function setCachedAdminSession(user: AdminProfile | null, expiresAt?: string | null): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (user) {
+    window.sessionStorage.setItem(ADMIN_PROFILE_CACHE_KEY, JSON.stringify(user));
+  } else {
+    window.sessionStorage.removeItem(ADMIN_PROFILE_CACHE_KEY);
+  }
+
+  if (expiresAt) {
+    window.sessionStorage.setItem(ADMIN_SESSION_EXPIRES_AT_KEY, expiresAt);
+  } else {
+    window.sessionStorage.removeItem(ADMIN_SESSION_EXPIRES_AT_KEY);
+  }
+}
+
+function getCachedAdminProfile(): AdminProfile | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const raw = window.sessionStorage.getItem(ADMIN_PROFILE_CACHE_KEY);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw) as AdminProfile;
+  } catch {
+    window.sessionStorage.removeItem(ADMIN_PROFILE_CACHE_KEY);
+    return null;
+  }
+}
+
+async function fetchAdminSession(): Promise<AdminSessionResponse | null> {
+  const token = getAdminToken();
+
+  if (!token) {
+    return null;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/v1/admin/auth/me`, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    clearAdminToken();
+    return null;
+  }
+
+  const payload = await response.json().catch(() => null);
+  const user = payload?.data?.user ?? null;
+  const expiresAt = payload?.data?.expires_at ?? null;
+
+  setCachedAdminSession(user, expiresAt);
+
+  return payload;
 }
 
 export function getAdminToken(): string | null {
@@ -24,6 +99,7 @@ export function setAdminToken(token: string): void {
 
 export function clearAdminToken(): void {
   localStorage.removeItem(ADMIN_TOKEN_KEY);
+  setCachedAdminSession(null);
 }
 
 export function isAuthenticated(): boolean {
@@ -65,6 +141,7 @@ export async function login(loginValue: string, password: string): Promise<{ suc
   }
 
   setAdminToken(payload.data.token);
+  setCachedAdminSession(payload?.data?.user ?? null, payload?.data?.expires_at ?? null);
 
   return {
     success: true,
@@ -73,26 +150,8 @@ export async function login(loginValue: string, password: string): Promise<{ suc
 }
 
 export async function verifySession(): Promise<boolean> {
-  const token = getAdminToken();
-
-  if (!token) {
-    return false;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/v1/admin/auth/me`, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    clearAdminToken();
-    return false;
-  }
-
-  return true;
+  const payload = await fetchAdminSession();
+  return Boolean(payload?.data?.user);
 }
 
 export async function getAdminProfile(): Promise<AdminProfile | null> {
@@ -102,20 +161,12 @@ export async function getAdminProfile(): Promise<AdminProfile | null> {
     return null;
   }
 
-  const response = await fetch(`${API_BASE_URL}/v1/admin/auth/me`, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    clearAdminToken();
-    return null;
+  const cachedProfile = getCachedAdminProfile();
+  if (cachedProfile) {
+    return cachedProfile;
   }
 
-  const payload = await response.json().catch(() => null);
+  const payload = await fetchAdminSession();
   return payload?.data?.user ?? null;
 }
 

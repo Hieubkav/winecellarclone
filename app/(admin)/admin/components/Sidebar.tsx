@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
- import Link from 'next/link';
- import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Package,
@@ -15,11 +15,12 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
- import { cn } from '@/lib/utils';
- import { fetchSettings } from '@/lib/api/settings';
- import { getAdminProfile, logout } from '@/lib/admin-auth';
- import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { fetchSettings } from '@/lib/api/settings';
+import { getAdminProfile, logout } from '@/lib/admin-auth';
+import { useRouter } from 'next/navigation';
 import { ADMIN_NAV_GROUPS, type AdminNavIcon } from '@/lib/admin/registry/modules';
+import { useAdminSession } from '../AdminSessionContext';
  
  interface SidebarItemProps {
    icon: React.ElementType;
@@ -129,10 +130,9 @@ import { ADMIN_NAV_GROUPS, type AdminNavIcon } from '@/lib/admin/registry/module
    const [isCollapsed, setIsCollapsed] = useState(false);
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
    const [siteName, setSiteName] = useState<string>('Thương Hiệu');
-   const [adminName, setAdminName] = useState<string>('Admin');
-   const [adminEmail, setAdminEmail] = useState<string>('');
    const pathname = usePathname();
    const router = useRouter();
+   const { adminProfile, setAdminProfile } = useAdminSession();
 
   const handleLogout = async () => {
     await logout();
@@ -149,6 +149,12 @@ import { ADMIN_NAV_GROUPS, type AdminNavIcon } from '@/lib/admin/registry/module
         }
       })
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (adminProfile) {
+      return;
+    }
 
     getAdminProfile()
       .then((profile) => {
@@ -156,11 +162,10 @@ import { ADMIN_NAV_GROUPS, type AdminNavIcon } from '@/lib/admin/registry/module
           return;
         }
 
-        setAdminName(profile.name || 'Admin');
-        setAdminEmail(profile.email || '');
+        setAdminProfile(profile);
       })
       .catch(() => {});
-  }, []);
+  }, [adminProfile, setAdminProfile]);
 
   const navGroups = useMemo(() => {
     const iconMap: Record<AdminNavIcon, React.ElementType> = {
@@ -275,15 +280,15 @@ import { ADMIN_NAV_GROUPS, type AdminNavIcon } from '@/lib/admin/registry/module
            <div className={cn("flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer", isCollapsed ? "justify-center" : "")}>
              <div className="relative">
                <div className="w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 font-medium">
-                 {adminName.charAt(0).toUpperCase()}
+                 {(adminProfile?.name?.charAt(0) || 'A').toUpperCase()}
                </div>
                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
              </div>
              
              {!isCollapsed && (
                <div className="flex-1 overflow-hidden">
-                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{adminName}</div>
-                 <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{adminEmail || 'admin@winecellar.local'}</div>
+                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{adminProfile?.name || 'Admin'}</div>
+                 <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{adminProfile?.email || 'admin@winecellar.local'}</div>
                </div>
              )}
              {!isCollapsed && (

@@ -66,6 +66,18 @@
    occurred_at: string;
    time_ago: string;
  }
+
+ export interface DashboardBootstrap {
+   stats: DashboardStats;
+   traffic_chart: TrafficChartData[];
+   top_products: TopProduct[];
+   top_articles: TopArticle[];
+ }
+
+ export async function fetchDashboardBootstrap(days: number = 7, limit: number = 5): Promise<DashboardBootstrap> {
+   const res = await apiFetch<{ data: DashboardBootstrap }>(`v1/admin/dashboard/bootstrap?days=${days}&limit=${limit}`);
+   return res.data;
+ }
  
  export async function fetchDashboardStats(): Promise<DashboardStats> {
    const res = await apiFetch<{ data: DashboardStats }>("v1/admin/dashboard/stats");
