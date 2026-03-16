@@ -93,16 +93,11 @@ export const useProductsList = () => {
           params.sort_dir = sortConfig.direction;
         }
 
-        const [productsRes, filtersRes] = await Promise.all([
-          fetchAdminProducts(params),
-          fetchProductFilters(filterType ? Number(filterType) : undefined),
-        ]);
+        const productsRes = await fetchAdminProducts(params);
 
         setProducts(productsRes.data);
         setTotalProducts(productsRes.meta.total);
         setTotalPages(productsRes.meta.last_page);
-        setCategories(filtersRes.categories);
-        setTypes(filtersRes.types);
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -113,9 +108,23 @@ export const useProductsList = () => {
     [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage, sortConfig]
   );
 
+  const loadFilters = useCallback(async () => {
+    try {
+      const filtersRes = await fetchProductFilters(filterType ? Number(filterType) : undefined);
+      setCategories(filtersRes.categories);
+      setTypes(filtersRes.types);
+    } catch (error) {
+      console.error("Failed to fetch product filters:", error);
+    }
+  }, [filterType]);
+
   useEffect(() => {
     loadProducts(true);
   }, []);
+
+  useEffect(() => {
+    loadFilters();
+  }, [loadFilters]);
 
   useEffect(() => {
     if (!isInitialLoading) {
