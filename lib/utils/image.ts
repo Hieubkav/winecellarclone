@@ -36,6 +36,19 @@ export function getImageUrl(url: string | null | undefined, fallback?: string): 
       return `${backendUrl}/${url}`;
     }
 
+    if (url.startsWith("/media/")) {
+      return url;
+    }
+
+    if (url.startsWith("media/")) {
+      return `/${url}`;
+    }
+
+    if (!url.startsWith("/")) {
+      const cleanedPath = url.replace(/^\/+/, "");
+      return `${backendUrl}/storage/${cleanedPath}`;
+    }
+
     return url;
   }
 
