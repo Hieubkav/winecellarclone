@@ -6,8 +6,8 @@ import Link from 'next/link';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
-import { createProduct } from '@/lib/api/admin';
-import { API_BASE_URL } from '@/lib/api/client';
+import { createProduct } from '@/features/admin/products/api/products.api';
+import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
 import { getImageUrl } from '@/lib/utils/image';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../components/LexicalEditor';
@@ -85,23 +85,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
       return null;
     }
 
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('folder', 'products');
-
-    const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error('Upload failed');
-
-    const result = await response.json();
-    if (result.success && result.data) {
-      return { url: result.data.url as string, path: result.data.path as string };
-    }
-
-    return null;
+    return uploadProductImage(file);
   }, []);
 
   const handleGalleryUpload = useCallback(async (files: FileList | null) => {
@@ -130,17 +114,9 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
 
     setIsUploadingImage(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image-url`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, folder: 'products' }),
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        setGalleryImages(prev => [...prev, { url: result.data.url, path: result.data.path }]);
+      const uploaded = await uploadProductImageUrl(url);
+      if (uploaded) {
+        setGalleryImages(prev => [...prev, uploaded]);
         setImageUrlInput('');
         toast.success('Đã tải ảnh từ URL');
       }
@@ -157,17 +133,9 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
 
     setIsUploadingImage(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image-url`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, folder: 'products' }),
-      });
-
-      if (!response.ok) throw new Error('Upload failed');
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        setGalleryImages(prev => prev.map((img, i) => (i === index ? result.data : img)));
+      const uploaded = await uploadProductImageUrl(url);
+      if (uploaded) {
+        setGalleryImages(prev => prev.map((img, i) => (i === index ? uploaded : img)));
         toast.success('Đã thay thế ảnh');
       }
     } catch (error) {
