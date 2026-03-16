@@ -156,6 +156,28 @@ export const useSettingsForm = () => {
     event.preventDefault();
     setIsSubmitting(true);
 
+    const successMessages: Record<TabValue, string> = {
+      info: "Cập nhật thông tin website thành công",
+      map: "Cập nhật Google Maps thành công",
+      watermark: "Cập nhật watermark sản phẩm thành công",
+      seo: "Cập nhật SEO thành công",
+    };
+
+    const errorMessages: Record<TabValue, string> = {
+      info: "Không thể cập nhật thông tin website",
+      map: "Không thể cập nhật Google Maps",
+      watermark: "Không thể cập nhật watermark sản phẩm",
+      seo: "Không thể cập nhật SEO",
+    };
+
+    const resolveMessage = (message: string | undefined, fallback: string) => {
+      if (!message) return fallback;
+      const normalized = message.trim();
+      if (!normalized) return fallback;
+      const genericMessages = new Set(["Cập nhật thành công", "Thành công", "Cập nhật cấu hình thành công"]);
+      return genericMessages.has(normalized) ? fallback : normalized;
+    };
+
     try {
       const data: Record<string, unknown> = {
         site_name: siteName || null,
@@ -183,12 +205,13 @@ export const useSettingsForm = () => {
 
       const result = await updateSettings(data);
       if (result.success) {
-        toast.success(result.message || "Cập nhật thành công");
+        const successMessage = resolveMessage(result.message, successMessages[activeTab]);
+        toast.success(successMessage);
         await loadSettings();
       }
     } catch (error) {
       console.error("Failed to update settings:", error);
-      toast.error("Không thể cập nhật cấu hình");
+      toast.error(errorMessages[activeTab]);
     } finally {
       setIsSubmitting(false);
     }

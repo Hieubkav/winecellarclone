@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { Button, Card, Input, Label } from '../components/ui';
 import { createCategory, updateCategory, type AdminCategory } from '@/lib/api/admin';
 import type { ProductFilterOption } from '@/lib/api/products';
+import { toast } from 'sonner';
 
 interface CategoryFormModalProps {
   category: AdminCategory | null;
@@ -20,7 +21,6 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
     active: true,
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     if (category) {
@@ -34,7 +34,6 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsSaving(true);
 
     try {
@@ -46,13 +45,15 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
 
       if (category) {
         await updateCategory(category.id, payload);
+        toast.success('Cập nhật danh mục thành công');
       } else {
         await createCategory(payload);
+        toast.success('Tạo danh mục thành công');
       }
 
       onSuccess();
     } catch (err: any) {
-      setError(err?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.');
+      toast.error(err?.message || 'Không thể lưu danh mục. Vui lòng thử lại.');
     } finally {
       setIsSaving(false);
     }
@@ -71,12 +72,6 @@ export default function CategoryFormModal({ category, types, onClose, onSuccess 
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded text-sm text-red-600 dark:text-red-400">
-              {error}
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="name">Tên danh mục <span className="text-red-500">*</span></Label>
             <Input

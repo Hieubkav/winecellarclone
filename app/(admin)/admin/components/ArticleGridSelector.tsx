@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, X, Loader2, FileText } from 'lucide-react';
 import { Label, Input, Button } from './ui';
 import { getImageUrl } from '@/lib/utils/article-content';
+import { toast } from 'sonner';
 
 interface Article {
   value: number;
@@ -85,7 +86,7 @@ export function ArticleGridSelector({
 
   const handleAdd = (article: Article) => {
     if (maxSelection && value.length >= maxSelection) {
-      alert(`Chỉ được chọn tối đa ${maxSelection} bài viết`);
+      toast.error(`Chỉ được chọn tối đa ${maxSelection} bài viết`);
       return;
     }
     

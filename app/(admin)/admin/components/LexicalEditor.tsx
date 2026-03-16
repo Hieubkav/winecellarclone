@@ -43,6 +43,7 @@ import { $patchStyleText } from '@lexical/selection';
  } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
+import { toast } from 'sonner';
  
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
 const API_ORIGIN = (() => {
@@ -309,7 +310,7 @@ const FONT_SIZE_OPTIONS = [
            }
          } catch (error) {
            console.error('Image upload error:', error);
-           alert('Không thể tải ảnh lên');
+           toast.error('Không thể tải ảnh lên');
          } finally {
            setIsUploading(false);
          }
@@ -572,12 +573,12 @@ const FONT_SIZE_OPTIONS = [
  
    const handleImageUpload = useCallback(async (file: File): Promise<string | null> => {
      if (!file.type.startsWith('image/')) {
-       alert('Vui lòng chọn file hình ảnh');
+       toast.error('Vui lòng chọn file hình ảnh');
        return null;
      }
      
      if (file.size > 5 * 1024 * 1024) {
-       alert('Kích thước file không được vượt quá 5MB');
+       toast.error('Kích thước file không được vượt quá 5MB');
        return null;
      }
      

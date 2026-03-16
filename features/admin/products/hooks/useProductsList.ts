@@ -176,15 +176,17 @@ export const useProductsList = () => {
     try {
       if (deleteConfirm.type === "single" && deleteConfirm.id) {
         await deleteProduct(deleteConfirm.id);
+        toast.success("Xóa sản phẩm thành công");
       } else if (deleteConfirm.type === "bulk") {
         await bulkDeleteProducts(selectedIds);
+        toast.success(`Đã xóa ${selectedIds.length} sản phẩm`);
         setSelectedIds([]);
       }
       setDeleteConfirm(null);
       loadProducts();
     } catch (error) {
       console.error("Failed to delete:", error);
-      alert("Xóa thất bại. Vui lòng thử lại.");
+      toast.error("Xóa sản phẩm thất bại. Vui lòng thử lại.");
     } finally {
       setIsDeleting(false);
     }

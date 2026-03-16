@@ -149,15 +149,17 @@ export default function CategoriesListPage() {
     try {
       if (deleteConfirm.type === 'single' && deleteConfirm.id) {
         await deleteCategory(deleteConfirm.id);
+        toast.success('Xóa danh mục thành công');
       } else if (deleteConfirm.type === 'bulk') {
         await bulkDeleteCategories(selectedIds);
+        toast.success(`Đã xóa ${selectedIds.length} danh mục`);
         setSelectedIds([]);
       }
       setDeleteConfirm(null);
       loadData();
     } catch (error: any) {
       console.error('Failed to delete:', error);
-      alert(error?.message || 'Xóa thất bại. Vui lòng thử lại.');
+      toast.error(error?.message || 'Xóa danh mục thất bại. Vui lòng thử lại.');
     } finally {
       setIsDeleting(false);
     }

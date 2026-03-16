@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, X, Loader2, Package } from 'lucide-react';
 import { Label, Input, Button } from './ui';
 import { getImageUrl } from '@/lib/utils/article-content';
+import { toast } from 'sonner';
 
 interface Product {
   value: number;
@@ -85,7 +86,7 @@ export function ProductGridSelector({
 
   const handleAdd = (product: Product) => {
     if (maxSelection && value.length >= maxSelection) {
-      alert(`Chỉ được chọn tối đa ${maxSelection} sản phẩm`);
+      toast.error(`Chỉ được chọn tối đa ${maxSelection} sản phẩm`);
       return;
     }
     

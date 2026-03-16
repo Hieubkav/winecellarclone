@@ -142,15 +142,17 @@ export const useArticlesList = () => {
     try {
       if (deleteConfirm.type === "single" && deleteConfirm.id) {
         await deleteArticle(deleteConfirm.id);
+        toast.success("Xóa bài viết thành công");
       } else if (deleteConfirm.type === "bulk") {
         await bulkDeleteArticles(selectedIds);
+        toast.success(`Đã xóa ${selectedIds.length} bài viết`);
         setSelectedIds([]);
       }
       setDeleteConfirm(null);
       loadArticles(false);
     } catch (error) {
       console.error("Failed to delete:", error);
-      alert("Xóa thất bại. Vui lòng thử lại.");
+      toast.error("Xóa bài viết thất bại. Vui lòng thử lại.");
     } finally {
       setIsDeleting(false);
     }

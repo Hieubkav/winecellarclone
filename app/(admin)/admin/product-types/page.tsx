@@ -156,13 +156,14 @@ export default function ProductTypesPage() {
     try {
       await deleteProductType(deleteConfirm);
       setDeleteConfirm(null);
+      toast.success("Xóa nhóm sản phẩm thành công");
       loadData();
     } catch (error) {
       console.error('Failed to delete:', error);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        alert(String((error.payload as { message?: string }).message ?? 'Xóa thất bại.'));
+        toast.error(String((error.payload as { message?: string }).message ?? 'Xóa nhóm sản phẩm thất bại.'));
       } else {
-        alert('Xóa thất bại. Vui lòng thử lại.');
+        toast.error('Xóa nhóm sản phẩm thất bại. Vui lòng thử lại.');
       }
     } finally {
       setIsDeleting(false);
@@ -173,15 +174,15 @@ export default function ProductTypesPage() {
     setIsSeeding(true);
     try {
       const res = await seedCatalogBaseline();
-      alert(res.message);
+      toast.success(res.message || 'Khôi phục nhóm sản phẩm mặc định thành công');
       loadData();
       setSeedConfirm(false);
     } catch (error) {
       console.error('Failed to seed baseline:', error);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
-        alert(String((error.payload as { message?: string }).message ?? 'Khôi phục baseline thất bại.'));
+        toast.error(String((error.payload as { message?: string }).message ?? 'Khôi phục nhóm sản phẩm thất bại.'));
       } else {
-        alert('Khôi phục baseline thất bại. Vui lòng thử lại.');
+        toast.error('Khôi phục nhóm sản phẩm thất bại. Vui lòng thử lại.');
       }
     } finally {
       setIsSeeding(false);
