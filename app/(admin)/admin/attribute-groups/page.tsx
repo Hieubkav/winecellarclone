@@ -19,10 +19,9 @@ export default function AttributeGroupsPage() {
   const [totalAttributes, setTotalAttributes] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+  const [perPage, setPerPage] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('admin_attribute_groups_perPage');
-      if (saved === 'all') return 'all';
       if (saved) return Number(saved);
     }
     return 25;
@@ -88,7 +87,7 @@ export default function AttributeGroupsPage() {
     
     try {
       const params: Record<string, string | number> = {
-        per_page: perPage === 'all' ? 1000 : perPage,
+        per_page: perPage,
         page: currentPage,
       };
       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
@@ -113,13 +112,7 @@ export default function AttributeGroupsPage() {
     }));
   };
 
-  const filteredAttributes = React.useMemo(() => {
-    if (!searchTerm) return attributes;
-    const lower = searchTerm.toLowerCase();
-    return attributes.filter(a => a.name.toLowerCase().includes(lower) || a.code.toLowerCase().includes(lower));
-  }, [attributes, searchTerm]);
-
-  const sortedAttributes = useSortableData(filteredAttributes, sortConfig);
+  const sortedAttributes = useSortableData(attributes, sortConfig);
 
   const getFilterTypeBadge = (filterType: string) => {
     const badges: Record<string, { label: string; variant: 'default' | 'secondary' | 'info' | 'success' }> = {
@@ -353,19 +346,17 @@ export default function AttributeGroupsPage() {
                   className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
                   value={perPage}
                   onChange={(e) => {
-                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
-                    setPerPage(value);
+                    setPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
                 >
                   {perPageOptions.map(option => (
                     <option key={option} value={option}>{option} / trang</option>
                   ))}
-                  <option value="all">Tất cả</option>
                 </select>
               </div>
             </div>
-            {totalPages > 1 && perPage !== 'all' && (
+            {totalPages > 1 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"

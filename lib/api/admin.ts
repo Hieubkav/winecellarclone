@@ -106,7 +106,15 @@ export interface AdminProductType {
   order: number | null;
   active: boolean;
   products_count: number;
-  attribute_groups?: Array<{ id: number; position?: number }>;
+  attribute_groups_count?: number;
+  attribute_groups?: Array<{
+    id: number;
+    code?: string;
+    name?: string;
+    filter_type?: 'checkbox' | 'radio' | 'range' | 'color';
+    icon_path?: string | null;
+    position?: number;
+  }>;
   created_at?: string;
   updated_at?: string;
 }
@@ -476,6 +484,11 @@ export async function fetchAdminImages(params?: Record<string, string | number>)
   return apiFetch<AdminImagesResponse>(`v1/admin/images${query}`);
 }
 
+export async function fetchAdminImagesBatch(ids: number[]): Promise<{ data: AdminImage[] }> {
+  const query = ids.length > 0 ? `?ids=${ids.join(',')}` : '';
+  return apiFetch<{ data: AdminImage[] }>(`v1/admin/images/batch${query}`);
+}
+
 export async function fetchAdminImage(id: number): Promise<{ data: AdminImageDetail }> {
   return apiFetch(`v1/admin/images/${id}`);
 }
@@ -606,13 +619,14 @@ export interface AdminMenu {
   href: string | null;
   order: number;
   active: boolean;
-  blocks_count: number;
+  blocks_count?: number;
+  blocks?: AdminMenuBlock[];
   created_at?: string;
+  updated_at?: string;
 }
 
-export interface AdminMenuDetail extends Omit<AdminMenu, 'blocks_count'> {
+export interface AdminMenuDetail extends AdminMenu {
   blocks: AdminMenuBlock[];
-  updated_at?: string;
 }
 
 export interface AdminMenusResponse {

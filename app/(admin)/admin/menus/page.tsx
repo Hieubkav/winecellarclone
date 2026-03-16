@@ -5,7 +5,6 @@ import { RefreshCw, Menu as MenuIcon, Layers, Link as LinkIcon } from 'lucide-re
 import { Button, Card, Skeleton } from '../components/ui';
 import { 
   fetchAdminMenus, 
-  fetchAdminMenu,
   type AdminMenuDetail,
 } from '@/lib/api/admin';
 import { toast } from 'sonner';
@@ -19,15 +18,8 @@ export default function MenusPage() {
   const loadMenus = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch list first
-      const listRes = await fetchAdminMenus({ per_page: 100 });
-      
-      // Then fetch full details for each menu (with blocks & items)
-      const detailPromises = listRes.data.map(m => fetchAdminMenu(m.id));
-      const detailResults = await Promise.all(detailPromises);
-      
-      const fullMenus = detailResults.map(r => r.data);
-      setMenus(fullMenus);
+      const listRes = await fetchAdminMenus({ per_page: 100, with_items: 1 });
+      setMenus(listRes.data as AdminMenuDetail[]);
     } catch (error) {
       console.error('Failed to fetch menus:', error);
       toast.error('Không thể tải danh sách menu');

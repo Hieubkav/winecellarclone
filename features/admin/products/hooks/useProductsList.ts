@@ -23,6 +23,7 @@ const DEFAULT_COLUMNS = [
 ];
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
+const EXPORT_BATCH_SIZE = 100;
 
 export type ProductDeleteConfirm = { type: "single" | "bulk"; id?: number } | null;
 
@@ -47,10 +48,9 @@ export const useProductsList = () => {
   });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState<number | "all">(() => {
+  const [perPage, setPerPage] = useState<number>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("admin_products_perPage");
-      if (saved === "all") return "all";
       if (saved) return Number(saved);
     }
     return 25;
@@ -82,7 +82,7 @@ export const useProductsList = () => {
 
       try {
         const params: Record<string, string | number> = {
-          per_page: perPage === "all" ? 1000 : perPage,
+          per_page: perPage,
           page: currentPage,
         };
 
@@ -198,11 +198,24 @@ export const useProductsList = () => {
 
   const handleExportAll = async () => {
     try {
-      const allProductsRes = await fetchAdminProducts({
-        per_page: totalProducts > 0 ? totalProducts : 1000,
-        page: 1,
-      });
-      await exportProducts(allProductsRes.data, types, categories);
+      const total = totalProducts > 0 ? totalProducts : 0;
+      if (total === 0) {
+        await exportProducts([], types, categories);
+        return;
+      }
+
+      const pages = Math.ceil(total / EXPORT_BATCH_SIZE);
+      const allProducts: AdminProduct[] = [];
+
+      for (let page = 1; page <= pages; page += 1) {
+        const pageRes = await fetchAdminProducts({
+          per_page: EXPORT_BATCH_SIZE,
+          page,
+        });
+        allProducts.push(...pageRes.data);
+      }
+
+      await exportProducts(allProducts, types, categories);
     } catch (error) {
       console.error("Failed to export all:", error);
       toast.error("Export toàn bộ thất bại. Vui lòng thử lại.");

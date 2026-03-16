@@ -12,8 +12,8 @@
    type RecentEvent,
  } from '@/lib/api/admin';
  
- const REFETCH_INTERVAL = 30 * 1000; // 30 seconds
-const STALE_TIME = 20 * 1000; // 20 seconds - data considered fresh
+const REFETCH_INTERVAL = 120 * 1000; // 2 minutes
+const STALE_TIME = 60 * 1000; // 1 minute - data considered fresh
  
  export function useDashboardStats() {
    return useQuery<DashboardStats>({

@@ -375,8 +375,7 @@ export const ProductsListScreen = () => {
                   className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
                   value={perPage}
                   onChange={(event) => {
-                    const value = event.target.value === 'all' ? 'all' : Number(event.target.value);
-                    setPerPage(value);
+                    setPerPage(Number(event.target.value));
                     setCurrentPage(1);
                   }}
                 >
@@ -385,11 +384,10 @@ export const ProductsListScreen = () => {
                       {option} / trang
                     </option>
                   ))}
-                  <option value="all">Tất cả</option>
                 </select>
               </div>
             </div>
-            {totalPages > 1 && perPage !== 'all' && (
+            {totalPages > 1 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"

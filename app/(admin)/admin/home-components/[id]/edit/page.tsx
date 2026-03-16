@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button, Card, Label, Skeleton } from '../../../components/ui';
-import { fetchAdminHomeComponent, updateHomeComponent } from '@/lib/api/admin';
+import { fetchAdminHomeComponent, fetchAdminImagesBatch, updateHomeComponent } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { getComponentTypeInfo } from '../../componentTypes';
 import {
@@ -124,6 +124,21 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
     });
   }, []);
 
+  const fetchImagesByIds = useCallback(async (ids: number[]) => {
+    if (ids.length === 0) return {} as Record<number, { url?: string | null; alt?: string | null }>;
+
+    try {
+      const res = await fetchAdminImagesBatch(ids);
+      return res.data.reduce<Record<number, { url?: string | null; alt?: string | null }>>((acc, image) => {
+        acc[image.id] = { url: image.url, alt: image.alt };
+        return acc;
+      }, {});
+    } catch (error) {
+      console.error('Failed to fetch images batch:', error);
+      return {} as Record<number, { url?: string | null; alt?: string | null }>;
+    }
+  }, []);
+
   const parseConfig = async (type: string, config: any) => {
     try {
       switch (type) {
@@ -131,39 +146,25 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           console.log('parseConfig hero_carousel - raw config:', config);
           if (config.slides && Array.isArray(config.slides)) {
             console.log('parseConfig hero_carousel - slides:', config.slides);
-            
-            // Fetch images for slides with image_id
-            const slidesWithImages = await Promise.all(
-              config.slides.map(async (slide: any) => {
-                let imageUrl = '';
-                
-                // Try slide.image.url first (new format)
-                if (slide.image?.url) {
-                  imageUrl = slide.image.url;
-                }
-                // Fallback to fetch from image_id (old format)
-                else if (slide.image_id) {
-                  try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'}/v1/admin/images/${slide.image_id}`);
-                    if (response.ok) {
-                      const data = await response.json();
-                      imageUrl = data.data?.url || '';
-                    }
-                  } catch (error) {
-                    console.error(`Failed to fetch image ${slide.image_id}:`, error);
-                  }
-                }
-                
-                return {
-                  id: Date.now() + Math.random(),
-                  image: imageUrl,
-                  path: imageUrl,
-                  imageId: slide.image_id || slide.image?.id,
-                  link: slide.href || '',
-                  alt: slide.alt || slide.image?.alt || '',
-                };
-              })
-            );
+            const imageIds = config.slides
+              .map((slide: any) => slide.image_id || slide.image?.id)
+              .filter((id: number | undefined) => Number.isInteger(id));
+            const imagesById = await fetchImagesByIds(Array.from(new Set(imageIds)) as number[]);
+
+            const slidesWithImages = config.slides.map((slide: any) => {
+              const imageId = slide.image_id || slide.image?.id;
+              const imageUrl = slide.image?.url || imagesById[imageId]?.url || '';
+              const imageAlt = slide.alt || slide.image?.alt || imagesById[imageId]?.alt || '';
+
+              return {
+                id: Date.now() + Math.random(),
+                image: imageUrl,
+                path: imageUrl,
+                imageId,
+                link: slide.href || '',
+                alt: imageAlt,
+              };
+            });
             
             setHeroSlides(slidesWithImages);
           }
@@ -245,38 +246,25 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
         case 'brand_showcase':
           setBrandTitle(config.title || '');
           if (config.brands && Array.isArray(config.brands)) {
-            // Fetch images for brands with image_id
-            const brandsWithImages = await Promise.all(
-              config.brands.map(async (brand: any, idx: number) => {
-                let imageUrl = '';
-                
-                // Try brand.image.url first (new format)
-                if (brand.image?.url) {
-                  imageUrl = brand.image.url;
-                }
-                // Fallback to fetch from image_id (old format)
-                else if (brand.image_id) {
-                  try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api'}/v1/admin/images/${brand.image_id}`);
-                    if (response.ok) {
-                      const data = await response.json();
-                      imageUrl = data.data?.url || '';
-                    }
-                  } catch (error) {
-                    console.error(`Failed to fetch image ${brand.image_id}:`, error);
-                  }
-                }
-                
-                return {
-                  id: Date.now() + idx,
-                  image: imageUrl,
-                  path: imageUrl,
-                  imageId: brand.image_id || brand.image?.id,
-                  href: brand.href || '',
-                  alt: brand.alt || '',
-                };
-              })
-            );
+            const imageIds = config.brands
+              .map((brand: any) => brand.image_id || brand.image?.id)
+              .filter((id: number | undefined) => Number.isInteger(id));
+            const imagesById = await fetchImagesByIds(Array.from(new Set(imageIds)) as number[]);
+
+            const brandsWithImages = config.brands.map((brand: any, idx: number) => {
+              const imageId = brand.image_id || brand.image?.id;
+              const imageUrl = brand.image?.url || imagesById[imageId]?.url || '';
+              const imageAlt = brand.alt || brand.image?.alt || imagesById[imageId]?.alt || '';
+
+              return {
+                id: Date.now() + idx,
+                image: imageUrl,
+                path: imageUrl,
+                imageId,
+                href: brand.href || '',
+                alt: imageAlt,
+              };
+            });
             setBrands(brandsWithImages);
           }
           break;

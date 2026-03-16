@@ -33,10 +33,9 @@ export const useArticlesList = () => {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [perPage, setPerPage] = useState<number | "all">(() => {
+  const [perPage, setPerPage] = useState<number>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("admin_articles_perPage");
-      if (saved === "all") return "all";
       if (saved) return Number(saved);
     }
     return 25;
@@ -78,7 +77,7 @@ export const useArticlesList = () => {
 
       try {
         const params: Record<string, string | number> = {
-          per_page: perPage === "all" ? 1000 : perPage,
+          per_page: perPage,
           page: currentPage,
         };
 

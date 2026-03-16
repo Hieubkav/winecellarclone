@@ -18,10 +18,9 @@ export default function CategoriesListPage() {
   const [totalCategories, setTotalCategories] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+  const [perPage, setPerPage] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('admin_categories_perPage');
-      if (saved === 'all') return 'all';
       if (saved) return Number(saved);
     }
     return 25;
@@ -74,21 +73,16 @@ export default function CategoriesListPage() {
     
     try {
       const params: Record<string, string | number> = {
-        per_page: perPage === 'all' ? 1000 : perPage,
+        per_page: perPage,
         page: currentPage,
       };
       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterType) params.type_id = filterType;
 
-      const [categoriesRes, filtersRes] = await Promise.all([
-        fetchAdminCategories(params),
-        fetchProductFilters(),
-      ]);
-
+      const categoriesRes = await fetchAdminCategories(params);
       setCategories(categoriesRes.data);
       setTotalCategories(categoriesRes.meta.total);
       setTotalPages(categoriesRes.meta.last_page);
-      setTypes(filtersRes.types);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     } finally {
@@ -99,6 +93,19 @@ export default function CategoriesListPage() {
 
   useEffect(() => {
     loadData(true);
+  }, []);
+
+  useEffect(() => {
+    const loadFilters = async () => {
+      try {
+        const filtersRes = await fetchProductFilters();
+        setTypes(filtersRes.types);
+      } catch (error) {
+        console.error('Failed to fetch filters:', error);
+      }
+    };
+
+    loadFilters();
   }, []);
 
   useEffect(() => {
@@ -404,19 +411,17 @@ export default function CategoriesListPage() {
                   className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
                   value={perPage}
                   onChange={(e) => {
-                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
-                    setPerPage(value);
+                    setPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
                 >
                   {perPageOptions.map(option => (
                     <option key={option} value={option}>{option} / trang</option>
                   ))}
-                  <option value="all">Tất cả</option>
                 </select>
               </div>
             </div>
-            {totalPages > 1 && perPage !== 'all' && (
+            {totalPages > 1 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"

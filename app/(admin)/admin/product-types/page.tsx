@@ -8,12 +8,11 @@ import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, Ta
 import { SortableHeader, useSortableData, ColumnToggle } from '../components/TableUtilities';
 import { 
   deleteProductType, 
-  fetchAdminProductTypes, 
-  fetchAdminCatalogAttributeGroups,
+  fetchAdminProductTypes,
+  fetchAdminProductType,
   seedCatalogBaseline,
   updateProductType,
-  type AdminProductType,
-  type AdminCatalogAttributeGroup
+  type AdminProductType
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
@@ -26,15 +25,15 @@ export default function ProductTypesPage() {
   const [totalTypes, setTotalTypes] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [perPage, setPerPage] = useState<number | 'all'>(() => {
+  const [perPage, setPerPage] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('admin_product_types_perPage');
-      if (saved === 'all') return 'all';
       if (saved) return Number(saved);
     }
     return 25;
   });
-  const [attributes, setAttributes] = useState<AdminCatalogAttributeGroup[]>([]);
+  const [attributeGroupsByType, setAttributeGroupsByType] = useState<Record<number, Array<{ id: number; name: string; filter_type: string; icon_path?: string | null; position: number }>>>({});
+  const [loadingTypeIds, setLoadingTypeIds] = useState<Set<number>>(new Set());
   const [_togglingStatus, _setTogglingStatus] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -99,21 +98,17 @@ export default function ProductTypesPage() {
     
     try {
       const params: Record<string, string | number> = {
-        per_page: perPage === 'all' ? 1000 : perPage,
+        per_page: perPage,
         page: currentPage,
       };
       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterActive) params.active = filterActive;
       
-      const [typesRes, attributesRes] = await Promise.all([
-        fetchAdminProductTypes(params),
-        fetchAdminCatalogAttributeGroups({ per_page: 100 })
-      ]);
+      const typesRes = await fetchAdminProductTypes(params);
       
       setTypes(typesRes.data);
       setTotalTypes(typesRes.meta.total);
       setTotalPages(typesRes.meta.last_page);
-      setAttributes(attributesRes.data);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
@@ -129,13 +124,28 @@ export default function ProductTypesPage() {
     }));
   };
 
-  const filteredTypes = React.useMemo(() => {
-    if (!searchTerm) return types;
-    const lower = searchTerm.toLowerCase();
-    return types.filter(t => t.name.toLowerCase().includes(lower) || t.slug.toLowerCase().includes(lower));
-  }, [types, searchTerm]);
+  const sortedTypes = useSortableData(types, sortConfig);
 
-  const sortedTypes = useSortableData(filteredTypes, sortConfig);
+  const loadAttributeGroups = async (typeId: number) => {
+    if (attributeGroupsByType[typeId] || loadingTypeIds.has(typeId)) return;
+
+    setLoadingTypeIds(prev => new Set(prev).add(typeId));
+    try {
+      const res = await fetchAdminProductType(typeId);
+      setAttributeGroupsByType(prev => ({
+        ...prev,
+        [typeId]: res.data.attribute_groups || [],
+      }));
+    } catch (error) {
+      console.error('Failed to load attribute groups:', error);
+    } finally {
+      setLoadingTypeIds(prev => {
+        const next = new Set(prev);
+        next.delete(typeId);
+        return next;
+      });
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteConfirm) return;
@@ -201,6 +211,7 @@ export default function ProductTypesPage() {
         next.delete(typeId);
       } else {
         next.add(typeId);
+        loadAttributeGroups(typeId);
       }
       return next;
     });
@@ -318,9 +329,8 @@ export default function ProductTypesPage() {
           </TableHeader>
           <TableBody>
             {sortedTypes.map(type => {
-              const typeAttributes = attributes.filter(attr => 
-                attr.product_types.some(pt => pt.id === type.id)
-              );
+              const typeAttributes = attributeGroupsByType[type.id] || [];
+              const attributeCount = type.attribute_groups_count ?? typeAttributes.length;
               const isExpanded = expandedTypes.has(type.id);
               
               return (
@@ -328,7 +338,7 @@ export default function ProductTypesPage() {
                   <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
                     {visibleTypeColumns.includes('expand') && (
                       <TableCell>
-                        {typeAttributes.length > 0 && (
+                        {attributeCount > 0 && (
                           <Button
                             variant="ghost"
                             size="icon"
@@ -348,9 +358,9 @@ export default function ProductTypesPage() {
                           </div>
                           <div>
                             <span className="font-medium">{type.name}</span>
-                            {typeAttributes.length > 0 && (
+                            {attributeCount > 0 && (
                               <span className="ml-2 text-xs text-slate-500">
-                                ({typeAttributes.length} thuộc tính)
+                                ({attributeCount} thuộc tính)
                               </span>
                             )}
                           </div>
@@ -419,7 +429,7 @@ export default function ProductTypesPage() {
                       </TableCell>
                     )}
                   </TableRow>
-                  {isExpanded && typeAttributes.length > 0 && (
+                  {isExpanded && attributeCount > 0 && (
                     <TableRow>
                       <TableCell 
                         colSpan={visibleTypeColumns.length} 
@@ -427,24 +437,31 @@ export default function ProductTypesPage() {
                       >
                         <div className="p-4 pl-12">
                           <div className="text-xs font-semibold text-slate-500 mb-2">Thuộc tính liên kết:</div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {typeAttributes.map(attr => {
-                              const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
-                                ? (LucideIcons as any)[attr.icon_path]
-                                : Tag;
-                              
-                              return (
-                                <Link key={attr.id} href={`/admin/attribute-groups/${attr.id}/edit`}>
-                                  <div className="flex items-center gap-2 text-sm p-2 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 hover:border-red-300 dark:hover:border-red-800 transition-colors cursor-pointer">
-                                    <IconComponent size={14} className="text-red-600" />
-                                    <span className="font-medium">{attr.name}</span>
-                                    <span className="text-xs text-slate-500">({attr.terms_count} giá trị)</span>
-                                    {getFilterTypeBadge(attr.filter_type)}
-                                  </div>
-                                </Link>
-                              );
-                            })}
-                          </div>
+                          {loadingTypeIds.has(type.id) && (
+                            <div className="text-xs text-slate-400">Đang tải thuộc tính...</div>
+                          )}
+                          {!loadingTypeIds.has(type.id) && typeAttributes.length === 0 && (
+                            <div className="text-xs text-slate-400">Chưa có thuộc tính liên kết</div>
+                          )}
+                          {typeAttributes.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {typeAttributes.map(attr => {
+                                const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
+                                  ? (LucideIcons as any)[attr.icon_path]
+                                  : Tag;
+                                
+                                return (
+                                  <Link key={attr.id} href={`/admin/attribute-groups/${attr.id}/edit`}>
+                                    <div className="flex items-center gap-2 text-sm p-2 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 hover:border-red-300 dark:hover:border-red-800 transition-colors cursor-pointer">
+                                      <IconComponent size={14} className="text-red-600" />
+                                      <span className="font-medium">{attr.name}</span>
+                                      {getFilterTypeBadge(attr.filter_type)}
+                                    </div>
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -477,19 +494,17 @@ export default function ProductTypesPage() {
                   className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-sm"
                   value={perPage}
                   onChange={(e) => {
-                    const value = e.target.value === 'all' ? 'all' : Number(e.target.value);
-                    setPerPage(value);
+                    setPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
                 >
                   {perPageOptions.map(option => (
                     <option key={option} value={option}>{option} / trang</option>
                   ))}
-                  <option value="all">Tất cả</option>
                 </select>
               </div>
             </div>
-            {totalPages > 1 && perPage !== 'all' && (
+            {totalPages > 1 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
