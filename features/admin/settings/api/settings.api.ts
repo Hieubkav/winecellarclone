@@ -1,0 +1,46 @@
+import { apiFetch } from "@/lib/api/client";
+
+export interface AdminSetting {
+  id: number;
+  site_name: string | null;
+  hotline: string | null;
+  email: string | null;
+  address: string | null;
+  hours: string | null;
+  google_map_embed: string | null;
+  footer_config: Record<string, unknown> | null;
+  contact_config: Record<string, unknown> | null;
+  meta_default_title: string | null;
+  meta_default_description: string | null;
+  meta_default_keywords: string | string[] | null;
+  logo_image_id: number | null;
+  logo_image_url: string | null;
+  favicon_image_id: number | null;
+  favicon_image_url: string | null;
+  og_image_id: number | null;
+  og_image_url: string | null;
+  product_watermark_image_id: number | null;
+  product_watermark_image_url: string | null;
+  product_watermark_type: string | null;
+  product_watermark_position: string | null;
+  product_watermark_size: string | null;
+  product_watermark_text: string | null;
+  product_watermark_text_size: string | null;
+  product_watermark_text_position: string | null;
+  product_watermark_text_opacity: number | null;
+  product_watermark_text_repeat: boolean | null;
+  updated_at?: string;
+}
+
+export async function fetchAdminSettings(): Promise<{ data: AdminSetting }> {
+  return apiFetch("v1/admin/settings");
+}
+
+export async function updateSettings(
+  data: Record<string, unknown>
+): Promise<{ success: boolean; message: string }> {
+  return apiFetch("v1/admin/settings", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}

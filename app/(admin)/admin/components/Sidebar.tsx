@@ -1,17 +1,25 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
  import Link from 'next/link';
  import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, Package, FileText, 
-  Globe, Settings, ChevronRight, X, LogOut,
-  ChevronsLeft, ChevronsRight
+import {
+  LayoutDashboard,
+  Package,
+  FileText,
+  Globe,
+  Settings,
+  ChevronRight,
+  X,
+  LogOut,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import { fetchSettings } from '@/lib/api/settings';
  import { getAdminProfile, logout } from '@/lib/admin-auth';
  import { useRouter } from 'next/navigation';
+import { ADMIN_NAV_GROUPS, type AdminNavIcon } from '@/lib/admin/registry/modules';
  
  interface SidebarItemProps {
    icon: React.ElementType;
@@ -154,15 +162,40 @@ import {
       .catch(() => {});
   }, []);
 
+  const navGroups = useMemo(() => {
+    const iconMap: Record<AdminNavIcon, React.ElementType> = {
+      LayoutDashboard,
+      Package,
+      FileText,
+      Globe,
+      Settings,
+    };
+
+    return ADMIN_NAV_GROUPS.map((group) => ({
+      section: group.label,
+      items: group.items.map((item) => ({
+        ...item,
+        icon: iconMap[item.icon] ?? LayoutDashboard,
+      })),
+    }));
+  }, []);
+
   useEffect(() => {
-    if (isActive('/admin/products') || isActive('/admin/categories') || isActive('/admin/product-types')) {
-      setExpandedMenu('Sản phẩm');
-    } else if (isActive('/admin/menus') || isActive('/admin/home-components') || isActive('/admin/social-links') || isActive('/admin/footer-config') || isActive('/admin/contact-config')) {
-      setExpandedMenu('Website');
-    } else if (isActive('/admin/settings') || isActive('/admin/users')) {
-      setExpandedMenu('Hệ thống');
+    const activeParent = navGroups
+      .flatMap((group) => group.items)
+      .find((item) => {
+        if (!item.subItems || item.subItems.length === 0) {
+          return false;
+        }
+        return item.subItems.some(
+          (sub) => pathname === sub.href || pathname.startsWith(`${sub.href}/`)
+        );
+      });
+
+    if (activeParent?.label) {
+      setExpandedMenu(activeParent.label);
     }
-  }, [isActive]);
+  }, [navGroups, pathname]);
  
    const handleMenuToggle = (label: string) => {
      if (isCollapsed) {
@@ -173,55 +206,7 @@ import {
      }
    };
  
-   const navItems = [
-     {
-       section: '',
-       items: [
-         { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
-         { 
-           icon: Package, 
-           label: 'Sản phẩm', 
-           href: '/admin/products',
-           subItems: [
-             { label: 'Tất cả sản phẩm', href: '/admin/products' },
-             { label: 'Danh mục', href: '/admin/categories' },
-             { label: 'Nhóm sản phẩm', href: '/admin/product-types' },
-             { label: 'Nhóm thuộc tính', href: '/admin/attribute-groups' },
-           ]
-         },
-         { 
-           icon: FileText, 
-           label: 'Nội dung', 
-           href: '/admin/articles',
-           subItems: [
-             { label: 'Bài viết', href: '/admin/articles' },
-             { label: 'Thư viện ảnh', href: '/admin/images' },
-           ]
-         },
-         { 
-           icon: Globe, 
-           label: 'Website', 
-           href: '/admin/home-components',
-           subItems: [
-             { label: 'Trang chủ', href: '/admin/home-components' },
-            { label: 'Menu', href: '/admin/menus' },
-             { label: 'Mạng xã hội', href: '/admin/social-links' },
-             { label: 'Cấu hình Liên hệ', href: '/admin/contact-config' },
-             { label: 'Cấu hình Footer', href: '/admin/footer-config' },
-           ]
-         },
-        { 
-          icon: Settings, 
-          label: 'Hệ thống', 
-          href: '/admin/settings',
-          subItems: [
-            { label: 'Cấu hình chung', href: '/admin/settings' },
-            { label: 'Quản lý Users', href: '/admin/users' },
-          ]
-        },
-       ]
-     },
-   ];
+  const navItems = navGroups;
  
    return (
      <>
