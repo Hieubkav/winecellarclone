@@ -187,6 +187,10 @@ export default function UsersPage() {
   };
 
   const handleEdit = (user: AdminUser) => {
+    if (user.is_owner) {
+      toast.error('Không thể chỉnh sửa tài khoản chủ shop');
+      return;
+    }
     setEditingUser(user);
     setModalOpen(true);
   };
@@ -197,6 +201,11 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (id: number) => {
+    const target = users.find((item) => item.id === id);
+    if (target?.is_owner) {
+      toast.error('Không thể xóa tài khoản chủ shop');
+      return;
+    }
     if (!confirm('Bạn có chắc muốn xóa người dùng này?')) return;
 
     setDeletingId(id);
@@ -298,7 +307,10 @@ export default function UsersPage() {
                       {user.id}
                     </td>
                     <td className="p-3 text-sm font-medium text-slate-900 dark:text-white">
-                      {user.name}
+                      <div className="flex items-center gap-2">
+                        <span>{user.name}</span>
+                        {user.is_owner && <Badge variant="success">Chủ shop</Badge>}
+                      </div>
                     </td>
                     <td className="p-3 text-sm text-slate-600 dark:text-slate-300">
                       {user.email}
@@ -320,6 +332,7 @@ export default function UsersPage() {
                           size="icon"
                           onClick={() => handleEdit(user)}
                           title="Sửa"
+                          disabled={user.is_owner}
                         >
                           <Pencil size={16} />
                         </Button>
@@ -327,9 +340,9 @@ export default function UsersPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(user.id)}
-                          disabled={deletingId === user.id}
+                          disabled={deletingId === user.id || user.is_owner}
                           className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          title="Xóa"
+                          title={user.is_owner ? 'Không thể xóa chủ shop' : 'Xóa'}
                         >
                           {deletingId === user.id ? (
                             <Loader2 size={16} className="animate-spin" />
