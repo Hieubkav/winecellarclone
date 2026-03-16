@@ -166,11 +166,6 @@ export const useSettingsForm = () => {
     }
 
     if (activeTab === "watermark") {
-      if (watermarkType === "image" && watermarkPosition !== "none" && !watermarkImageId) {
-        toast.error("Vui lòng chọn ảnh watermark");
-        return false;
-      }
-
       if (watermarkType === "text" && !watermarkText.trim()) {
         toast.error("Vui lòng nhập nội dung watermark chữ");
         return false;
