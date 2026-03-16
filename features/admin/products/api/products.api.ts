@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api/client";
+import { apiDownload, apiFetch } from "@/lib/api/client";
 
 const buildQueryString = (params?: Record<string, string | number>): string => {
   if (!params) {
@@ -62,6 +62,19 @@ export interface AdminProductsResponse {
 export async function fetchAdminProducts(params?: Record<string, string | number>): Promise<AdminProductsResponse> {
   const query = buildQueryString(params);
   return apiFetch<AdminProductsResponse>(`v1/admin/products${query}`);
+}
+
+export async function downloadAdminProductsExport(
+  params?: Record<string, string | number>
+): Promise<{ blob: Blob; filename: string }> {
+  const query = buildQueryString(params);
+  const response = await apiDownload(`v1/admin/products/export${query}`);
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("content-disposition") || "";
+  const fileMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+  const filename = decodeURIComponent(fileMatch?.[1] || fileMatch?.[2] || "danh-sach-san-pham.csv");
+
+  return { blob, filename };
 }
 
 export async function fetchAdminProduct(id: number): Promise<{ data: AdminProductDetail }> {

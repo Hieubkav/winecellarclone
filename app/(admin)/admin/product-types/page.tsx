@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Plus, Edit, Trash2, Tag, Search, AlertTriangle, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData, ColumnToggle } from '../components/TableUtilities';
+import { SortableHeader, ColumnToggle } from '../components/TableUtilities';
 import { 
   deleteProductType, 
   fetchAdminProductTypes,
@@ -32,7 +32,7 @@ export default function ProductTypesPage() {
     }
     return 25;
   });
-  const [attributeGroupsByType, setAttributeGroupsByType] = useState<Record<number, Array<{ id: number; name: string; filter_type: string; icon_path?: string | null; position: number }>>>({});
+  const [attributeGroupsByType, setAttributeGroupsByType] = useState<Record<number, Array<{ id: number; name?: string; filter_type?: string; icon_path?: string | null; position?: number }>>>({});
   const [loadingTypeIds, setLoadingTypeIds] = useState<Set<number>>(new Set());
   const [_togglingStatus, _setTogglingStatus] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -87,7 +87,7 @@ export default function ProductTypesPage() {
     if (!isInitialLoading) {
       loadData(false);
     }
-  }, [debouncedSearchTerm, filterActive, currentPage, perPage]);
+  }, [debouncedSearchTerm, filterActive, currentPage, perPage, sortConfig]);
 
   async function loadData(isInitial = false) {
     if (isInitial) {
@@ -103,6 +103,10 @@ export default function ProductTypesPage() {
       };
       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterActive) params.active = filterActive;
+      if (sortConfig.key) {
+        params.sort_by = sortConfig.key;
+        params.sort_dir = sortConfig.direction;
+      }
       
       const typesRes = await fetchAdminProductTypes(params);
       
@@ -118,13 +122,12 @@ export default function ProductTypesPage() {
   }
 
   const handleSort = (key: string) => {
+    setCurrentPage(1);
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
-
-  const sortedTypes = useSortableData(types, sortConfig);
 
   const loadAttributeGroups = async (typeId: number) => {
     if (attributeGroupsByType[typeId] || loadingTypeIds.has(typeId)) return;
@@ -328,7 +331,7 @@ export default function ProductTypesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedTypes.map(type => {
+            {types.map(type => {
               const typeAttributes = attributeGroupsByType[type.id] || [];
               const attributeCount = type.attribute_groups_count ?? typeAttributes.length;
               const isExpanded = expandedTypes.has(type.id);
@@ -454,8 +457,8 @@ export default function ProductTypesPage() {
                                   <Link key={attr.id} href={`/admin/attribute-groups/${attr.id}/edit`}>
                                     <div className="flex items-center gap-2 text-sm p-2 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 hover:border-red-300 dark:hover:border-red-800 transition-colors cursor-pointer">
                                       <IconComponent size={14} className="text-red-600" />
-                                      <span className="font-medium">{attr.name}</span>
-                                      {getFilterTypeBadge(attr.filter_type)}
+                                      <span className="font-medium">{attr.name ?? '-'}</span>
+                                      {getFilterTypeBadge(attr.filter_type ?? 'checkbox')}
                                     </div>
                                   </Link>
                                 );
@@ -469,7 +472,7 @@ export default function ProductTypesPage() {
                 </React.Fragment>
               );
             })}
-            {sortedTypes.length === 0 && (
+            {types.length === 0 && (
               <TableRow>
                 <TableCell 
                   colSpan={visibleTypeColumns.length} 
@@ -482,11 +485,11 @@ export default function ProductTypesPage() {
           </TableBody>
         </Table>
       </div>
-        {sortedTypes.length > 0 && (
+        {types.length > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <span className="text-sm text-slate-500">
-                Hiển thị {sortedTypes.length} / {totalTypes} nhóm
+                Hiển thị {types.length} / {totalTypes} nhóm
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500">Hiển thị:</span>

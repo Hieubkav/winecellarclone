@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Trash2, Edit, AlertTriangle, LayoutGrid, LayoutList, ExternalLink } from 'lucide-react';
 import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton, Badge } from '../components/ui';
-import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
+import { SortableHeader, SelectCheckbox, BulkActionBar, ColumnToggle } from '../components/TableUtilities';
 import { fetchAdminImages, deleteImage, bulkDeleteImages, type AdminImage } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -91,6 +91,10 @@ export default function ImagesListPage() {
         page: currentPage,
       };
       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
+      if (sortConfig.key) {
+        params.sort_by = sortConfig.key;
+        params.sort_dir = sortConfig.direction;
+      }
       const result = await fetchAdminImages(params);
       setImages(result.data);
       setTotalImages(result.meta.total);
@@ -101,7 +105,7 @@ export default function ImagesListPage() {
       setIsInitialLoading(false);
       setIsSearching(false);
     }
-  }, [debouncedSearchTerm, currentPage, perPage]);
+  }, [debouncedSearchTerm, currentPage, perPage, sortConfig]);
 
   useEffect(() => {
     loadImages(true);
@@ -113,9 +117,10 @@ export default function ImagesListPage() {
       loadImages(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchTerm, currentPage, perPage]);
+  }, [debouncedSearchTerm, currentPage, perPage, sortConfig]);
 
   const handleSort = (key: string) => {
+    setCurrentPage(1);
     setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }));
   };
 
@@ -125,7 +130,7 @@ export default function ImagesListPage() {
     );
   };
 
-  const sortedData = useSortableData(images, sortConfig);
+  const sortedData = images;
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map(img => img.id));

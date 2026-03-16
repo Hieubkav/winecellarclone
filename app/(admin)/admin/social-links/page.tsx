@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Link as LinkIcon, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { Button, Card, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
+import { SortableHeader, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
 import { fetchAdminSocialLinks, deleteSocialLink, bulkDeleteSocialLinks, updateSocialLink, type AdminSocialLink } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -36,10 +36,16 @@ export default function SocialLinksListPage() {
   const loadLinks = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await fetchAdminSocialLinks({
+      const params: Record<string, string | number> = {
         per_page: perPage,
         page: currentPage,
-      });
+      };
+      if (sortConfig.key) {
+        params.sort_by = sortConfig.key;
+        params.sort_dir = sortConfig.direction;
+      }
+
+      const result = await fetchAdminSocialLinks(params);
       setLinks(result.data);
       setTotalLinks(result.meta.total);
       setTotalPages(result.meta.last_page);
@@ -48,17 +54,18 @@ export default function SocialLinksListPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, perPage]);
+  }, [currentPage, perPage, sortConfig]);
 
   useEffect(() => {
     loadLinks();
   }, [loadLinks]);
 
   const handleSort = (key: string) => {
+    setCurrentPage(1);
     setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }));
   };
 
-  const sortedData = useSortableData(links, sortConfig);
+  const sortedData = links;
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map(l => l.id));

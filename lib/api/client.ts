@@ -120,3 +120,35 @@ export async function apiFetch<TResponse>(
 
   return payload as TResponse;
 }
+
+export async function apiDownload(path: string, init?: RequestInit): Promise<Response> {
+  const url = normalizeUrl(API_BASE_URL, path);
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const adminToken = normalizedPath.startsWith('/v1/admin/') ? getAdminToken() : null;
+
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    const payload = await response.text();
+    console.error('[API Download Error]', {
+      url,
+      status: response.status,
+      statusText: response.statusText,
+      payload,
+      responseHeaders: Object.fromEntries(response.headers.entries()),
+    });
+    throw new ApiError(
+      `API request failed with status ${response.status}`,
+      response.status,
+      payload
+    );
+  }
+
+  return response;
+}

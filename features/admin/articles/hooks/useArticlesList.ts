@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useSortableData } from "@/app/(admin)/admin/components/TableUtilities";
 import {
   bulkDeleteArticles,
   deleteArticle,
@@ -82,6 +81,10 @@ export const useArticlesList = () => {
         };
 
         if (debouncedSearchTerm) params.q = debouncedSearchTerm;
+        if (sortConfig.key) {
+          params.sort_by = sortConfig.key;
+          params.sort_dir = sortConfig.direction;
+        }
 
         const articlesRes = await fetchAdminArticles(params);
         setArticles(articlesRes.data);
@@ -94,7 +97,7 @@ export const useArticlesList = () => {
         setIsSearching(false);
       }
     },
-    [currentPage, debouncedSearchTerm, perPage]
+    [currentPage, debouncedSearchTerm, perPage, sortConfig]
   );
 
   useEffect(() => {
@@ -105,9 +108,10 @@ export const useArticlesList = () => {
     if (!isInitialLoading) {
       loadArticles(false);
     }
-  }, [currentPage, debouncedSearchTerm, perPage]);
+  }, [currentPage, debouncedSearchTerm, perPage, sortConfig]);
 
   const handleSort = (key: string) => {
+    setCurrentPage(1);
     setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
@@ -118,7 +122,7 @@ export const useArticlesList = () => {
     setVisibleColumns((prev) => (prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]));
   };
 
-  const sortedData = useSortableData(articles, sortConfig);
+  const sortedData = articles;
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map((article) => article.id));

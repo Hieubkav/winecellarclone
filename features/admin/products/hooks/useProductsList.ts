@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useSortableData } from "@/app/(admin)/admin/components/TableUtilities";
 import { fetchProductFilters, type ProductFilterOption } from "@/lib/api/products";
 import { useProductExcel } from "@/lib/hooks/useProductExcel";
 import {
   bulkDeleteProducts,
   deleteProduct,
+  downloadAdminProductsExport,
   fetchAdminProducts,
   updateProduct,
   type AdminProduct,
@@ -23,7 +23,6 @@ const DEFAULT_COLUMNS = [
 ];
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100];
-const EXPORT_BATCH_SIZE = 100;
 
 export type ProductDeleteConfirm = { type: "single" | "bulk"; id?: number } | null;
 
@@ -89,6 +88,10 @@ export const useProductsList = () => {
         if (debouncedSearchTerm) params.q = debouncedSearchTerm;
         if (filterCategory) params.category_id = filterCategory;
         if (filterType) params.type_id = filterType;
+        if (sortConfig.key) {
+          params.sort_by = sortConfig.key;
+          params.sort_dir = sortConfig.direction;
+        }
 
         const [productsRes, filtersRes] = await Promise.all([
           fetchAdminProducts(params),
@@ -107,7 +110,7 @@ export const useProductsList = () => {
         setIsSearching(false);
       }
     },
-    [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage]
+    [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage, sortConfig]
   );
 
   useEffect(() => {
@@ -118,7 +121,7 @@ export const useProductsList = () => {
     if (!isInitialLoading) {
       loadProducts(false);
     }
-  }, [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage]);
+  }, [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage, sortConfig]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -132,6 +135,7 @@ export const useProductsList = () => {
   }, [showExportMenu]);
 
   const handleSort = (key: string) => {
+    setCurrentPage(1);
     setSortConfig((prev) => ({
       key,
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
@@ -142,7 +146,7 @@ export const useProductsList = () => {
     setVisibleColumns((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
   };
 
-  const sortedData = useSortableData(products, sortConfig);
+  const sortedData = products;
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map((product) => product.id));
@@ -198,24 +202,23 @@ export const useProductsList = () => {
 
   const handleExportAll = async () => {
     try {
-      const total = totalProducts > 0 ? totalProducts : 0;
-      if (total === 0) {
-        await exportProducts([], types, categories);
-        return;
+      const params: Record<string, string | number> = {};
+      if (debouncedSearchTerm) params.q = debouncedSearchTerm;
+      if (filterCategory) params.category_id = filterCategory;
+      if (filterType) params.type_id = filterType;
+      if (sortConfig.key) {
+        params.sort_by = sortConfig.key;
+        params.sort_dir = sortConfig.direction;
       }
 
-      const pages = Math.ceil(total / EXPORT_BATCH_SIZE);
-      const allProducts: AdminProduct[] = [];
-
-      for (let page = 1; page <= pages; page += 1) {
-        const pageRes = await fetchAdminProducts({
-          per_page: EXPORT_BATCH_SIZE,
-          page,
-        });
-        allProducts.push(...pageRes.data);
-      }
-
-      await exportProducts(allProducts, types, categories);
+      const { blob, filename } = await downloadAdminProductsExport(params);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Đã tạo file xuất toàn bộ sản phẩm");
     } catch (error) {
       console.error("Failed to export all:", error);
       toast.error("Export toàn bộ thất bại. Vui lòng thử lại.");

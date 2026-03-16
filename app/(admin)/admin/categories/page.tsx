@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Edit, Trash2, ExternalLink, Search, FolderTree, AlertTriangle } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox, useSortableData } from '../components/TableUtilities';
+import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
 import { fetchAdminCategories, deleteCategory, bulkDeleteCategories, updateCategory, type AdminCategory } from '@/lib/api/admin';
 import { fetchProductFilters, type ProductFilterOption } from '@/lib/api/products';
 import CategoryFormModal from './CategoryFormModal';
@@ -78,6 +78,10 @@ export default function CategoriesListPage() {
       };
       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterType) params.type_id = filterType;
+      if (sortConfig.key) {
+        params.sort_by = sortConfig.key;
+        params.sort_dir = sortConfig.direction;
+      }
 
       const categoriesRes = await fetchAdminCategories(params);
       setCategories(categoriesRes.data);
@@ -89,7 +93,7 @@ export default function CategoriesListPage() {
       setIsInitialLoading(false);
       setIsSearching(false);
     }
-  }, [debouncedSearchTerm, filterType, currentPage, perPage]);
+  }, [debouncedSearchTerm, filterType, currentPage, perPage, sortConfig]);
 
   useEffect(() => {
     loadData(true);
@@ -112,9 +116,10 @@ export default function CategoriesListPage() {
     if (!isInitialLoading) {
       loadData(false);
     }
-  }, [debouncedSearchTerm, filterType, currentPage, perPage]);
+  }, [debouncedSearchTerm, filterType, currentPage, perPage, sortConfig]);
 
   const handleSort = (key: string) => {
+    setCurrentPage(1);
     setSortConfig(prev => ({ 
       key, 
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' 
@@ -127,7 +132,7 @@ export default function CategoriesListPage() {
     );
   };
 
-  const sortedData = useSortableData(categories, sortConfig);
+  const sortedData = categories;
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map(c => c.id));

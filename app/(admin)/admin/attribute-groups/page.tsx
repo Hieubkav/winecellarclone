@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Plus, Edit, Filter, Search } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
-import { SortableHeader, useSortableData, ColumnToggle } from '../components/TableUtilities';
+import { SortableHeader, ColumnToggle } from '../components/TableUtilities';
 import { 
   fetchAdminCatalogAttributeGroups,
   type AdminCatalogAttributeGroup
@@ -76,7 +76,7 @@ export default function AttributeGroupsPage() {
     if (!isInitialLoading) {
       loadData(false);
     }
-  }, [debouncedSearchTerm, filterFilterable, currentPage, perPage]);
+  }, [debouncedSearchTerm, filterFilterable, currentPage, perPage, sortConfig]);
 
   async function loadData(isInitial = false) {
     if (isInitial) {
@@ -92,6 +92,10 @@ export default function AttributeGroupsPage() {
       };
       if (debouncedSearchTerm) params.q = debouncedSearchTerm;
       if (filterFilterable) params.is_filterable = filterFilterable;
+      if (sortConfig.key) {
+        params.sort_by = sortConfig.key;
+        params.sort_dir = sortConfig.direction;
+      }
       
       const res = await fetchAdminCatalogAttributeGroups(params);
       setAttributes(res.data);
@@ -106,13 +110,12 @@ export default function AttributeGroupsPage() {
   }
 
   const handleSort = (key: string) => {
+    setCurrentPage(1);
     setSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
-
-  const sortedAttributes = useSortableData(attributes, sortConfig);
 
   const getFilterTypeBadge = (filterType: string) => {
     const badges: Record<string, { label: string; variant: 'default' | 'secondary' | 'info' | 'success' }> = {
@@ -222,7 +225,7 @@ export default function AttributeGroupsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedAttributes.map(attr => {
+            {attributes.map(attr => {
               const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
                 ? (LucideIcons as any)[attr.icon_path]
                 : Filter;
@@ -321,7 +324,7 @@ export default function AttributeGroupsPage() {
                 </TableRow>
               );
             })}
-            {sortedAttributes.length === 0 && (
+            {attributes.length === 0 && (
               <TableRow>
                 <TableCell 
                   colSpan={visibleAttributeColumns.length} 
@@ -334,11 +337,11 @@ export default function AttributeGroupsPage() {
           </TableBody>
         </Table>
       </div>
-        {sortedAttributes.length > 0 && (
+        {attributes.length > 0 && (
           <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <span className="text-sm text-slate-500">
-                Hiển thị {sortedAttributes.length} / {totalAttributes} thuộc tính
+                Hiển thị {attributes.length} / {totalAttributes} thuộc tính
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500">Hiển thị:</span>
