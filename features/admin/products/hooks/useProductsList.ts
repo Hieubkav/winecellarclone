@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ApiError } from "@/lib/api/client";
 import { fetchProductFilters, type ProductFilterOption } from "@/lib/api/products";
 import { useProductExcel } from "@/lib/hooks/useProductExcel";
 import {
@@ -100,6 +101,9 @@ export const useProductsList = () => {
         setTotalPages(productsRes.meta.last_page);
       } catch (error) {
         console.error("Failed to fetch products:", error);
+        if (error instanceof ApiError) {
+          console.error("Admin products API payload:", error.payload);
+        }
       } finally {
         setIsInitialLoading(false);
         setIsSearching(false);
