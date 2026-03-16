@@ -212,6 +212,10 @@ import { useAdminSession } from '../AdminSessionContext';
    };
  
   const navItems = navGroups;
+
+  const adminDisplayName = adminProfile?.name?.trim() || 'Admin';
+  const adminDisplayEmail = adminProfile?.email?.trim() || 'admin@winecellar.local';
+  const adminInitial = adminDisplayName.charAt(0).toUpperCase();
  
    return (
      <>
@@ -280,15 +284,15 @@ import { useAdminSession } from '../AdminSessionContext';
            <div className={cn("flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-200 cursor-pointer", isCollapsed ? "justify-center" : "")}>
              <div className="relative">
                <div className="w-9 h-9 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 font-medium">
-                 {(adminProfile?.name?.charAt(0) || 'A').toUpperCase()}
+                 {adminInitial}
                </div>
                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
              </div>
              
              {!isCollapsed && (
                <div className="flex-1 overflow-hidden">
-                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{adminProfile?.name || 'Admin'}</div>
-                 <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{adminProfile?.email || 'admin@winecellar.local'}</div>
+                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{adminDisplayName}</div>
+                 <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{adminDisplayEmail}</div>
                </div>
              )}
              {!isCollapsed && (
