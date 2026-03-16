@@ -25,6 +25,7 @@ export const ArticlesListScreen = () => {
     isDeleting,
     togglingStatus,
     visibleColumns,
+    error,
   } = state;
 
   const {
@@ -233,7 +234,7 @@ export const ArticlesListScreen = () => {
               {sortedData.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={2 + visibleColumns.length} className="text-center py-8 text-slate-500">
-                    {searchTerm ? 'Không tìm thấy kết quả phù hợp' : 'Chưa có bài viết nào'}
+                    {error ? error : searchTerm ? 'Không tìm thấy kết quả phù hợp' : 'Chưa có bài viết nào'}
                   </TableCell>
                 </TableRow>
               )}

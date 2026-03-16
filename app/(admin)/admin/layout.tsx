@@ -7,6 +7,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Toaster } from 'sonner';
 import { verifySession } from '@/lib/admin-auth';
  
+ const AUTH_CACHE_KEY = 'admin_auth_verified_at';
+ const AUTH_CACHE_TTL_MS = 2 * 60 * 1000;
+
  function AdminLayoutContent({ children }: { children: React.ReactNode }) {
    const pathname = usePathname();
    const router = useRouter();
@@ -27,6 +30,21 @@ import { verifySession } from '@/lib/admin-auth';
          return;
        }
 
+       const token = window.localStorage.getItem('admin_access_token');
+
+       if (!token) {
+         router.replace('/admin/login');
+         return;
+       }
+
+       const cachedAt = window.sessionStorage.getItem(AUTH_CACHE_KEY);
+       const cachedTime = cachedAt ? Number(cachedAt) : 0;
+
+       if (cachedTime && Date.now() - cachedTime < AUTH_CACHE_TTL_MS) {
+         setAuthChecked(true);
+         return;
+       }
+
        const isValid = await verifySession();
 
        if (cancelled) {
@@ -38,6 +56,7 @@ import { verifySession } from '@/lib/admin-auth';
          return;
        }
 
+       window.sessionStorage.setItem(AUTH_CACHE_KEY, String(Date.now()));
        setAuthChecked(true);
      };
 
@@ -46,7 +65,7 @@ import { verifySession } from '@/lib/admin-auth';
      return () => {
        cancelled = true;
      };
-   }, [pathname, router, isLoginPage]);
+   }, [router, isLoginPage]);
 
    useEffect(() => {
      const isDark = localStorage.getItem('admin-theme') === 'dark' || 
@@ -59,40 +78,6 @@ import { verifySession } from '@/lib/admin-auth';
      }
    }, []);
 
-   useEffect(() => {
-     const originalFetch = window.fetch.bind(window);
-
-     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-       const requestUrl = typeof input === 'string'
-         ? input
-         : input instanceof URL
-           ? input.toString()
-           : input.url;
-
-       const shouldAttachAdminToken = requestUrl.includes('/v1/admin/');
-
-       if (!shouldAttachAdminToken) {
-         return originalFetch(input, init);
-       }
-
-       const token = window.localStorage.getItem('admin_access_token');
-       const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
-
-       if (token && !headers.has('Authorization')) {
-         headers.set('Authorization', `Bearer ${token}`);
-       }
-
-       return originalFetch(input, {
-         ...init,
-         headers,
-       });
-     };
-
-     return () => {
-       window.fetch = originalFetch;
-     };
-   }, []);
- 
    const toggleTheme = () => {
      const newMode = !isDarkMode;
      setIsDarkMode(newMode);

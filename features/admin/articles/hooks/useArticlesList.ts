@@ -24,6 +24,7 @@ export const useArticlesList = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [articles, setArticles] = useState<AdminArticle[]>([]);
   const [totalArticles, setTotalArticles] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: "asc" | "desc" }>({
@@ -75,6 +76,7 @@ export const useArticlesList = () => {
       }
 
       try {
+        setError(null);
         const params: Record<string, string | number> = {
           per_page: perPage,
           page: currentPage,
@@ -92,6 +94,7 @@ export const useArticlesList = () => {
         setTotalPages(articlesRes.meta.last_page);
       } catch (error) {
         console.error("Failed to fetch articles:", error);
+        setError("Không tải được danh sách bài viết. Vui lòng thử lại.");
       } finally {
         setIsInitialLoading(false);
         setIsSearching(false);
@@ -182,6 +185,7 @@ export const useArticlesList = () => {
       isInitialLoading,
       isSearching,
       totalArticles,
+      error,
       searchTerm,
       sortConfig,
       currentPage,
