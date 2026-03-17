@@ -174,21 +174,7 @@ const LUCIDE_ICON_MAP: Record<string, LucideIcon> = {
   FlaskConical, Layers,
 };
 
-const getFallbackIconByCode = (code?: string): LucideIcon => {
-  if (!code) return Sparkles;
-  const lowerCode = code.toLowerCase();
-  if (lowerCode.includes('grape')) return Grape;
-  if (lowerCode.includes('huong') || lowerCode.includes('flavor')) return Sparkles;
-  if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) return Layers;
-  if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) return Globe;
-  if (lowerCode.includes('tuoi') || lowerCode.includes('age')) return Hourglass;
-  if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('the_tich') || lowerCode.includes('ml')) return FlaskConical;
-  if (lowerCode.includes('nong_do') || lowerCode.includes('alcohol') || lowerCode.includes('abv') || lowerCode.includes('phan_tram') || lowerCode.includes('percent')) return Droplets;
-  if (lowerCode.includes('brand') || lowerCode.includes('thuong_hieu')) return Award;
-  return Tag;
-};
-
-function AttributeIcon({ iconName, iconUrl, groupCode }: { iconName?: string | null; iconUrl?: string | null; groupCode?: string }) {
+function AttributeIcon({ iconName, iconUrl }: { iconName?: string | null; iconUrl?: string | null }) {
   if (iconUrl) {
     return (
       <Image
@@ -205,8 +191,7 @@ function AttributeIcon({ iconName, iconUrl, groupCode }: { iconName?: string | n
   if (IconComponent) {
     return <IconComponent className="w-4 h-4" />;
   }
-  const FallbackIcon = getFallbackIconByCode(groupCode);
-  return <FallbackIcon className="w-4 h-4" />;
+  return <span className="w-4 h-4" aria-hidden />;
 }
 export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
@@ -282,7 +267,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       );
       
       attrs.push({
-        iconName: brandAttr?.icon_name || 'Award',
+        iconName: brandAttr?.icon_name,
         iconUrl: brandAttr?.icon_url,
         groupCode: brandAttr?.group_code || 'brand',
         label: brandAttr?.group_name || "Thương hiệu",
@@ -299,7 +284,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       );
       
       attrs.push({
-        iconName: countryAttr?.icon_name || 'Flag',
+        iconName: countryAttr?.icon_name,
         iconUrl: countryAttr?.icon_url,
         groupCode: countryAttr?.group_code || 'origin',
         label: countryAttr?.group_name || "Xuất xứ",
@@ -583,7 +568,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 {attributeItems.map((attr, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     <div className="mt-0.5 p-1.5 bg-[#ECAA4D]/20 rounded-md text-[#9B2C3B]">
-                      <AttributeIcon iconName={attr.iconName} iconUrl={attr.iconUrl} groupCode={attr.groupCode} />
+                      <AttributeIcon iconName={attr.iconName} iconUrl={attr.iconUrl} />
                     </div>
                     <div className="overflow-hidden">
                       <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{attr.label}</p>

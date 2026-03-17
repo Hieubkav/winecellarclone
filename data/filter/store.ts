@@ -55,7 +55,6 @@ export interface Wine {
   showContactCta?: boolean
   categories?: Array<{ id: number; name: string; slug: string }>
   extraAttrs?: Record<string, ExtraAttr>
-  extraAttrIcons?: Record<string, string | null>
   attributes?: Array<{
     group_code: string
     group_name: string
@@ -140,19 +139,7 @@ interface WineStoreActions {
 
 export interface WineStore extends WineStoreState, WineStoreActions {}
 
-const mapProductToWine = (product: ProductListItem, attributeFilters: AttributeFilter[]): Wine => {
-  const attributeIconMap: Record<string, string | null> = {};
-
-  (product.attributes ?? []).forEach((group) => {
-    attributeIconMap[group.group_code] = group.icon_url ?? null;
-  });
-
-  attributeFilters.forEach((group) => {
-    if (!(group.code in attributeIconMap)) {
-      attributeIconMap[group.code] = group.icon_url ?? null;
-    }
-  });
-
+const mapProductToWine = (product: ProductListItem): Wine => {
   const fallbackImage = product.gallery.find((image) => image.url)?.url ?? null
 
   return {
@@ -176,7 +163,6 @@ const mapProductToWine = (product: ProductListItem, attributeFilters: AttributeF
     showContactCta: product.show_contact_cta,
     categories: product.categories ?? [],
     extraAttrs: product.extra_attrs ?? {},
-    extraAttrIcons: attributeIconMap,
     attributes: product.attributes ?? [],
   }
 }
@@ -395,7 +381,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
     if (prefetchedOptions && prefetchedProducts) {
       const options = transformOptions(prefetchedOptions)
       const mapped = prefetchedProducts.data.map((item) => 
-        mapProductToWine(item, options.attributeFilters)
+        mapProductToWine(item)
       )
 
       set((state) => ({
@@ -525,7 +511,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
       }
       
       const options = get().options
-      const mapped = response.data.map((item) => mapProductToWine(item, options.attributeFilters))
+      const mapped = response.data.map((item) => mapProductToWine(item))
       
       set((state) => {
         let nextProducts = mapped

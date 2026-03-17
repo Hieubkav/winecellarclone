@@ -29,7 +29,6 @@ interface ProductCardProps {
 }
 
 interface AttributeItem {
-  icon: React.ReactNode;
   iconUrl?: string | null;
   iconName?: string | null; // Lucide icon name
   label: string;
@@ -58,38 +57,9 @@ const LUCIDE_ICONS: Record<string, React.ComponentType<{ className?: string; siz
   Droplets,
 };
 
-// Fallback icons based on group code
-const getFallbackIcon = (code?: string): React.ReactNode => {
-  if (!code) return <Sparkles size={12} />;
-
-  const lowerCode = code.toLowerCase();
-
-  if (lowerCode.includes('huong') || lowerCode.includes('flavor')) {
-    return <Sparkles size={12} />;
-  } else if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) {
-    return <Layers size={12} />;
-  } else if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) {
-    return <MapPin size={12} />;
-  } else if (lowerCode.includes('tuoi') || lowerCode.includes('age')) {
-    return <Hourglass size={12} />;
-  } else if (lowerCode.includes('dung_tich') || lowerCode.includes('volume') || lowerCode.includes('the_tich') || lowerCode.includes('ml')) {
-    return <Droplets size={12} />;
-  } else if (
-    lowerCode.includes('nong_do') ||
-    lowerCode.includes('alcohol') ||
-    lowerCode.includes('abv') ||
-    lowerCode.includes('phan_tram') ||
-    lowerCode.includes('percent')
-  ) {
-    return <Percent size={12} />;
-  }
-
-  return <Tag size={12} />;
-};
-
 // Icon renderer component
-const AttributeIcon = ({ url, iconName, fallbackIcon }: { url?: string | null; iconName?: string | null; fallbackIcon: React.ReactNode }) => {
-  // Ưu tiên: iconUrl (file image) > iconName (Lucide) > fallbackIcon
+const AttributeIcon = ({ url, iconName }: { url?: string | null; iconName?: string | null }) => {
+  // Ưu tiên: iconUrl (file image) > iconName (Lucide)
   if (url) {
     return (
       <Image
@@ -107,7 +77,7 @@ const AttributeIcon = ({ url, iconName, fallbackIcon }: { url?: string | null; i
     return <IconComponent className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#9B2C3B]" size={12} />;
   }
 
-  return <span className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex items-center justify-center text-[10px] sm:text-xs">{fallbackIcon}</span>;
+  return <span className="w-3.5 sm:w-4 h-3.5 sm:h-4" aria-hidden />;
 };
 
 // Attribute label - simplified without filter links for grouped items
@@ -131,7 +101,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Brand only (hide product type on card per request)
     if (wine.brand) {
       attrs.push({
-        icon: <Tag size={12} />,
+        iconName: "Tag",
         label: wine.brand,
         show: true,
         filterCode: "thuong_hieu",
@@ -143,7 +113,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Origin/Country
     if (wine.country) {
       attrs.push({
-        icon: <MapPin size={12} />,
+        iconName: "MapPin",
         label: wine.country,
         show: true,
         filterCode: "xuat_xu",
@@ -159,7 +129,6 @@ export const FilterProductCard = React.memo(function FilterProductCard({
         const termNames = attrGroup.terms.map(t => t.name).join(", ");
 
         attrs.push({
-          icon: getFallbackIcon(attrGroup.group_code),
           iconUrl: attrGroup.icon_url,
           iconName: attrGroup.icon_name,
           label: termNames,
@@ -171,11 +140,9 @@ export const FilterProductCard = React.memo(function FilterProductCard({
 
     // Extra attrs (nhập tay) - sử dụng icon_url từ API
     Object.entries(wine.extraAttrs ?? {}).forEach(([key, attr]) => {
-      const fallbackIcon = getFallbackIcon(key);
-
       attrs.push({
-        icon: fallbackIcon,
-        iconUrl: attr.icon_name ?? wine.extraAttrIcons?.[key],
+        iconUrl: attr.icon_url,
+        iconName: attr.icon_name,
         label: `${attr.value}`,
         show: true,
       });
@@ -184,7 +151,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Volume
     if (wine.volume && wine.volume > 0) {
       attrs.push({
-        icon: <Droplets size={12} />,
+        iconName: "Droplets",
         label: `${wine.volume}ml`,
         show: true
       });
@@ -193,7 +160,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
     // Alcohol
     if (wine.alcoholContent && wine.alcoholContent > 0) {
       attrs.push({
-        icon: <Percent size={12} />,
+        iconName: "Percent",
         label: `${wine.alcoholContent}%`,
         show: true
       });
@@ -246,7 +213,7 @@ export const FilterProductCard = React.memo(function FilterProductCard({
           {attributes.map((attr, index) => (
             <div key={index} className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600">
               <span className="text-[#9B2C3B] shrink-0 w-3.5 sm:w-4 flex items-center justify-center">
-                <AttributeIcon url={attr.iconUrl} iconName={attr.iconName} fallbackIcon={attr.icon} />
+                <AttributeIcon url={attr.iconUrl} iconName={attr.iconName} />
               </span>
               <AttributeLabel attr={attr} />
             </div>

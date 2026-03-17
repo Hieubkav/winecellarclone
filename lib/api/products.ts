@@ -173,12 +173,15 @@ export async function fetchProductList(
 
   return apiFetch<ProductListResponse>(`v1/san-pham${query}`, {
     signal: options?.signal,
+    next: { tags: ['products'] },
   });
 }
 
 export async function fetchProductDetail(slug: string): Promise<ProductDetail | null> {
   try {
-    const response = await apiFetch<ProductDetailResponse>(`v1/san-pham/${encodeURIComponent(slug)}`);
+    const response = await apiFetch<ProductDetailResponse>(`v1/san-pham/${encodeURIComponent(slug)}`, {
+      next: { tags: ['products'] },
+    });
     return response.data;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
@@ -228,7 +231,9 @@ interface ProductFiltersResponse {
 
 export async function fetchProductFilters(typeId?: number | null): Promise<ProductFiltersPayload> {
   const query = typeId ? `?type_id=${typeId}` : '';
-  const response = await apiFetch<ProductFiltersResponse>(`v1/san-pham/filters/options${query}`);
+  const response = await apiFetch<ProductFiltersResponse>(`v1/san-pham/filters/options${query}`, {
+    next: { tags: ['filters'] },
+  });
 
   return response.data;
 }
