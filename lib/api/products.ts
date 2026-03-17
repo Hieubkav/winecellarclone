@@ -19,6 +19,7 @@ export interface ExtraAttr {
   label: string;
   value: string | number;
   type: 'text' | 'number';
+  icon_url?: string | null;
   icon_name?: string | null;
 }
 

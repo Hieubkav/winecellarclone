@@ -314,6 +314,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         if (!addedCodes.has(code)) {
           attrs.push({
             iconName: attr.icon_name,
+            iconUrl: attr.icon_url,
             groupCode: code,
             label: attr.label,
             value: String(attr.value),
