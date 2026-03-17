@@ -231,6 +231,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       : "4 / 5";
   const desktopThumbnailCount = 3;
   const maxThumbnailStart = Math.max(0, imageItems.length - desktopThumbnailCount);
+  const needsDesktopThumbnailPager = imageItems.length > desktopThumbnailCount;
   const visibleThumbnails = imageItems.slice(
     thumbnailStartIndex,
     thumbnailStartIndex + desktopThumbnailCount
@@ -350,32 +351,36 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             <div className="hidden lg:flex lg:items-start lg:gap-6">
               {imageItems.length > 1 && (
                 <div className="flex w-24 shrink-0 flex-col items-stretch gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setThumbnailStartIndex((prev) => Math.max(0, prev - 1))}
-                    disabled={!canScrollUp}
-                    className={`flex h-7 w-full items-center justify-center rounded-md border border-[#e5ddd0]/60 bg-white text-[#9B2C3B] transition ${
-                      canScrollUp ? "hover:bg-[#9B2C3B]/10" : "opacity-40 cursor-not-allowed"
-                    }`}
-                    aria-label="Xem ảnh phía trên"
-                  >
-                    <ChevronUp className="h-4 w-4" />
-                  </button>
+                  {needsDesktopThumbnailPager && (
+                    <button
+                      type="button"
+                      onClick={() => setThumbnailStartIndex((prev) => Math.max(0, prev - 1))}
+                      disabled={!canScrollUp}
+                      className={`flex h-7 w-full items-center justify-center rounded-md border border-[#e5ddd0]/60 bg-white text-[#9B2C3B] transition ${
+                        canScrollUp ? "hover:bg-[#9B2C3B]/10" : "opacity-40 cursor-not-allowed"
+                      }`}
+                      aria-label="Xem ảnh phía trên"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                  )}
 
                   <div
                     className="relative w-24 overflow-hidden"
                     style={{ height: "calc(3 * 7.5rem + 2 * 1rem)" }}
                   >
-                    {canScrollUp && (
+                    {needsDesktopThumbnailPager && canScrollUp && (
                       <div className="pointer-events-none absolute left-0 top-0 z-10 h-6 w-full bg-gradient-to-b from-white to-transparent" />
                     )}
-                    {canScrollDown && (
+                    {needsDesktopThumbnailPager && canScrollDown && (
                       <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-6 w-full bg-gradient-to-t from-white to-transparent" />
                     )}
 
                     <div className="flex h-full flex-col items-stretch gap-4">
-                      {visibleThumbnails.map((img, idx) => {
-                        const actualIndex = thumbnailStartIndex + idx;
+                      {(needsDesktopThumbnailPager ? visibleThumbnails : imageItems).map((img, idx) => {
+                        const actualIndex = needsDesktopThumbnailPager
+                          ? thumbnailStartIndex + idx
+                          : idx;
                         return (
                           <button
                             key={img.src}
@@ -401,17 +406,19 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setThumbnailStartIndex((prev) => Math.min(maxThumbnailStart, prev + 1))}
-                    disabled={!canScrollDown}
-                    className={`flex h-7 w-full items-center justify-center rounded-md border border-[#e5ddd0]/60 bg-white text-[#9B2C3B] transition ${
-                      canScrollDown ? "hover:bg-[#9B2C3B]/10" : "opacity-40 cursor-not-allowed"
-                    }`}
-                    aria-label="Xem ảnh phía dưới"
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
+                  {needsDesktopThumbnailPager && (
+                    <button
+                      type="button"
+                      onClick={() => setThumbnailStartIndex((prev) => Math.min(maxThumbnailStart, prev + 1))}
+                      disabled={!canScrollDown}
+                      className={`flex h-7 w-full items-center justify-center rounded-md border border-[#e5ddd0]/60 bg-white text-[#9B2C3B] transition ${
+                        canScrollDown ? "hover:bg-[#9B2C3B]/10" : "opacity-40 cursor-not-allowed"
+                      }`}
+                      aria-label="Xem ảnh phía dưới"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               )}
 
