@@ -328,28 +328,30 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
             <div className="hidden lg:flex lg:items-start lg:gap-6">
               {imageItems.length > 1 && (
-                <div className="flex w-24 shrink-0 flex-col items-stretch gap-4 max-h-[calc(3*7.5rem+2*1rem)] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-                  {imageItems.map((img, idx) => (
-                    <button
-                      key={img.src}
-                      type="button"
-                      onClick={() => setSelectedImage(idx)}
-                      className={`relative block w-24 overflow-hidden rounded-lg border bg-white transition-all ${
-                        selectedImage === idx 
-                          ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
-                          : 'border-[#e5ddd0]/40 opacity-70'
-                      }`}
-                      style={{ aspectRatio: '4 / 5' }}
-                    >
-                      <ProductImage 
-                        src={img.src} 
-                        alt={`Thumbnail ${idx + 1}`} 
-                        fill 
-                        className="object-contain p-0.5" 
-                        sizes="96px"
-                      />
-                    </button>
-                  ))}
+                <div className="w-24 shrink-0 overflow-hidden" style={{ height: "calc(3 * 7.5rem + 2 * 1rem)" }}>
+                  <div className="product-thumb-scrollbar flex h-full flex-col items-stretch gap-4 overflow-y-auto pr-1">
+                    {imageItems.map((img, idx) => (
+                      <button
+                        key={img.src}
+                        type="button"
+                        onClick={() => setSelectedImage(idx)}
+                        className={`relative block w-24 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
+                          selectedImage === idx 
+                            ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
+                            : 'border-[#e5ddd0]/40 opacity-70'
+                        }`}
+                        style={{ aspectRatio: '4 / 5' }}
+                      >
+                        <ProductImage 
+                          src={img.src} 
+                          alt={`Thumbnail ${idx + 1}`} 
+                          fill 
+                          className="object-contain p-0.5" 
+                          sizes="96px"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 

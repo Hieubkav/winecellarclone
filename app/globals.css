@@ -100,6 +100,29 @@ body {
   background: rgb(148 163 184 / 50%);
 }
 
+/* Product gallery thumbnail scrollbar */
+.product-thumb-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 40%) transparent;
+}
+
+.product-thumb-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.product-thumb-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.product-thumb-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 40%);
+  border-radius: 999px;
+}
+
+.product-thumb-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184 / 60%);
+}
+
 /* Admin skeleton animation */
 @keyframes admin-shimmer {
   0% {
