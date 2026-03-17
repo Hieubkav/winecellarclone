@@ -6,7 +6,8 @@ import Link from 'next/link';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import DynamicIcon from '@/components/shared/DynamicIcon';
- import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
+import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
+import { AdminStickyActionBar } from '../../components/AdminStickyActionBar';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { createProduct } from '@/features/admin/products/api/products.api';
@@ -344,7 +345,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
    }
  
    return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
+    <div className="w-full max-w-6xl mx-auto space-y-6 pb-28">
        <div className="flex items-center gap-4">
          <Link href="/admin/products">
            <Button variant="ghost" size="icon">
@@ -645,28 +646,34 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                />
              </div>
  
-             <div className="flex items-center gap-2">
-               <input
-                 type="checkbox"
-                 id="active"
-                 checked={active}
-                 onChange={(e) => setActive(e.target.checked)}
-                 className="h-4 w-4 rounded border-slate-300"
-               />
-               <Label htmlFor="active">Hiển thị sản phẩm</Label>
-             </div>
            </CardContent>
- 
-           <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 rounded-b-lg flex justify-end gap-3">
-             <Link href="/admin/products">
-               <Button type="button" variant="ghost">Hủy bỏ</Button>
-             </Link>
-             <Button type="submit" disabled={isSubmitting}>
-               {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-               Tạo sản phẩm
-             </Button>
-           </div>
         </Card>
+
+        <AdminStickyActionBar
+          leftActions={
+            <Link href="/admin/products">
+              <Button type="button" variant="ghost">Hủy bỏ</Button>
+            </Link>
+          }
+          rightActions={
+            <>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="active"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                <Label htmlFor="active">Hiển thị</Label>
+              </div>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+                Tạo sản phẩm
+              </Button>
+            </>
+          }
+        />
       </form>
 
       <ProductImageCropModal

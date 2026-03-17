@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, AlertTriangle } from 'lucide-react';
 import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
+import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
 import { LexicalEditor } from '@/app/(admin)/admin/components/LexicalEditor';
 import { getImageUrl } from '@/lib/utils/image';
 import { useArticleForm } from '../hooks/useArticleForm';
@@ -71,7 +72,7 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-28">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link href="/admin/articles">
@@ -249,38 +250,44 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
               <LexicalEditor initialContent={content} onChange={setContent} folder="articles" />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="active"
-                checked={active}
-                onChange={(event) => setActive(event.target.checked)}
-                className="w-4 h-4 rounded border-slate-300"
-              />
-              <Label htmlFor="active" className="cursor-pointer">
-                Hiển thị công khai
-              </Label>
-            </div>
           </div>
         </Card>
 
-        <div className="flex justify-end gap-3">
-          <Link href="/admin/articles">
-            <Button type="button" variant="outline" disabled={isSubmitting}>
-              Hủy
-            </Button>
-          </Link>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 size={16} className="animate-spin mr-2" />
-                Đang lưu...
-              </>
-            ) : (
-              'Lưu thay đổi'
-            )}
-          </Button>
-        </div>
+        <AdminStickyActionBar
+          leftActions={
+            <Link href="/admin/articles">
+              <Button type="button" variant="outline" disabled={isSubmitting}>
+                Hủy
+              </Button>
+            </Link>
+          }
+          rightActions={
+            <>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="active"
+                  checked={active}
+                  onChange={(event) => setActive(event.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300"
+                />
+                <Label htmlFor="active" className="cursor-pointer">
+                  Hiển thị công khai
+                </Label>
+              </div>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin mr-2" />
+                    Đang lưu...
+                  </>
+                ) : (
+                  'Lưu thay đổi'
+                )}
+              </Button>
+            </>
+          }
+        />
       </form>
     </div>
   );
