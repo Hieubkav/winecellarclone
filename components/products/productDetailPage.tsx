@@ -400,7 +400,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
                   className="relative w-full p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
-                  style={{ aspectRatio: selectedImageAspectRatio }}
+                  style={{ aspectRatio: '4 / 5' }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
                   <ProductImage
@@ -487,7 +487,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
                   className="relative w-full p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
-                  style={{ aspectRatio: selectedImageAspectRatio }}
+                  style={{ aspectRatio: '4 / 5' }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
                   <ProductImage
