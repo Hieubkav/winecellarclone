@@ -14,6 +14,7 @@ import { uploadProductImage } from '@/features/admin/products/api/products.uploa
 import { getImageUrl } from '@/lib/utils/image';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { toast } from 'sonner';
+import { useAdminLayout } from '../../../AdminLayoutContext';
 
 const LexicalEditor = dynamic(
   () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
@@ -75,6 +76,7 @@ const generateSlug = (text: string): string => {
   const cropUrlRef = useRef<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isNameCopied, setIsNameCopied] = useState(false);
+  const { isSidebarCollapsed } = useAdminLayout();
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
   const didSyncTypeRef = useRef(false);
@@ -802,7 +804,12 @@ const generateSlug = (text: string): string => {
            </CardContent>
         </Card>
 
-        <div className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur">
+        <div
+          className="fixed bottom-0 right-0 left-0 lg:left-[var(--admin-sidebar-offset)] z-30 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur"
+          style={{
+            ['--admin-sidebar-offset' as string]: isSidebarCollapsed ? '80px' : '280px',
+          }}
+        >
           <div className="w-full px-3 sm:px-4 lg:px-6">
             <div className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="flex items-center gap-2">

@@ -6,11 +6,13 @@ import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { Toaster } from 'sonner';
 import { AdminSessionProvider, useAdminSession } from './AdminSessionContext';
+import { AdminLayoutProvider, useAdminLayout } from './AdminLayoutContext';
  
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isSidebarCollapsed, setIsSidebarCollapsed } = useAdminLayout();
   const { authChecked } = useAdminSession();
 
   const isLoginPage = pathname === '/admin/login';
@@ -49,7 +51,12 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex font-sans admin-theme">
       <Toaster position="top-right" richColors closeButton />
-      <Sidebar mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
+      <Sidebar
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+      />
  
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
         <Header
@@ -73,7 +80,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AdminSessionProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
+      <AdminLayoutProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </AdminLayoutProvider>
     </AdminSessionProvider>
   );
 }

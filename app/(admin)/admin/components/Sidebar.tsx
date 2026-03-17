@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -123,10 +123,16 @@ import { useAdminSession } from '../AdminSessionContext';
  interface SidebarProps {
    mobileMenuOpen: boolean;
    setMobileMenuOpen: (open: boolean) => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
  }
  
- export const Sidebar: React.FC<SidebarProps> = ({ mobileMenuOpen, setMobileMenuOpen }) => {
-   const [isCollapsed, setIsCollapsed] = useState(false);
+export const Sidebar: React.FC<SidebarProps> = ({
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  isCollapsed,
+  setIsCollapsed,
+}) => {
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
    const [siteName] = useState<string>('Thiên Kim Wine');
    const pathname = usePathname();
