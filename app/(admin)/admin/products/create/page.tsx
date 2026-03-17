@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
@@ -588,9 +589,19 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                   {attributeFilters.map(group => (
                     <div key={group.code} className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                        {group.icon_url && (
-                          <Image src={getImageUrl(group.icon_url)} alt="" width={16} height={16} sizes="16px" className="w-4 h-4" />
-                        )}
+                        {(() => {
+                          const allIcons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
+                          const IconComponent = group.icon_name && allIcons[group.icon_name]
+                            ? allIcons[group.icon_name]
+                            : null;
+                          if (IconComponent) {
+                            return <IconComponent className="w-4 h-4 text-red-500" />;
+                          }
+                          if (group.icon_url) {
+                            return <Image src={getImageUrl(group.icon_url)} alt="" width={16} height={16} sizes="16px" className="w-4 h-4" />;
+                          }
+                          return null;
+                        })()}
                         {group.name}
                         {group.filter_type === 'chon_don' && (
                           <span className="text-xs text-slate-400">(chọn 1)</span>

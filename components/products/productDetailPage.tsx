@@ -440,7 +440,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
               )}
             </div>
 
-            <div className="hidden lg:flex lg:items-start lg:gap-4">
+            <div className="hidden lg:flex lg:items-start lg:gap-6">
               {imageItems.length > 1 && (
                 <div className="flex w-24 shrink-0 flex-col items-stretch gap-4">
                   {imageItems.map((img, idx) => (
