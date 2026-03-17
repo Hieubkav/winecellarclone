@@ -157,13 +157,15 @@ export default function IconAuditPage() {
 
       if (settings?.contact_config?.cards) {
         settings.contact_config.cards.forEach((card) => {
+          const resolved = resolveIconInput(card.icon);
+
           addItem({
             id: `contact-card-${card.id}`,
             source: 'public-contact-config',
             label: `${card.title} (${card.type})`,
             rawIcon: card.icon ?? null,
-            iconName: card.icon ?? null,
-            iconUrl: null,
+            iconName: resolved.iconName ?? card.icon ?? null,
+            iconUrl: resolved.iconUrl,
           });
         });
       }

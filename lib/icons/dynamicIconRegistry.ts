@@ -212,7 +212,8 @@ export const DYNAMIC_ICON_MAP: Record<string, LucideIcon> = {
 export const DYNAMIC_ICON_NAMES = Object.keys(DYNAMIC_ICON_MAP);
 
 const normalizeIconName = (iconPath: string): string => {
-  return iconPath
+  const normalized = iconPath.includes(":") ? iconPath.split(":").pop() || iconPath : iconPath;
+  return normalized
     .split(/[-_\s]+/)
     .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ""))
     .join("");
@@ -223,21 +224,21 @@ export const resolveIconInput = (iconPath?: string | null) => {
     return { iconUrl: null, iconName: null };
   }
 
-  if (
-    iconPath.startsWith("http://") ||
-    iconPath.startsWith("https://") ||
-    iconPath.startsWith("/") ||
-    iconPath.includes("/") ||
-    iconPath.includes(".")
-  ) {
+  if (iconPath.startsWith("http://") || iconPath.startsWith("https://")) {
     return { iconUrl: iconPath, iconName: null };
   }
 
-  if (DYNAMIC_ICON_MAP[iconPath]) {
-    return { iconUrl: null, iconName: iconPath };
+  if (iconPath.startsWith("/") || iconPath.includes("/") || iconPath.includes(".")) {
+    return { iconUrl: iconPath, iconName: null };
   }
 
-  const normalizedName = normalizeIconName(iconPath);
+  const normalizedInput = iconPath.includes(":") ? iconPath.split(":").pop() || iconPath : iconPath;
+
+  if (DYNAMIC_ICON_MAP[normalizedInput]) {
+    return { iconUrl: null, iconName: normalizedInput };
+  }
+
+  const normalizedName = normalizeIconName(normalizedInput);
   if (DYNAMIC_ICON_MAP[normalizedName]) {
     return { iconUrl: null, iconName: normalizedName };
   }
