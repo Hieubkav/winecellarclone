@@ -68,8 +68,9 @@ export default function BrandShowcase({ title, brands = [] }: BrandShowcaseProps
                         alt={brand.alt}
                         width={180}
                         height={80}
-                        priority={index < 5}
-                        className="w-auto h-auto max-h-[80px] object-contain transition-transform duration-300 hover:scale-105"
+                        priority={index < 3}
+                        style={{ width: "auto", height: "auto" }}
+                        className="max-h-[80px] object-contain transition-transform duration-300 hover:scale-105"
                       />
                     </Link>
                   ) : (
@@ -82,8 +83,9 @@ export default function BrandShowcase({ title, brands = [] }: BrandShowcaseProps
                         alt={brand.alt}
                         width={180}
                         height={80}
-                        priority={index < 5}
-                        className="w-auto h-auto max-h-[80px] object-contain transition-transform duration-300 hover:scale-105"
+                        priority={index < 3}
+                        style={{ width: "auto", height: "auto" }}
+                        className="max-h-[80px] object-contain transition-transform duration-300 hover:scale-105"
                       />
                     </div>
                   )}

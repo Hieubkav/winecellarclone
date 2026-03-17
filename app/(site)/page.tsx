@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import {
   fetchHomeComponents,
   type HomeComponent,
@@ -13,11 +14,12 @@ import {
 import HeroCarousel from "@/components/home/carouselBaner";
 import DualBanner from "@/components/home/DualBanner";
 import CategoryGrid from "@/components/home/CategoryGrid";
-import FavouriteProducts from "@/components/home/FavouriteProducts";
-import BrandShowcase from "@/components/home/BrandShowcase";
-import CollectionShowcase from "@/components/home/CollectionShowcase";
-import EditorialSpotlight from "@/components/home/EditorialSpotlight";
-import HomeFooter from "@/components/home/Footer";
+
+const FavouriteProducts = dynamic(() => import("@/components/home/FavouriteProducts"));
+const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"));
+const CollectionShowcase = dynamic(() => import("@/components/home/CollectionShowcase"));
+const EditorialSpotlight = dynamic(() => import("@/components/home/EditorialSpotlight"));
+const HomeFooter = dynamic(() => import("@/components/home/Footer"));
 import {
   adaptHeroCarouselProps,
   adaptDualBannerProps,

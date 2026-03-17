@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import Autoplay, { type AutoplayType } from "embla-carousel-autoplay"
 
@@ -94,29 +95,14 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                   className="border-none bg-transparent p-0 pl-0 shadow-none"
                 >
                   <div className="relative block">
-                    {/* Container với aspect ratio */}
-                    <div className="relative block w-full bg-slate-900 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9] overflow-hidden">
-                      {/* Blurred background - FULL SCREEN không bị giới hạn */}
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          backgroundImage: `url(${slide.image})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          filter: 'blur(40px)',
-                          transform: 'scale(1.2)', // Scale ra để không thấy edge
-                        }}
-                        aria-hidden="true"
-                      />
-                      {/* Dark overlay để làm mờ background */}
-                      <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
-                      {/* Main image - object-contain ở giữa */}
-                      <img
+                    <div className="relative block w-full bg-slate-950 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9] overflow-hidden">
+                      <Image
                         src={slide.image}
                         alt={slide.alt || `Banner ${index + 1}`}
-                        className="relative w-full h-full object-contain z-10"
-                        loading={index === 0 ? "eager" : "lazy"}
-                        fetchPriority={index === 0 ? "high" : "low"}
+                        fill
+                        priority={index === 0}
+                        sizes="100vw"
+                        className="relative object-contain z-10"
                       />
                     </div>
                     <span className="sr-only">{slide.alt}</span>

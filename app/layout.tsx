@@ -132,7 +132,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" dir="ltr" className="scroll-smooth">
+    <html lang="vi" dir="ltr" className="scroll-smooth" data-scroll-behavior="smooth">
       <body className={`${montserrat.variable} ${playfairDisplay.variable} font-sans antialiased bg-white text-[#1C1C1C]`}>
         <QueryProvider>
           {children}

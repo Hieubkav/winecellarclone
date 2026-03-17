@@ -97,8 +97,6 @@ const nextConfig: NextConfig = {
               '<https://winecellar.vn>; rel=preconnect; crossorigin',
               '<https://images.unsplash.com>; rel=preconnect; crossorigin',
               '<https://placehold.co>; rel=preconnect; crossorigin',
-              // Preload critical assets
-              '</media/logo.webp>; rel=preload; as=image; type=image/webp',
             ].join(', '),
           },
           // Security Headers
