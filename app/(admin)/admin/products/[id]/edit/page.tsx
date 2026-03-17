@@ -3,7 +3,7 @@
  import React, { useState, useEffect, use, useCallback, useRef } from 'react';
  import Image from 'next/image';
  import Link from 'next/link';
-import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
@@ -401,17 +401,32 @@ const generateSlug = (text: string): string => {
    }
  
    return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
-       <div className="flex items-center gap-4">
-         <Link href="/admin/products">
-           <Button variant="ghost" size="icon">
-             <ArrowLeft size={20} />
-           </Button>
-         </Link>
-         <div>
-           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa sản phẩm</h1>
-           <p className="text-sm text-slate-500">Cập nhật thông tin sản phẩm</p>
+     <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
+       <div className="flex flex-wrap items-center justify-between gap-4">
+         <div className="flex items-center gap-4">
+           <Link href="/admin/products">
+             <Button variant="ghost" size="icon">
+               <ArrowLeft size={20} />
+             </Button>
+           </Link>
+           <div>
+             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Chỉnh sửa sản phẩm</h1>
+             <p className="text-sm text-slate-500">Cập nhật thông tin sản phẩm</p>
+           </div>
          </div>
+         {slug ? (
+           <Link href={`/san-pham/${slug}`} target="_blank" rel="noopener noreferrer">
+             <Button variant="outline" className="gap-2">
+               <ExternalLink size={16} />
+               Xem trên web
+             </Button>
+           </Link>
+         ) : (
+           <Button variant="outline" disabled className="gap-2">
+             <ExternalLink size={16} />
+             Xem trên web
+           </Button>
+         )}
        </div>
  
        <form onSubmit={handleSubmit}>
