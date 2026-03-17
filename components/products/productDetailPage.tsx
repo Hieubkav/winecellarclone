@@ -442,7 +442,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
             <div className="hidden lg:flex lg:items-start lg:gap-4">
               {imageItems.length > 1 && (
-                <div className="lg:flex lg:w-24 lg:shrink-0 lg:flex-col lg:items-stretch lg:gap-4">
+                <div className="flex w-24 shrink-0 flex-col items-stretch gap-4">
                   {imageItems.map((img, idx) => (
                     <button
                       key={img.src}
