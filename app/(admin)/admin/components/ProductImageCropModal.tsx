@@ -19,8 +19,8 @@ type ImageSize = { width: number; height: number };
 
 const DEFAULT_OUTPUT_WIDTH = 1200;
 const DEFAULT_OUTPUT_HEIGHT = 1500;
-const MAX_PREVIEW_WIDTH = 420;
-const MAX_PREVIEW_HEIGHT = 240;
+const PREVIEW_WIDTH = 360;
+const PREVIEW_HEIGHT = 200;
 
 export function ProductImageCropModal({
   open,
@@ -53,12 +53,8 @@ export function ProductImageCropModal({
   }, [open, src]);
 
   const previewSize = useMemo(() => {
-    if (!imageSize) return null;
-    const ratio = imageSize.width / imageSize.height;
-    const width = Math.min(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT * ratio);
-    const height = width / ratio;
-    return { width, height };
-  }, [imageSize]);
+    return { width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT };
+  }, []);
 
   useEffect(() => {
     if (!previewSize) return;
@@ -67,7 +63,7 @@ export function ProductImageCropModal({
 
   const baseScale = useMemo(() => {
     if (!imageSize || !containerSize) return 1;
-    return Math.max(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
+    return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
   }, [imageSize, containerSize]);
 
   const actualScale = baseScale * zoom;
@@ -206,8 +202,8 @@ export function ProductImageCropModal({
               ref={containerRef}
               className="relative overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
               style={{
-                width: previewSize?.width ? `${previewSize.width}px` : undefined,
-                height: previewSize?.height ? `${previewSize.height}px` : undefined,
+                width: `${PREVIEW_WIDTH}px`,
+                height: `${PREVIEW_HEIGHT}px`,
               }}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
