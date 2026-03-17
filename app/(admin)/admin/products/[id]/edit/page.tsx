@@ -1,19 +1,29 @@
- 'use client';
- 
- import React, { useState, useEffect, use, useCallback, useRef } from 'react';
- import Image from 'next/image';
- import Link from 'next/link';
+'use client';
+
+import React, { useState, useEffect, use, useCallback, useRef } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
- import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
+import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
 import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
- import { getImageUrl } from '@/lib/utils/image';
- import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
-import { LexicalEditor } from '../../../components/LexicalEditor';
+import { getImageUrl } from '@/lib/utils/image';
+import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { toast } from 'sonner';
+
+const LexicalEditor = dynamic(
+  () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+    ),
+  }
+);
 
 const formatNumberInput = (value: string) => {
   const digits = value.replace(/[^0-9]/g, '');
@@ -69,14 +79,48 @@ const generateSlug = (text: string): string => {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
  
    useEffect(() => {
-     async function loadData() {
+    const syncFiltersWithProduct = (
+      filters: Awaited<ReturnType<typeof fetchProductFilters>>,
+      product: Awaited<ReturnType<typeof fetchAdminProduct>>['data']
+    ) => {
+      setCategories(filters.categories);
+      setAttributeFilters(filters.attribute_filters || []);
+
+      const termIds = (product.term_ids || []) as number[];
+      const nextSelectedTermIds: Record<string, number[]> = {};
+      const nextManualAttributes: Record<string, string> = {};
+
+      (filters.attribute_filters || []).forEach(group => {
+        if (group.filter_type === 'nhap_tay' || group.filter_type === 'range') {
+          const extraAttr = product.extra_attrs?.[group.code];
+          if (extraAttr?.value !== undefined && extraAttr?.value !== null) {
+            nextManualAttributes[group.code] = String(extraAttr.value);
+          }
+          return;
+        }
+
+        const selected = group.options
+          .map(option => option.id)
+          .filter(optionId => termIds.includes(optionId));
+
+        if (selected.length > 0) {
+          nextSelectedTermIds[group.code] = selected;
+        }
+      });
+
+      setSelectedTermIds(nextSelectedTermIds);
+      setManualAttributes(nextManualAttributes);
+    };
+
+    async function loadData() {
+      let product: Awaited<ReturnType<typeof fetchAdminProduct>>['data'] | null = null;
        try {
          const [productRes, filtersRes] = await Promise.all([
            fetchAdminProduct(Number(id)),
            fetchProductFilters(),
          ]);
  
-         const product = productRes.data;
+        product = productRes.data;
          setName(product.name);
          setSlug(product.slug);
         setPrice(formatNumberInput(product.price?.toString() || ''));
@@ -97,43 +141,22 @@ const generateSlug = (text: string): string => {
  
          setTypes(filtersRes.types);
  
-        const baseFilters = product.type_id
-          ? await fetchProductFilters(product.type_id)
-          : filtersRes;
-
-        setCategories(baseFilters.categories);
-        setAttributeFilters(baseFilters.attribute_filters || []);
-
-        const termIds = (product.term_ids || []) as number[];
-        const nextSelectedTermIds: Record<string, number[]> = {};
-        const nextManualAttributes: Record<string, string> = {};
-
-        (baseFilters.attribute_filters || []).forEach(group => {
-          if (group.filter_type === 'nhap_tay' || group.filter_type === 'range') {
-            const extraAttr = product.extra_attrs?.[group.code];
-            if (extraAttr?.value !== undefined && extraAttr?.value !== null) {
-              nextManualAttributes[group.code] = String(extraAttr.value);
-            }
-            return;
-          }
-
-          const selected = group.options
-            .map(option => option.id)
-            .filter(optionId => termIds.includes(optionId));
-
-          if (selected.length > 0) {
-            nextSelectedTermIds[group.code] = selected;
-          }
-        });
-
-        setSelectedTermIds(nextSelectedTermIds);
-        setManualAttributes(nextManualAttributes);
+        syncFiltersWithProduct(filtersRes, product);
        } catch (error) {
          console.error('Failed to load product:', error);
          setNotFound(true);
        } finally {
          setIsLoading(false);
        }
+      if (product?.type_id) {
+        fetchProductFilters(product.type_id)
+          .then((typeFilters) => {
+            syncFiltersWithProduct(typeFilters, product);
+          })
+          .catch((error) => {
+            console.error('Failed to load product filters:', error);
+          });
+      }
      }
      loadData();
    }, [id]);
@@ -491,6 +514,8 @@ const generateSlug = (text: string): string => {
                         width={180}
                         height={225}
                         sizes="180px"
+                        priority={index === 0}
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
                         className="w-[180px] h-[225px] object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                       />
                       {index === 0 && (
