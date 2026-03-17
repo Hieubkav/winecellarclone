@@ -358,9 +358,42 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 lg:items-start">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
           <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+            <div className="flex flex-col gap-4 lg:hidden">
+              <div className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm">
+                {discountPercentage > 0 && (
+                  <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
+                    -{discountPercentage}%
+                  </span>
+                )}
+                {/* Blur background layer */}
+                <div 
+                  className="absolute inset-0 scale-150 blur-3xl opacity-40"
+                  style={{
+                    backgroundImage: `url(${imageSources[selectedImage]})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+                {/* Main image container */}
+                <button
+                  type="button"
+                  onClick={() => setIsImagePreviewOpen(true)}
+                  className="relative w-full aspect-[4/5] p-2 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  aria-label="Xem ảnh sản phẩm lớn hơn"
+                >
+                  <ProductImage
+                    src={imageSources[selectedImage]}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                    priority
+                  />
+                </button>
+              </div>
+
               {imageSources.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent lg:hidden">
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                   {imageSources.map((img, idx) => (
                     <button
                       key={idx}
@@ -382,9 +415,11 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                   ))}
                 </div>
               )}
+            </div>
 
+            <div className="hidden lg:flex lg:items-start lg:gap-4">
               {imageSources.length > 1 && (
-                <div className="hidden lg:flex lg:w-24 lg:shrink-0 lg:flex-col lg:gap-4">
+                <div className="lg:w-24 lg:shrink-0 lg:flex lg:flex-col lg:gap-4">
                   {imageSources.map((img, idx) => (
                     <button
                       key={idx}
@@ -407,7 +442,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 </div>
               )}
 
-              <div className="relative w-full max-w-[480px] mx-auto lg:mx-0 overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm">
+              <div className="relative w-full max-w-[480px] overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm">
                 {discountPercentage > 0 && (
                   <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
                     -{discountPercentage}%
