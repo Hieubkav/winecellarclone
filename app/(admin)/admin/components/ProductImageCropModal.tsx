@@ -19,6 +19,8 @@ type ImageSize = { width: number; height: number };
 
 const DEFAULT_OUTPUT_WIDTH = 1200;
 const DEFAULT_OUTPUT_HEIGHT = 1500;
+const MAX_PREVIEW_WIDTH = 420;
+const MAX_PREVIEW_HEIGHT = 240;
 
 export function ProductImageCropModal({
   open,
@@ -50,18 +52,18 @@ export function ProductImageCropModal({
     setOffset({ x: 0, y: 0 });
   }, [open, src]);
 
-  useEffect(() => {
-    if (!open) return;
-    const handleResize = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      setContainerSize({ width: rect.width, height: rect.height });
-    };
+  const previewSize = useMemo(() => {
+    if (!imageSize) return null;
+    const ratio = imageSize.width / imageSize.height;
+    const width = Math.min(MAX_PREVIEW_WIDTH, MAX_PREVIEW_HEIGHT * ratio);
+    const height = width / ratio;
+    return { width, height };
+  }, [imageSize]);
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [open]);
+  useEffect(() => {
+    if (!previewSize) return;
+    setContainerSize(previewSize);
+  }, [previewSize]);
 
   const baseScale = useMemo(() => {
     if (!imageSize || !containerSize) return 1;
@@ -70,19 +72,33 @@ export function ProductImageCropModal({
 
   const actualScale = baseScale * zoom;
 
+  const cropRect = useMemo(() => {
+    if (!containerSize) return null;
+    const cropWidth = Math.min(containerSize.width, containerSize.height * aspectRatio);
+    const cropHeight = cropWidth / aspectRatio;
+    return {
+      width: cropWidth,
+      height: cropHeight,
+      left: (containerSize.width - cropWidth) / 2,
+      top: (containerSize.height - cropHeight) / 2,
+    };
+  }, [aspectRatio, containerSize]);
+
   const clampOffset = useCallback(
     (nextOffset: { x: number; y: number }) => {
       if (!imageSize || !containerSize) return nextOffset;
+      const viewWidth = cropRect?.width ?? containerSize.width;
+      const viewHeight = cropRect?.height ?? containerSize.height;
       const displayWidth = imageSize.width * actualScale;
       const displayHeight = imageSize.height * actualScale;
-      const maxX = Math.max(0, (displayWidth - containerSize.width) / 2);
-      const maxY = Math.max(0, (displayHeight - containerSize.height) / 2);
+      const maxX = Math.max(0, (displayWidth - viewWidth) / 2);
+      const maxY = Math.max(0, (displayHeight - viewHeight) / 2);
       return {
         x: Math.min(maxX, Math.max(-maxX, nextOffset.x)),
         y: Math.min(maxY, Math.max(-maxY, nextOffset.y)),
       };
     },
-    [actualScale, containerSize, imageSize]
+    [actualScale, containerSize, cropRect, imageSize]
   );
 
   useEffect(() => {
@@ -137,8 +153,10 @@ export function ProductImageCropModal({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const cropWidth = containerSize.width / actualScale;
-    const cropHeight = containerSize.height / actualScale;
+    const viewWidth = cropRect?.width ?? containerSize.width;
+    const viewHeight = cropRect?.height ?? containerSize.height;
+    const cropWidth = viewWidth / actualScale;
+    const cropHeight = viewHeight / actualScale;
     const cropX = (imageSize.width / 2) - (cropWidth / 2) - offset.x / actualScale;
     const cropY = (imageSize.height / 2) - (cropHeight / 2) - offset.y / actualScale;
 
@@ -186,8 +204,11 @@ export function ProductImageCropModal({
           <div className="flex justify-center">
             <div
               ref={containerRef}
-              className="relative w-full max-w-[420px] overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
-              style={{ aspectRatio }}
+              className="relative overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+              style={{
+                width: previewSize?.width ? `${previewSize.width}px` : undefined,
+                height: previewSize?.height ? `${previewSize.height}px` : undefined,
+              }}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
@@ -204,7 +225,17 @@ export function ProductImageCropModal({
                 }}
                 draggable={false}
               />
-              <div className="pointer-events-none absolute inset-0 ring-1 ring-white/70" />
+              {cropRect && (
+                <div
+                  className="pointer-events-none absolute border border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]"
+                  style={{
+                    width: cropRect.width,
+                    height: cropRect.height,
+                    left: cropRect.left,
+                    top: cropRect.top,
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -225,7 +256,7 @@ export function ProductImageCropModal({
                 <ZoomIn size={16} className="text-slate-500" />
               </div>
               <div className="flex items-center justify-between text-[11px] text-slate-500">
-                <span>Canh chai vào giữa khung</span>
+                <span>Ảnh gốc • khung trắng là vùng cắt 4:5</span>
                 <span>{outputWidth}×{outputHeight}</span>
               </div>
             </div>
