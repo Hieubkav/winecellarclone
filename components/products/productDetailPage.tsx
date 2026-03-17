@@ -379,7 +379,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 lg:items-start">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
           <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-4">
-            <div className="flex flex-col gap-4 md:hidden">
+            <div className="flex flex-col gap-4 lg:hidden">
               <div className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm">
                 {discountPercentage > 0 && (
                   <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
@@ -440,9 +440,9 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
               )}
             </div>
 
-            <div className="hidden md:flex md:items-start md:gap-4">
+            <div className="hidden lg:flex lg:items-start lg:gap-4">
               {imageItems.length > 1 && (
-                <div className="md:flex md:w-24 md:shrink-0 md:flex-col md:items-stretch md:gap-4">
+                <div className="lg:flex lg:w-24 lg:shrink-0 lg:flex-col lg:items-stretch lg:gap-4">
                   {imageItems.map((img, idx) => (
                     <button
                       key={img.src}
