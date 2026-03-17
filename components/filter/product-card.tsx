@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ProductImage } from "@/components/ui/product-image";
+import { ProductPortraitFrame } from "@/components/ui/product-portrait-frame";
 import type { Wine } from "@/data/filter/store";
 import DynamicIcon from "@/components/shared/DynamicIcon";
 import { getImageUrl } from "@/lib/utils/article-content";
@@ -149,24 +150,26 @@ export const FilterProductCard = React.memo(function FilterProductCard({
       {/* Image Area */}
       <Link
         href={`/san-pham/${wine.slug}`}
-        className="relative aspect-[4/5] overflow-hidden bg-white border-b border-stone-50"
+        className="block"
       >
-        {/* Discount Badge */}
-        {discountPercentage > 0 && (
-          <span className="absolute top-2 left-0 sm:top-3 z-10 bg-[#9e1e2d] px-2 py-0.5 sm:px-2.5 sm:py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-sm rounded-r-md">
-            -{discountPercentage}%
-          </span>
-        )}
+        <ProductPortraitFrame className="border-b border-stone-50">
+          {/* Discount Badge */}
+          {discountPercentage > 0 && (
+            <span className="absolute top-2 left-0 sm:top-3 z-10 bg-[#9e1e2d] px-2 py-0.5 sm:px-2.5 sm:py-0.5 text-[10px] sm:text-xs font-bold text-white shadow-sm rounded-r-md">
+              -{discountPercentage}%
+            </span>
+          )}
 
-        <ProductImage
-          src={wine.image || "/placeholder/wine-bottle.svg"}
-          alt={wine.name}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-          className="h-full w-full object-contain p-1"
-          priority={priority}
-          loading={priority ? "eager" : "lazy"}
-        />
+          <ProductImage
+            src={wine.image || "/placeholder/wine-bottle.svg"}
+            alt={wine.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+            className="h-full w-full object-contain p-1"
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+          />
+        </ProductPortraitFrame>
       </Link>
 
       {/* Content Area */}
