@@ -19,8 +19,8 @@ type ImageSize = { width: number; height: number };
 
 const DEFAULT_OUTPUT_WIDTH = 1200;
 const DEFAULT_OUTPUT_HEIGHT = 1500;
-const PREVIEW_WIDTH = 360;
-const PREVIEW_HEIGHT = 200;
+const PREVIEW_WIDTH = 430;
+const PREVIEW_HEIGHT = 240;
 
 export function ProductImageCropModal({
   open,
@@ -183,20 +183,20 @@ export function ProductImageCropModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onCancel}>
       <div
-        className="w-full max-w-2xl rounded-xl bg-white shadow-xl"
+        className="w-full max-w-[760px] rounded-xl bg-white shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2.5">
           <div>
             <h2 className="text-base font-semibold text-slate-900">Cắt ảnh sản phẩm</h2>
-            <p className="text-xs text-slate-500">Khung 4:5 • Kéo để canh ảnh</p>
+            <p className="text-[11px] text-slate-500">Khung 4:5 • Kéo để canh ảnh</p>
           </div>
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X size={18} />
           </Button>
         </div>
 
-        <div className="space-y-4 p-4">
+        <div className="space-y-2.5 p-3">
           <div className="flex justify-center">
             <div
               ref={containerRef}
@@ -235,9 +235,9 @@ export function ProductImageCropModal({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label>Thu phóng</Label>
+          <div className="space-y-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Thu phóng</Label>
               <div className="flex items-center gap-2">
                 <ZoomOut size={16} className="text-slate-500" />
                 <input
@@ -251,22 +251,22 @@ export function ProductImageCropModal({
                 />
                 <ZoomIn size={16} className="text-slate-500" />
               </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-500">
-                <span>Ảnh gốc • khung trắng là vùng cắt 4:5</span>
+              <div className="flex items-center justify-between text-[10px] text-slate-500">
+                <span>Ảnh gốc • khung 4:5</span>
                 <span>{outputWidth}×{outputHeight}</span>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <Button variant="outline" type="button" onClick={handleReset}>
+            <div className="flex flex-wrap items-center justify-between gap-1.5">
+              <Button variant="outline" size="sm" type="button" onClick={handleReset}>
                 <RotateCcw size={14} className="mr-2" />
                 Reset
               </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={onCancel}>
+              <div className="flex gap-1.5">
+                <Button variant="outline" size="sm" onClick={onCancel}>
                   Hủy
                 </Button>
-                <Button onClick={handleConfirm}>
+                <Button size="sm" onClick={handleConfirm}>
                   Dùng ảnh này
                 </Button>
               </div>
