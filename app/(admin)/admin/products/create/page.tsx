@@ -4,8 +4,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
  import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
+import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { createProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
@@ -51,6 +52,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
   const cropUrlRef = useRef<string | null>(null);
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
    useEffect(() => {
      async function loadFilters() {
        try {
@@ -122,6 +124,17 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
     setCropQueue(rest);
     openCropWithFile(nextFile);
   }, [cropQueue, cropSource, openCropWithFile]);
+
+  useEffect(() => {
+    if (previewIndex === null) return;
+    if (galleryImages.length === 0) {
+      setPreviewIndex(null);
+      return;
+    }
+    if (previewIndex >= galleryImages.length) {
+      setPreviewIndex(galleryImages.length - 1);
+    }
+  }, [galleryImages.length, previewIndex]);
 
   const handleCroppedUpload = useCallback(async (file: File) => {
     setIsUploadingImage(true);
@@ -384,10 +397,10 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                       <Image
                         src={getImageUrl(image.url)}
                         alt={`Gallery ${index + 1}`}
-                        width={120}
-                        height={120}
-                        sizes="120px"
-                        className="w-[120px] h-[120px] object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                        width={180}
+                        height={180}
+                        sizes="180px"
+                        className="w-[180px] h-[180px] object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                       />
                       {index === 0 && (
                         <span className="absolute left-1 top-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white">
@@ -395,6 +408,14 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                         </span>
                       )}
                       <div className="absolute inset-x-1 bottom-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewIndex(index)}
+                          className="text-[10px] px-2 py-1 rounded bg-white/90 text-slate-700 flex items-center gap-1"
+                        >
+                          <Eye size={12} />
+                          Xem
+                        </button>
                         <label className="text-[10px] px-2 py-1 rounded bg-white/90 text-slate-700 cursor-pointer">
                           Đổi ảnh
                           <input
@@ -427,7 +448,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                       </button>
                     </div>
                   ))}
-                  <label className="flex flex-col items-center justify-center w-[120px] h-[120px] border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                  <label className="flex flex-col items-center justify-center w-[180px] h-[180px] border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                     <input
                       type="file"
                       accept="image/*"
@@ -650,6 +671,57 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
         onCancel={closeCrop}
         onConfirm={handleCroppedUpload}
       />
+
+      <Dialog open={previewIndex !== null} onOpenChange={(open) => !open && setPreviewIndex(null)}>
+        <DialogContent className="w-[92vw] max-w-4xl p-4 sm:p-6">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-500">
+              {previewIndex !== null ? `Ảnh ${previewIndex + 1} / ${galleryImages.length}` : ''}
+            </span>
+            <DialogClose asChild>
+              <Button variant="ghost" size="icon" aria-label="Đóng preview">
+                <X size={18} />
+              </Button>
+            </DialogClose>
+          </div>
+          <div className="mt-4 flex items-center justify-center">
+            {previewIndex !== null && galleryImages[previewIndex] && (
+              <Image
+                src={getImageUrl(galleryImages[previewIndex].url)}
+                alt={`Preview ${previewIndex + 1}`}
+                width={960}
+                height={960}
+                sizes="(max-width: 768px) 90vw, 800px"
+                className="max-h-[70vh] w-auto rounded-lg object-contain"
+              />
+            )}
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPreviewIndex((prev) => (prev === null ? null : Math.max(prev - 1, 0)))}
+              disabled={previewIndex === null || previewIndex === 0}
+              aria-label="Ảnh trước"
+            >
+              <ChevronLeft size={20} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() =>
+                setPreviewIndex((prev) =>
+                  prev === null ? null : Math.min(prev + 1, galleryImages.length - 1)
+                )
+              }
+              disabled={previewIndex === null || previewIndex === galleryImages.length - 1}
+              aria-label="Ảnh sau"
+            >
+              <ChevronRight size={20} />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
      </div>
    );
  }
