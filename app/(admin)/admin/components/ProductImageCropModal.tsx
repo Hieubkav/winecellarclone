@@ -167,23 +167,26 @@ export function ProductImageCropModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-4xl rounded-xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onCancel}>
+      <div
+        className="w-full max-w-2xl rounded-xl bg-white shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Cắt ảnh sản phẩm</h2>
-            <p className="text-xs text-slate-500">Khung chuẩn 4:5 • Kéo ảnh để canh chai vào giữa.</p>
+            <h2 className="text-base font-semibold text-slate-900">Cắt ảnh sản phẩm</h2>
+            <p className="text-xs text-slate-500">Khung 4:5 • Kéo để canh ảnh</p>
           </div>
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X size={18} />
           </Button>
         </div>
 
-        <div className="grid gap-6 p-6 md:grid-cols-[1fr_220px]">
-          <div className="space-y-3">
+        <div className="space-y-4 p-4">
+          <div className="flex justify-center">
             <div
               ref={containerRef}
-              className="relative w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+              className="relative w-full max-w-[420px] overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
               style={{ aspectRatio }}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
@@ -203,13 +206,9 @@ export function ProductImageCropModal({
               />
               <div className="pointer-events-none absolute inset-0 ring-1 ring-white/70" />
             </div>
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>Kéo ảnh để canh vị trí</span>
-              <span>Output {outputWidth}×{outputHeight}</span>
-            </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="space-y-2">
               <Label>Thu phóng</Label>
               <div className="flex items-center gap-2">
@@ -225,24 +224,25 @@ export function ProductImageCropModal({
                 />
                 <ZoomIn size={16} className="text-slate-500" />
               </div>
+              <div className="flex items-center justify-between text-[11px] text-slate-500">
+                <span>Canh chai vào giữa khung</span>
+                <span>{outputWidth}×{outputHeight}</span>
+              </div>
             </div>
 
-            <Button variant="outline" type="button" className="w-full" onClick={handleReset}>
-              <RotateCcw size={14} className="mr-2" />
-              Reset vị trí
-            </Button>
-
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              Ưu tiên giữ chai trọn vẹn, tránh cắt đầu/chân. Ảnh sẽ được cắt về chuẩn 4:5.
-            </div>
-
-            <div className="flex flex-col gap-2 pt-2">
-              <Button onClick={handleConfirm} className="w-full">
-                Dùng ảnh này
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Button variant="outline" type="button" onClick={handleReset}>
+                <RotateCcw size={14} className="mr-2" />
+                Reset
               </Button>
-              <Button variant="outline" onClick={onCancel} className="w-full">
-                Hủy
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={onCancel}>
+                  Hủy
+                </Button>
+                <Button onClick={handleConfirm}>
+                  Dùng ảnh này
+                </Button>
+              </div>
             </div>
           </div>
         </div>
