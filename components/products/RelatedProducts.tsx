@@ -85,12 +85,12 @@ export default function RelatedProductsSection({
             >
               {/* Image */}
               <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f0e8]">
-                <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-4">
+                <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-2">
                   <ProductImage 
                     src={getImageUrl(product.main_image_url)} 
                     alt={product.name}
                     fill
-                    className="object-contain transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                   />
                 </Link>

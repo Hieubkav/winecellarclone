@@ -101,10 +101,12 @@ import {
   Bell,
   Lightbulb,
   Thermometer,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
 import { ProductImage } from "@/components/ui/product-image";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
@@ -315,6 +317,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   }, [product]);
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [showExpandButton, setShowExpandButton] = useState(false);
   const descriptionRef = useRef<HTMLDivElement>(null);
@@ -371,27 +374,33 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 }}
               />
               {/* Main image container */}
-              <div className="relative w-full flex items-center justify-center p-1">
+              <button
+                type="button"
+                onClick={() => setIsImagePreviewOpen(true)}
+                className="relative w-full aspect-[4/5] p-2 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2"
+                aria-label="Xem ảnh sản phẩm lớn hơn"
+              >
                 <ProductImage
                   src={imageSources[selectedImage]}
                   alt={product.name}
-                  width={0}
-                  height={0}
+                  fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="transition-transform duration-500 group-hover:scale-105"
-                  style={{ width: '100%', height: 'auto', maxHeight: '70vh', objectFit: 'contain' }}
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                   priority
                 />
-              </div>
+                <span className="absolute bottom-3 right-3 rounded-full bg-[#1C1C1C]/70 px-2.5 py-1 text-[11px] font-medium text-white">
+                  Xem ảnh lớn
+                </span>
+              </button>
             </div>
             
             {imageSources.length > 1 && (
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                 {imageSources.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`relative aspect-square w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
+                    className={`relative aspect-[4/5] w-16 md:w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
                       selectedImage === idx 
                         ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
                         : 'border-[#e5ddd0] hover:border-[#9B2C3B]/50 opacity-70 hover:opacity-100'
@@ -408,6 +417,24 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 ))}
               </div>
             )}
+            <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
+              <DialogContent className="w-[95vw] max-w-5xl border-0 bg-transparent p-0 shadow-none">
+                <DialogTitle className="sr-only">Xem ảnh sản phẩm</DialogTitle>
+                <div className="relative w-full aspect-[4/5] max-h-[90vh] overflow-hidden rounded-2xl bg-[#1C1C1C]/90">
+                  <ProductImage
+                    src={imageSources[selectedImage]}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 1024px) 90vw, 60vw"
+                    className="object-contain"
+                    priority
+                  />
+                  <DialogClose className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#1C1C1C] transition hover:bg-white">
+                    <X className="h-4 w-4" />
+                  </DialogClose>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Right Column: Product Info (5/12 columns) */}
