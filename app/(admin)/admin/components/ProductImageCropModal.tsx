@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { X, ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
 import { Button, Label } from "./ui";
 
 interface ProductImageCropModalProps {
@@ -10,6 +10,7 @@ interface ProductImageCropModalProps {
   fileName?: string;
   onCancel: () => void;
   onConfirm: (file: File) => void;
+  isProcessing?: boolean;
   aspectRatio?: number;
   outputWidth?: number;
   outputHeight?: number;
@@ -28,6 +29,7 @@ export function ProductImageCropModal({
   fileName = "product-image.webp",
   onCancel,
   onConfirm,
+  isProcessing = false,
   aspectRatio = 4 / 5,
   outputWidth = DEFAULT_OUTPUT_WIDTH,
   outputHeight = DEFAULT_OUTPUT_HEIGHT,
@@ -38,6 +40,7 @@ export function ProductImageCropModal({
   const [containerSize, setContainerSize] = useState<ImageSize | null>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isConfirming, setIsConfirming] = useState(false);
   const [dragState, setDragState] = useState<{
     active: boolean;
     startX: number;
@@ -50,7 +53,14 @@ export function ProductImageCropModal({
     if (!open) return;
     setZoom(1);
     setOffset({ x: 0, y: 0 });
+    setIsConfirming(false);
   }, [open, src]);
+
+  useEffect(() => {
+    if (!isProcessing) {
+      setIsConfirming(false);
+    }
+  }, [isProcessing]);
 
   const previewSize = useMemo(() => {
     return { width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT };
@@ -142,7 +152,9 @@ export function ProductImageCropModal({
   };
 
   const handleConfirm = async () => {
+    if (isProcessing || isConfirming) return;
     if (!imageRef.current || !containerSize || !imageSize) return;
+    setIsConfirming(true);
     const canvas = document.createElement("canvas");
     canvas.width = outputWidth;
     canvas.height = outputHeight;
@@ -172,7 +184,10 @@ export function ProductImageCropModal({
     );
 
     canvas.toBlob((blob) => {
-      if (!blob) return;
+      if (!blob) {
+        setIsConfirming(false);
+        return;
+      }
       const croppedFile = new File([blob], fileName.replace(/\.[^.]+$/, ".webp"), { type: "image/webp" });
       onConfirm(croppedFile);
     }, "image/webp", 0.9);
@@ -191,7 +206,7 @@ export function ProductImageCropModal({
             <h2 className="text-base font-semibold text-slate-900">Cắt ảnh sản phẩm</h2>
             <p className="text-[11px] text-slate-500">Khung 4:5 • Kéo để canh ảnh</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={onCancel}>
+          <Button variant="ghost" size="icon" onClick={onCancel} disabled={isProcessing || isConfirming}>
             <X size={18} />
           </Button>
         </div>
@@ -258,16 +273,29 @@ export function ProductImageCropModal({
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-1.5">
-              <Button variant="outline" size="sm" type="button" onClick={handleReset}>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={handleReset}
+                disabled={isProcessing || isConfirming}
+              >
                 <RotateCcw size={14} className="mr-2" />
                 Reset
               </Button>
               <div className="flex gap-1.5">
-                <Button variant="outline" size="sm" onClick={onCancel}>
+                <Button variant="outline" size="sm" onClick={onCancel} disabled={isProcessing || isConfirming}>
                   Hủy
                 </Button>
-                <Button size="sm" onClick={handleConfirm}>
-                  Dùng ảnh này
+                <Button size="sm" onClick={handleConfirm} disabled={isProcessing || isConfirming}>
+                  {isProcessing || isConfirming ? (
+                    <>
+                      <Loader2 size={14} className="mr-2 animate-spin" />
+                      Đang xử lý...
+                    </>
+                  ) : (
+                    'Dùng ảnh này'
+                  )}
                 </Button>
               </div>
             </div>

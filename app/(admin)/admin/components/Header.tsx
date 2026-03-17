@@ -14,20 +14,30 @@
  
  export const Header: React.FC<HeaderProps> = ({ isDarkMode, toggleTheme, setMobileMenuOpen }) => {
    const pathname = usePathname();
+  const breadcrumbLabelMap: Record<string, string> = {
+    dashboard: 'Trang chủ',
+    products: 'Sản phẩm',
+    edit: 'Sửa',
+    create: 'Thêm mới',
+  };
  
-   const getBreadcrumbs = () => {
-     const segments = pathname.replace('/admin', '').split('/').filter(Boolean);
-     return segments.map((segment, index, array) => {
-       if (segment === 'dashboard' && index === 0) return null;
-       const to = `/admin/${array.slice(0, index + 1).join('/')}`;
-       const isLast = index === array.length - 1;
-       const label = segment
-         .replace(/-/g, ' ')
-         .replace(/\b\w/g, (c) => c.toUpperCase());
-       
-       return { to, label, isLast };
-     }).filter(Boolean);
-   };
+  const getBreadcrumbs = () => {
+    const segments = pathname.replace('/admin', '').split('/').filter(Boolean);
+    return segments
+      .map((segment, index, array) => {
+        if (segment === 'dashboard' && index === 0) return null;
+        const to = `/admin/${array.slice(0, index + 1).join('/')}`;
+        const isLast = index === array.length - 1;
+        const previous = array[index - 1];
+        const isNumeric = Number.isFinite(Number(segment));
+        const label = isNumeric && previous === 'products'
+          ? `Sản phẩm #${segment}`
+          : (breadcrumbLabelMap[segment] || segment.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()));
+
+        return { to, label, isLast };
+      })
+      .filter(Boolean);
+  };
  
    const breadcrumbs = getBreadcrumbs();
  
@@ -43,11 +53,11 @@
          </button>
          
          <nav className="hidden md:flex items-center text-sm text-slate-500 dark:text-slate-400">
-           <Link 
-             href="/admin/dashboard" 
+          <Link 
+            href="/admin/dashboard" 
              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
            >
-             Home
+            Trang chủ
            </Link>
            {breadcrumbs.map((item) => item && (
              <React.Fragment key={item.to}>

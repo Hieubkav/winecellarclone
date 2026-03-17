@@ -3,7 +3,7 @@
 import React, { useState, useEffect, use, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import Image from 'next/image';
 import DynamicIcon from '@/components/shared/DynamicIcon';
 import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
@@ -73,6 +73,8 @@ const generateSlug = (text: string): string => {
   const [cropFileName, setCropFileName] = useState('');
   const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
   const cropUrlRef = useRef<string | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isNameCopied, setIsNameCopied] = useState(false);
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
   const didSyncTypeRef = useRef(false);
@@ -236,7 +238,16 @@ const generateSlug = (text: string): string => {
     }
   }, [galleryImages.length, previewIndex]);
 
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleCroppedUpload = useCallback(async (file: File) => {
+    if (isUploadingImage) return;
     setIsUploadingImage(true);
     try {
       const uploaded = await uploadSingleImage(file);
@@ -257,6 +268,31 @@ const generateSlug = (text: string): string => {
       closeCrop();
     }
   }, [closeCrop, cropTargetIndex, uploadSingleImage]);
+
+  const handleCopyName = useCallback(async () => {
+    const text = name.trim();
+    if (!text) {
+      toast.error('Chưa có tên sản phẩm để copy');
+      return;
+    }
+    if (!navigator?.clipboard?.writeText) {
+      toast.error('Trình duyệt không hỗ trợ copy nhanh');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsNameCopied(true);
+      toast.success('Đã copy tên sản phẩm');
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = setTimeout(() => setIsNameCopied(false), 1500);
+    } catch (error) {
+      console.error('Copy error:', error);
+      toast.error('Copy thất bại, vui lòng thử lại');
+    }
+  }, [name]);
 
   const handleGalleryUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -437,7 +473,7 @@ const generateSlug = (text: string): string => {
    }
  
    return (
-     <div className="w-full max-w-6xl mx-auto space-y-6 pb-20">
+    <div className="w-full max-w-6xl mx-auto space-y-6 pb-28">
        <div className="flex flex-wrap items-center justify-between gap-4">
          <div className="flex items-center gap-4">
            <Link href="/admin/products">
@@ -450,40 +486,39 @@ const generateSlug = (text: string): string => {
              <p className="text-sm text-slate-500">Cập nhật thông tin sản phẩm</p>
            </div>
          </div>
-         {slug ? (
-           <Link href={`/san-pham/${slug}`} target="_blank" rel="noopener noreferrer">
-             <Button variant="outline" className="gap-2">
-               <ExternalLink size={16} />
-               Xem trên web
-             </Button>
-           </Link>
-         ) : (
-           <Button variant="outline" disabled className="gap-2">
-             <ExternalLink size={16} />
-             Xem trên web
-           </Button>
-         )}
        </div>
  
        <form onSubmit={handleSubmit}>
          <Card>
            <CardContent className="p-6 space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <Label>Tên sản phẩm <span className="text-red-500">*</span></Label>
-                 <Input
-                   required
-                   placeholder="Nhập tên sản phẩm..."
-                   value={name}
-                   onChange={(e) => {
-                     setName(e.target.value);
-                     if (!showSlugEditor) {
-                       setSlug(generateSlug(e.target.value));
-                     }
-                   }}
-                 />
-               </div>
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Tên sản phẩm <span className="text-red-500">*</span></Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    required
+                    placeholder="Nhập tên sản phẩm..."
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (!showSlugEditor) {
+                        setSlug(generateSlug(e.target.value));
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyName}
+                    disabled={!name.trim()}
+                    title="Copy tên sản phẩm"
+                  >
+                    {isNameCopied ? <Check size={16} /> : <Copy size={16} />}
+                  </Button>
+                </div>
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label>Ảnh sản phẩm</Label>
@@ -764,28 +799,45 @@ const generateSlug = (text: string): string => {
                />
              </div>
  
-             <div className="flex items-center gap-2">
-               <input
-                 type="checkbox"
-                 id="active"
-                 checked={active}
-                 onChange={(e) => setActive(e.target.checked)}
-                 className="h-4 w-4 rounded border-slate-300"
-               />
-               <Label htmlFor="active">Hiển thị sản phẩm</Label>
-             </div>
            </CardContent>
- 
-           <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 rounded-b-lg flex justify-end gap-3">
-             <Link href="/admin/products">
-               <Button type="button" variant="ghost">Hủy bỏ</Button>
-             </Link>
-             <Button type="submit" disabled={isSubmitting}>
-               {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
-               Lưu thay đổi
-             </Button>
-           </div>
         </Card>
+
+        <div className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur">
+          <div className="w-full max-w-6xl mx-auto px-4 lg:px-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="active"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                <Label htmlFor="active">Hiển thị</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href="/admin/products">
+                  <Button type="button" variant="ghost">Hủy bỏ</Button>
+                </Link>
+                {slug ? (
+                  <Link href={`/san-pham/${slug}`} target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" size="icon" aria-label="Xem trên web">
+                      <ExternalLink size={16} />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button variant="outline" size="icon" aria-label="Xem trên web" disabled>
+                    <ExternalLink size={16} />
+                  </Button>
+                )}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+                  Lưu thay đổi
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
 
       <ProductImageCropModal
@@ -794,6 +846,7 @@ const generateSlug = (text: string): string => {
         fileName={cropFileName}
         onCancel={closeCrop}
         onConfirm={handleCroppedUpload}
+        isProcessing={isUploadingImage}
       />
 
       <Dialog open={previewIndex !== null} onOpenChange={(open) => !open && setPreviewIndex(null)}>
