@@ -803,18 +803,8 @@ const generateSlug = (text: string): string => {
         </Card>
 
         <div className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur">
-          <div className="w-full max-w-6xl mx-auto px-4 lg:px-0">
+          <div className="w-full px-3 sm:px-4 lg:px-6">
             <div className="flex flex-wrap items-center justify-between gap-3 py-3">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id="active"
-                  checked={active}
-                  onChange={(e) => setActive(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300"
-                />
-                <Label htmlFor="active">Hiển thị</Label>
-              </div>
               <div className="flex items-center gap-2">
                 <Link href="/admin/products">
                   <Button type="button" variant="ghost">Hủy bỏ</Button>
@@ -830,6 +820,18 @@ const generateSlug = (text: string): string => {
                     <ExternalLink size={16} />
                   </Button>
                 )}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="active"
+                    checked={active}
+                    onChange={(e) => setActive(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                  <Label htmlFor="active">Hiển thị</Label>
+                </div>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
                   Lưu thay đổi
