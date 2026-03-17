@@ -384,10 +384,10 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                       <Image
                         src={getImageUrl(image.url)}
                         alt={`Gallery ${index + 1}`}
-                        width={80}
-                        height={80}
-                        sizes="80px"
-                        className="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                        width={120}
+                        height={120}
+                        sizes="120px"
+                        className="w-[120px] h-[120px] object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                       />
                       {index === 0 && (
                         <span className="absolute left-1 top-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white">
@@ -427,7 +427,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                       </button>
                     </div>
                   ))}
-                  <label className="flex flex-col items-center justify-center w-20 h-20 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                  <label className="flex flex-col items-center justify-center w-[120px] h-[120px] border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
                     <input
                       type="file"
                       accept="image/*"
