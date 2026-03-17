@@ -59,9 +59,28 @@ export interface AdminProductsResponse {
   };
 }
 
+export interface AdminProductFilterOption {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface AdminProductFiltersResponse {
+  data: {
+    categories: AdminProductFilterOption[];
+    types: AdminProductFilterOption[];
+  };
+}
+
 export async function fetchAdminProducts(params?: Record<string, string | number>): Promise<AdminProductsResponse> {
   const query = buildQueryString(params);
   return apiFetch<AdminProductsResponse>(`v1/admin/products${query}`);
+}
+
+export async function fetchAdminProductFilters(typeId?: number | null): Promise<AdminProductFiltersResponse['data']> {
+  const query = buildQueryString(typeId ? { type_id: typeId } : undefined);
+  const response = await apiFetch<AdminProductFiltersResponse>(`v1/admin/products/filters${query}`);
+  return response.data;
 }
 
 export async function downloadAdminProductsExport(

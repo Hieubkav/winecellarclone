@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   Plus,
@@ -17,8 +18,12 @@ import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, Ta
 import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox } from '@/app/(admin)/admin/components/TableUtilities';
 import { cn } from '@/lib/utils';
 import { ImageWithFallback } from '@/app/(admin)/admin/components/ImageWithFallback';
-import { ImportProductsDialog } from '@/app/(admin)/admin/products/components/ImportProductsDialog';
 import { useProductsList } from '../hooks/useProductsList';
+
+const ImportProductsDialog = dynamic(
+  () => import('@/app/(admin)/admin/products/components/ImportProductsDialog').then((mod) => mod.ImportProductsDialog),
+  { ssr: false }
+);
 
 export const ProductsListScreen = () => {
   const { columns, perPageOptions, isExporting, sortedData, state, actions } = useProductsList();

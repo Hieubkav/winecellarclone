@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/client";
-import { fetchProductFilters, type ProductFilterOption } from "@/lib/api/products";
+import { type ProductFilterOption } from "@/lib/api/products";
 import { useProductExcel } from "@/lib/hooks/useProductExcel";
 import {
   bulkDeleteProducts,
   deleteProduct,
   downloadAdminProductsExport,
+  fetchAdminProductFilters,
   fetchAdminProducts,
   updateProduct,
   type AdminProduct,
@@ -114,7 +115,7 @@ export const useProductsList = () => {
 
   const loadFilters = useCallback(async () => {
     try {
-      const filtersRes = await fetchProductFilters(filterType ? Number(filterType) : undefined);
+      const filtersRes = await fetchAdminProductFilters(filterType ? Number(filterType) : undefined);
       setCategories(filtersRes.categories);
       setTypes(filtersRes.types);
     } catch (error) {
