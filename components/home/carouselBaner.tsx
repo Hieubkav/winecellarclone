@@ -95,7 +95,17 @@ export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
                   className="border-none bg-transparent p-0 pl-0 shadow-none"
                 >
                   <div className="relative block">
-                    <div className="relative block w-full bg-slate-950 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9] overflow-hidden">
+                    <div className="relative block w-full bg-slate-900 aspect-[16/9] sm:aspect-[16/9] lg:aspect-[21/9] overflow-hidden">
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: `url(${slide.image})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                        aria-hidden="true"
+                      />
+                      <div className="absolute inset-0 bg-black/20" aria-hidden="true" />
                       <Image
                         src={slide.image}
                         alt={slide.alt || `Banner ${index + 1}`}
