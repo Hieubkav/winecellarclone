@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
@@ -115,6 +116,7 @@ import RelatedProductsSection from "./RelatedProducts";
 
 interface AttributeDisplayItem {
   iconName?: string | null;
+  iconUrl?: string | null;
   groupCode?: string;
   label: string;
   value: string;
@@ -175,7 +177,8 @@ const LUCIDE_ICON_MAP: Record<string, LucideIcon> = {
 const getFallbackIconByCode = (code?: string): LucideIcon => {
   if (!code) return Sparkles;
   const lowerCode = code.toLowerCase();
-  if (lowerCode.includes('huong') || lowerCode.includes('flavor') || lowerCode.includes('grape')) return Grape;
+  if (lowerCode.includes('grape')) return Grape;
+  if (lowerCode.includes('huong') || lowerCode.includes('flavor')) return Sparkles;
   if (lowerCode.includes('chat_lieu') || lowerCode.includes('material')) return Layers;
   if (lowerCode.includes('xuat_xu') || lowerCode.includes('origin') || lowerCode.includes('country')) return Globe;
   if (lowerCode.includes('tuoi') || lowerCode.includes('age')) return Hourglass;
@@ -185,7 +188,19 @@ const getFallbackIconByCode = (code?: string): LucideIcon => {
   return Tag;
 };
 
-function AttributeIcon({ iconName, groupCode }: { iconName?: string | null; groupCode?: string }) {
+function AttributeIcon({ iconName, iconUrl, groupCode }: { iconName?: string | null; iconUrl?: string | null; groupCode?: string }) {
+  if (iconUrl) {
+    return (
+      <Image
+        src={getImageUrl(iconUrl)}
+        alt=""
+        width={16}
+        height={16}
+        sizes="16px"
+        className="w-4 h-4"
+      />
+    );
+  }
   const IconComponent = iconName ? LUCIDE_ICON_MAP[iconName] : null;
   if (IconComponent) {
     return <IconComponent className="w-4 h-4" />;
@@ -268,6 +283,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       
       attrs.push({
         iconName: brandAttr?.icon_name || 'Award',
+        iconUrl: brandAttr?.icon_url,
         groupCode: brandAttr?.group_code || 'brand',
         label: brandAttr?.group_name || "Thương hiệu",
         value: product.brand_term.name,
@@ -284,6 +300,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       
       attrs.push({
         iconName: countryAttr?.icon_name || 'Flag',
+        iconUrl: countryAttr?.icon_url,
         groupCode: countryAttr?.group_code || 'origin',
         label: countryAttr?.group_name || "Xuất xứ",
         value: product.country_term.name,
@@ -318,6 +335,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
           
           attrs.push({
             iconName: attrGroup.icon_name,
+            iconUrl: attrGroup.icon_url,
             groupCode: attrGroup.group_code,
             label: attrGroup.group_name || attrGroup.group_code,
             value: termNames,
@@ -564,7 +582,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 {attributeItems.map((attr, idx) => (
                   <div key={idx} className="flex items-start gap-3">
                     <div className="mt-0.5 p-1.5 bg-[#ECAA4D]/20 rounded-md text-[#9B2C3B]">
-                      <AttributeIcon iconName={attr.iconName} groupCode={attr.groupCode} />
+                      <AttributeIcon iconName={attr.iconName} iconUrl={attr.iconUrl} groupCode={attr.groupCode} />
                     </div>
                     <div className="overflow-hidden">
                       <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{attr.label}</p>
