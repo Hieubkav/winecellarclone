@@ -358,74 +358,74 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 lg:items-start">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
           <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-4">
-            <div className="relative w-full overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group">
-              {discountPercentage > 0 && (
-                <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
-                  -{discountPercentage}%
-                </span>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+              {imageSources.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent lg:flex-col lg:gap-4 lg:pb-0 lg:overflow-visible lg:w-24">
+                  {imageSources.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImage(idx)}
+                      className={`relative aspect-[4/5] w-16 md:w-20 lg:w-full flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
+                        selectedImage === idx 
+                          ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
+                          : 'border-[#e5ddd0] hover:border-[#9B2C3B]/50 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <ProductImage 
+                        src={img} 
+                        alt={`Thumbnail ${idx + 1}`} 
+                        fill 
+                        className="object-cover" 
+                        sizes="80px"
+                      />
+                    </button>
+                  ))}
+                </div>
               )}
-              {/* Blur background layer */}
-              <div 
-                className="absolute inset-0 scale-150 blur-3xl opacity-40"
-                style={{
-                  backgroundImage: `url(${imageSources[selectedImage]})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              />
-              {/* Main image container */}
-              <button
-                type="button"
-                onClick={() => setIsImagePreviewOpen(true)}
-                className="relative w-full aspect-[4/5] p-2 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2"
-                aria-label="Xem ảnh sản phẩm lớn hơn"
-              >
-                <ProductImage
-                  src={imageSources[selectedImage]}
-                  alt={product.name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority
+
+              <div className="relative w-full max-w-[480px] mx-auto lg:mx-0 overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group">
+                {discountPercentage > 0 && (
+                  <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
+                    -{discountPercentage}%
+                  </span>
+                )}
+                {/* Blur background layer */}
+                <div 
+                  className="absolute inset-0 scale-150 blur-3xl opacity-40"
+                  style={{
+                    backgroundImage: `url(${imageSources[selectedImage]})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
                 />
-                <span className="absolute bottom-3 right-3 rounded-full bg-[#1C1C1C]/70 px-2.5 py-1 text-[11px] font-medium text-white">
-                  Xem ảnh lớn
-                </span>
-              </button>
-            </div>
-            
-            {imageSources.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-                {imageSources.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(idx)}
-                    className={`relative aspect-[4/5] w-16 md:w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
-                      selectedImage === idx 
-                        ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
-                        : 'border-[#e5ddd0] hover:border-[#9B2C3B]/50 opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <ProductImage 
-                      src={img} 
-                      alt={`Thumbnail ${idx + 1}`} 
-                      fill 
-                      className="object-cover" 
-                      sizes="80px"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-            <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
-              <DialogContent className="w-[95vw] max-w-5xl border-0 bg-transparent p-0 shadow-none">
-                <DialogTitle className="sr-only">Xem ảnh sản phẩm</DialogTitle>
-                <div className="relative w-full aspect-[4/5] max-h-[90vh] overflow-hidden rounded-2xl bg-[#1C1C1C]/90">
+                {/* Main image container */}
+                <button
+                  type="button"
+                  onClick={() => setIsImagePreviewOpen(true)}
+                  className="relative w-full aspect-[4/5] p-2 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  aria-label="Xem ảnh sản phẩm lớn hơn"
+                >
                   <ProductImage
                     src={imageSources[selectedImage]}
                     alt={product.name}
                     fill
-                    sizes="(max-width: 1024px) 90vw, 60vw"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    priority
+                  />
+                </button>
+              </div>
+            </div>
+
+            <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
+              <DialogContent className="w-[92vw] max-w-[560px] border-0 bg-transparent p-0 shadow-none">
+                <DialogTitle className="sr-only">Xem ảnh sản phẩm</DialogTitle>
+                <div className="relative w-full aspect-[4/5] overflow-hidden rounded-2xl bg-[#1C1C1C]">
+                  <ProductImage
+                    src={imageSources[selectedImage]}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 1024px) 90vw, 520px"
                     className="object-contain"
                     priority
                   />
