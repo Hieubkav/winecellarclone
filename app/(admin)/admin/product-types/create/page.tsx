@@ -4,14 +4,16 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Filter, X, Plus, GripVertical } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
 import { Button, Card, CardContent, Input, Label, Badge, Skeleton } from '../../components/ui';
+import DynamicIcon from '@/components/shared/DynamicIcon';
 import { 
   createProductType, 
   fetchAdminCatalogAttributeGroups, 
   syncAttributeGroupsToType,
   type AdminCatalogAttributeGroup 
 } from '@/lib/api/admin';
+import { resolveIconInput } from '@/lib/icons/dynamicIconRegistry';
+import { getImageUrl } from '@/lib/utils/image';
 import { ApiError } from '@/lib/api/client';
 import { toast } from 'sonner';
 
@@ -218,9 +220,8 @@ export default function ProductTypeCreatePage() {
           {selectedAttributes.length > 0 ? (
             <div className="space-y-2">
               {selectedAttributes.map((attr, index) => {
-                const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
-                  ? (LucideIcons as any)[attr.icon_path]
-                  : Filter;
+                const resolvedIcon = resolveIconInput(attr.icon_path);
+                const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
                 
                 return (
                   <div
@@ -233,7 +234,13 @@ export default function ProductTypeCreatePage() {
                   >
                     <GripVertical size={16} className="text-slate-400 flex-shrink-0" />
                     <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center flex-shrink-0">
-                      <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                      <DynamicIcon
+                        iconUrl={iconUrl}
+                        iconName={resolvedIcon.iconName}
+                        size={16}
+                        className="w-4 h-4 text-red-600 dark:text-red-400"
+                        imageClassName="w-4 h-4"
+                      />
                     </div>
                     <div className="flex-1">
                       <div className="font-medium text-sm">{attr.name}</div>
@@ -297,9 +304,8 @@ export default function ProductTypeCreatePage() {
                 {allAttributes
                   .filter(attr => !selectedAttributes.some(selected => selected.id === attr.id))
                   .map(attr => {
-                    const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
-                      ? (LucideIcons as any)[attr.icon_path]
-                      : Filter;
+                    const resolvedIcon = resolveIconInput(attr.icon_path);
+                    const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
                     
                     return (
                       <button
@@ -310,7 +316,13 @@ export default function ProductTypeCreatePage() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
-                            <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                            <DynamicIcon
+                              iconUrl={iconUrl}
+                              iconName={resolvedIcon.iconName}
+                              size={16}
+                              className="w-4 h-4 text-red-600 dark:text-red-400"
+                              imageClassName="w-4 h-4"
+                            />
                           </div>
                           <div className="text-left">
                             <div className="font-medium text-sm">{attr.name}</div>

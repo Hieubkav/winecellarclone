@@ -1,9 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import Image from "next/image"
 import { useShallow } from "zustand/react/shallow"
-import { RotateCcw, ChevronDown, Grape, Award, Thermometer, Percent, Coffee, Hourglass, Square, Package, Flag } from "lucide-react"
+import { RotateCcw, ChevronDown } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -12,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import DynamicIcon from "@/components/shared/DynamicIcon"
 import { useWineStore } from "@/data/filter/store"
 import { getImageUrl } from "@/lib/utils/article-content"
 
@@ -25,19 +25,6 @@ const formatCurrency = (value: number) => currencyFormatter.format(value)
 
 const COLLAPSE_THRESHOLD = 6
 
-// Map Lucide icon names to components
-const LUCIDE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-    Grape,
-    Award,
-    Thermometer,
-    Percent,
-    Coffee,
-    Hourglass,
-    Square,
-    Package,
-    Flag,
-}
-
 interface FilterIconProps {
     iconUrl?: string | null
     iconName?: string | null
@@ -45,25 +32,16 @@ interface FilterIconProps {
 }
 
 function FilterIcon({ iconUrl, iconName, title }: FilterIconProps) {
-    // Ưu tiên iconUrl (file image), fallback về iconName (Lucide)
-    if (iconUrl) {
-        return (
-            <Image
-                src={getImageUrl(iconUrl)}
-                alt={`${title} icon`}
-                width={20}
-                height={20}
-                className="object-contain flex-shrink-0"
-            />
-        )
-    }
-
-    if (iconName && LUCIDE_ICONS[iconName]) {
-        const IconComponent = LUCIDE_ICONS[iconName]
-        return <IconComponent className="w-5 h-5 text-[#9B2C3B] flex-shrink-0" />
-    }
-
-    return null
+    return (
+        <DynamicIcon
+            iconUrl={iconUrl ? getImageUrl(iconUrl) : null}
+            iconName={iconName}
+            alt={`${title} icon`}
+            size={20}
+            className="w-5 h-5 text-[#9B2C3B] flex-shrink-0"
+            imageClassName="w-5 h-5 object-contain flex-shrink-0"
+        />
+    )
 }
 
 interface CollapsibleCheckboxSectionProps {

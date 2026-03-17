@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Edit, Filter, Search } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { Plus, Edit, Search } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, ColumnToggle } from '../components/TableUtilities';
 import { 
   fetchAdminCatalogAttributeGroups,
   type AdminCatalogAttributeGroup
 } from '@/lib/api/admin';
+import DynamicIcon from '@/components/shared/DynamicIcon';
+import { resolveIconInput } from '@/lib/icons/dynamicIconRegistry';
 import { getImageUrl } from '@/lib/utils/image';
 import { cn } from '@/lib/utils';
 
@@ -228,10 +228,8 @@ export default function AttributeGroupsPage() {
           </TableHeader>
           <TableBody>
             {attributes.map(attr => {
-              const isFileIcon = Boolean(attr.icon_path && (attr.icon_path.includes('/') || attr.icon_path.includes('.')));
-              const IconComponent = !isFileIcon && attr.icon_path && (LucideIcons as any)[attr.icon_path]
-                ? (LucideIcons as any)[attr.icon_path]
-                : Filter;
+              const resolvedIcon = resolveIconInput(attr.icon_path);
+              const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
               
               return (
                 <TableRow key={attr.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
@@ -239,18 +237,13 @@ export default function AttributeGroupsPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
-                          {isFileIcon && attr.icon_path ? (
-                            <Image
-                              src={getImageUrl(attr.icon_path)}
-                              alt=""
-                              width={16}
-                              height={16}
-                              sizes="16px"
-                              className="w-4 h-4"
-                            />
-                          ) : (
-                            <IconComponent size={16} className="text-red-600 dark:text-red-400" />
-                          )}
+                          <DynamicIcon
+                            iconUrl={iconUrl}
+                            iconName={resolvedIcon.iconName}
+                            size={16}
+                            className="w-4 h-4 text-red-600 dark:text-red-400"
+                            imageClassName="w-4 h-4"
+                          />
                         </div>
                         <span className="font-medium">{attr.name}</span>
                       </div>

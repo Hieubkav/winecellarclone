@@ -5,7 +5,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
-import * as LucideIcons from 'lucide-react';
+import DynamicIcon from '@/components/shared/DynamicIcon';
 import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
@@ -703,17 +703,13 @@ const generateSlug = (text: string): string => {
                   {attributeFilters.map(group => (
                     <div key={group.code} className="space-y-2">
                       <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                        {(() => {
-                          const allIcons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
-                          const IconComponent = group.icon_name && allIcons[group.icon_name] ? allIcons[group.icon_name] : null;
-                          if (IconComponent) {
-                            return <IconComponent className="w-4 h-4 text-red-500" />;
-                          }
-                          if (group.icon_url) {
-                            return <Image src={getImageUrl(group.icon_url)} alt="" width={16} height={16} sizes="16px" className="w-4 h-4" />;
-                          }
-                          return null;
-                        })()}
+                        <DynamicIcon
+                          iconUrl={group.icon_url ? getImageUrl(group.icon_url) : null}
+                          iconName={group.icon_name}
+                          size={16}
+                          className="w-4 h-4 text-red-500"
+                          imageClassName="w-4 h-4"
+                        />
                         {group.name}
                         {group.filter_type === 'chon_don' && (
                           <span className="text-xs text-slate-400">(chọn 1)</span>

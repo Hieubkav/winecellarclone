@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Tag, Search, AlertTriangle, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { Plus, Edit, Trash2, Search, AlertTriangle, RotateCcw, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, ColumnToggle } from '../components/TableUtilities';
+import DynamicIcon from '@/components/shared/DynamicIcon';
 import { 
   deleteProductType, 
   fetchAdminProductTypes,
@@ -15,6 +15,8 @@ import {
   type AdminProductType
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
+import { resolveIconInput } from '@/lib/icons/dynamicIconRegistry';
+import { getImageUrl } from '@/lib/utils/image';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -358,7 +360,11 @@ export default function ProductTypesPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
-                            <Tag size={16} className="text-red-600 dark:text-red-400" />
+                            <DynamicIcon
+                              iconName="Tag"
+                              size={16}
+                              className="w-4 h-4 text-red-600 dark:text-red-400"
+                            />
                           </div>
                           <div>
                             <span className="font-medium">{type.name}</span>
@@ -450,14 +456,19 @@ export default function ProductTypesPage() {
                           {typeAttributes.length > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                               {typeAttributes.map(attr => {
-                                const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
-                                  ? (LucideIcons as any)[attr.icon_path]
-                                  : Tag;
+                                const resolvedIcon = resolveIconInput(attr.icon_path);
+                                const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
                                 
                                 return (
                                   <Link key={attr.id} href={`/admin/attribute-groups/${attr.id}/edit`}>
                                     <div className="flex items-center gap-2 text-sm p-2 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 hover:border-red-300 dark:hover:border-red-800 transition-colors cursor-pointer">
-                                      <IconComponent size={14} className="text-red-600" />
+                                      <DynamicIcon
+                                        iconUrl={iconUrl}
+                                        iconName={resolvedIcon.iconName}
+                                        size={14}
+                                        className="w-3.5 h-3.5 text-red-600"
+                                        imageClassName="w-3.5 h-3.5"
+                                      />
                                       <span className="font-medium">{attr.name ?? '-'}</span>
                                       {getFilterTypeBadge(attr.filter_type ?? 'checkbox')}
                                     </div>

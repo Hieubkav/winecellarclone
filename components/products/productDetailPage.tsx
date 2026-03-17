@@ -1,113 +1,17 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
-  Tag,
-  Sparkles,
-  Hourglass,
-  Droplets,
-  Layers,
   ChevronDown,
   ChevronUp,
   Phone,
-  Globe,
-  FlaskConical,
-  Award,
-  Wine,
-  Beer,
-  Coffee,
-  Milk,
-  Apple,
-  Cherry,
-  Grape,
-  MapPin,
-  Map,
-  Navigation,
-  Compass,
-  Mountain,
-  Flag,
-  Landmark,
-  Building,
-  Home,
-  Store,
-  Star,
-  Crown,
-  Trophy,
-  Medal,
-  Shield,
-  BadgeCheck,
-  Gem,
-  Diamond,
-  Zap,
-  Target,
-  TrendingUp,
-  Tags,
-  Bookmark,
-  Hash,
-  AtSign,
-  Percent,
-  DollarSign,
-  Package,
-  Box,
-  Archive,
-  ShoppingBag,
-  ShoppingCart,
-  Gift,
-  Flame,
-  Leaf,
-  Flower,
-  TreePine,
-  Sprout,
-  Wind,
-  Sun,
-  Moon,
-  Cloud,
-  CloudRain,
-  Snowflake,
-  Waves,
-  Calendar,
-  Clock,
-  Timer,
-  CalendarDays,
-  Filter,
-  Settings,
-  Wrench,
-  Hammer,
-  Scissors,
-  Ruler,
-  Heart,
-  Circle,
-  Square,
-  Triangle,
-  Hexagon,
-  Feather,
-  Anchor,
-  Key,
-  Lock,
-  Unlock,
-  Eye,
-  EyeOff,
-  Palette,
-  Brush,
-  Pen,
-  Pencil,
-  Image as ImageIcon,
-  Camera,
-  Video,
-  Music,
-  Mic,
-  Volume2,
-  Bell,
-  Lightbulb,
-  Thermometer,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import { useTracking } from "@/hooks/use-tracking";
 import { ProductImage } from "@/components/ui/product-image";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import DynamicIcon from "@/components/shared/DynamicIcon";
 
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
@@ -160,38 +64,16 @@ const formatOriginalPrice = (product: ProductDetail): string | null => {
   return currencyFormatter.format(product.original_price);
 };
 
-const LUCIDE_ICON_MAP: Record<string, LucideIcon> = {
-  Wine, Beer, Coffee, Milk, Apple, Cherry, Grape,
-  MapPin, Globe, Map, Navigation, Compass, Mountain, Flag, Landmark, Building, Home, Store,
-  Award, Star, Crown, Trophy, Medal, Shield, BadgeCheck, Gem, Diamond, Sparkles, Zap, Target, TrendingUp,
-  Tag, Tags, Bookmark, Hash, AtSign, Percent, DollarSign,
-  Package, Box, Archive, ShoppingBag, ShoppingCart, Gift,
-  Droplets, Flame, Leaf, Flower, TreePine, Sprout, Wind, Sun, Moon, Cloud, CloudRain, Snowflake, Waves,
-  Calendar, Clock, Timer, Hourglass, CalendarDays,
-  Filter, Settings, Wrench, Hammer, Scissors, Ruler,
-  Heart, Circle, Square, Triangle, Hexagon, Feather, Anchor, Key, Lock, Unlock, Eye, EyeOff,
-  Palette, Brush, Pen, Pencil, Image: ImageIcon, Camera, Video, Music, Mic, Volume2, Bell, Lightbulb, Thermometer,
-  FlaskConical, Layers,
-};
-
 function AttributeIcon({ iconName, iconUrl }: { iconName?: string | null; iconUrl?: string | null }) {
-  if (iconUrl) {
-    return (
-      <Image
-        src={getImageUrl(iconUrl)}
-        alt=""
-        width={16}
-        height={16}
-        sizes="16px"
-        className="w-4 h-4"
-      />
-    );
-  }
-  const IconComponent = iconName ? LUCIDE_ICON_MAP[iconName] : null;
-  if (IconComponent) {
-    return <IconComponent className="w-4 h-4" />;
-  }
-  return <span className="w-4 h-4" aria-hidden />;
+  return (
+    <DynamicIcon
+      iconUrl={iconUrl}
+      iconName={iconName}
+      size={16}
+      className="w-4 h-4"
+      imageClassName="w-4 h-4"
+    />
+  );
 }
 export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
@@ -268,7 +150,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       
       attrs.push({
         iconName: brandAttr?.icon_name,
-        iconUrl: brandAttr?.icon_url,
+        iconUrl: brandAttr?.icon_url ? getImageUrl(brandAttr.icon_url) : null,
         groupCode: brandAttr?.group_code || 'brand',
         label: brandAttr?.group_name || "Thương hiệu",
         value: product.brand_term.name,
@@ -285,7 +167,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       
       attrs.push({
         iconName: countryAttr?.icon_name,
-        iconUrl: countryAttr?.icon_url,
+        iconUrl: countryAttr?.icon_url ? getImageUrl(countryAttr.icon_url) : null,
         groupCode: countryAttr?.group_code || 'origin',
         label: countryAttr?.group_name || "Xuất xứ",
         value: product.country_term.name,
@@ -299,7 +181,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
         if (!addedCodes.has(code)) {
           attrs.push({
             iconName: attr.icon_name,
-            iconUrl: attr.icon_url,
+            iconUrl: attr.icon_url ? getImageUrl(attr.icon_url) : null,
             groupCode: code,
             label: attr.label,
             value: String(attr.value),
@@ -321,7 +203,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
           
           attrs.push({
             iconName: attrGroup.icon_name,
-            iconUrl: attrGroup.icon_url,
+            iconUrl: attrGroup.icon_url ? getImageUrl(attrGroup.icon_url) : null,
             groupCode: attrGroup.group_code,
             label: attrGroup.group_name || attrGroup.group_code,
             value: termNames,

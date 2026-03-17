@@ -4,8 +4,8 @@ import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Filter, X, Plus, Edit, Trash2 } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
 import { Button, Card, CardContent, Input, Label, Skeleton, Badge } from '../../../components/ui';
+import DynamicIcon from '@/components/shared/DynamicIcon';
 import { 
   fetchAdminProductType, 
   updateProductType, 
@@ -15,6 +15,8 @@ import {
   type AdminCatalogAttributeGroup 
 } from '@/lib/api/admin';
 import { ApiError } from '@/lib/api/client';
+import { resolveIconInput } from '@/lib/icons/dynamicIconRegistry';
+import { getImageUrl } from '@/lib/utils/image';
 import { toast } from 'sonner';
 
 interface PageProps {
@@ -304,9 +306,8 @@ export default function ProductTypeEditPage({ params }: PageProps) {
           {linkedAttributes.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {linkedAttributes.map(attr => {
-                const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
-                  ? (LucideIcons as any)[attr.icon_path]
-                  : Filter;
+                const resolvedIcon = resolveIconInput(attr.icon_path);
+                const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
                 
                 return (
                   <div 
@@ -315,7 +316,13 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
-                        <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                        <DynamicIcon
+                          iconUrl={iconUrl}
+                          iconName={resolvedIcon.iconName}
+                          size={16}
+                          className="w-4 h-4 text-red-600 dark:text-red-400"
+                          imageClassName="w-4 h-4"
+                        />
                       </div>
                       <div>
                         <div className="font-medium text-sm">{attr.name}</div>
@@ -385,9 +392,8 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                 {allAttributes
                   .filter(attr => !linkedAttributes.some(linked => linked.id === attr.id))
                   .map(attr => {
-                    const IconComponent = attr.icon_path && (LucideIcons as any)[attr.icon_path]
-                      ? (LucideIcons as any)[attr.icon_path]
-                      : Filter;
+                    const resolvedIcon = resolveIconInput(attr.icon_path);
+                    const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
                     
                     return (
                       <button
@@ -398,7 +404,13 @@ export default function ProductTypeEditPage({ params }: PageProps) {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center">
-                            <IconComponent size={16} className="text-red-600 dark:text-red-400" />
+                            <DynamicIcon
+                              iconUrl={iconUrl}
+                              iconName={resolvedIcon.iconName}
+                              size={16}
+                              className="w-4 h-4 text-red-600 dark:text-red-400"
+                              imageClassName="w-4 h-4"
+                            />
                           </div>
                           <div className="text-left">
                             <div className="font-medium text-sm">{attr.name}</div>

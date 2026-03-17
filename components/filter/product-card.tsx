@@ -1,11 +1,10 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Tag, MapPin, Sparkles, Hourglass, Droplets, Percent, Layers, Grape, Award, Thermometer, Coffee, Square, Package, Flag } from "lucide-react";
 import { ProductImage } from "@/components/ui/product-image";
 import type { Wine } from "@/data/filter/store";
+import DynamicIcon from "@/components/shared/DynamicIcon";
 import { getImageUrl } from "@/lib/utils/article-content";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN", {
@@ -39,45 +38,17 @@ interface AttributeItem {
   groupName?: string; // Tên nhóm thuộc tính (VD: "Giống nho", "Hương vị")
 }
 
-// Map Lucide icon names to components
-const LUCIDE_ICONS: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
-  Grape,
-  Award,
-  Thermometer,
-  Percent,
-  Coffee,
-  Hourglass,
-  Square,
-  Package,
-  Flag,
-  MapPin,
-  Tag,
-  Sparkles,
-  Layers,
-  Droplets,
-};
-
 // Icon renderer component
 const AttributeIcon = ({ url, iconName }: { url?: string | null; iconName?: string | null }) => {
-  // Ưu tiên: iconUrl (file image) > iconName (Lucide)
-  if (url) {
-    return (
-      <Image
-        src={getImageUrl(url)}
-        alt="attribute"
-        width={12}
-        height={12}
-        className="w-3.5 sm:w-4 h-3.5 sm:h-4 object-contain"
-      />
-    );
-  }
-
-  if (iconName && LUCIDE_ICONS[iconName]) {
-    const IconComponent = LUCIDE_ICONS[iconName];
-    return <IconComponent className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#9B2C3B]" size={12} />;
-  }
-
-  return <span className="w-3.5 sm:w-4 h-3.5 sm:h-4" aria-hidden />;
+  return (
+    <DynamicIcon
+      iconUrl={url ? getImageUrl(url) : null}
+      iconName={iconName}
+      size={12}
+      className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-[#9B2C3B]"
+      imageClassName="w-3.5 sm:w-4 h-3.5 sm:h-4 object-contain"
+    />
+  );
 };
 
 // Attribute label - simplified without filter links for grouped items

@@ -1,53 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, X } from 'lucide-react';
-import * as LucideIcons from 'lucide-react';
+import { HelpCircle, Search, X } from 'lucide-react';
 import { Button, Input, Card } from './ui';
+import { DYNAMIC_ICON_MAP, DYNAMIC_ICON_NAMES } from '@/lib/icons/dynamicIconRegistry';
 
 interface IconPickerProps {
   value: string;
   onChange: (iconName: string) => void;
 }
 
-// Danh sách icons phổ biến cho attributes - mở rộng
-const COMMON_ICONS = [
-  // Đồ uống & Thực phẩm
-  'Wine', 'Beer', 'Coffee', 'Milk', 'Soup', 'Pizza', 'Cake', 'Cookie',
-  'Apple', 'Cherry', 'Grape', 'Lemon', 'Orange', 'Banana', 'Carrot',
-  
-  // Địa lý & Vị trí
-  'MapPin', 'Globe', 'Map', 'Navigation', 'Compass', 'Mountain', 'Palmtree',
-  'Flag', 'Landmark', 'Building', 'Home', 'Store', 'Warehouse',
-  
-  // Giải thưởng & Chất lượng
-  'Award', 'Star', 'Crown', 'Trophy', 'Medal', 'Shield', 'BadgeCheck',
-  'Gem', 'Diamond', 'Sparkles', 'Zap', 'Target', 'TrendingUp',
-  
-  // Thương hiệu & Nhãn
-  'Tag', 'Tags', 'Bookmark', 'Hash', 'AtSign', 'Percent', 'DollarSign',
-  
-  // Đóng gói & Vận chuyển
-  'Package', 'Box', 'Archive', 'ShoppingBag', 'ShoppingCart', 'Gift',
-  
-  // Tự nhiên & Môi trường
-  'Droplet', 'Flame', 'Leaf', 'Flower', 'TreePine', 'Sprout', 'Wind',
-  'Sun', 'Moon', 'Cloud', 'CloudRain', 'Snowflake', 'Waves',
-  
-  // Thời gian & Lịch
-  'Calendar', 'Clock', 'Timer', 'Hourglass', 'CalendarDays',
-  
-  // Công cụ & Thiết bị
-  'Filter', 'Settings', 'Wrench', 'Hammer', 'Scissors', 'Ruler',
-  
-  // Hình dạng & Biểu tượng
-  'Heart', 'Circle', 'Square', 'Triangle', 'Hexagon',
-  'Feather', 'Anchor', 'Key', 'Lock', 'Unlock', 'Eye', 'EyeOff',
-  
-  // Khác
-  'Palette', 'Brush', 'Pen', 'Pencil', 'Image', 'Camera', 'Video',
-  'Music', 'Mic', 'Volume2', 'Bell', 'Lightbulb', 'Thermometer',
-];
+const COMMON_ICONS = DYNAMIC_ICON_NAMES;
 
 export function IconPicker({ value, onChange }: IconPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,9 +20,9 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
     ? COMMON_ICONS.filter(name => name.toLowerCase().includes(search.toLowerCase()))
     : COMMON_ICONS;
 
-  const SelectedIcon = value && (LucideIcons as any)[value] 
-    ? (LucideIcons as any)[value] 
-    : LucideIcons.HelpCircle;
+  const SelectedIcon = value && DYNAMIC_ICON_MAP[value]
+    ? DYNAMIC_ICON_MAP[value]
+    : HelpCircle;
 
   return (
     <div className="space-y-2">
@@ -101,7 +64,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
           </div>
           <div className="grid grid-cols-8 gap-2">
             {filteredIcons.map(iconName => {
-              const IconComponent = (LucideIcons as any)[iconName];
+              const IconComponent = DYNAMIC_ICON_MAP[iconName];
               if (!IconComponent) return null;
               
               return (
