@@ -125,6 +125,12 @@ interface ProductDetailPageProps {
   product: ProductDetail;
 }
 
+interface ProductGalleryItem {
+  src: string;
+  width?: number | null;
+  height?: number | null;
+}
+
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
   currency: "VND",
@@ -200,24 +206,33 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     }
   }, [product?.id, product.name, product.category, product.type, product.price, trackProductView]);
 
-  const imageSources = useMemo(() => {
-    const urls: string[] = [];
+  const imageItems = useMemo(() => {
+    const items: ProductGalleryItem[] = [];
+    const coverSrc = getImageUrl(product.cover_image_url);
 
-    if (product.cover_image_url) {
-      urls.push(getImageUrl(product.cover_image_url));
+    if (coverSrc) {
+      items.push({ src: coverSrc });
     }
 
-    const galleryUrls = (product.gallery ?? [])
-      .map((image) => getImageUrl(image.url))
-      .filter((url): url is string => Boolean(url) && url !== getImageUrl(product.cover_image_url));
+    (product.gallery ?? []).forEach((image) => {
+      const src = getImageUrl(image.url);
 
-    urls.push(...galleryUrls);
+      if (!src || src === coverSrc) {
+        return;
+      }
 
-    if (urls.length === 0) {
-      urls.push("/placeholder/wine-bottle.svg");
+      items.push({
+        src,
+        width: image.width,
+        height: image.height,
+      });
+    });
+
+    if (items.length === 0) {
+      items.push({ src: "/placeholder/wine-bottle.svg" });
     }
 
-    return urls;
+    return items;
   }, [product]);
 
   const discountPercentage = useMemo(() => {
@@ -321,6 +336,12 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [showExpandButton, setShowExpandButton] = useState(false);
   const descriptionRef = useRef<HTMLDivElement>(null);
+  const selectedImageItem = imageItems[selectedImage] ?? imageItems[0];
+  const selectedImageSrc = selectedImageItem?.src ?? "/placeholder/wine-bottle.svg";
+  const selectedImageAspectRatio =
+    selectedImageItem?.width && selectedImageItem?.height
+      ? `${selectedImageItem.width} / ${selectedImageItem.height}`
+      : "4 / 5";
 
   const processedDescription = useMemo(
     () => processProductContent(product.description),
@@ -369,7 +390,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <div 
                   className="absolute inset-0 scale-150 blur-3xl opacity-40"
                   style={{
-                    backgroundImage: `url(${imageSources[selectedImage]})`,
+                    backgroundImage: `url(${selectedImageSrc})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                   }}
@@ -378,37 +399,39 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <button
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
-                  className="relative w-full aspect-[4/5] p-2 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  className="relative w-full p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  style={{ aspectRatio: selectedImageAspectRatio }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
                   <ProductImage
-                    src={imageSources[selectedImage]}
+                    src={selectedImageSrc}
                     alt={product.name}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover"
+                    className="object-contain"
                     priority
                   />
                 </button>
               </div>
 
-              {imageSources.length > 1 && (
+              {imageItems.length > 1 && (
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-                  {imageSources.map((img, idx) => (
+                  {imageItems.map((img, idx) => (
                     <button
-                      key={idx}
+                      key={img.src}
+                      type="button"
                       onClick={() => setSelectedImage(idx)}
-                      className={`relative aspect-[4/5] w-16 md:w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
+                      className={`relative aspect-[4/5] w-16 md:w-20 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
                         selectedImage === idx 
                           ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
                           : 'border-[#e5ddd0] opacity-70'
                       }`}
                     >
                       <ProductImage 
-                        src={img} 
+                        src={img.src} 
                         alt={`Thumbnail ${idx + 1}`} 
                         fill 
-                        className="object-cover" 
+                        className="object-contain p-1" 
                         sizes="80px"
                       />
                     </button>
@@ -418,23 +441,25 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             </div>
 
             <div className="hidden lg:flex lg:items-start lg:gap-4">
-              {imageSources.length > 1 && (
-                <div className="lg:w-24 lg:shrink-0 lg:flex lg:flex-col lg:gap-4">
-                  {imageSources.map((img, idx) => (
+              {imageItems.length > 1 && (
+                <div className="lg:flex lg:w-24 lg:shrink-0 lg:flex-col lg:items-stretch lg:gap-4">
+                  {imageItems.map((img, idx) => (
                     <button
-                      key={idx}
+                      key={img.src}
+                      type="button"
                       onClick={() => setSelectedImage(idx)}
-                      className={`relative aspect-[4/5] w-full overflow-hidden rounded-lg border bg-white transition-all ${
+                      className={`relative block w-24 overflow-hidden rounded-lg border bg-white transition-all ${
                         selectedImage === idx 
                           ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
                           : 'border-[#e5ddd0] opacity-70'
                       }`}
+                      style={{ aspectRatio: '4 / 5' }}
                     >
                       <ProductImage 
-                        src={img} 
+                        src={img.src} 
                         alt={`Thumbnail ${idx + 1}`} 
                         fill 
-                        className="object-cover" 
+                        className="object-contain p-1" 
                         sizes="96px"
                       />
                     </button>
@@ -452,7 +477,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <div 
                   className="absolute inset-0 scale-150 blur-3xl opacity-40"
                   style={{
-                    backgroundImage: `url(${imageSources[selectedImage]})`,
+                    backgroundImage: `url(${selectedImageSrc})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                   }}
@@ -461,15 +486,16 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <button
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
-                  className="relative w-full aspect-[4/5] p-2 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  className="relative w-full p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  style={{ aspectRatio: selectedImageAspectRatio }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
                   <ProductImage
-                    src={imageSources[selectedImage]}
+                    src={selectedImageSrc}
                     alt={product.name}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover"
+                    className="object-contain"
                     priority
                   />
                 </button>
@@ -477,14 +503,14 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             </div>
 
             <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
-              <DialogContent className="w-[92vw] max-w-[560px] border-0 bg-transparent p-0 shadow-none">
+              <DialogContent className="w-[92vw] max-w-[960px] border-0 bg-transparent p-0 shadow-none">
                 <DialogTitle className="sr-only">Xem ảnh sản phẩm</DialogTitle>
-                <div className="relative w-full aspect-[4/5] overflow-hidden rounded-2xl bg-[#1C1C1C]">
+                <div className="relative mx-auto max-h-[90vh] w-full overflow-hidden rounded-2xl bg-[#1C1C1C]" style={{ aspectRatio: selectedImageAspectRatio }}>
                   <ProductImage
-                    src={imageSources[selectedImage]}
+                    src={selectedImageSrc}
                     alt={product.name}
                     fill
-                    sizes="(max-width: 1024px) 90vw, 520px"
+                    sizes="(max-width: 1024px) 92vw, 960px"
                     className="object-contain"
                     priority
                   />
