@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { apiFetch } from "./client";
+import type { ExtraAttr, ProductAttribute } from "@/lib/api/products";
 
 // Base types từ backend
 export interface ApiImage {
@@ -28,6 +29,10 @@ export interface ApiProduct {
   category: ApiTerm | null;
   type: ApiTerm | null;
   badges: string[];
+  alcohol_percent?: number | null;
+  volume_ml?: number | null;
+  attributes?: ProductAttribute[];
+  extra_attrs?: Record<string, ExtraAttr>;
 }
 
 export interface ApiArticle {

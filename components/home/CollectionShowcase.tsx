@@ -3,11 +3,10 @@
 import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
 
-import type { HomeShowcaseProduct } from "@/data/homeCollections"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ProductImage } from "@/components/ui/product-image"
-import { BRAND_COLORS } from "@/lib/constants/colors"
+import type { ProductCardItem } from "@/lib/types/product-card"
+import { SharedProductCard } from "@/components/products/shared-product-card"
 
 type CollectionShowcaseProps = {
   title: string
@@ -15,7 +14,7 @@ type CollectionShowcaseProps = {
   description?: string
   ctaLabel?: string
   ctaHref: string
-  products: HomeShowcaseProduct[]
+  products: ProductCardItem[]
   tone?: "wine" | "spirit"
 }
 
@@ -26,9 +25,7 @@ export default function CollectionShowcase({
   ctaLabel,
   ctaHref,
   products,
-  tone = "wine",
 }: CollectionShowcaseProps) {
-  const accent = tone === "spirit" ? BRAND_COLORS.spirit : BRAND_COLORS.wine
   const contextLabel = subtitle ?? title
   const resolvedCtaLabel = ctaLabel ?? "Xem thêm"
 
@@ -68,7 +65,7 @@ export default function CollectionShowcase({
           <CardContent className="pt-0">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {products.slice(0, 8).map((product, index) => (
-                <ProductTile key={product.id} product={product} accent={accent} index={index} />
+                <ProductTile key={product.id} product={product} index={index} />
               ))}
             </div>
           </CardContent>
@@ -79,47 +76,10 @@ export default function CollectionShowcase({
 }
 
 type ProductTileProps = {
-  product: HomeShowcaseProduct
-  accent: string
+  product: ProductCardItem
   index: number
 }
 
-function ProductTile({ product, accent, index }: ProductTileProps) {
-  return (
-    <Link
-      href={product.href}
-      aria-label={`Xem sản phẩm ${product.name}`}
-      className="group flex h-full flex-col rounded-2xl border border-[#eeeeee] bg-white p-2.5 shadow-[0_14px_30px_rgba(28,28,28,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(28,28,28,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-    >
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-white/70 bg-[#fafafa]">
-        <ProductImage
-          src={product.image}
-          alt={product.name}
-          fill
-          priority={index < 4}
-          sizes="(max-width: 768px) 50vw, (min-width: 1024px) 20vw, 25vw"
-          className="object-contain p-3 transition duration-500 ease-out group-hover:scale-[1.03]"
-        />
-        {product.badge && (
-          <span
-            className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-white z-20"
-            style={{ backgroundColor: accent }}
-          >
-            {product.badge}
-          </span>
-        )}
-      </div>
-      <div className="mt-2 flex flex-1 flex-col gap-1">
-        <p className="text-sm font-semibold text-[#1C1C1C] transition group-hover:text-[#9B2C3B]">
-          {product.name}
-        </p>
-        <p className="text-[0.65rem] uppercase tracking-[0.2em] text-[#1C1C1C]/55">
-          {product.country} - {product.style}
-        </p>
-        <p className="mt-auto text-base font-bold text-[#ECAA4D]">
-          {product.price}
-        </p>
-      </div>
-    </Link>
-  )
+function ProductTile({ product, index }: ProductTileProps) {
+  return <SharedProductCard item={product} priority={index < 4} className="h-full" />
 }

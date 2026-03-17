@@ -1,16 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 
-import type { HomeShowcaseProduct } from "@/data/homeCollections";
-import { ProductImage } from "@/components/ui/product-image";
-import { BRAND_COLORS } from "@/lib/constants/colors";
+import type { ProductCardItem } from "@/lib/types/product-card";
+import { SharedProductCard } from "@/components/products/shared-product-card";
 
 type FavouriteProductsProps = {
   title: string;
   subtitle?: string;
-  products: HomeShowcaseProduct[];
+  products: ProductCardItem[];
 };
 
 export default function FavouriteProducts({ title, subtitle, products }: FavouriteProductsProps) {
@@ -56,54 +54,10 @@ export default function FavouriteProducts({ title, subtitle, products }: Favouri
 }
 
 type ProductCardProps = {
-  product: HomeShowcaseProduct;
+  product: ProductCardItem;
   index: number;
 };
 
 function ProductCard({ product, index }: ProductCardProps) {
-  return (
-    <Link
-      href={product.href}
-      aria-label={`Xem sản phẩm ${product.name}`}
-      className="flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100"
-    >
-      {/* Hình ảnh */}
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-lg bg-white">
-        <ProductImage
-          src={product.image}
-          alt={product.name}
-          fill
-          priority={index < 6}
-          sizes="(max-width: 640px) 140px, (max-width: 768px) 150px, 170px"
-          className="object-contain p-2"
-        />
-        {product.badge && (
-          <span 
-            className="absolute left-2 top-2 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white z-20"
-            style={{ backgroundColor: BRAND_COLORS.wine }}
-          >
-            {product.badge}
-          </span>
-        )}
-      </div>
-
-      {/* Nội dung */}
-      <div className="flex flex-1 flex-col p-2 text-[#1C1C1C]">
-        <p className="mb-1 text-xs font-bold leading-tight line-clamp-2 h-8">
-          {product.name}
-        </p>
-
-        <div className="mt-auto space-y-0.5">
-          {product.price && (
-            <p 
-              className="text-xs font-bold"
-              style={{ color: BRAND_COLORS.spirit }}
-            >
-              {product.price}
-            </p>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
+  return <SharedProductCard item={product} priority={index < 6} className="h-full" />;
 }

@@ -11,27 +11,31 @@ import type {
   ApiProduct,
   ApiArticle,
 } from "@/lib/api/home";
-import type { HomeShowcaseProduct, HomeEditorial } from "@/data/homeCollections";
+import type { HomeEditorial } from "@/data/homeCollections";
+import type { ProductCardItem } from "@/lib/types/product-card";
 import { getImageUrl } from "@/lib/utils/article-content";
 
 // Transform API product to HomeShowcaseProduct format
-export function transformApiProduct(product: ApiProduct): HomeShowcaseProduct {
-  const priceFormatted = product.price
-    ? new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(product.price)
-    : "";
-
+export function transformApiProduct(product: ApiProduct): ProductCardItem {
   return {
-    id: product.id.toString(),
+    id: product.id,
     name: product.name,
-    href: `/san-pham/${product.slug}`,
+    slug: product.slug,
     image: getImageUrl(product.cover_image_url),
-    country: product.country_term?.name || "",
-    style: product.type?.name || "",
-    price: priceFormatted,
-    badge: product.badges?.[0],
+    price: product.price,
+    originalPrice: product.original_price,
+    discountPercent: product.discount_percent,
+    showContactCta: product.show_contact_cta,
+    brand: product.brand_term?.name ?? null,
+    brandSlug: product.brand_term?.slug ?? null,
+    country: product.country_term?.name ?? null,
+    countrySlug: product.country_term?.slug ?? null,
+    wineTypeSlug: product.type?.slug ?? null,
+    alcoholContent: product.alcohol_percent ?? null,
+    volume: product.volume_ml ?? null,
+    badges: product.badges ?? [],
+    attributes: product.attributes ?? [],
+    extraAttrs: product.extra_attrs ?? {},
   };
 }
 
@@ -68,7 +72,10 @@ export function adaptCollectionShowcaseProps(config: CollectionShowcaseConfig) {
     ctaHref: config.ctaHref || "/san-pham",
     products: (config.products || [])
       .filter((item) => item && item.product && item.product.id && item.product.slug)
-      .map((item) => transformApiProduct(item.product)),
+      .map((item) => ({
+        ...transformApiProduct(item.product),
+        href: item.href || undefined,
+      })),
     tone: (config.tone || "wine") as "wine" | "spirit",
   };
 }
@@ -90,7 +97,10 @@ export function adaptFavouriteProductsProps(config: FavouriteProductsConfig) {
     subtitle: config.subtitle || undefined,
     products: (config.products || [])
       .filter((item) => item && item.product && item.product.id && item.product.slug)
-      .map((item) => transformApiProduct(item.product)),
+      .map((item) => ({
+        ...transformApiProduct(item.product),
+        href: item.href || undefined,
+      })),
   };
 }
 
