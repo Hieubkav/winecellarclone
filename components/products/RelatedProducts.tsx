@@ -84,13 +84,13 @@ export default function RelatedProductsSection({
               className="group relative flex flex-col overflow-hidden rounded-lg border border-[#e5ddd0] bg-white transition-all hover:shadow-lg hover:-translate-y-1 duration-300"
             >
               {/* Image */}
-              <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f0e8]">
+              <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f0e8]">
                 <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-4">
                   <ProductImage 
                     src={getImageUrl(product.main_image_url)} 
                     alt={product.name}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="object-contain transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                   />
                 </Link>

@@ -68,14 +68,14 @@ function ProductCard({ product, index }: ProductCardProps) {
       className="flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100"
     >
       {/* Hình ảnh */}
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg">
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-lg bg-white">
         <ProductImage
           src={product.image}
           alt={product.name}
           fill
           priority={index < 6}
           sizes="(max-width: 640px) 140px, (max-width: 768px) 150px, 170px"
-          className="object-cover"
+          className="object-contain p-2"
         />
         {product.badge && (
           <span 

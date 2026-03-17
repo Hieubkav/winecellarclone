@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2 } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
+import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { createProduct } from '@/features/admin/products/api/products.api';
-import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
+import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
 import { getImageUrl } from '@/lib/utils/image';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { LexicalEditor } from '../../components/LexicalEditor';
@@ -43,6 +44,11 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
   const [galleryImages, setGalleryImages] = useState<{ url: string; path: string }[]>([]);
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [cropSource, setCropSource] = useState<string | null>(null);
+  const [cropFileName, setCropFileName] = useState('');
+  const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
+  const cropUrlRef = useRef<string | null>(null);
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
    useEffect(() => {
@@ -88,25 +94,61 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
     return uploadProductImage(file);
   }, []);
 
-  const handleGalleryUpload = useCallback(async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+  const openCropWithFile = useCallback((file: File, targetIndex?: number) => {
+    if (cropUrlRef.current) {
+      URL.revokeObjectURL(cropUrlRef.current);
+      cropUrlRef.current = null;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    cropUrlRef.current = objectUrl;
+    setCropSource(objectUrl);
+    setCropFileName(file.name);
+    setCropTargetIndex(typeof targetIndex === 'number' ? targetIndex : null);
+  }, []);
 
+  const closeCrop = useCallback(() => {
+    if (cropUrlRef.current) {
+      URL.revokeObjectURL(cropUrlRef.current);
+      cropUrlRef.current = null;
+    }
+    setCropSource(null);
+    setCropFileName('');
+    setCropTargetIndex(null);
+  }, []);
+
+  useEffect(() => {
+    if (cropSource || cropQueue.length === 0) return;
+    const [nextFile, ...rest] = cropQueue;
+    setCropQueue(rest);
+    openCropWithFile(nextFile);
+  }, [cropQueue, cropSource, openCropWithFile]);
+
+  const handleCroppedUpload = useCallback(async (file: File) => {
     setIsUploadingImage(true);
     try {
-      const uploads = Array.from(files).map((file) => uploadSingleImage(file));
-      const results = await Promise.all(uploads);
-      const nextImages = results.filter((item): item is { url: string; path: string } => Boolean(item));
-      if (nextImages.length > 0) {
-        setGalleryImages(prev => [...prev, ...nextImages]);
-        toast.success(`Đã tải lên ${nextImages.length} ảnh`);
+      const uploaded = await uploadSingleImage(file);
+      if (uploaded) {
+        if (cropTargetIndex !== null) {
+          setGalleryImages(prev => prev.map((img, i) => (i === cropTargetIndex ? uploaded : img)));
+          toast.success('Đã thay thế ảnh');
+        } else {
+          setGalleryImages(prev => [...prev, uploaded]);
+          toast.success('Đã tải ảnh lên');
+        }
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Không thể tải ảnh lên');
     } finally {
       setIsUploadingImage(false);
+      closeCrop();
     }
-  }, [uploadSingleImage]);
+  }, [closeCrop, cropTargetIndex, uploadSingleImage]);
+
+  const handleGalleryUpload = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setCropQueue(prev => [...prev, ...Array.from(files)]);
+  }, []);
 
   const handleUrlUpload = useCallback(async () => {
     const url = imageUrlInput.trim();
@@ -114,15 +156,20 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
 
     setIsUploadingImage(true);
     try {
-      const uploaded = await uploadProductImageUrl(url);
-      if (uploaded) {
-        setGalleryImages(prev => [...prev, uploaded]);
-        setImageUrlInput('');
-        toast.success('Đã tải ảnh từ URL');
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Fetch failed');
+      const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) {
+        toast.error('URL không phải ảnh hợp lệ');
+        return;
       }
+      const extension = blob.type.split('/')[1] || 'jpg';
+      const file = new File([blob], `image-${Date.now()}.${extension}`, { type: blob.type });
+      setCropQueue(prev => [...prev, file]);
+      setImageUrlInput('');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Không thể tải ảnh từ URL');
+      toast.error('Không thể tải ảnh từ URL. Vui lòng tải file và upload.');
     } finally {
       setIsUploadingImage(false);
     }
@@ -133,35 +180,28 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
 
     setIsUploadingImage(true);
     try {
-      const uploaded = await uploadProductImageUrl(url);
-      if (uploaded) {
-        setGalleryImages(prev => prev.map((img, i) => (i === index ? uploaded : img)));
-        toast.success('Đã thay thế ảnh');
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Fetch failed');
+      const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) {
+        toast.error('URL không phải ảnh hợp lệ');
+        return;
       }
+      const extension = blob.type.split('/')[1] || 'jpg';
+      const file = new File([blob], `image-${Date.now()}.${extension}`, { type: blob.type });
+      openCropWithFile(file, index);
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Không thể tải ảnh từ URL');
+      toast.error('Không thể tải ảnh từ URL. Vui lòng tải file và upload.');
     } finally {
       setIsUploadingImage(false);
     }
-  }, []);
+  }, [openCropWithFile]);
 
   const handleReplaceFile = useCallback(async (index: number, file: File | null) => {
     if (!file) return;
-    setIsUploadingImage(true);
-    try {
-      const uploaded = await uploadSingleImage(file);
-      if (uploaded) {
-        setGalleryImages(prev => prev.map((img, i) => (i === index ? uploaded : img)));
-        toast.success('Đã thay thế ảnh');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Không thể tải ảnh lên');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  }, [uploadSingleImage]);
+    openCropWithFile(file, index);
+  }, [openCropWithFile]);
 
   const handleDropFiles = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -320,6 +360,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
 
             <div className="space-y-2">
               <Label>Ảnh sản phẩm</Label>
+              <p className="text-xs text-slate-500">Khuyến nghị ảnh dọc 4:5 (1200x1500), chai nằm giữa khung.</p>
               <p className="text-xs text-slate-500">Kéo thả để sắp xếp. Ảnh đầu tiên là ảnh chính.</p>
               <div
                 onDrop={handleDropFiles}
@@ -601,6 +642,14 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
            </div>
         </Card>
       </form>
+
+      <ProductImageCropModal
+        open={Boolean(cropSource)}
+        src={cropSource || ''}
+        fileName={cropFileName}
+        onCancel={closeCrop}
+        onConfirm={handleCroppedUpload}
+      />
      </div>
    );
  }

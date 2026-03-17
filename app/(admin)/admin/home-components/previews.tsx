@@ -512,8 +512,8 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                             <div className="flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100">
                               {/* Image */}
                               {imageUrl && (
-                                <div className="relative aspect-[3/4] w-full overflow-hidden rounded-t-lg">
-                                  <img src={imageUrl} alt={productName} className="w-full h-full object-cover" />
+                                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-lg bg-white">
+                                  <img src={imageUrl} alt={productName} className="w-full h-full object-contain p-2" />
                                   <span className="absolute left-2 top-2 rounded-full bg-[#9B2C3B] px-1.5 py-0.5 text-[9px] font-bold text-white z-20">
                                     NEW
                                   </span>

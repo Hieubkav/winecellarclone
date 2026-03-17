@@ -91,14 +91,14 @@ function ProductTile({ product, accent, index }: ProductTileProps) {
       aria-label={`Xem sản phẩm ${product.name}`}
       className="group flex h-full flex-col rounded-2xl border border-[#eeeeee] bg-white p-2.5 shadow-[0_14px_30px_rgba(28,28,28,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(28,28,28,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ECAA4D] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-white/70 bg-[#fafafa]">
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-white/70 bg-[#fafafa]">
         <ProductImage
           src={product.image}
           alt={product.name}
           fill
           priority={index < 4}
           sizes="(max-width: 768px) 50vw, (min-width: 1024px) 20vw, 25vw"
-          className="object-cover transition duration-500 ease-out group-hover:scale-[1.03]"
+          className="object-contain p-3 transition duration-500 ease-out group-hover:scale-[1.03]"
         />
         {product.badge && (
           <span
