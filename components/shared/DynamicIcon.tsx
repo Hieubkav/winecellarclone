@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { DYNAMIC_ICON_MAP } from "@/lib/icons/dynamicIconRegistry";
+import { DYNAMIC_ICON_MAP, resolveLucideIconName } from "@/lib/icons/dynamicIconRegistry";
 
 type DynamicIconProps = {
   iconUrl?: string | null;
@@ -31,8 +31,10 @@ export default function DynamicIcon({
     );
   }
 
-  if (iconName && DYNAMIC_ICON_MAP[iconName]) {
-    const IconComponent = DYNAMIC_ICON_MAP[iconName];
+  const resolvedIconName = resolveLucideIconName(iconName);
+
+  if (resolvedIconName) {
+    const IconComponent = DYNAMIC_ICON_MAP[resolvedIconName];
     return <IconComponent className={className} size={size} />;
   }
 

@@ -222,6 +222,24 @@ const normalizeIconName = (iconPath: string): string => {
     .join("");
 };
 
+export const resolveLucideIconName = (iconName?: string | null): string | null => {
+  if (!iconName) {
+    return null;
+  }
+
+  const normalizedInput = iconName.includes(":") ? iconName.split(":").pop() || iconName : iconName;
+  if (DYNAMIC_ICON_MAP[normalizedInput]) {
+    return normalizedInput;
+  }
+
+  const normalizedName = normalizeIconName(normalizedInput);
+  if (DYNAMIC_ICON_MAP[normalizedName]) {
+    return normalizedName;
+  }
+
+  return null;
+};
+
 export const resolveIconInput = (iconPath?: string | null) => {
   if (!iconPath) {
     return { iconUrl: null, iconName: null };

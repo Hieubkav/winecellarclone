@@ -328,7 +328,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
             <div className="hidden lg:flex lg:items-start lg:gap-6">
               {imageItems.length > 1 && (
-                <div className="flex w-24 shrink-0 flex-col items-stretch gap-4">
+                <div className="flex w-24 shrink-0 flex-col items-stretch gap-4 max-h-[calc(3*7.5rem+2*1rem)] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                   {imageItems.map((img, idx) => (
                     <button
                       key={img.src}
