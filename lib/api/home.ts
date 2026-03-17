@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { apiFetch } from "./client";
 
 // Base types từ backend
@@ -177,11 +178,23 @@ export interface HomeComponentsResponse {
   };
 }
 
-export async function fetchHomeComponents(): Promise<HomeComponent[]> {
+export interface SpeedDialResponse {
+  data: HomeComponent | null;
+  meta: {
+    cache_version: number;
+  };
+}
+
+export const fetchHomeComponents = cache(async (): Promise<HomeComponent[]> => {
   const response = await apiFetch<HomeComponentsResponse>("v1/home", {
-    // Revalidate mỗi 10 giây - balance giữa freshness và performance
-    // Backend có cache version + on-demand revalidation để update nhanh hơn
     next: { revalidate: 10 },
   });
   return response.data;
-}
+});
+
+export const fetchSpeedDialComponent = cache(async (): Promise<HomeComponent | null> => {
+  const response = await apiFetch<SpeedDialResponse>("v1/home/speed-dial", {
+    next: { revalidate: 10 },
+  });
+  return response.data;
+});

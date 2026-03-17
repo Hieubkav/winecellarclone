@@ -2,7 +2,7 @@
  import Footer from "@/components/layouts/Footer";
  import Speedial from "@/components/layouts/Speedial";
  import AgeGate from "@/components/layouts/AgeGate";
- import { fetchHomeComponents, type SpeedDialConfig } from "@/lib/api/home";
+ import { fetchSpeedDialComponent, type SpeedDialConfig } from "@/lib/api/home";
  import { adaptSpeedDialProps } from "@/components/home/adapters";
  import { fetchMenus } from "@/lib/api/menus";
  import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
@@ -19,7 +19,7 @@
   const [settingsResult, menusResult, homeComponentsResult, socialLinksResult] = await Promise.allSettled([
     fetchSettings(),
     fetchMenus(),
-    fetchHomeComponents(),
+    fetchSpeedDialComponent(),
     fetchSocialLinks(),
   ]);
 
@@ -36,7 +36,7 @@
 
   let speedialProps = undefined;
   if (homeComponentsResult.status === "fulfilled") {
-    const speedialComponent = homeComponentsResult.value.find((c) => c.type === "speed_dial");
+    const speedialComponent = homeComponentsResult.value;
 
     if (speedialComponent) {
       speedialProps = adaptSpeedDialProps(speedialComponent.config as SpeedDialConfig);
