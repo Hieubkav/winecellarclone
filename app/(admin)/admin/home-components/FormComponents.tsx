@@ -7,28 +7,43 @@ import { ImageUploadField } from '../components/ImageUploadField';
 import { SortableList } from '../components/SortableList';
 import { ProductGridSelector } from '../components/ProductGridSelector';
 import { ArticleGridSelector } from '../components/ArticleGridSelector';
+import { apiFetch } from '@/lib/api/client';
+
+interface ProductSelectItem {
+  value: number;
+  label: string;
+  price: number;
+  cover_image?: {
+    id: number;
+    url: string;
+    alt: string;
+  } | null;
+}
+
+interface ArticleSelectItem {
+  value: number;
+  label: string;
+  published_at?: string;
+  cover_image?: {
+    id: number;
+    url: string;
+    alt: string;
+  } | null;
+}
 
 // API helper functions
 async function fetchProductsForSelect(query: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
-  const url = `${apiUrl}/v1/admin/products/list-for-select?q=${encodeURIComponent(query)}&limit=50`;
-  
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch products');
-  
-  const json = await response.json();
-  return json.data || [];
+  const payload = await apiFetch<{ data: ProductSelectItem[] }>(
+    `v1/admin/products/list-for-select?q=${encodeURIComponent(query)}&limit=50`,
+  );
+  return payload.data || [];
 }
 
 async function fetchArticlesForSelect(query: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
-  const url = `${apiUrl}/v1/admin/articles/list-for-select?q=${encodeURIComponent(query)}&limit=50`;
-  
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch articles');
-  
-  const json = await response.json();
-  return json.data || [];
+  const payload = await apiFetch<{ data: ArticleSelectItem[] }>(
+    `v1/admin/articles/list-for-select?q=${encodeURIComponent(query)}&limit=50`,
+  );
+  return payload.data || [];
 }
 
 interface Slide {
