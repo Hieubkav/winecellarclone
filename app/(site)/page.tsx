@@ -14,8 +14,8 @@ import {
 import HeroCarousel from "@/components/home/carouselBaner";
 import DualBanner from "@/components/home/DualBanner";
 import CategoryGrid from "@/components/home/CategoryGrid";
+import FavouriteProducts from "@/components/home/FavouriteProducts";
 
-const FavouriteProducts = dynamic(() => import("@/components/home/FavouriteProducts"));
 const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"));
 const CollectionShowcase = dynamic(() => import("@/components/home/CollectionShowcase"));
 const EditorialSpotlight = dynamic(() => import("@/components/home/EditorialSpotlight"));

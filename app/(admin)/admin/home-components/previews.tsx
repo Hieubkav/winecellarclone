@@ -5,8 +5,10 @@ import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, C
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/api/client';
+import { API_BASE_URL, apiFetch } from '@/lib/api/client';
 import { getImageUrl } from '@/lib/utils/article-content';
+import { SharedProductCard } from '@/components/products/shared-product-card';
+import type { ProductCardItem } from '@/lib/types/product-card';
 
 // Fixed colors từ site
 const WINE_COLOR = "#9B2C3B";  // Đỏ burgundy
@@ -453,13 +455,20 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
     queryKey: ['products', 'favourite', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${API_BASE_URL}/v1/admin/products/list-for-select?ids=${ids.join(',')}&limit=100`);
-      if (!response.ok) throw new Error('Failed to fetch products');
-      const json = await response.json();
-      return json.data || [];
+      const payload = await apiFetch<{ data: Array<{ value: number; label: string; price: number; cover_image?: { url: string; alt?: string } | null }> }>(
+        `v1/admin/products/list-for-select?ids=${ids.join(',')}&limit=100`,
+      );
+      return payload.data || [];
     },
     enabled: ids.length > 0,
   });
+
+  const items: ProductCardItem[] = (products || []).map((product: any) => ({
+    id: product.value || product.id,
+    name: product.label?.replace(/\s*\(#\d+\)$/, '') || product.name || '',
+    image: getImageUrl(product.cover_image?.url),
+    price: product.price ?? null,
+  }));
   
   return (
     <Card className="mt-6">
@@ -496,37 +505,18 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-400" />
                     <p className="text-sm text-slate-500 mt-2">Đang tải sản phẩm...</p>
                   </div>
-                ) : products && products.length > 0 ? (
+                ) : items.length > 0 ? (
                   <div className="overflow-x-auto pb-2 -mx-3 md:-mx-1.5">
                     <div className="flex gap-3 md:gap-4 px-3 md:px-1.5">
-                      {products.slice(0, 6).map((product: any) => {
-                        // listForSelect API returns: value, label, price, cover_image
-                        const productId = product.value || product.id;
-                        const productName = product.label?.replace(/\s*\(#\d+\)$/, '') || product.name || '';
-                        const productPrice = product.price;
-                        // Convert to absolute URL using helper
-                        const imageUrl = getImageUrl(product.cover_image?.url);
-                        const itemWidth = device === 'mobile' ? 'w-[140px]' : device === 'tablet' ? 'w-[150px]' : 'w-[170px]';
+                      {items.slice(0, 6).map((item, index) => {
+                        const itemWidth = device === 'mobile'
+                          ? 'w-[140px]'
+                          : device === 'tablet'
+                            ? 'w-[150px]'
+                            : 'w-[calc((100%-4*1rem)/5)]';
                         return (
-                          <div key={productId} className={cn("flex-shrink-0", itemWidth)}>
-                            <div className="flex h-full flex-col overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100">
-                              {/* Image */}
-                              {imageUrl && (
-                                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-lg bg-white">
-                                  <img src={imageUrl} alt={productName} className="w-full h-full object-contain p-2" />
-                                  <span className="absolute left-2 top-2 rounded-full bg-[#9B2C3B] px-1.5 py-0.5 text-[9px] font-bold text-white z-20">
-                                    NEW
-                                  </span>
-                                </div>
-                              )}
-                              {/* Content */}
-                              <div className="flex flex-1 flex-col p-2 text-[#1C1C1C]">
-                                <p className="mb-1 text-xs font-bold leading-tight line-clamp-2 h-8">{productName}</p>
-                                <p className="text-xs font-bold text-[#ECAA4D]">
-                                  {productPrice ? `${productPrice.toLocaleString('vi-VN')}₫` : 'Liên hệ'}
-                                </p>
-                              </div>
-                            </div>
+                          <div key={item.id} className={cn("flex-shrink-0", itemWidth)}>
+                            <SharedProductCard item={item} priority={index < 4} className="h-full" />
                           </div>
                         );
                       })}
@@ -545,7 +535,7 @@ export const FavouriteProductsPreview = ({ title, subtitle, productIds }: Favour
           </BrowserFrame>
         </div>
         <div className="mt-3 text-xs text-slate-500">
-          {device} • {products?.length || 0} sản phẩm • Horizontal scroll layout
+          {device} • {items.length || 0} sản phẩm • Horizontal scroll layout
         </div>
         <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
           <div className="flex items-start gap-2">

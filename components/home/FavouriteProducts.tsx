@@ -41,7 +41,7 @@ export default function FavouriteProducts({ title, subtitle, products }: Favouri
             {products.map((product, index) => (
               <div
                 key={product.id}
-                className="flex-[0_0_auto] w-[140px] sm:w-[150px] md:w-[190px] lg:w-[210px] xl:w-[220px]"
+                className="flex-[0_0_auto] w-[140px] sm:w-[150px] md:w-[190px] lg:w-[calc((100%-4*1rem)/5)]"
               >
                 <ProductCard product={product} index={index} />
               </div>

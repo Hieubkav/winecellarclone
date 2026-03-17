@@ -149,19 +149,13 @@ function SearchMobile() {
       className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
       style={{ backgroundColor: BRAND_HIGHLIGHT }}
       aria-label="Mở tìm kiếm"
-      disabled={!hydrated}
-      aria-disabled={!hydrated}
     >
       <SearchIcon size={20} />
     </button>
   )
 
-  if (!hydrated) {
-    return triggerButton
-  }
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={hydrated ? setOpen : () => undefined}>
       <DialogTrigger asChild>
         {triggerButton}
       </DialogTrigger>
