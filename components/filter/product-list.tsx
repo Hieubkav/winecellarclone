@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useWineStore, type SortOption, type Wine } from "@/data/filter/store"
 import { useFilterUrlSync } from "@/hooks/use-filter-url-sync"
+import { useHydrated } from "@/hooks/use-hydrated"
 import { FilterSearchBar } from "./search-bar"
 import { ProductSkeleton } from "./product-skeleton"
 import type { ProductFiltersPayload, ProductListResponse } from "@/lib/api/products"
@@ -22,6 +23,7 @@ interface ProductListProps {
 
 export default function WineList({ initialFilterOptions, initialProducts }: ProductListProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const hydrated = useHydrated()
   
   useFilterUrlSync()
   
@@ -128,37 +130,49 @@ export default function WineList({ initialFilterOptions, initialProducts }: Prod
               <div className="flex items-center justify-between gap-3">
                 {/* Filter Button (Mobile) & Count */}
                 <div className="flex items-center gap-3">
-                  <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-                    <SheetTrigger asChild className="lg:hidden">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2 bg-stone-50 border-stone-200 text-stone-700 h-9"
-                      >
-                        <Filter size={15} /> <span className="text-xs font-medium">Bộ lọc</span>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-80 sm:w-96 overflow-y-auto">
-                      <SheetHeader className="sticky top-0 z-10 bg-stone-50 -mx-6 mb-6 px-6 py-4">
-                        <SheetTitle className="text-base font-semibold text-stone-900 flex items-center gap-2">
-                          <Filter size={18} /> Bộ lọc & Tìm kiếm
-                        </SheetTitle>
-                      </SheetHeader>
-                      <div className="space-y-6 px-6">
-                        <div>
-                          <label className="text-sm font-bold text-stone-900 mb-2 block">Tìm kiếm</label>
-                          <FilterSearchBar
-                            value={filters.searchQuery}
-                            onChange={setSearchQuery}
-                            disabled={!initialized}
-                          />
+                  {hydrated ? (
+                    <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                      <SheetTrigger asChild className="lg:hidden">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="gap-2 bg-stone-50 border-stone-200 text-stone-700 h-9"
+                        >
+                          <Filter size={15} /> <span className="text-xs font-medium">Bộ lọc</span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="left" className="w-80 sm:w-96 overflow-y-auto">
+                        <SheetHeader className="sticky top-0 z-10 bg-stone-50 -mx-6 mb-6 px-6 py-4">
+                          <SheetTitle className="text-base font-semibold text-stone-900 flex items-center gap-2">
+                            <Filter size={18} /> Bộ lọc & Tìm kiếm
+                          </SheetTitle>
+                        </SheetHeader>
+                        <div className="space-y-6 px-6">
+                          <div>
+                            <label className="text-sm font-bold text-stone-900 mb-2 block">Tìm kiếm</label>
+                            <FilterSearchBar
+                              value={filters.searchQuery}
+                              onChange={setSearchQuery}
+                              disabled={!initialized}
+                            />
+                          </div>
+                          <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
+                            <FilterSidebar />
+                          </Suspense>
                         </div>
-                        <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
-                          <FilterSidebar />
-                        </Suspense>
-                      </div>
-                    </SheetContent>
-                  </Sheet>
+                      </SheetContent>
+                    </Sheet>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 bg-stone-50 border-stone-200 text-stone-700 h-9 lg:hidden"
+                      disabled
+                      aria-disabled
+                    >
+                      <Filter size={15} /> <span className="text-xs font-medium">Bộ lọc</span>
+                    </Button>
+                  )}
                   
                   <div className="text-xs text-stone-500 sm:text-sm">
                     {loading ? (

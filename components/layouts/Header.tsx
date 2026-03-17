@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Montserrat } from "next/font/google"
 import { ChevronDown, Menu, SearchIcon, X } from "lucide-react"
 import type React from "react"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 import {
 Dialog,
@@ -141,17 +142,28 @@ return (
 }
 function SearchMobile() {
   const [open, setOpen] = useState(false)
+  const hydrated = useHydrated()
+
+  const triggerButton = (
+    <button
+      className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
+      style={{ backgroundColor: BRAND_HIGHLIGHT }}
+      aria-label="Mở tìm kiếm"
+      disabled={!hydrated}
+      aria-disabled={!hydrated}
+    >
+      <SearchIcon size={20} />
+    </button>
+  )
+
+  if (!hydrated) {
+    return triggerButton
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button
-          className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
-          style={{ backgroundColor: BRAND_HIGHLIGHT }}
-          aria-label="Mở tìm kiếm"
-        >
-          <SearchIcon size={20} />
-        </button>
+        {triggerButton}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] p-6">
       <DialogTitle className="sr-only">Tìm kiếm sản phẩm</DialogTitle>
