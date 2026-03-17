@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/utils/image";
 import { apiFetch } from "./client";
 
 // TypeScript types matching Laravel API response
@@ -27,5 +28,8 @@ export async function fetchSocialLinks(): Promise<SocialLink[]> {
     next: { revalidate: 300, tags: ["social-links"] },
   });
 
-  return response.data;
+  return response.data.map((item) => ({
+    ...item,
+    icon_url: item.icon_url ? getImageUrl(item.icon_url) : item.icon_url,
+  }));
 }

@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/utils/image";
 import { apiFetch, ApiError } from "./client";
 
 export interface ApiTerm {
@@ -165,16 +166,84 @@ const buildQueryString = (params?: QueryParams): string => {
   return query.length > 0 ? `?${query}` : "";
 };
 
+const normalizeIconUrl = (url?: string | null) => (url ? getImageUrl(url) : url ?? null);
+
+const normalizeExtraAttrs = (attrs: Record<string, ExtraAttr>): Record<string, ExtraAttr> => {
+  return Object.fromEntries(
+    Object.entries(attrs ?? {}).map(([key, attr]) => [
+      key,
+      {
+        ...attr,
+        icon_url: normalizeIconUrl(attr.icon_url),
+      },
+    ])
+  );
+};
+
+const normalizeAttributes = (attributes?: ProductAttribute[]): ProductAttribute[] | undefined => {
+  return attributes?.map((attr) => ({
+    ...attr,
+    icon_url: normalizeIconUrl(attr.icon_url),
+  }));
+};
+
+const normalizeProductListItem = (item: ProductListItem): ProductListItem => ({
+  ...item,
+  main_image_url: normalizeIconUrl(item.main_image_url),
+  gallery: item.gallery.map((image) => ({
+    ...image,
+    url: normalizeIconUrl(image.url),
+  })),
+  extra_attrs: normalizeExtraAttrs(item.extra_attrs),
+  attributes: normalizeAttributes(item.attributes),
+});
+
+const normalizeProductDetail = (detail: ProductDetail): ProductDetail => ({
+  ...detail,
+  cover_image_url: normalizeIconUrl(detail.cover_image_url),
+  gallery: detail.gallery.map((image) => ({
+    ...image,
+    url: normalizeIconUrl(image.url),
+  })),
+  extra_attrs: normalizeExtraAttrs(detail.extra_attrs),
+  attributes: normalizeAttributes(detail.attributes) ?? [],
+  same_type_products: detail.same_type_products
+    ? {
+        ...detail.same_type_products,
+        products: detail.same_type_products.products.map(normalizeProductListItem),
+      }
+    : detail.same_type_products,
+  related_by_attributes: detail.related_by_attributes
+    ? {
+        ...detail.related_by_attributes,
+        products: detail.related_by_attributes.products.map(normalizeProductListItem),
+      }
+    : detail.related_by_attributes,
+});
+
+const normalizeProductFilters = (filters: ProductFiltersPayload): ProductFiltersPayload => ({
+  ...filters,
+  attribute_filters: filters.attribute_filters.map((filter) => ({
+    ...filter,
+    icon_url: normalizeIconUrl(filter.icon_url),
+  })),
+});
+
 export async function fetchProductList(
   params?: QueryParams,
   options?: { signal?: AbortSignal }
 ): Promise<ProductListResponse> {
   const query = buildQueryString(params);
 
-  return apiFetch<ProductListResponse>(`v1/san-pham${query}`, {
+  const response = await apiFetch<ProductListResponse>(`v1/san-pham${query}`, {
     signal: options?.signal,
     next: { tags: ['products'] },
   });
+
+  return {
+    ...response,
+    data: response.data.map(normalizeProductListItem),
+  };
 }
 
 export async function fetchProductDetail(slug: string): Promise<ProductDetail | null> {
@@ -182,7 +251,7 @@ export async function fetchProductDetail(slug: string): Promise<ProductDetail | 
     const response = await apiFetch<ProductDetailResponse>(`v1/san-pham/${encodeURIComponent(slug)}`, {
       next: { tags: ['products'] },
     });
-    return response.data;
+    return normalizeProductDetail(response.data);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       return null;
@@ -235,7 +304,7 @@ export async function fetchProductFilters(typeId?: number | null): Promise<Produ
     next: { tags: ['filters'] },
   });
 
-  return response.data;
+  return normalizeProductFilters(response.data);
 }
 
 interface ProductSuggestionOptions {

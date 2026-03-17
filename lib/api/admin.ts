@@ -1,4 +1,5 @@
- import { apiFetch } from "./client";
+import { getImageUrl } from "@/lib/utils/image";
+import { apiFetch } from "./client";
  
  // Dashboard Stats
  export interface DashboardStats {
@@ -562,11 +563,27 @@ export async function fetchAdminSocialLinks(params?: Record<string, string | num
   const query = params ? '?' + new URLSearchParams(
     Object.entries(params).map(([k, v]) => [k, String(v)])
   ).toString() : '';
-  return apiFetch<AdminSocialLinksResponse>(`v1/admin/social-links${query}`);
+  const response = await apiFetch<AdminSocialLinksResponse>(`v1/admin/social-links${query}`);
+
+  return {
+    ...response,
+    data: response.data.map((item) => ({
+      ...item,
+      icon_url: item.icon_url ? getImageUrl(item.icon_url) : item.icon_url,
+    })),
+  };
 }
 
 export async function fetchAdminSocialLink(id: number): Promise<{ data: AdminSocialLinkDetail }> {
-  return apiFetch(`v1/admin/social-links/${id}`);
+  const response = await apiFetch<{ data: AdminSocialLinkDetail }>(`v1/admin/social-links/${id}`);
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      icon_url: response.data.icon_url ? getImageUrl(response.data.icon_url) : response.data.icon_url,
+    },
+  };
 }
 
 export async function createSocialLink(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {

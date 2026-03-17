@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { getImageUrl } from "@/lib/utils/image";
 import {
   Anchor,
   Apple,
@@ -229,7 +230,7 @@ export const resolveIconInput = (iconPath?: string | null) => {
   }
 
   if (iconPath.startsWith("/") || iconPath.includes("/") || iconPath.includes(".")) {
-    return { iconUrl: iconPath, iconName: null };
+    return { iconUrl: getImageUrl(iconPath), iconName: null };
   }
 
   const normalizedInput = iconPath.includes(":") ? iconPath.split(":").pop() || iconPath : iconPath;
