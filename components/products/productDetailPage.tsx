@@ -218,6 +218,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   }, [product]);
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [showExpandButton, setShowExpandButton] = useState(false);
@@ -228,6 +229,14 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
     selectedImageItem?.width && selectedImageItem?.height
       ? `${selectedImageItem.width} / ${selectedImageItem.height}`
       : "4 / 5";
+  const desktopThumbnailCount = 3;
+  const maxThumbnailStart = Math.max(0, imageItems.length - desktopThumbnailCount);
+  const visibleThumbnails = imageItems.slice(
+    thumbnailStartIndex,
+    thumbnailStartIndex + desktopThumbnailCount
+  );
+  const canScrollUp = thumbnailStartIndex > 0;
+  const canScrollDown = thumbnailStartIndex < maxThumbnailStart;
 
   const processedDescription = useMemo(
     () => processProductContent(product.description),
@@ -240,6 +249,18 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
       setShowExpandButton(scrollHeight > 200);
     }
   }, [processedDescription]);
+
+  useEffect(() => {
+    if (selectedImage < thumbnailStartIndex) {
+      setThumbnailStartIndex(selectedImage);
+      return;
+    }
+
+    const endIndex = thumbnailStartIndex + desktopThumbnailCount - 1;
+    if (selectedImage > endIndex) {
+      setThumbnailStartIndex(Math.min(selectedImage - desktopThumbnailCount + 1, maxThumbnailStart));
+    }
+  }, [selectedImage, thumbnailStartIndex, maxThumbnailStart]);
 
   const priceLabel = formatPrice(product);
   const originalPriceLabel = formatOriginalPrice(product);
@@ -328,30 +349,69 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
 
             <div className="hidden lg:flex lg:items-start lg:gap-6">
               {imageItems.length > 1 && (
-                <div className="w-24 shrink-0 overflow-hidden" style={{ height: "calc(3 * 7.5rem + 2 * 1rem)" }}>
-                  <div className="product-thumb-scrollbar flex h-full flex-col items-stretch gap-4 overflow-y-auto pr-1">
-                    {imageItems.map((img, idx) => (
-                      <button
-                        key={img.src}
-                        type="button"
-                        onClick={() => setSelectedImage(idx)}
-                        className={`relative block w-24 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
-                          selectedImage === idx 
-                            ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
-                            : 'border-[#e5ddd0]/40 opacity-70'
-                        }`}
-                        style={{ aspectRatio: '4 / 5' }}
-                      >
-                        <ProductImage 
-                          src={img.src} 
-                          alt={`Thumbnail ${idx + 1}`} 
-                          fill 
-                          className="object-contain p-0.5" 
-                          sizes="96px"
-                        />
-                      </button>
-                    ))}
+                <div className="flex w-24 shrink-0 flex-col items-stretch gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setThumbnailStartIndex((prev) => Math.max(0, prev - 1))}
+                    disabled={!canScrollUp}
+                    className={`flex h-7 w-full items-center justify-center rounded-md border border-[#e5ddd0]/60 bg-white text-[#9B2C3B] transition ${
+                      canScrollUp ? "hover:bg-[#9B2C3B]/10" : "opacity-40 cursor-not-allowed"
+                    }`}
+                    aria-label="Xem ảnh phía trên"
+                  >
+                    <ChevronUp className="h-4 w-4" />
+                  </button>
+
+                  <div
+                    className="relative w-24 overflow-hidden"
+                    style={{ height: "calc(3 * 7.5rem + 2 * 1rem)" }}
+                  >
+                    {canScrollUp && (
+                      <div className="pointer-events-none absolute left-0 top-0 z-10 h-6 w-full bg-gradient-to-b from-white to-transparent" />
+                    )}
+                    {canScrollDown && (
+                      <div className="pointer-events-none absolute bottom-0 left-0 z-10 h-6 w-full bg-gradient-to-t from-white to-transparent" />
+                    )}
+
+                    <div className="flex h-full flex-col items-stretch gap-4">
+                      {visibleThumbnails.map((img, idx) => {
+                        const actualIndex = thumbnailStartIndex + idx;
+                        return (
+                          <button
+                            key={img.src}
+                            type="button"
+                            onClick={() => setSelectedImage(actualIndex)}
+                            className={`relative block w-24 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
+                              selectedImage === actualIndex
+                                ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]'
+                                : 'border-[#e5ddd0]/40 opacity-70'
+                            }`}
+                            style={{ aspectRatio: '4 / 5' }}
+                          >
+                            <ProductImage 
+                              src={img.src} 
+                              alt={`Thumbnail ${actualIndex + 1}`} 
+                              fill 
+                              className="object-contain p-0.5" 
+                              sizes="96px"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setThumbnailStartIndex((prev) => Math.min(maxThumbnailStart, prev + 1))}
+                    disabled={!canScrollDown}
+                    className={`flex h-7 w-full items-center justify-center rounded-md border border-[#e5ddd0]/60 bg-white text-[#9B2C3B] transition ${
+                      canScrollDown ? "hover:bg-[#9B2C3B]/10" : "opacity-40 cursor-not-allowed"
+                    }`}
+                    aria-label="Xem ảnh phía dưới"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
                 </div>
               )}
 
