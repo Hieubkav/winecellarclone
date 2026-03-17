@@ -6,7 +6,7 @@ import Link from 'next/link';
  import { useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
-import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { createProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
@@ -674,6 +674,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
 
       <Dialog open={previewIndex !== null} onOpenChange={(open) => !open && setPreviewIndex(null)}>
         <DialogContent className="w-[92vw] max-w-4xl p-4 sm:p-6">
+          <DialogTitle className="sr-only">Xem ảnh sản phẩm</DialogTitle>
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-500">
               {previewIndex !== null ? `Ảnh ${previewIndex + 1} / ${galleryImages.length}` : ''}

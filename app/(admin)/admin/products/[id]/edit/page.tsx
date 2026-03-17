@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
-import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
@@ -797,6 +797,7 @@ const generateSlug = (text: string): string => {
 
       <Dialog open={previewIndex !== null} onOpenChange={(open) => !open && setPreviewIndex(null)}>
         <DialogContent className="w-[92vw] max-w-4xl p-4 sm:p-6">
+          <DialogTitle className="sr-only">Xem ảnh sản phẩm</DialogTitle>
           <div className="flex items-center justify-between">
             <span className="text-sm text-slate-500">
               {previewIndex !== null ? `Ảnh ${previewIndex + 1} / ${galleryImages.length}` : ''}
