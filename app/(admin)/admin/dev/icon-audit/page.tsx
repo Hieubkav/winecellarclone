@@ -27,6 +27,60 @@ type AuditItem = {
   iconUrl: string | null;
   normalizedName: string | null;
   error: string | null;
+  owner: string;
+  affectedFiles: string[];
+};
+
+type SourceMeta = {
+  owner: string;
+  affectedFiles: string[];
+};
+
+const SOURCE_META: Record<string, SourceMeta> = {
+  'admin-attribute-groups': {
+    owner: 'Admin catalog attribute groups',
+    affectedFiles: [
+      'app/(admin)/admin/attribute-groups/page.tsx',
+      'app/(admin)/admin/product-types/page.tsx',
+      'components/filter/filter-sidebar.tsx',
+      'components/filter/product-card.tsx',
+      'components/products/productDetailPage.tsx',
+    ],
+  },
+  'admin-social-links': {
+    owner: 'Admin social links',
+    affectedFiles: [
+      'app/(admin)/admin/social-links/page.tsx',
+      'components/layouts/Footer.tsx',
+      'components/contact/ContactSocial.tsx',
+    ],
+  },
+  'public-filters': {
+    owner: 'API v1/san-pham/filters/options',
+    affectedFiles: [
+      'components/filter/filter-sidebar.tsx',
+    ],
+  },
+  'public-contact-config': {
+    owner: 'Settings.contact_config.cards',
+    affectedFiles: [
+      'components/contact/ContactInfoGrid.tsx',
+    ],
+  },
+  'product-detail-attributes': {
+    owner: 'API v1/san-pham/:slug attributes',
+    affectedFiles: [
+      'components/products/productDetailPage.tsx',
+      'components/filter/product-card.tsx',
+    ],
+  },
+  'product-detail-extra-attrs': {
+    owner: 'API v1/san-pham/:slug extra_attrs',
+    affectedFiles: [
+      'components/products/productDetailPage.tsx',
+      'components/filter/product-card.tsx',
+    ],
+  },
 };
 
 const isRelativeStorageUrl = (url: string): boolean => {
@@ -84,9 +138,20 @@ export default function IconAuditPage() {
     setLoadError(null);
 
     const nextItems: AuditItem[] = [];
-    const addItem = (item: Omit<AuditItem, 'normalizedName' | 'error'>) => {
+    const addItem = (item: Omit<AuditItem, 'normalizedName' | 'error' | 'owner' | 'affectedFiles'>) => {
       const { error, normalizedName } = evaluateIcon(item.rawIcon, item.iconName, item.iconUrl);
-      nextItems.push({ ...item, error, normalizedName });
+      const meta = SOURCE_META[item.source] ?? {
+        owner: 'Unknown source',
+        affectedFiles: [],
+      };
+
+      nextItems.push({
+        ...item,
+        error,
+        normalizedName,
+        owner: meta.owner,
+        affectedFiles: meta.affectedFiles,
+      });
     };
 
     try {
@@ -217,10 +282,34 @@ export default function IconAuditPage() {
 
   const summary = useMemo(() => {
     const errorItems = items.filter((item) => item.error);
+    const groupedRootCauses = new Map<string, { count: number; owner: string; affectedFiles: string[] }>();
+
+    errorItems.forEach((item) => {
+      const key = `${item.rawIcon || '-'}__${item.error || '-'}__${item.owner}`;
+      const current = groupedRootCauses.get(key);
+
+      if (current) {
+        current.count += 1;
+        return;
+      }
+
+      groupedRootCauses.set(key, {
+        count: 1,
+        owner: item.owner,
+        affectedFiles: item.affectedFiles,
+      });
+    });
+
     return {
       total: items.length,
       errors: errorItems.length,
       ok: items.length - errorItems.length,
+      rootCauses: Array.from(groupedRootCauses.entries()).map(([key, value]) => ({
+        key,
+        count: value.count,
+        owner: value.owner,
+        affectedFiles: value.affectedFiles,
+      })),
     };
   }, [items]);
 
@@ -269,6 +358,29 @@ export default function IconAuditPage() {
 
       {loadError && <p className="text-sm text-red-600">{loadError}</p>}
 
+      {summary.rootCauses.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Root causes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {summary.rootCauses.map((rootCause) => {
+              const [rawIcon, error] = rootCause.key.split('__');
+
+              return (
+                <div key={rootCause.key} className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
+                  <p className="font-medium text-slate-900">
+                    {rawIcon} → {error} ({rootCause.count} items)
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600">Owner: {rootCause.owner}</p>
+                  <p className="mt-1 text-xs text-slate-600">Files: {rootCause.affectedFiles.join(', ') || '-'}</p>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-sm">Danh sách lỗi</CardTitle>
@@ -278,6 +390,8 @@ export default function IconAuditPage() {
             <thead>
               <tr className="text-left text-xs text-slate-500">
                 <th className="py-2 pr-4">Nguồn</th>
+                <th className="py-2 pr-4">Owner</th>
+                <th className="py-2 pr-4">Files</th>
                 <th className="py-2 pr-4">Label</th>
                 <th className="py-2 pr-4">Raw</th>
                 <th className="py-2 pr-4">Icon name</th>
@@ -298,8 +412,10 @@ export default function IconAuditPage() {
                     : null;
 
                   return (
-                    <tr key={item.id} className="border-t border-slate-100">
+                    <tr key={item.id} className="border-t border-slate-100 align-top">
                       <td className="py-2 pr-4 text-xs text-slate-500">{item.source}</td>
+                      <td className="py-2 pr-4 text-xs text-slate-700">{item.owner}</td>
+                      <td className="py-2 pr-4 text-xs text-slate-500">{item.affectedFiles.join(', ') || '-'}</td>
                       <td className="py-2 pr-4 text-slate-900">{item.label}</td>
                       <td className="py-2 pr-4 text-xs text-slate-500">{item.rawIcon || '-'}</td>
                       <td className="py-2 pr-4 text-xs text-slate-500">{item.iconName || '-'}</td>
