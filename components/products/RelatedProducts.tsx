@@ -81,7 +81,7 @@ export default function RelatedProductsSection({
           return (
             <div
               key={product.id}
-              className="group relative flex flex-col overflow-hidden rounded-lg border border-[#e5ddd0] bg-white transition-all hover:shadow-lg hover:-translate-y-1 duration-300"
+              className="relative flex flex-col overflow-hidden rounded-lg border border-[#e5ddd0] bg-white"
             >
               {/* Image */}
               <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f0e8]">
@@ -90,7 +90,7 @@ export default function RelatedProductsSection({
                     src={getImageUrl(product.main_image_url)} 
                     alt={product.name}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover"
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
                   />
                 </Link>
@@ -99,19 +99,6 @@ export default function RelatedProductsSection({
                     -{discountPercent}%
                   </div>
                 )}
-                {/* Overlay Action */}
-                <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex justify-center">
-                  <Button 
-                    size="sm" 
-                    className="w-full shadow-lg bg-[#9B2C3B] hover:bg-[#9B2C3B]/90 text-white"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      window.location.href = `/san-pham/${product.slug}`;
-                    }}
-                  >
-                    <ShoppingCart className="mr-2 h-4 w-4" /> Đặt hàng
-                  </Button>
-                </div>
               </div>
 
               {/* Content */}
@@ -121,7 +108,7 @@ export default function RelatedProductsSection({
                 )}
                 <Link 
                   href={`/san-pham/${product.slug}`}
-                  className="line-clamp-2 text-sm font-medium text-slate-900 mb-2 h-10 group-hover:text-[#9B2C3B] transition-colors"
+                  className="line-clamp-2 text-sm font-medium text-slate-900 mb-2 h-10"
                 >
                   {product.name}
                 </Link>
@@ -135,6 +122,16 @@ export default function RelatedProductsSection({
                     </span>
                   )}
                 </div>
+                <Button
+                  size="sm"
+                  className="mt-3 w-full bg-[#9B2C3B] text-white hover:bg-[#9B2C3B]/90"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = `/san-pham/${product.slug}`;
+                  }}
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" /> Liên hệ
+                </Button>
               </div>
             </div>
           );

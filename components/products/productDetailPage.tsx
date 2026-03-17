@@ -360,15 +360,15 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
           <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
               {imageSources.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent lg:flex-col lg:gap-4 lg:pb-0 lg:overflow-visible lg:w-24">
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent lg:hidden">
                   {imageSources.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
-                      className={`relative aspect-[4/5] w-16 md:w-20 lg:w-full flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
+                      className={`relative aspect-[4/5] w-16 md:w-20 flex-shrink-0 overflow-hidden rounded-lg border bg-white transition-all ${
                         selectedImage === idx 
                           ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
-                          : 'border-[#e5ddd0] hover:border-[#9B2C3B]/50 opacity-70 hover:opacity-100'
+                          : 'border-[#e5ddd0] opacity-70'
                       }`}
                     >
                       <ProductImage 
@@ -383,7 +383,31 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 </div>
               )}
 
-              <div className="relative w-full max-w-[480px] mx-auto lg:mx-0 overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm group">
+              {imageSources.length > 1 && (
+                <div className="hidden lg:flex lg:w-24 lg:flex-col lg:gap-4">
+                  {imageSources.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImage(idx)}
+                      className={`relative aspect-[4/5] w-full overflow-hidden rounded-lg border bg-white transition-all ${
+                        selectedImage === idx 
+                          ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
+                          : 'border-[#e5ddd0] opacity-70'
+                      }`}
+                    >
+                      <ProductImage 
+                        src={img} 
+                        alt={`Thumbnail ${idx + 1}`} 
+                        fill 
+                        className="object-cover" 
+                        sizes="96px"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="relative w-full max-w-[480px] mx-auto lg:mx-0 overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm">
                 {discountPercentage > 0 && (
                   <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
                     -{discountPercentage}%
@@ -410,7 +434,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                     alt={product.name}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover"
                     priority
                   />
                 </button>
