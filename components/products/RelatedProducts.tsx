@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, type MouseEvent } from "react";
-import { ArrowRight, ShoppingCart } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { ProductListItem } from "@/lib/api/products";
 import { ProductImage } from "@/components/ui/product-image";
 import { Button } from "@/components/ui/button";
@@ -81,11 +81,11 @@ export default function RelatedProductsSection({
           return (
             <div
               key={product.id}
-              className="relative flex flex-col overflow-hidden rounded-lg border border-[#e5ddd0] bg-white"
+              className="relative flex flex-col overflow-hidden rounded-lg border border-[#e5ddd0]/40 bg-white"
             >
               {/* Image */}
               <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f0e8]">
-                <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-2">
+                <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-1">
                   <ProductImage 
                     src={getImageUrl(product.main_image_url)} 
                     alt={product.name}
@@ -130,7 +130,7 @@ export default function RelatedProductsSection({
                     window.location.href = `/san-pham/${product.slug}`;
                   }}
                 >
-                  <ShoppingCart className="mr-2 h-4 w-4" /> Liên hệ
+                  Xem sản phẩm
                 </Button>
               </div>
             </div>

@@ -380,7 +380,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
           <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-4">
             <div className="flex flex-col gap-4 lg:hidden">
-              <div className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm">
+              <div className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0]/40 bg-white shadow-sm">
                 {discountPercentage > 0 && (
                   <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
                     -{discountPercentage}%
@@ -399,7 +399,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <button
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
-                  className="relative w-full p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  className="relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
                   style={{ aspectRatio: '4 / 5' }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
@@ -424,14 +424,14 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                       className={`relative aspect-[4/5] w-16 md:w-20 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
                         selectedImage === idx 
                           ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
-                          : 'border-[#e5ddd0] opacity-70'
+                          : 'border-[#e5ddd0]/40 opacity-70'
                       }`}
                     >
                       <ProductImage 
                         src={img.src} 
                         alt={`Thumbnail ${idx + 1}`} 
                         fill 
-                        className="object-contain p-1" 
+                        className="object-contain p-0.5" 
                         sizes="80px"
                       />
                     </button>
@@ -451,7 +451,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                       className={`relative block w-24 overflow-hidden rounded-lg border bg-white transition-all ${
                         selectedImage === idx 
                           ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
-                          : 'border-[#e5ddd0] opacity-70'
+                          : 'border-[#e5ddd0]/40 opacity-70'
                       }`}
                       style={{ aspectRatio: '4 / 5' }}
                     >
@@ -459,7 +459,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                         src={img.src} 
                         alt={`Thumbnail ${idx + 1}`} 
                         fill 
-                        className="object-contain p-1" 
+                        className="object-contain p-0.5" 
                         sizes="96px"
                       />
                     </button>
@@ -467,7 +467,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 </div>
               )}
 
-              <div className="relative w-full max-w-[480px] overflow-hidden rounded-xl border border-[#e5ddd0] bg-white shadow-sm">
+              <div className="relative w-full max-w-[480px] overflow-hidden rounded-xl border border-[#e5ddd0]/40 bg-white shadow-sm">
                 {discountPercentage > 0 && (
                   <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
                     -{discountPercentage}%
@@ -486,7 +486,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
                 <button
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
-                  className="relative w-full p-3 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                  className="relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
                   style={{ aspectRatio: '4 / 5' }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
