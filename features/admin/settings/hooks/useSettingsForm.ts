@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { fetchAdminSettings, updateSettings } from "../api/settings.api";
 import { DEFAULT_FONT_KEY, isValidFontKey, type FontKey } from "@/lib/fonts/registry";
+import type { ProductContactCtaMode } from "@/lib/types/product-contact-cta";
 
 const VALID_TABS = ["info", "map", "watermark", "seo", "fonts"] as const;
 
@@ -83,6 +84,13 @@ export const useSettingsForm = () => {
   const [defaultOgTitle, setDefaultOgTitle] = useState("");
   const [defaultOgDescription, setDefaultOgDescription] = useState("");
   const [indexingEnabled, setIndexingEnabled] = useState(true);
+  const [productContactCtaMode, setProductContactCtaMode] = useState<ProductContactCtaMode>(
+    "contact_page"
+  );
+  const [productContactCtaFacebook, setProductContactCtaFacebook] = useState("");
+  const [productContactCtaZalo, setProductContactCtaZalo] = useState("");
+  const [productContactCtaPhone, setProductContactCtaPhone] = useState("");
+  const [productContactCtaTiktok, setProductContactCtaTiktok] = useState("");
 
   const [logoImageId, setLogoImageId] = useState<number | null>(null);
   const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
@@ -134,6 +142,14 @@ export const useSettingsForm = () => {
       setDefaultOgTitle(data.default_og_title || "");
       setDefaultOgDescription(data.default_og_description || "");
       setIndexingEnabled(data.indexing_enabled !== false);
+
+      const productContactConfig = data.product_contact_cta_config;
+      const fallbackPhone = data.hotline || data.primary_phone || "";
+      setProductContactCtaMode(productContactConfig?.mode || "contact_page");
+      setProductContactCtaFacebook(productContactConfig?.items?.facebook || "");
+      setProductContactCtaZalo(productContactConfig?.items?.zalo || "");
+      setProductContactCtaPhone(productContactConfig?.items?.phone || fallbackPhone);
+      setProductContactCtaTiktok(productContactConfig?.items?.tiktok || "");
 
       setLogoImageId(data.logo_image_id || null);
       setLogoImageUrl(data.logo_image_url ? `${backendUrl}${data.logo_image_url}` : null);
@@ -289,6 +305,15 @@ export const useSettingsForm = () => {
         default_og_title: defaultOgTitle || null,
         default_og_description: defaultOgDescription || null,
         indexing_enabled: indexingEnabled,
+        product_contact_cta_config: {
+          mode: productContactCtaMode,
+          items: {
+            facebook: productContactCtaFacebook || null,
+            zalo: productContactCtaZalo || null,
+            phone: productContactCtaPhone || null,
+            tiktok: productContactCtaTiktok || null,
+          },
+        },
         logo_image_id: logoImageId,
         favicon_image_id: faviconImageId,
         og_image_id: ogImageId,
@@ -347,6 +372,11 @@ export const useSettingsForm = () => {
       defaultOgTitle,
       defaultOgDescription,
       indexingEnabled,
+      productContactCtaMode,
+      productContactCtaFacebook,
+      productContactCtaZalo,
+      productContactCtaPhone,
+      productContactCtaTiktok,
       logoImageId,
       logoImageUrl,
       faviconImageId,
@@ -392,6 +422,11 @@ export const useSettingsForm = () => {
       setDefaultOgTitle,
       setDefaultOgDescription,
       setIndexingEnabled,
+      setProductContactCtaMode,
+      setProductContactCtaFacebook,
+      setProductContactCtaZalo,
+      setProductContactCtaPhone,
+      setProductContactCtaTiktok,
       setLogoImageId,
       setLogoImageUrl,
       setFaviconImageId,

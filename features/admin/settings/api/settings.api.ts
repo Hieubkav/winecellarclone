@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api/client";
+import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
 
 export interface AdminSetting {
   id: number;
@@ -10,6 +11,7 @@ export interface AdminSetting {
   google_map_embed: string | null;
   footer_config: Record<string, unknown> | null;
   contact_config: Record<string, unknown> | null;
+  product_contact_cta_config: ProductContactCtaConfig | null;
   meta_default_title: string | null;
   meta_default_description: string | null;
   meta_default_keywords: string | string[] | null;

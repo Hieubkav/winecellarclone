@@ -128,7 +128,11 @@ export default async function ProductDetailRoute({
         ]}
       />
 
-      <ProductDetailPage product={product} fontFamily={productDetailFontStyle.fontFamily} />
+      <ProductDetailPage
+        product={product}
+        fontFamily={productDetailFontStyle.fontFamily}
+        productContactCtaConfig={settings.product_contact_cta_config}
+      />
     </>
   );
 }

@@ -19,6 +19,7 @@ import type { ProductDetail } from "@/lib/api/products";
 import { processProductContent, getImageUrl } from "@/lib/utils/article-content";
 import { PRODUCT_IMAGE_ASPECT_CLASS, PRODUCT_IMAGE_ASPECT_RATIO } from "@/lib/constants/product-image";
 import RelatedProductsSection from "./RelatedProducts";
+import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
 
 interface AttributeDisplayItem {
   iconName?: string | null;
@@ -32,6 +33,7 @@ interface AttributeDisplayItem {
 interface ProductDetailPageProps {
   product: ProductDetail;
   fontFamily?: string;
+  productContactCtaConfig?: ProductContactCtaConfig | null;
 }
 
 interface ProductGalleryItem {
@@ -67,6 +69,27 @@ const formatOriginalPrice = (product: ProductDetail): string | null => {
   return currencyFormatter.format(product.original_price);
 };
 
+const resolvePhoneHref = (value?: string | null): string | null => {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("tel:") || trimmed.startsWith("http")) return trimmed;
+  const digits = trimmed.replace(/\D/g, "");
+  return digits ? `tel:${digits}` : null;
+};
+
+const FacebookIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M13.5 9H16V6h-2.5C11.6 6 10 7.6 10 9.5V12H8v3h2v7h3v-7h2.3l.7-3H13V9.5c0-.3.2-.5.5-.5z" />
+  </svg>
+);
+
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-2.31-2.84 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 1 0 12 21a6.34 6.34 0 0 0 6.86-6.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+  </svg>
+);
+
 function AttributeIcon({ iconName, iconUrl }: { iconName?: string | null; iconUrl?: string | null }) {
   return (
     <DynamicIcon
@@ -78,8 +101,52 @@ function AttributeIcon({ iconName, iconUrl }: { iconName?: string | null; iconUr
     />
   );
 }
-export default function ProductDetailPage({ product, fontFamily }: ProductDetailPageProps) {
+export default function ProductDetailPage({
+  product,
+  fontFamily,
+  productContactCtaConfig,
+}: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
+  const contactCtaMode = productContactCtaConfig?.mode || "contact_page";
+  const contactCtaItems = productContactCtaConfig?.items || {};
+  const contactActions = useMemo(() => {
+    const actions = [
+      {
+        id: "facebook",
+        label: "Facebook",
+        href: contactCtaItems.facebook?.trim(),
+        bg: "#1877F2",
+        Icon: FacebookIcon,
+        targetBlank: true,
+      },
+      {
+        id: "zalo",
+        label: "Zalo",
+        href: contactCtaItems.zalo?.trim(),
+        bg: "#0068FF",
+        iconType: "image" as const,
+        targetBlank: true,
+      },
+      {
+        id: "phone",
+        label: "SĐT",
+        href: resolvePhoneHref(contactCtaItems.phone),
+        bg: "#16A34A",
+        Icon: Phone,
+        targetBlank: false,
+      },
+      {
+        id: "tiktok",
+        label: "TikTok",
+        href: contactCtaItems.tiktok?.trim(),
+        bg: "#000000",
+        Icon: TikTokIcon,
+        targetBlank: true,
+      },
+    ];
+
+    return actions.filter((action) => Boolean(action.href));
+  }, [contactCtaItems.facebook, contactCtaItems.phone, contactCtaItems.tiktok, contactCtaItems.zalo]);
 
   useEffect(() => {
     if (product?.id) {
@@ -560,23 +627,51 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
             )}
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button 
-                asChild
-                size="lg"
-                className="flex-1 text-base h-12 bg-[#9B2C3B] hover:bg-[#9B2C3B]/90 text-white shadow-sm"
-                onClick={() => trackCTAContact({
-                  button: 'contact_order',
-                  placement: 'product_detail',
-                  product_id: product.id,
-                  product_name: product.name,
-                })}
-              >
-                <Link href="/contact" target="_blank" rel="noopener noreferrer">
-                  <Phone className="w-5 h-5 mr-2" /> Liên hệ đặt hàng
-                </Link>
-              </Button>
-            </div>
+            {contactCtaMode === "social_4_buttons" && contactActions.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                {contactActions.map((action) => (
+                  <Link
+                    key={action.id}
+                    href={action.href as string}
+                    target={action.targetBlank ? "_blank" : undefined}
+                    rel={action.targetBlank ? "noopener noreferrer" : undefined}
+                    className="flex items-center justify-center gap-2 h-12 rounded-md text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: action.bg }}
+                    onClick={() => trackCTAContact({
+                      button: action.id,
+                      placement: "product_detail",
+                      product_id: product.id,
+                      product_name: product.name,
+                    })}
+                  >
+                    {action.iconType === "image" ? (
+                      <img src="/icons/zalo.png" alt="Zalo" className="h-5 w-5" />
+                    ) : (
+                      action.Icon ? <action.Icon className="h-5 w-5" /> : null
+                    )}
+                    <span>{action.label}</span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Button
+                  asChild
+                  size="lg"
+                  className="flex-1 text-base h-12 bg-[#9B2C3B] hover:bg-[#9B2C3B]/90 text-white shadow-sm"
+                  onClick={() => trackCTAContact({
+                    button: "contact_order",
+                    placement: "product_detail",
+                    product_id: product.id,
+                    product_name: product.name,
+                  })}
+                >
+                  <Link href="/contact" target="_blank" rel="noopener noreferrer">
+                    <Phone className="w-5 h-5 mr-2" /> Liên hệ đặt hàng
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

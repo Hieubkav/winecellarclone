@@ -1,6 +1,7 @@
 import { apiFetch } from "./client";
 import type { FooterConfig } from "@/lib/types/footer";
 import type { ContactConfig } from "@/lib/types/contact";
+import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
 
 // TypeScript types matching Laravel API response structure
 export type WatermarkPosition = 'none' | 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
@@ -32,6 +33,7 @@ export interface SettingsResponse {
     google_map_embed: string | null;
     footer_config: FooterConfig | null;
     contact_config: ContactConfig | null;
+    product_contact_cta_config: ProductContactCtaConfig | null;
     product_watermark_url: string | null;
     product_watermark_position: WatermarkPosition | null;
     product_watermark_size: WatermarkSize | null;
@@ -84,6 +86,7 @@ export interface Settings {
   google_map_embed: string | null;
   footer_config: FooterConfig | null;
   contact_config: ContactConfig | null;
+  product_contact_cta_config: ProductContactCtaConfig | null;
   product_watermark_url: string | null;
   product_watermark_position: WatermarkPosition | null;
   product_watermark_size: WatermarkSize | null;
@@ -153,6 +156,15 @@ export const FALLBACK_SETTINGS: Settings = {
   google_map_embed: null,
   footer_config: null,
   contact_config: null,
+  product_contact_cta_config: {
+    mode: "contact_page",
+    items: {
+      facebook: null,
+      zalo: null,
+      phone: null,
+      tiktok: null,
+    },
+  },
   product_watermark_url: null,
   product_watermark_position: 'none',
   product_watermark_size: '128x128',

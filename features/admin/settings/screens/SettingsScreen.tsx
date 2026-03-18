@@ -36,6 +36,11 @@ export const SettingsScreen = () => {
     defaultOgTitle,
     defaultOgDescription,
     indexingEnabled,
+    productContactCtaMode,
+    productContactCtaFacebook,
+    productContactCtaZalo,
+    productContactCtaPhone,
+    productContactCtaTiktok,
     logoImageId,
     logoImageUrl,
     faviconImageId,
@@ -81,6 +86,11 @@ export const SettingsScreen = () => {
     setDefaultOgTitle,
     setDefaultOgDescription,
     setIndexingEnabled,
+    setProductContactCtaMode,
+    setProductContactCtaFacebook,
+    setProductContactCtaZalo,
+    setProductContactCtaPhone,
+    setProductContactCtaTiktok,
     setLogoImageId,
     setLogoImageUrl,
     setFaviconImageId,
@@ -167,88 +177,154 @@ export const SettingsScreen = () => {
           </TabsList>
 
           <TabsContent value="info">
-            <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-semibold text-slate-900 dark:text-slate-100">Thông tin cơ bản</h2>
-                <p className="text-sm text-slate-500">Cấu hình logo, favicon và thông tin liên hệ</p>
-              </div>
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ImageUploadField
-                    label="Logo"
-                    value={logoImageUrl}
-                    imageId={logoImageId}
-                    onChange={(id, url) => {
-                      setLogoImageId(id);
-                      setLogoImageUrl(url);
-                    }}
-                    description="Hiển thị trên header trang chủ"
-                  />
-                  <ImageUploadField
-                    label="Favicon"
-                    value={faviconImageUrl}
-                    imageId={faviconImageId}
-                    onChange={(id, url) => {
-                      setFaviconImageId(id);
-                      setFaviconImageUrl(url);
-                    }}
-                    description="Icon hiển thị trên browser tab"
-                  />
+            <div className="space-y-6">
+              <Card>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">Thông tin cơ bản</h2>
+                  <p className="text-sm text-slate-500">Cấu hình logo, favicon và thông tin liên hệ</p>
                 </div>
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <ImageUploadField
+                      label="Logo"
+                      value={logoImageUrl}
+                      imageId={logoImageId}
+                      onChange={(id, url) => {
+                        setLogoImageId(id);
+                        setLogoImageUrl(url);
+                      }}
+                      description="Hiển thị trên header trang chủ"
+                    />
+                    <ImageUploadField
+                      label="Favicon"
+                      value={faviconImageUrl}
+                      imageId={faviconImageId}
+                      onChange={(id, url) => {
+                        setFaviconImageId(id);
+                        setFaviconImageUrl(url);
+                      }}
+                      description="Icon hiển thị trên browser tab"
+                    />
+                  </div>
 
-                <div className="border-t border-slate-200 dark:border-slate-700 pt-4"></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="siteName">Tên website</Label>
-                    <Input
-                      id="siteName"
-                      value={siteName}
-                      onChange={(event) => setSiteName(event.target.value)}
-                      placeholder="Wine Cellar"
-                    />
+                  <div className="border-t border-slate-200 dark:border-slate-700 pt-4"></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="siteName">Tên website</Label>
+                      <Input
+                        id="siteName"
+                        value={siteName}
+                        onChange={(event) => setSiteName(event.target.value)}
+                        placeholder="Wine Cellar"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="hotline">Hotline</Label>
+                      <Input
+                        id="hotline"
+                        value={hotline}
+                        onChange={(event) => setHotline(event.target.value)}
+                        placeholder="0909 123 456"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="info@winecellar.vn"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="hours">Giờ làm việc</Label>
+                      <Input
+                        id="hours"
+                        value={hours}
+                        onChange={(event) => setHours(event.target.value)}
+                        placeholder="8:00 - 22:00, T2 - CN"
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="hotline">Hotline</Label>
-                    <Input
-                      id="hotline"
-                      value={hotline}
-                      onChange={(event) => setHotline(event.target.value)}
-                      placeholder="0909 123 456"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="info@winecellar.vn"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="hours">Giờ làm việc</Label>
-                    <Input
-                      id="hours"
-                      value={hours}
-                      onChange={(event) => setHours(event.target.value)}
-                      placeholder="8:00 - 22:00, T2 - CN"
+                    <Label htmlFor="address">Địa chỉ</Label>
+                    <textarea
+                      id="address"
+                      value={address}
+                      onChange={(event) => setAddress(event.target.value)}
+                      placeholder="123 Nguyen Hue, Quan 1, TP.HCM"
+                      rows={2}
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Địa chỉ</Label>
-                  <textarea
-                    id="address"
-                    value={address}
-                    onChange={(event) => setAddress(event.target.value)}
-                    placeholder="123 Nguyen Hue, Quan 1, TP.HCM"
-                    rows={2}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+              </Card>
+
+              <Card>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">CTA liên hệ trang sản phẩm</h2>
+                  <p className="text-sm text-slate-500">Chọn cách hiển thị nút liên hệ trên trang chi tiết sản phẩm</p>
                 </div>
-              </div>
-            </Card>
+                <div className="p-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="productContactCtaMode">Chế độ hiển thị</Label>
+                    <select
+                      id="productContactCtaMode"
+                      value={productContactCtaMode}
+                      onChange={(event) => setProductContactCtaMode(event.target.value as typeof productContactCtaMode)}
+                      className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
+                    >
+                      <option value="contact_page">Nút liên hệ (mở trang /contact)</option>
+                      <option value="social_4_buttons">4 nút FB / Zalo / SĐT / TikTok</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="productContactFacebook">Facebook URL</Label>
+                      <Input
+                        id="productContactFacebook"
+                        value={productContactCtaFacebook}
+                        onChange={(event) => setProductContactCtaFacebook(event.target.value)}
+                        placeholder="https://facebook.com/..."
+                        disabled={productContactCtaMode !== "social_4_buttons"}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="productContactZalo">Zalo URL</Label>
+                      <Input
+                        id="productContactZalo"
+                        value={productContactCtaZalo}
+                        onChange={(event) => setProductContactCtaZalo(event.target.value)}
+                        placeholder="https://zalo.me/..."
+                        disabled={productContactCtaMode !== "social_4_buttons"}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="productContactPhone">Số điện thoại</Label>
+                      <Input
+                        id="productContactPhone"
+                        value={productContactCtaPhone}
+                        onChange={(event) => setProductContactCtaPhone(event.target.value)}
+                        placeholder="0909 123 456 hoặc tel:+84909123456"
+                        disabled={productContactCtaMode !== "social_4_buttons"}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="productContactTiktok">TikTok URL</Label>
+                      <Input
+                        id="productContactTiktok"
+                        value={productContactCtaTiktok}
+                        onChange={(event) => setProductContactCtaTiktok(event.target.value)}
+                        placeholder="https://tiktok.com/@..."
+                        disabled={productContactCtaMode !== "social_4_buttons"}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="map">
