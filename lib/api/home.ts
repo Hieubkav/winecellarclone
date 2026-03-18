@@ -188,9 +188,12 @@ export interface HomeComponentsResponse {
   meta: {
     cache_version: number;
     audit?: {
-      total_ms: number;
-      components: HomeComponentAuditEntry[];
-      slowest_component: HomeComponentAuditEntry | null;
+      total_ms?: number;
+      components?: HomeComponentAuditEntry[];
+      slowest_component?: HomeComponentAuditEntry | null;
+      cache_hit?: boolean;
+      cache_key?: string;
+      server_ms?: number;
     };
   };
 }
@@ -199,15 +202,23 @@ export interface SpeedDialResponse {
   data: HomeComponent | null;
   meta: {
     cache_version: number;
+    audit?: {
+      cache_hit: boolean;
+      cache_key: string;
+      server_ms: number;
+    };
   };
 }
 
-export async function fetchHomeComponentsWithMeta(options?: { audit?: boolean }): Promise<HomeComponentsResponse> {
-  const params = options?.audit ? "?audit=1" : "";
+export async function fetchHomeComponentsWithMeta(options?: { audit?: boolean; auditCached?: boolean }): Promise<HomeComponentsResponse> {
+  const params = new URLSearchParams();
+  if (options?.audit) params.set("audit", "1");
+  if (options?.auditCached) params.set("audit_cached", "1");
+  const query = params.toString();
 
-  return apiFetch<HomeComponentsResponse>(`v1/home${params}`, {
-    cache: options?.audit ? "no-store" : undefined,
-    next: options?.audit ? { revalidate: 0 } : { revalidate: 10 },
+  return apiFetch<HomeComponentsResponse>(`v1/home${query ? `?${query}` : ""}`, {
+    cache: options?.audit || options?.auditCached ? "no-store" : undefined,
+    next: options?.audit || options?.auditCached ? { revalidate: 0 } : { revalidate: 10 },
   });
 }
 
@@ -216,9 +227,16 @@ export const fetchHomeComponents = cache(async (): Promise<HomeComponent[]> => {
   return response.data;
 });
 
-export const fetchSpeedDialComponent = cache(async (): Promise<HomeComponent | null> => {
-  const response = await apiFetch<SpeedDialResponse>("v1/home/speed-dial", {
-    next: { revalidate: 10 },
+export async function fetchSpeedDialComponentWithMeta(options?: { audit?: boolean }): Promise<SpeedDialResponse> {
+  const params = options?.audit ? "?audit=1" : "";
+
+  return apiFetch<SpeedDialResponse>(`v1/home/speed-dial${params}`, {
+    cache: options?.audit ? "no-store" : undefined,
+    next: options?.audit ? { revalidate: 0 } : { revalidate: 10 },
   });
+}
+
+export const fetchSpeedDialComponent = cache(async (): Promise<HomeComponent | null> => {
+  const response = await fetchSpeedDialComponentWithMeta();
   return response.data;
 });

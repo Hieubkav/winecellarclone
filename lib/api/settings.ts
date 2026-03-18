@@ -16,6 +16,7 @@ export interface SettingsAuditMeta {
   cache_read_ms: number;
   query_ms: number | null;
   serialize_ms: number | null;
+  server_ms: number;
 }
 
 export interface SettingsResponse {
