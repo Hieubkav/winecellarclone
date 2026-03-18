@@ -6,6 +6,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITEMAP_BATCH_SIZE = 100
+  const ARTICLE_SITEMAP_BATCH_SIZE = 50
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -55,13 +56,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }))
 
-    // Fetch all articles
-    const articlesResponse = await fetchArticleList({
+    // Fetch all articles within backend per_page limit
+    const firstArticlesResponse = await fetchArticleList({
       page: 1,
-      per_page: SITEMAP_BATCH_SIZE,
+      per_page: ARTICLE_SITEMAP_BATCH_SIZE,
     })
 
-    const articlePages: MetadataRoute.Sitemap = articlesResponse.data.map((article) => ({
+    const remainingArticleRequests = Array.from(
+      { length: Math.max(firstArticlesResponse.meta.pagination.last_page - 1, 0) },
+      (_, index) =>
+        fetchArticleList({
+          page: index + 2,
+          per_page: ARTICLE_SITEMAP_BATCH_SIZE,
+        })
+    )
+
+    const remainingArticlesResponses = await Promise.all(remainingArticleRequests)
+    const allArticles = [
+      ...firstArticlesResponse.data,
+      ...remainingArticlesResponses.flatMap((response) => response.data),
+    ]
+
+    const articlePages: MetadataRoute.Sitemap = allArticles.map((article) => ({
       url: `${SITE_URL}/bai-viet/${article.slug}`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
