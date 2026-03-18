@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../../components/ui";
-import { fetchHomeComponents, fetchSpeedDialComponent } from "@/lib/api/home";
+import { fetchHomeComponents, fetchHomeComponentsWithMeta, fetchSpeedDialComponent, type HomeComponentAuditEntry } from "@/lib/api/home";
 import { fetchMenus } from "@/lib/api/menus";
 import { fetchSettings } from "@/lib/api/settings";
 import { fetchSocialLinks } from "@/lib/api/socialLinks";
@@ -28,6 +28,9 @@ type HomeAuditSummary = {
   speedDialItemCount: number;
   menuCount: number;
   socialLinkCount: number;
+  homeComponentsAuditTotalMs: number | null;
+  slowestHomeComponent: HomeComponentAuditEntry | null;
+  homeComponentBreakdown: HomeComponentAuditEntry[];
 };
 
 const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
@@ -133,7 +136,14 @@ export default function HomeAuditPage() {
       `- Social links: ${data.socialLinkCount}`,
       `- Speed dial items: ${data.speedDialItemCount}`,
       "",
-      "3. Parallel vs Sequential",
+      "3. Home Components Audit",
+      `- Home components transform total: ${formatMs(data.homeComponentsAuditTotalMs)}`,
+      data.slowestHomeComponent
+        ? `- Slowest component: ${data.slowestHomeComponent.type}#${data.slowestHomeComponent.component_id} (${formatMs(data.slowestHomeComponent.duration_ms)})`
+        : "- Slowest component: -",
+      ...data.homeComponentBreakdown.map((item) => `- ${item.type}#${item.component_id}: ${formatMs(item.duration_ms)}${item.transformed ? " ok" : " skipped"}`),
+      "",
+      "4. Parallel vs Sequential",
       `- Layout parallel (settings + menus + speed dial + social links): ${formatMs(data.layoutParallelMs)}`,
       `- Full parallel (layout + home components): ${formatMs(data.fullParallelMs)}`,
       `- Full sequential: ${formatMs(data.fullSequentialMs)}`,
@@ -141,10 +151,10 @@ export default function HomeAuditPage() {
         ? `- Delta: ${formatMs(data.fullSequentialMs - data.fullParallelMs)}`
         : "- Delta: -",
       "",
-      "4. Initial Conclusion",
+      "5. Initial Conclusion",
       ...buildConclusion(data),
       "",
-      "5. Raw Events",
+      "6. Raw Events",
       ...stepLogs.map((step) => `- ${step.label}: ${formatMs(step.durationMs)} ${step.status}${step.note ? ` (${step.note})` : ""}`),
     ];
 
@@ -177,7 +187,14 @@ export default function HomeAuditPage() {
       const socialLinksResult = await runStep("fetch social links", () => fetchSocialLinks());
       pushStep(socialLinksResult.step);
 
-      const homeComponentsResult = await runStep("fetch home components", () => fetchHomeComponents());
+      const homeComponentsResult = await runStep("fetch home components", async () => {
+        const response = await fetchHomeComponentsWithMeta({ audit: true });
+
+        return {
+          components: response.data,
+          audit: response.meta.audit,
+        };
+      });
       pushStep(homeComponentsResult.step);
 
       const layoutParallelResult = await runStep("layout parallel fetch", async () => {
@@ -210,7 +227,8 @@ export default function HomeAuditPage() {
       });
       pushStep(fullSequentialResult.step);
 
-      const homeComponents = homeComponentsResult.value;
+      const homeComponents = homeComponentsResult.value.components;
+      const homeComponentsAudit = homeComponentsResult.value.audit;
       const speedDial = speedDialResult.value;
 
       const finalSummary: HomeAuditSummary = {
@@ -229,6 +247,9 @@ export default function HomeAuditPage() {
           : 0,
         menuCount: menusResult.value.length,
         socialLinkCount: socialLinksResult.value.length,
+        homeComponentsAuditTotalMs: homeComponentsAudit?.total_ms ?? null,
+        slowestHomeComponent: homeComponentsAudit?.slowest_component ?? null,
+        homeComponentBreakdown: homeComponentsAudit?.components ?? [],
       };
 
       setSummary(finalSummary);
@@ -307,6 +328,8 @@ export default function HomeAuditPage() {
           <p>Speed dial API: {formatMs(summary?.speedDialMs)}</p>
           <p>Social links API: {formatMs(summary?.socialLinksMs)}</p>
           <p>Home components API: {formatMs(summary?.homeComponentsMs)}</p>
+          <p>Home components transform total: {formatMs(summary?.homeComponentsAuditTotalMs)}</p>
+          <p>Slowest component: {summary?.slowestHomeComponent ? `${summary.slowestHomeComponent.type}#${summary.slowestHomeComponent.component_id} (${formatMs(summary.slowestHomeComponent.duration_ms)})` : "-"}</p>
           <p>Full parallel: {formatMs(summary?.fullParallelMs)}</p>
           <p>Full sequential: {formatMs(summary?.fullSequentialMs)}</p>
         </CardContent>

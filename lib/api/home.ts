@@ -176,10 +176,22 @@ export interface HomeComponent {
   config: HomeComponentConfig;
 }
 
+export interface HomeComponentAuditEntry {
+  component_id: number;
+  type: string;
+  duration_ms: number;
+  transformed: boolean;
+}
+
 export interface HomeComponentsResponse {
   data: HomeComponent[];
   meta: {
     cache_version: number;
+    audit?: {
+      total_ms: number;
+      components: HomeComponentAuditEntry[];
+      slowest_component: HomeComponentAuditEntry | null;
+    };
   };
 }
 
@@ -190,10 +202,17 @@ export interface SpeedDialResponse {
   };
 }
 
-export const fetchHomeComponents = cache(async (): Promise<HomeComponent[]> => {
-  const response = await apiFetch<HomeComponentsResponse>("v1/home", {
-    next: { revalidate: 10 },
+export async function fetchHomeComponentsWithMeta(options?: { audit?: boolean }): Promise<HomeComponentsResponse> {
+  const params = options?.audit ? "?audit=1" : "";
+
+  return apiFetch<HomeComponentsResponse>(`v1/home${params}`, {
+    cache: options?.audit ? "no-store" : undefined,
+    next: options?.audit ? { revalidate: 0 } : { revalidate: 10 },
   });
+}
+
+export const fetchHomeComponents = cache(async (): Promise<HomeComponent[]> => {
+  const response = await fetchHomeComponentsWithMeta();
   return response.data;
 });
 
