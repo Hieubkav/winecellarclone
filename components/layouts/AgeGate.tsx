@@ -19,6 +19,7 @@ const STORAGE_KEY = "thiankim-age-verified";
 export default function AgeGate() {
   const [open, setOpen] = useState<boolean>(false);
   const [showWarning, setShowWarning] = useState(false);
+  const [isClientReady, setIsClientReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -29,6 +30,7 @@ export default function AgeGate() {
     if (!isVerified) {
       setOpen(true);
     }
+    setIsClientReady(true);
   }, []);
 
   const handleApprove = () => {
@@ -42,6 +44,10 @@ export default function AgeGate() {
   const handleReject = () => {
     setShowWarning(true);
   };
+
+  if (!isClientReady) {
+    return null;
+  }
 
   return (
     <Dialog open={open}>

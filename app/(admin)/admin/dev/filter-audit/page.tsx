@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../../components/ui";
-import { fetchProductFilters, fetchProductList } from "@/lib/api/products";
+import {
+  fetchProductFilters,
+  fetchProductList,
+  type ProductFiltersPayload,
+  type ProductListResponse,
+} from "@/lib/api/products";
 
 type AuditStep = {
   label: string;
@@ -50,12 +55,12 @@ export default function FilterAuditPage() {
   const [reportText, setReportText] = useState<string>("");
   const reportRef = useRef<HTMLTextAreaElement | null>(null);
 
-  const runStep = useCallback(async (label: string, action: () => Promise<void>) => {
+  const runStep = useCallback(async <T,>(label: string, action: () => Promise<T>) => {
     const startedAt = now();
     try {
-      await action();
+      const result = await action();
       const durationMs = now() - startedAt;
-      return { durationMs, status: "ok" as const, label };
+      return { durationMs, status: "ok" as const, label, result };
     } catch (error) {
       const durationMs = now() - startedAt;
       const note = String(error);
@@ -158,20 +163,20 @@ export default function FilterAuditPage() {
     };
 
     try {
-      let filtersPayload = null;
-      let productsPayload = null;
       let parallelMs: number | null = null;
       let sequentialMs: number | null = null;
       let typeWaterfallMs: number | null = null;
 
       const filtersResult = await runStep("fetch filters default", async () => {
-        filtersPayload = await fetchProductFilters();
+        return fetchProductFilters();
       });
+      const filtersPayload = filtersResult.result;
       pushStep({ label: "fetch filters default", durationMs: filtersResult.durationMs, status: "ok" });
 
       const productsResult = await runStep("fetch products default", async () => {
-        productsPayload = await fetchProductList({ page: 1, per_page: 24, sort: "name" });
+        return fetchProductList({ page: 1, per_page: 24, sort: "name" });
       });
+      const productsPayload = productsResult.result;
       pushStep({ label: "fetch products default", durationMs: productsResult.durationMs, status: "ok" });
 
       const parallelResult = await runStep("parallel filters+products", async () => {
