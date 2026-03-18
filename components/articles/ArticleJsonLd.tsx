@@ -6,6 +6,9 @@ interface ArticleJsonLdProps {
 }
 
 export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn").replace(/\/$/, "");
+  const publisherName = "Thiên Kim Wine";
+  const publisherLogo = `${siteUrl}/media/logo.webp`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -24,15 +27,15 @@ export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
       : undefined,
     publisher: {
       "@type": "Organization",
-      name: "Wincellar",
+      name: publisherName,
       logo: {
         "@type": "ImageObject",
-        url: "/logo.png",
+        url: publisherLogo,
       },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `${process.env.NEXT_PUBLIC_SITE_URL || ""}/bai-viet/${article.slug}`,
+      "@id": `${siteUrl}/bai-viet/${article.slug}`,
     },
   };
 

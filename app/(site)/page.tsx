@@ -17,6 +17,13 @@ import DualBanner from "@/components/home/DualBanner";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import FavouriteProducts from "@/components/home/FavouriteProducts";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
+import {
+  ItemListSchema,
+  OrganizationSchema,
+  WebPageSchema,
+  WebSiteSchema,
+} from "@/lib/seo/structured-data";
+import { getImageUrl, getProductImageUrl } from "@/lib/utils/image";
 
 const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"));
 const CollectionShowcase = dynamic(() => import("@/components/home/CollectionShowcase"));
@@ -53,79 +60,135 @@ export default async function Home() {
   }
 
   const homeFontStyle = getScopedFontStyle(settings, "home");
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
+  const normalizedSiteUrl = siteUrl.replace(/\/$/, "");
+  const organizationName = settings.site_name || "Thiên Kim Wine";
+  const organizationDescription = settings.meta_defaults.description;
+  const organizationLogo = getImageUrl(
+    settings.logo_url || settings.og_image_url || "/media/logo.webp"
+  );
+  const homepageTitle = settings.meta_defaults.title || organizationName;
+
+  const favouriteProductsComponent = components.find(
+    (component) => component.type === "favourite_products"
+  );
+  const favouriteProductsConfig = favouriteProductsComponent?.config as
+    | FavouriteProductsConfig
+    | undefined;
+  const itemListItems = favouriteProductsConfig?.products
+    .map((entry) => ({
+      name: entry.product.name,
+      url: `${normalizedSiteUrl}/san-pham/${entry.product.slug}`,
+      image: entry.product.cover_image_url
+        ? getProductImageUrl(entry.product.cover_image_url)
+        : undefined,
+      price: entry.product.price ?? undefined,
+      currency: "VND",
+    }))
+    .filter((item) => item.name && item.url);
 
   return (
-    <main className="tk-type-system bg-white text-[#1C1C1C]" style={homeFontStyle}>
-      {components.map((component) => {
-        switch (component.type) {
-          case "hero_carousel":
-            return (
-              <HeroCarousel
-                key={component.id}
-                {...adaptHeroCarouselProps(component.config as HeroCarouselConfig)}
-              />
-            );
+    <>
+      <OrganizationSchema
+        name={organizationName}
+        url={normalizedSiteUrl}
+        logo={organizationLogo}
+        description={organizationDescription}
+        address={settings.address || undefined}
+        telephone={settings.hotline || undefined}
+        email={settings.email || undefined}
+      />
+      <WebSiteSchema
+        name={organizationName}
+        url={normalizedSiteUrl}
+        description={organizationDescription}
+        searchUrl={`${normalizedSiteUrl}/filter?q={search_term_string}`}
+      />
+      <WebPageSchema
+        name={homepageTitle}
+        url={normalizedSiteUrl}
+        description={organizationDescription}
+      />
+      {itemListItems && itemListItems.length > 0 ? (
+        <ItemListSchema
+          name="Sản phẩm nổi bật"
+          description="Danh sách sản phẩm nổi bật tại Thiên Kim Wine"
+          url={normalizedSiteUrl}
+          items={itemListItems}
+        />
+      ) : null}
+      <main className="tk-type-system bg-white text-[#1C1C1C]" style={homeFontStyle}>
+        {components.map((component) => {
+          switch (component.type) {
+            case "hero_carousel":
+              return (
+                <HeroCarousel
+                  key={component.id}
+                  {...adaptHeroCarouselProps(component.config as HeroCarouselConfig)}
+                />
+              );
 
-          case "dual_banner":
-            return (
-              <DualBanner
-                key={component.id}
-                {...adaptDualBannerProps(component.config as DualBannerConfig)}
-              />
-            );
+            case "dual_banner":
+              return (
+                <DualBanner
+                  key={component.id}
+                  {...adaptDualBannerProps(component.config as DualBannerConfig)}
+                />
+              );
 
-          case "category_grid":
-            return (
-              <CategoryGrid
-                key={component.id}
-                {...adaptCategoryGridProps(component.config as CategoryGridConfig)}
-              />
-            );
+            case "category_grid":
+              return (
+                <CategoryGrid
+                  key={component.id}
+                  {...adaptCategoryGridProps(component.config as CategoryGridConfig)}
+                />
+              );
 
-          case "favourite_products":
-            return (
-              <FavouriteProducts
-                key={component.id}
-                {...adaptFavouriteProductsProps(component.config as FavouriteProductsConfig)}
-              />
-            );
+            case "favourite_products":
+              return (
+                <FavouriteProducts
+                  key={component.id}
+                  {...adaptFavouriteProductsProps(component.config as FavouriteProductsConfig)}
+                />
+              );
 
-          case "brand_showcase":
-            return (
-              <BrandShowcase
-                key={component.id}
-                {...adaptBrandShowcaseProps(component.config as BrandShowcaseConfig)}
-              />
-            );
+            case "brand_showcase":
+              return (
+                <BrandShowcase
+                  key={component.id}
+                  {...adaptBrandShowcaseProps(component.config as BrandShowcaseConfig)}
+                />
+              );
 
-          case "collection_showcase":
-            return (
-              <CollectionShowcase
-                key={component.id}
-                {...adaptCollectionShowcaseProps(component.config as CollectionShowcaseConfig)}
-              />
-            );
+            case "collection_showcase":
+              return (
+                <CollectionShowcase
+                  key={component.id}
+                  {...adaptCollectionShowcaseProps(component.config as CollectionShowcaseConfig)}
+                />
+              );
 
-          case "editorial_spotlight":
-            return (
-              <EditorialSpotlight
-                key={component.id}
-                {...adaptEditorialSpotlightProps(component.config as EditorialSpotlightConfig)}
-              />
-            );
+            case "editorial_spotlight":
+              return (
+                <EditorialSpotlight
+                  key={component.id}
+                  {...adaptEditorialSpotlightProps(component.config as EditorialSpotlightConfig)}
+                />
+              );
 
-          case "footer":
-            return (
-              <HomeFooter
-                key={component.id}
-                {...adaptFooterProps(component.config as FooterConfig)}
-              />
-            );
+            case "footer":
+              return (
+                <HomeFooter
+                  key={component.id}
+                  {...adaptFooterProps(component.config as FooterConfig)}
+                />
+              );
 
-          default:
-            return null;
-        }
-      })}
-    </main>
+            default:
+              return null;
+          }
+        })}
+      </main>
+    </>
   );
 }

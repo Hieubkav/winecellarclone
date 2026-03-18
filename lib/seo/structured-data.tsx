@@ -223,6 +223,13 @@ interface WebSiteSchemaProps {
   searchUrl?: string
 }
 
+interface WebPageSchemaProps {
+  name: string
+  url?: string
+  description?: string
+  inLanguage?: string
+}
+
 export function WebSiteSchema({
   name,
   url = SITE_URL,
@@ -245,6 +252,31 @@ export function WebSiteSchema({
   return (
     <Script
       id="website-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}
+
+export function WebPageSchema({
+  name,
+  url = SITE_URL,
+  description,
+  inLanguage = 'vi-VN',
+}: WebPageSchemaProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name,
+    url,
+    description,
+    inLanguage,
+  }
+
+  return (
+    <Script
+      id="webpage-schema"
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       strategy="afterInteractive"

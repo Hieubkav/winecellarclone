@@ -94,7 +94,7 @@ const nextConfig: NextConfig = {
               // Preconnect to external domains
               '<https://fonts.googleapis.com>; rel=preconnect; crossorigin',
               '<https://fonts.gstatic.com>; rel=preconnect; crossorigin',
-              '<https://winecellar.vn>; rel=preconnect; crossorigin',
+              '<https://www.thienkimwine.vn>; rel=preconnect; crossorigin',
               '<https://images.unsplash.com>; rel=preconnect; crossorigin',
               '<https://placehold.co>; rel=preconnect; crossorigin',
             ].join(', '),
