@@ -8,6 +8,7 @@ import type {
   CategoryGridConfig,
   FooterConfig,
   SpeedDialConfig,
+  FaqConfig,
   ApiProduct,
   ApiArticle,
 } from "@/lib/api/home";
@@ -175,6 +176,19 @@ export function adaptSpeedDialProps(config: SpeedDialConfig) {
         label: item.label,
         href: item.href,
         target: item.target,
+      })),
+  };
+}
+
+export function adaptFaqProps(config: FaqConfig) {
+  return {
+    title: config.title || undefined,
+    eyebrow: config.eyebrow || undefined,
+    items: (config.items || [])
+      .filter((item) => item && item.question && item.answer)
+      .map((item) => ({
+        question: item.question,
+        answer: item.answer,
       })),
   };
 }

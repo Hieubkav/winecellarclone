@@ -1,4 +1,4 @@
-import { LayoutTemplate, Image, Grid, Package, Award, FileText, Star, MessageCircle } from 'lucide-react';
+import { LayoutTemplate, Image, Grid, Package, Award, FileText, Star, MessageCircle, CircleHelp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface ComponentTypeInfo {
@@ -56,6 +56,12 @@ export const COMPONENT_TYPES: ComponentTypeInfo[] = [
     label: 'Liên hệ nhanh',
     icon: MessageCircle,
     description: 'Nút liên hệ nổi',
+  },
+  {
+    value: 'faq',
+    label: 'FAQ',
+    icon: CircleHelp,
+    description: 'Câu hỏi thường gặp',
   },
 ];
 

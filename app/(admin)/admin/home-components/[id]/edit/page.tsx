@@ -16,6 +16,7 @@ import {
   CollectionShowcaseForm,
   EditorialSpotlightForm,
   FavouriteProductsForm,
+  FaqForm,
   SpeedDialForm,
 } from '../../FormComponents';
 import {
@@ -26,6 +27,7 @@ import {
   CollectionShowcasePreview,
   EditorialSpotlightPreview,
   FavouriteProductsPreview,
+  FaqPreview,
 } from '../../previews';
 
 interface HeroSlide {
@@ -60,6 +62,12 @@ interface BrandItem {
   imageId?: number;
   href: string;
   alt: string;
+}
+
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
 }
 
 interface SpeedDialItem {
@@ -112,6 +120,11 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [favouriteTitle, setFavouriteTitle] = useState('');
   const [favouriteSubtitle, setFavouriteSubtitle] = useState('');
   const [favouriteProductIds, setFavouriteProductIds] = useState('');
+
+  // FAQ state
+  const [faqTitle, setFaqTitle] = useState('');
+  const [faqEyebrow, setFaqEyebrow] = useState('');
+  const [faqItems, setFaqItems] = useState<FaqItem[]>([]);
 
   // Speed Dial state
   const [speedDialItems, setSpeedDialItems] = useState<SpeedDialItem[]>([]);
@@ -296,6 +309,18 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           }
           break;
 
+        case 'faq':
+          setFaqTitle(config.title || '');
+          setFaqEyebrow(config.eyebrow || '');
+          if (config.items && Array.isArray(config.items)) {
+            setFaqItems(config.items.map((item: any, idx: number) => ({
+              id: Date.now() + idx,
+              question: item.question || '',
+              answer: item.answer || '',
+            })));
+          }
+          break;
+
         case 'speed_dial':
           if (config.items && Array.isArray(config.items)) {
             setSpeedDialItems(config.items.map((item: any, idx: number) => ({
@@ -447,6 +472,28 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
           title: favouriteTitle,
           subtitle: favouriteSubtitle || null,
           product_ids: favouriteProductIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)),
+        };
+
+      case 'faq':
+        if (!faqTitle.trim()) {
+          toast.error('Vui lòng nhập tiêu đề FAQ');
+          return null;
+        }
+        if (faqItems.length === 0) {
+          toast.error('Vui lòng thêm ít nhất 1 câu hỏi');
+          return null;
+        }
+        if (faqItems.some((item) => !item.question.trim() || !item.answer.trim())) {
+          toast.error('Vui lòng nhập đầy đủ câu hỏi và câu trả lời');
+          return null;
+        }
+        return {
+          title: faqTitle.trim(),
+          eyebrow: faqEyebrow.trim() || null,
+          items: faqItems.map((item) => ({
+            question: item.question.trim(),
+            answer: item.answer.trim(),
+          })),
         };
 
       case 'speed_dial':
@@ -666,6 +713,24 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
               title={favouriteTitle}
               subtitle={favouriteSubtitle}
               productIds={favouriteProductIds}
+            />
+          </>
+        )}
+
+        {componentType === 'faq' && (
+          <>
+            <FaqForm
+              title={faqTitle}
+              eyebrow={faqEyebrow}
+              items={faqItems}
+              onTitleChange={setFaqTitle}
+              onEyebrowChange={setFaqEyebrow}
+              onItemsChange={setFaqItems}
+            />
+            <FaqPreview
+              title={faqTitle}
+              eyebrow={faqEyebrow}
+              items={faqItems}
             />
           </>
         )}

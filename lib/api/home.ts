@@ -148,6 +148,15 @@ export interface SpeedDialConfig {
   items: SpeedDialItem[];
 }
 
+export interface FaqConfig {
+  title: string | null;
+  eyebrow: string | null;
+  items: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
+
 // Union type cho tất cả component types
 export type HomeComponentConfig =
   | HeroCarouselConfig
@@ -158,7 +167,8 @@ export type HomeComponentConfig =
   | CollectionShowcaseConfig
   | EditorialSpotlightConfig
   | FooterConfig
-  | SpeedDialConfig;
+  | SpeedDialConfig
+  | FaqConfig;
 
 export interface HomeComponent {
   id: number;
@@ -171,7 +181,8 @@ export interface HomeComponent {
     | "collection_showcase"
     | "editorial_spotlight"
     | "footer"
-    | "speed_dial";
+    | "speed_dial"
+    | "faq";
   order: number;
   config: HomeComponentConfig;
 }

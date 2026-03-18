@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, ChevronRight, Image as ImageIcon, ArrowRight } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, ChevronRight, ChevronDown, Image as ImageIcon, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -917,6 +917,98 @@ export const BrandShowcasePreview = ({ title, brands }: { title: string; brands:
             <p className="text-xs text-slate-600 dark:text-slate-400">
               <strong>Logo images</strong> • Carousel tự động chuyển • Hover scale effect
             </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ============ FAQ PREVIEW ============
+interface FaqPreviewItem {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+export const FaqPreview = ({
+  title,
+  eyebrow,
+  items,
+}: {
+  title: string;
+  eyebrow?: string;
+  items: FaqPreviewItem[];
+}) => {
+  const [openIndex, setOpenIndex] = useState(items.length > 0 ? 0 : -1);
+
+  React.useEffect(() => {
+    if (items.length === 0) {
+      setOpenIndex(-1);
+      return;
+    }
+
+    if (openIndex >= items.length) {
+      setOpenIndex(0);
+    }
+  }, [items.length, openIndex]);
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="text-base">Preview FAQ</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mx-auto max-w-3xl overflow-hidden rounded-xl border border-[#efe7dd] bg-white shadow-sm">
+          <div className="px-4 py-5 md:px-6 md:py-6">
+            <div className="mb-4 flex items-center gap-3 text-[#9B2C3B] md:mb-6">
+              <span className="h-px flex-1 bg-[#d8c7b4]" aria-hidden="true" />
+              <p className="shrink-0 text-center text-sm font-bold uppercase tracking-[0.18em] text-[#9B2C3B]">
+                {eyebrow || title || 'NHỮNG CÂU HỎI THƯỜNG GẶP'}
+              </p>
+              <span className="h-px flex-1 bg-[#d8c7b4]" aria-hidden="true" />
+            </div>
+
+            <div className="space-y-2">
+              {items.length > 0 ? (
+                items.map((item, index) => {
+                  const isOpen = index === openIndex;
+
+                  return (
+                    <div key={item.id} className="overflow-hidden rounded-sm border border-[#efe7dd] bg-[#faf8f4]">
+                      <button
+                        type="button"
+                        className="flex w-full items-start gap-3 px-4 py-4 text-left"
+                        onClick={() => setOpenIndex(isOpen ? -1 : index)}
+                      >
+                        <ChevronDown
+                          size={18}
+                          className={cn(
+                            'mt-1 shrink-0 text-slate-500 transition-transform',
+                            isOpen && 'rotate-180 text-[#9B2C3B]'
+                          )}
+                        />
+                        <span className={cn('text-lg leading-8 text-[#2c2c2c]', isOpen ? 'font-semibold text-[#9B2C3B]' : 'font-medium')}>
+                          {item.question || `Câu hỏi ${index + 1}`}
+                        </span>
+                      </button>
+
+                      {isOpen ? (
+                        <div className="px-4 pb-5 pl-11 text-base leading-8 text-[#444]">
+                          <div className="whitespace-pre-line border-t border-[#e3d8ca] pt-4">
+                            {item.answer || 'Chưa có câu trả lời'}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="rounded-sm border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-500">
+                  Chưa có câu hỏi để preview
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

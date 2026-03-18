@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ChevronDown } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '../components/ui';
 import { ImageUploadField } from '../components/ImageUploadField';
 import { SortableList } from '../components/SortableList';
@@ -778,6 +778,127 @@ export function FavouriteProductsForm({
           required
           helpText="Chọn các sản phẩm yêu thích để hiển thị (khuyến nghị 6-8 sản phẩm)"
         />
+      </CardContent>
+    </Card>
+  );
+}
+
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+interface FaqFormProps {
+  title: string;
+  eyebrow: string;
+  items: FaqItem[];
+  onTitleChange: (title: string) => void;
+  onEyebrowChange: (eyebrow: string) => void;
+  onItemsChange: (items: FaqItem[]) => void;
+}
+
+export function FaqForm({ title, eyebrow, items, onTitleChange, onEyebrowChange, onItemsChange }: FaqFormProps) {
+  const addItem = () => {
+    onItemsChange([
+      ...items,
+      {
+        id: Date.now(),
+        question: '',
+        answer: '',
+      },
+    ]);
+  };
+
+  const updateItem = (index: number, field: keyof FaqItem, value: string) => {
+    const updated = items.map((item, i) => (i === index ? { ...item, [field]: value } : item));
+    onItemsChange(updated);
+  };
+
+  const removeItem = (index: number) => {
+    onItemsChange(items.filter((_, i) => i !== index));
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>FAQ - Câu hỏi thường gặp</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="faq-title">Tiêu đề section *</Label>
+          <Input
+            id="faq-title"
+            placeholder="NHỮNG CÂU HỎI THƯỜNG GẶP"
+            value={title}
+            onChange={(e) => onTitleChange(e.target.value)}
+            required
+          />
+          <p className="text-xs text-slate-500">Dùng làm tiêu đề hiển thị giữa hai đường kẻ trang trí.</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="faq-eyebrow">Nhãn phụ</Label>
+          <Input
+            id="faq-eyebrow"
+            placeholder="CÓ THỂ ĐỂ TRỐNG ĐỂ DÙNG TIÊU ĐỀ"
+            value={eyebrow}
+            onChange={(e) => onEyebrowChange(e.target.value)}
+          />
+        </div>
+
+        {items.length > 0 ? (
+          <div className="space-y-4">
+            {items.map((item, idx) => (
+              <div key={item.id} className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <ChevronDown size={18} className="text-slate-400" />
+                    <Label className="font-semibold">Câu hỏi {idx + 1}</Label>
+                  </div>
+                  <Button type="button" variant="destructive" size="sm" onClick={() => removeItem(idx)}>
+                    <Trash2 size={14} className="mr-1" />
+                    Xóa
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor={`faq-question-${idx}`}>Câu hỏi *</Label>
+                    <Input
+                      id={`faq-question-${idx}`}
+                      placeholder="Địa chỉ các cửa hàng của WINECELLAR.vn ở đâu?"
+                      value={item.question}
+                      onChange={(e) => updateItem(idx, 'question', e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`faq-answer-${idx}`}>Câu trả lời *</Label>
+                    <textarea
+                      id={`faq-answer-${idx}`}
+                      placeholder="Nhập câu trả lời chi tiết..."
+                      value={item.answer}
+                      onChange={(e) => updateItem(idx, 'answer', e.target.value)}
+                      className="w-full min-h-[140px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm resize-y"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500 text-center py-4">
+            Chưa có câu hỏi nào. Click &quot;Thêm câu hỏi&quot; để bắt đầu.
+          </p>
+        )}
+
+        <Button type="button" onClick={addItem} className="w-full">
+          <Plus size={16} className="mr-2" />
+          Thêm câu hỏi
+        </Button>
       </CardContent>
     </Card>
   );

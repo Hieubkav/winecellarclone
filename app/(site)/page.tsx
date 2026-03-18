@@ -10,6 +10,7 @@ import {
   type EditorialSpotlightConfig,
   type FavouriteProductsConfig,
   type FooterConfig,
+  type FaqConfig,
 } from "@/lib/api/home";
 import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import HeroCarousel from "@/components/home/carouselBaner";
@@ -29,6 +30,7 @@ import { getImageUrl, getProductImageUrl } from "@/lib/utils/image";
 const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"));
 const CollectionShowcase = dynamic(() => import("@/components/home/CollectionShowcase"));
 const EditorialSpotlight = dynamic(() => import("@/components/home/EditorialSpotlight"));
+const FaqSection = dynamic(() => import("@/components/home/FaqSection"));
 const HomeFooter = dynamic(() => import("@/components/home/Footer"));
 import {
   adaptHeroCarouselProps,
@@ -39,6 +41,7 @@ import {
   adaptEditorialSpotlightProps,
   adaptFavouriteProductsProps,
   adaptFooterProps,
+  adaptFaqProps,
 } from "@/components/home/adapters";
 
 // Revalidate trang chủ mỗi 5 phút (300 giây)
@@ -189,6 +192,14 @@ export default async function Home() {
                 <EditorialSpotlight
                   key={component.id}
                   {...adaptEditorialSpotlightProps(component.config as EditorialSpotlightConfig)}
+                />
+              );
+
+            case "faq":
+              return (
+                <FaqSection
+                  key={component.id}
+                  {...adaptFaqProps(component.config as FaqConfig)}
                 />
               );
 

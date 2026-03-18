@@ -16,6 +16,7 @@ import {
   CollectionShowcaseForm,
   EditorialSpotlightForm,
   FavouriteProductsForm,
+  FaqForm,
   SpeedDialForm,
 } from '../FormComponents';
 
@@ -49,6 +50,12 @@ interface BrandItem {
   path: string;
   href: string;
   alt: string;
+}
+
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
 }
 
 interface SpeedDialItem {
@@ -100,6 +107,11 @@ export default function HomeComponentCreatePage() {
   const [favouriteSubtitle, setFavouriteSubtitle] = useState('');
   const [favouriteProductIds, setFavouriteProductIds] = useState('');
 
+  // FAQ state
+  const [faqTitle, setFaqTitle] = useState('NHỮNG CÂU HỎI THƯỜNG GẶP');
+  const [faqEyebrow, setFaqEyebrow] = useState('');
+  const [faqItems, setFaqItems] = useState<FaqItem[]>([]);
+
   // Speed Dial state
   const [speedDialItems, setSpeedDialItems] = useState<SpeedDialItem[]>([]);
 
@@ -123,6 +135,9 @@ export default function HomeComponentCreatePage() {
     setFavouriteTitle('');
     setFavouriteSubtitle('');
     setFavouriteProductIds('');
+    setFaqTitle('NHỮNG CÂU HỎI THƯỜNG GẶP');
+    setFaqEyebrow('');
+    setFaqItems([]);
     setSpeedDialItems([]);
   }, [selectedType]);
 
@@ -231,6 +246,28 @@ export default function HomeComponentCreatePage() {
           title: favouriteTitle,
           subtitle: favouriteSubtitle || null,
           product_ids: favouriteProductIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id)),
+        };
+
+      case 'faq':
+        if (!faqTitle.trim()) {
+          toast.error('Vui lòng nhập tiêu đề FAQ');
+          return null;
+        }
+        if (faqItems.length === 0) {
+          toast.error('Vui lòng thêm ít nhất 1 câu hỏi');
+          return null;
+        }
+        if (faqItems.some((item) => !item.question.trim() || !item.answer.trim())) {
+          toast.error('Vui lòng nhập đầy đủ câu hỏi và câu trả lời');
+          return null;
+        }
+        return {
+          title: faqTitle.trim(),
+          eyebrow: faqEyebrow.trim() || null,
+          items: faqItems.map((item) => ({
+            question: item.question.trim(),
+            answer: item.answer.trim(),
+          })),
         };
 
       case 'speed_dial':
@@ -407,6 +444,17 @@ export default function HomeComponentCreatePage() {
             onTitleChange={setFavouriteTitle}
             onSubtitleChange={setFavouriteSubtitle}
             onProductIdsChange={setFavouriteProductIds}
+          />
+        )}
+
+        {selectedType === 'faq' && (
+          <FaqForm
+            title={faqTitle}
+            eyebrow={faqEyebrow}
+            items={faqItems}
+            onTitleChange={setFaqTitle}
+            onEyebrowChange={setFaqEyebrow}
+            onItemsChange={setFaqItems}
           />
         )}
 
