@@ -122,24 +122,24 @@ export const SettingsScreen = () => {
 
       <form onSubmit={handleSubmit} noValidate>
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
-            <TabsTrigger value="info" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2 mb-6 h-auto bg-transparent p-0">
+            <TabsTrigger value="info" className="flex w-full min-h-10 items-center justify-center gap-2 px-2 sm:px-3">
               <Globe size={16} />
               <span className="hidden sm:inline">Thông tin</span>
             </TabsTrigger>
-            <TabsTrigger value="map" className="flex items-center gap-2">
+            <TabsTrigger value="map" className="flex w-full min-h-10 items-center justify-center gap-2 px-2 sm:px-3">
               <MapPin size={16} />
               <span className="hidden sm:inline">Bản đồ</span>
             </TabsTrigger>
-            <TabsTrigger value="watermark" className="flex items-center gap-2">
+            <TabsTrigger value="watermark" className="flex w-full min-h-10 items-center justify-center gap-2 px-2 sm:px-3">
               <ShieldCheck size={16} />
               <span className="hidden sm:inline">Watermark</span>
             </TabsTrigger>
-            <TabsTrigger value="seo" className="flex items-center gap-2">
+            <TabsTrigger value="seo" className="flex w-full min-h-10 items-center justify-center gap-2 px-2 sm:px-3">
               <Search size={16} />
               <span className="hidden sm:inline">SEO</span>
             </TabsTrigger>
-            <TabsTrigger value="fonts" className="flex items-center gap-2">
+            <TabsTrigger value="fonts" className="flex w-full min-h-10 items-center justify-center gap-2 px-2 sm:px-3">
               <Type size={16} />
               <span className="hidden sm:inline">Font chữ</span>
             </TabsTrigger>
