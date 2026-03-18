@@ -13,8 +13,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-montserrat)", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["var(--font-playfair)", "ui-serif", "Georgia", "serif"],
+        sans: ["var(--font-be-vietnam-pro)", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["var(--font-noto-serif)", "ui-serif", "Georgia", "serif"],
       },
       colors: {
         background: "var(--background)",

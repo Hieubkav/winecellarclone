@@ -12,6 +12,7 @@ import { useTracking } from "@/hooks/use-tracking";
 
 interface ArticleDetailPageProps {
   article: ArticleDetail;
+  fontFamily?: string;
 }
 
 const formatDate = (dateString: string): string => {
@@ -118,7 +119,7 @@ const ImageGallery = ({
       </div>
 
       {caption && (
-        <figcaption className="text-center text-sm text-gray-500 mt-3 font-serif italic tracking-wide">
+        <figcaption className="text-center text-sm text-gray-500 mt-3 italic tracking-wide">
           {caption} {count > 1 && `(${currentIndex + 1}/${count})`}
         </figcaption>
       )}
@@ -152,7 +153,7 @@ const ArticleSkeleton = () => (
   </div>
 );
 
-export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
+export default function ArticleDetailPage({ article, fontFamily }: ArticleDetailPageProps) {
   const { trackArticleView, trackCTAContact } = useTracking();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -205,7 +206,10 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
   return (
     <>
       <ArticleJsonLd article={article} />
-      <div className="min-h-screen bg-white selection:bg-[#C9A050]/30 selection:text-[#8B1832]">
+      <div
+        className="min-h-screen bg-white selection:bg-[#C9A050]/30 selection:text-[#8B1832]"
+        style={fontFamily ? { fontFamily } : undefined}
+      >
         <article className="min-h-screen">
           {/* Breadcrumb & Meta - Compact */}
           <div className="border-b border-gray-200/40 pt-6 pb-6 mb-6">
@@ -224,7 +228,7 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
                 </span>
               </div>
 
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-[#1C1C1C] leading-tight mb-4">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1C1C1C] leading-tight mb-4">
                 {article.title}
               </h1>
 
@@ -251,19 +255,19 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
           <div className="container mx-auto px-4 max-w-5xl">
             <div
               className="prose prose-slate prose-lg max-w-none 
-                prose-headings:font-serif prose-headings:text-[#8B1832]
+                prose-headings:text-[#8B1832]
                 prose-a:text-[#C9A050] prose-a:no-underline hover:prose-a:underline
                 prose-p:leading-relaxed prose-p:mb-4
                 prose-headings:mt-8 prose-headings:mb-4
                 prose-li:marker:text-[#C9A050]
                 prose-blockquote:border-l-[#C9A050] prose-blockquote:bg-gray-50/50 prose-blockquote:py-2 prose-blockquote:pr-4
                 prose-img:rounded-xl prose-img:shadow-sm
-                prose-strong:text-[#1C1C1C]
-              "
+            "
+              style={fontFamily ? { fontFamily } : undefined}
             >
               {/* Excerpt as lead paragraph */}
               {article.excerpt && (
-                <p className="lead text-xl text-gray-700 font-serif italic mb-6 border-l-2 border-[#C9A050]/50 pl-4">
+                <p className="lead text-xl text-gray-700 italic mb-6 border-l-2 border-[#C9A050]/50 pl-4">
                   {article.excerpt}
                 </p>
               )}
@@ -299,7 +303,7 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
             <div className="mt-16 pt-8 border-t border-gray-200">
               <div className="flex flex-col items-center justify-center gap-6">
                 <div className="text-center">
-                  <span className="font-serif font-bold text-2xl text-[#8B1832] block mb-2">
+                  <span className="font-bold text-2xl text-[#8B1832] block mb-2">
                     Đừng uống một mình
                   </span>
                   <span className="text-gray-500 text-sm">
@@ -334,7 +338,7 @@ export default function ArticleDetailPage({ article }: ArticleDetailPageProps) {
           <div className="container mx-auto px-4 md:px-6 max-w-7xl border-t border-gray-200 pt-8 mt-12 pb-12">
             <div className="flex items-center gap-3 mb-8">
               <div className="h-px flex-1 bg-gray-200" />
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#8B1832] shrink-0">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#8B1832] shrink-0">
                 Bài viết liên quan
               </h2>
               <div className="h-px flex-1 bg-gray-200" />

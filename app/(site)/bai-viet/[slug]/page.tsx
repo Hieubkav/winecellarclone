@@ -10,6 +10,8 @@ import { notFound } from "next/navigation";
 import ArticleDetailPage from "@/components/articles/ArticleDetailPage";
 import { fetchArticleDetail } from "@/lib/api/articles";
 import { ArticleSchema, BreadcrumbSchema } from "@/lib/seo/structured-data";
+import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 type ArticleDetailRouteParams = {
   slug: string;
@@ -51,11 +53,17 @@ export default async function ArticleDetailRoute({
   params: Promise<ArticleDetailRouteParams>;
 }) {
   const { slug } = await params;
-  const article = await fetchArticleDetail(slug);
+  const [article, settingsResult] = await Promise.all([
+    fetchArticleDetail(slug),
+    fetchSettings().catch(() => null),
+  ]);
 
   if (!article) {
     notFound();
   }
+
+  const settings = settingsResult ?? FALLBACK_SETTINGS;
+  const articleDetailFontStyle = getScopedFontStyle(settings, "article_detail");
 
   const articleUrl = `${SITE_URL}/bai-viet/${article.slug}`;
 
@@ -81,7 +89,7 @@ export default async function ArticleDetailRoute({
         ]}
       />
 
-      <ArticleDetailPage article={article} />
+      <ArticleDetailPage article={article} fontFamily={articleDetailFontStyle.fontFamily} />
     </>
   );
 }

@@ -41,6 +41,12 @@ export interface SettingsResponse {
     product_watermark_text_position: WatermarkTextPosition;
     product_watermark_text_opacity: number;
     product_watermark_text_repeat: boolean;
+    global_font_key: string | null;
+    home_font_key: string | null;
+    product_list_font_key: string | null;
+    product_detail_font_key: string | null;
+    article_list_font_key: string | null;
+    article_detail_font_key: string | null;
     meta_defaults: {
       title: string;
       description: string;
@@ -76,6 +82,12 @@ export interface Settings {
   product_watermark_text_position: WatermarkTextPosition;
   product_watermark_text_opacity: number;
   product_watermark_text_repeat: boolean;
+  global_font_key: string | null;
+  home_font_key: string | null;
+  product_list_font_key: string | null;
+  product_detail_font_key: string | null;
+  article_list_font_key: string | null;
+  article_detail_font_key: string | null;
   meta_defaults: {
     title: string;
     description: string;
@@ -128,6 +140,12 @@ export const FALLBACK_SETTINGS: Settings = {
   product_watermark_text_position: 'center',
   product_watermark_text_opacity: 50,
   product_watermark_text_repeat: false,
+  global_font_key: 'be-vietnam-pro',
+  home_font_key: null,
+  product_list_font_key: null,
+  product_detail_font_key: null,
+  article_list_font_key: null,
+  article_detail_font_key: null,
   meta_defaults: {
     title: "Thiên Kim Wine",
     description: "Thiên Kim Wine - Bộ sưu tập rượu vang cao cấp cho mọi dịp.",

@@ -1,11 +1,12 @@
 'use client';
 
-import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Search, X } from 'lucide-react';
+import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Search, Type, X } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '@/app/(admin)/admin/components/ui';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useSettingsForm } from '../hooks/useSettingsForm';
+import { FontSettingsTab } from '../components/FontSettingsTab';
 
 export const SettingsScreen = () => {
   const { state, actions } = useSettingsForm();
@@ -40,6 +41,12 @@ export const SettingsScreen = () => {
     watermarkTextPosition,
     watermarkTextOpacity,
     watermarkTextRepeat,
+    globalFontKey,
+    homeFontKey,
+    productListFontKey,
+    productDetailFontKey,
+    articleListFontKey,
+    articleDetailFontKey,
   } = state;
 
   const {
@@ -69,6 +76,12 @@ export const SettingsScreen = () => {
     setWatermarkTextPosition,
     setWatermarkTextOpacity,
     setWatermarkTextRepeat,
+    setGlobalFontKey,
+    setHomeFontKey,
+    setProductListFontKey,
+    setProductDetailFontKey,
+    setArticleListFontKey,
+    setArticleDetailFontKey,
     handleTabChange,
     handleKeywordAdd,
     handleKeywordRemove,
@@ -109,7 +122,7 @@ export const SettingsScreen = () => {
 
       <form onSubmit={handleSubmit} noValidate>
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="info" className="flex items-center gap-2">
               <Globe size={16} />
               <span className="hidden sm:inline">Thông tin</span>
@@ -125,6 +138,10 @@ export const SettingsScreen = () => {
             <TabsTrigger value="seo" className="flex items-center gap-2">
               <Search size={16} />
               <span className="hidden sm:inline">SEO</span>
+            </TabsTrigger>
+            <TabsTrigger value="fonts" className="flex items-center gap-2">
+              <Type size={16} />
+              <span className="hidden sm:inline">Font chữ</span>
             </TabsTrigger>
           </TabsList>
 
@@ -470,6 +487,23 @@ export const SettingsScreen = () => {
                 </div>
               </div>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="fonts">
+            <FontSettingsTab
+              globalFontKey={globalFontKey}
+              homeFontKey={homeFontKey}
+              productListFontKey={productListFontKey}
+              productDetailFontKey={productDetailFontKey}
+              articleListFontKey={articleListFontKey}
+              articleDetailFontKey={articleDetailFontKey}
+              onGlobalFontChange={setGlobalFontKey}
+              onHomeFontChange={setHomeFontKey}
+              onProductListFontChange={setProductListFontKey}
+              onProductDetailFontChange={setProductDetailFontKey}
+              onArticleListFontChange={setArticleListFontKey}
+              onArticleDetailFontChange={setArticleDetailFontKey}
+            />
           </TabsContent>
         </Tabs>
 

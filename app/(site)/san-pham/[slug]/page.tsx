@@ -9,6 +9,8 @@ import { notFound } from "next/navigation";
 import ProductDetailPage from "@/components/products/productDetailPage";
 import { fetchProductDetail } from "@/lib/api/products";
 import { ProductSchema, BreadcrumbSchema } from "@/lib/seo/structured-data";
+import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 type ProductDetailRouteParams = {
   slug: string;
@@ -77,11 +79,17 @@ export default async function ProductDetailRoute({
   params: Promise<ProductDetailRouteParams>;
 }) {
   const { slug } = await params;
-  const product = await fetchProductDetail(slug);
+  const [product, settingsResult] = await Promise.all([
+    fetchProductDetail(slug),
+    fetchSettings().catch(() => null),
+  ]);
 
   if (!product) {
     notFound();
   }
+
+  const settings = settingsResult ?? FALLBACK_SETTINGS;
+  const productDetailFontStyle = getScopedFontStyle(settings, "product_detail");
 
   const productUrl = `${SITE_URL}/san-pham/${product.slug}`;
   
@@ -107,7 +115,7 @@ export default async function ProductDetailRoute({
         ]}
       />
 
-      <ProductDetailPage product={product} />
+      <ProductDetailPage product={product} fontFamily={productDetailFontStyle.fontFamily} />
     </>
   );
 }

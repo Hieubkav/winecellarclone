@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { fetchAdminSettings, updateSettings } from "../api/settings.api";
+import { DEFAULT_FONT_KEY, isValidFontKey } from "@/lib/fonts/registry";
 
-const VALID_TABS = ["info", "map", "watermark", "seo"] as const;
+const VALID_TABS = ["info", "map", "watermark", "seo", "fonts"] as const;
 
 type TabValue = (typeof VALID_TABS)[number];
 
@@ -28,6 +29,13 @@ const parseKeywordValues = (input: string | string[] | null): string[] => {
   }
 
   return [];
+};
+
+const normalizeFontKey = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+  return isValidFontKey(value) ? value : DEFAULT_FONT_KEY;
 };
 
 export const useSettingsForm = () => {
@@ -68,6 +76,13 @@ export const useSettingsForm = () => {
   const [watermarkTextOpacity, setWatermarkTextOpacity] = useState(50);
   const [watermarkTextRepeat, setWatermarkTextRepeat] = useState(false);
 
+  const [globalFontKey, setGlobalFontKey] = useState(DEFAULT_FONT_KEY);
+  const [homeFontKey, setHomeFontKey] = useState<string | null>(null);
+  const [productListFontKey, setProductListFontKey] = useState<string | null>(null);
+  const [productDetailFontKey, setProductDetailFontKey] = useState<string | null>(null);
+  const [articleListFontKey, setArticleListFontKey] = useState<string | null>(null);
+  const [articleDetailFontKey, setArticleDetailFontKey] = useState<string | null>(null);
+
   const loadSettings = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -107,6 +122,13 @@ export const useSettingsForm = () => {
       setWatermarkTextPosition(data.product_watermark_text_position || "center");
       setWatermarkTextOpacity(data.product_watermark_text_opacity || 50);
       setWatermarkTextRepeat(Boolean(data.product_watermark_text_repeat));
+
+      setGlobalFontKey(normalizeFontKey(data.global_font_key) || DEFAULT_FONT_KEY);
+      setHomeFontKey(normalizeFontKey(data.home_font_key));
+      setProductListFontKey(normalizeFontKey(data.product_list_font_key));
+      setProductDetailFontKey(normalizeFontKey(data.product_detail_font_key));
+      setArticleListFontKey(normalizeFontKey(data.article_list_font_key));
+      setArticleDetailFontKey(normalizeFontKey(data.article_detail_font_key));
     } catch (error) {
       console.error("Failed to load settings:", error);
       toast.error("Không thể tải cấu hình");
@@ -229,6 +251,12 @@ export const useSettingsForm = () => {
         product_watermark_text_position: watermarkTextPosition,
         product_watermark_text_opacity: watermarkTextOpacity,
         product_watermark_text_repeat: watermarkTextRepeat,
+        global_font_key: globalFontKey,
+        home_font_key: homeFontKey,
+        product_list_font_key: productListFontKey,
+        product_detail_font_key: productDetailFontKey,
+        article_list_font_key: articleListFontKey,
+        article_detail_font_key: articleDetailFontKey,
       };
 
       const result = await updateSettings(data);
@@ -274,6 +302,12 @@ export const useSettingsForm = () => {
       watermarkTextPosition,
       watermarkTextOpacity,
       watermarkTextRepeat,
+      globalFontKey,
+      homeFontKey,
+      productListFontKey,
+      productDetailFontKey,
+      articleListFontKey,
+      articleDetailFontKey,
     },
     actions: {
       setSiteName,
@@ -302,6 +336,12 @@ export const useSettingsForm = () => {
       setWatermarkTextPosition,
       setWatermarkTextOpacity,
       setWatermarkTextRepeat,
+      setGlobalFontKey,
+      setHomeFontKey,
+      setProductListFontKey,
+      setProductDetailFontKey,
+      setArticleListFontKey,
+      setArticleDetailFontKey,
       handleTabChange,
       handleKeywordAdd,
       handleKeywordRemove,

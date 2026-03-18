@@ -29,6 +29,12 @@ export interface AdminSetting {
   product_watermark_text_position: string | null;
   product_watermark_text_opacity: number | null;
   product_watermark_text_repeat: boolean | null;
+  global_font_key: string | null;
+  home_font_key: string | null;
+  product_list_font_key: string | null;
+  product_detail_font_key: string | null;
+  article_list_font_key: string | null;
+  article_detail_font_key: string | null;
   updated_at?: string;
 }
 

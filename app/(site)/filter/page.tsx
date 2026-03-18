@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { fetchProductFilters, fetchProductList } from "@/lib/api/products";
 import ProductList from "@/components/filter/product-list";
 import { CollectionPageSchema, ItemListSchema } from "@/lib/seo/structured-data";
+import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -29,14 +31,18 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [filterOptions, initialProducts] = await Promise.all([
+  const [filterOptions, initialProducts, settingsResult] = await Promise.all([
     fetchProductFilters().catch(() => null),
-    fetchProductList({ 
-      page: 1, 
+    fetchProductList({
+      page: 1,
       per_page: 24,
       sort: 'name',
     }).catch(() => null),
+    fetchSettings().catch(() => null),
   ]);
+
+  const settings = settingsResult ?? FALLBACK_SETTINGS;
+  const productListFontStyle = getScopedFontStyle(settings, "product_list");
 
   const itemListProducts = initialProducts?.data?.map((product) => ({
     name: product.name,
@@ -64,6 +70,7 @@ export default async function Page() {
       <ProductList 
         initialFilterOptions={filterOptions} 
         initialProducts={initialProducts}
+        fontFamily={productListFontStyle.fontFamily}
       />
     </>
   );

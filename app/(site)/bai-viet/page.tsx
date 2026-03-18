@@ -5,6 +5,8 @@ export const runtime = "nodejs";
 import { Metadata } from "next";
 import ArticleListPage from "@/components/articles/ArticleListPage";
 import { fetchArticleList } from "@/lib/api/articles";
+import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -49,11 +51,17 @@ export default async function ArticleListRoute({
   const perPage = parseInt(params.per_page || "12", 10);
   const sort = params.sort || "-created_at";
 
-  const data = await fetchArticleList({
-    page,
-    per_page: perPage,
-    sort,
-  });
+  const [data, settingsResult] = await Promise.all([
+    fetchArticleList({
+      page,
+      per_page: perPage,
+      sort,
+    }),
+    fetchSettings().catch(() => null),
+  ]);
 
-  return <ArticleListPage data={data} />;
+  const settings = settingsResult ?? FALLBACK_SETTINGS;
+  const articleListFontStyle = getScopedFontStyle(settings, "article_list");
+
+  return <ArticleListPage data={data} fontFamily={articleListFontStyle.fontFamily} />;
 }

@@ -20,6 +20,7 @@ const SORT_OPTIONS = [
 
 interface ArticleListPageProps {
   data: ArticleListResponse;
+  fontFamily?: string;
 }
 
 const formatDate = (dateString: string): string => {
@@ -89,7 +90,7 @@ function BlogCard({ article, index }: BlogCardProps) {
 
           {/* Title */}
           <Link href={`/bai-viet/${article.slug}`} className="block">
-            <h3 className="font-serif text-lg font-bold leading-snug mb-2 group-hover:text-[#9B2C3B] transition-colors line-clamp-2">
+            <h3 className="text-lg font-bold leading-snug mb-2 group-hover:text-[#9B2C3B] transition-colors line-clamp-2">
               {article.title}
             </h3>
           </Link>
@@ -115,7 +116,7 @@ function BlogCard({ article, index }: BlogCardProps) {
   );
 }
 
-export default function ArticleListPage({ data }: ArticleListPageProps) {
+export default function ArticleListPage({ data, fontFamily }: ArticleListPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { pagination } = data.meta;
@@ -157,7 +158,10 @@ export default function ArticleListPage({ data }: ArticleListPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50 selection:bg-[#9B2C3B]/20 selection:text-[#9B2C3B]">
+    <div
+      className="min-h-screen flex flex-col bg-stone-50 selection:bg-[#9B2C3B]/20 selection:text-[#9B2C3B]"
+      style={fontFamily ? { fontFamily } : undefined}
+    >
       <main className="flex-grow">
         {/* Content Section */}
         <section className="py-8 md:py-12">
@@ -165,7 +169,7 @@ export default function ArticleListPage({ data }: ArticleListPageProps) {
             {/* Toolbar */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
               <div className="text-center md:text-left">
-                <h1 className="font-serif text-3xl md:text-4xl font-bold text-stone-800 mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-stone-800 mb-2">
                   Bài viết
                 </h1>
                 <p className="text-stone-500 text-sm md:text-base">

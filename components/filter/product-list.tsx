@@ -19,9 +19,10 @@ const FilterProductCard = lazy(() => import("./product-card").then(mod => ({ def
 interface ProductListProps {
   initialFilterOptions?: ProductFiltersPayload | null
   initialProducts?: ProductListResponse | null
+  fontFamily?: string
 }
 
-export default function WineList({ initialFilterOptions, initialProducts }: ProductListProps) {
+export default function WineList({ initialFilterOptions, initialProducts, fontFamily }: ProductListProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const hydrated = useHydrated()
   
@@ -97,7 +98,11 @@ export default function WineList({ initialFilterOptions, initialProducts }: Prod
   }, [canLoadMore, requestMore])
 
   return (
-    <div className="flex flex-col font-sans text-stone-800 bg-stone-50 min-h-screen" suppressHydrationWarning>
+    <div
+      className="flex flex-col font-sans text-stone-800 bg-stone-50 min-h-screen"
+      style={fontFamily ? { fontFamily } : undefined}
+      suppressHydrationWarning
+    >
       
       <main className="container mx-auto flex-1 px-4 py-6 md:py-8">
         {/* Page Title & Search (Desktop) */}

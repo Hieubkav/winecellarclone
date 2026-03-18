@@ -1,8 +1,75 @@
 import type { Metadata } from "next";
-import { Montserrat, Playfair_Display } from "next/font/google";
+import {
+  Be_Vietnam_Pro,
+  Inter,
+  Roboto,
+  Noto_Sans,
+  Nunito,
+  Source_Sans_3,
+  Merriweather,
+  Lora,
+  Montserrat,
+  Noto_Serif,
+} from "next/font/google";
 import "./globals.css";
 import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { QueryProvider } from "@/lib/query-client";
+
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-be-vietnam-pro",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-roboto",
+  display: "swap",
+});
+
+const notoSans = Noto_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-noto-sans",
+  display: "swap",
+});
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-nunito",
+  display: "swap",
+});
+
+const sourceSans3 = Source_Sans_3({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-source-sans-3",
+  display: "swap",
+});
+
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  variable: "--font-merriweather",
+  display: "swap",
+});
+
+const lora = Lora({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-lora",
+  display: "swap",
+});
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -11,10 +78,10 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-const playfairDisplay = Playfair_Display({
+const notoSerif = Noto_Serif({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-playfair",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-noto-serif",
   display: "swap",
 });
 
@@ -133,7 +200,9 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="vi" dir="ltr" className="scroll-smooth" data-scroll-behavior="smooth">
-      <body className={`${montserrat.variable} ${playfairDisplay.variable} font-sans antialiased bg-white text-[#1C1C1C]`}>
+      <body
+        className={`${beVietnamPro.variable} ${inter.variable} ${roboto.variable} ${notoSans.variable} ${nunito.variable} ${sourceSans3.variable} ${merriweather.variable} ${lora.variable} ${montserrat.variable} ${notoSerif.variable} font-sans antialiased bg-white text-[#1C1C1C]`}
+      >
         <QueryProvider>
           {children}
         </QueryProvider>

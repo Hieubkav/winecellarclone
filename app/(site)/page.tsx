@@ -11,10 +11,12 @@ import {
   type FavouriteProductsConfig,
   type FooterConfig,
 } from "@/lib/api/home";
+import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import HeroCarousel from "@/components/home/carouselBaner";
 import DualBanner from "@/components/home/DualBanner";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import FavouriteProducts from "@/components/home/FavouriteProducts";
+import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"));
 const CollectionShowcase = dynamic(() => import("@/components/home/CollectionShowcase"));
@@ -36,16 +38,24 @@ export const revalidate = 300;
 
 export default async function Home() {
   let components: HomeComponent[] = [];
+  let settings = FALLBACK_SETTINGS;
 
   try {
-    components = await fetchHomeComponents();
+    const [componentsResult, settingsResult] = await Promise.all([
+      fetchHomeComponents().catch(() => null),
+      fetchSettings().catch(() => null),
+    ]);
+    components = componentsResult ?? [];
+    settings = settingsResult ?? FALLBACK_SETTINGS;
   } catch (error) {
     console.error("Failed to fetch home components:", error);
     // Fallback to empty array if API fails
   }
 
+  const homeFontStyle = getScopedFontStyle(settings, "home");
+
   return (
-    <main className="tk-type-system bg-white text-[#1C1C1C]">
+    <main className="tk-type-system bg-white text-[#1C1C1C]" style={homeFontStyle}>
       {components.map((component) => {
         switch (component.type) {
           case "hero_carousel":

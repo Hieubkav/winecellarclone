@@ -29,6 +29,7 @@ interface AttributeDisplayItem {
 
 interface ProductDetailPageProps {
   product: ProductDetail;
+  fontFamily?: string;
 }
 
 interface ProductGalleryItem {
@@ -75,7 +76,7 @@ function AttributeIcon({ iconName, iconUrl }: { iconName?: string | null; iconUr
     />
   );
 }
-export default function ProductDetailPage({ product }: ProductDetailPageProps) {
+export default function ProductDetailPage({ product, fontFamily }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
 
   useEffect(() => {
@@ -267,7 +268,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
   const originalPriceLabel = formatOriginalPrice(product);
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9]">
+    <div className="min-h-screen bg-[#fcfbf9]" style={fontFamily ? { fontFamily } : undefined}>
       {/* Breadcrumb */}
       <div className="bg-[#f5f0e8] py-3 border-b border-[#e5ddd0]">
         <div className="container mx-auto px-4 text-xs md:text-sm text-slate-600 flex gap-2">
@@ -492,7 +493,7 @@ export default function ProductDetailPage({ product }: ProductDetailPageProps) {
             </div>
 
             {/* Product Title */}
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 leading-tight mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-6">
               {product.name}
             </h1>
 
