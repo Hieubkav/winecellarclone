@@ -121,24 +121,6 @@ export const SettingsScreen = () => {
     handleSubmit,
   } = actions;
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <Skeleton className="h-8 w-48 mb-2" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <Card>
-          <div className="p-6 space-y-4">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <Skeleton key={item} className="h-12 w-full" />
-            ))}
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   const previewText = watermarkText.trim() || "Watermark";
   const previewOpacity = Math.max(5, Math.min(100, watermarkTextOpacity));
   const previewPositionY = Math.max(0, Math.min(100, watermarkTextPositionY));
@@ -191,6 +173,24 @@ export const SettingsScreen = () => {
     event.currentTarget.releasePointerCapture(event.pointerId);
     setIsDragging(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Card>
+          <div className="p-6 space-y-4">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <Skeleton key={item} className="h-12 w-full" />
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
