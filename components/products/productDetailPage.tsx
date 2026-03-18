@@ -566,7 +566,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
       <section className="bg-white py-12 border-y border-[#e5ddd0]">
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="flex flex-col items-center text-center space-y-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900" style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
               Thông tin chi tiết
             </h2>
             <div className="w-16 h-1 bg-[#9B2C3B] rounded-full"></div>

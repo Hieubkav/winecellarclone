@@ -211,6 +211,7 @@ export const useSettingsForm = () => {
       map: "Cập nhật Google Maps thành công",
       watermark: "Cập nhật watermark sản phẩm thành công",
       seo: "Cập nhật SEO thành công",
+      fonts: "Cập nhật font chữ thành công",
     };
 
     const errorMessages: Record<TabValue, string> = {
@@ -218,6 +219,7 @@ export const useSettingsForm = () => {
       map: "Không thể cập nhật Google Maps",
       watermark: "Không thể cập nhật watermark sản phẩm",
       seo: "Không thể cập nhật SEO",
+      fonts: "Không thể cập nhật font chữ",
     };
 
     const resolveMessage = (message: string | undefined, fallback: string) => {

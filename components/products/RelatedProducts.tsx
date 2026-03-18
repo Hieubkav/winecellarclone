@@ -57,7 +57,7 @@ export default function RelatedProductsSection({
   return (
     <section className="py-12">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-serif font-bold text-slate-900 relative inline-block">
+        <h2 className="text-2xl font-bold text-slate-900 relative inline-block">
           {title}
           <span className="absolute -bottom-2 left-0 w-12 h-1 bg-[#9B2C3B] rounded-full"></span>
         </h2>

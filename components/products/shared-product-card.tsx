@@ -159,7 +159,7 @@ export const SharedProductCard = React.memo(function SharedProductCard({
 
       <div className="flex flex-1 flex-col p-2 sm:p-3">
         <Link href={href}>
-          <h3 className="mb-1.5 sm:mb-2 font-serif text-sm sm:text-base font-bold leading-tight text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors">
+          <h3 className="mb-1.5 sm:mb-2 text-sm sm:text-base font-bold leading-tight text-[#9B2C3B] group-hover:text-[#9B2C3B] transition-colors">
             {item.name}
           </h3>
         </Link>
@@ -182,7 +182,7 @@ export const SharedProductCard = React.memo(function SharedProductCard({
                 {formatCurrency(item.originalPrice)}
               </span>
             )}
-            <span className="font-serif text-base sm:text-lg font-bold text-[#9B2C3B]">
+            <span className="text-base sm:text-lg font-bold text-[#9B2C3B]">
               {getDisplayPrice(item)}
             </span>
           </div>

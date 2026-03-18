@@ -44,7 +44,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
               loading="lazy"
             />
           </div>
-          <h3 className="text-xl font-serif font-bold mb-3 group-hover:text-[#8B1832] transition-colors line-clamp-2">
+          <h3 className="text-xl font-bold mb-3 group-hover:text-[#8B1832] transition-colors line-clamp-2">
             {article.title}
           </h3>
           {article.excerpt && (
