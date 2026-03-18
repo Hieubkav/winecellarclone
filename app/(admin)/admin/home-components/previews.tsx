@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, Loader2, Package, FileText, ChevronLeft, ChevronRight, Image as ImageIcon, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -411,7 +411,6 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                     // listForSelect API returns: value, label, cover_image, published_at
                     const articleId = article.value || article.id;
                     const articleTitle = article.label?.replace(/\s*\(#\d+\)$/, '') || article.title || '';
-                    const publishedAt = article.published_at;
                     // Convert to absolute URL using helper
                     const imageUrl = getImageUrl(article.cover_image?.url);
                     return (
@@ -426,8 +425,9 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                             {articleTitle}
                           </h3>
                           <div className="mt-auto flex items-center justify-end border-t border-[#f5f5f5] pt-4">
-                            <span className="text-xs text-slate-500">
-                              {publishedAt ? new Date(publishedAt).toLocaleDateString('vi-VN') : ''}
+                            <span className="flex items-center gap-1 text-xs font-semibold text-[#ECAA4D] transition-colors hover:text-[#1C1C1C]">
+                              <span>Đọc ngay</span>
+                              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                             </span>
                           </div>
                         </div>
