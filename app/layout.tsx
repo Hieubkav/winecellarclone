@@ -159,10 +159,10 @@ export async function generateMetadata(): Promise<Metadata> {
       other: [{ rel: "icon", url: faviconUrl, type: "image/webp" }],
     },
     verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || undefined,
+      google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "OfJxli24KN_kG9FcbbuAy0q6bXumGnVsKWVrr0V8Iac",
       yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || undefined,
       other: {
-        'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
+        'msvalidate.01': process.env.NEXT_PUBLIC_BING_VERIFICATION || "9B303080DC2D655419DD32E2EFE2D686",
       },
     },
     manifest: '/manifest.json',
