@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Calendar, Clock, ChevronRight, Facebook, Twitter, ChevronLeft } from "lucide-react";
 import ArticleJsonLd from "./ArticleJsonLd";
 import RelatedArticles from "./RelatedArticles";
@@ -127,40 +127,8 @@ const ImageGallery = ({
   );
 };
 
-// Skeleton Loading Component
-const ArticleSkeleton = () => (
-  <div className="min-h-screen bg-white">
-    <div className="border-b border-gray-200/40 pb-6 mb-6">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="h-3 w-16 bg-gray-200 animate-pulse rounded" />
-          <div className="h-3 w-3 bg-gray-200 animate-pulse rounded" />
-          <div className="h-3 w-24 bg-gray-200 animate-pulse rounded" />
-        </div>
-        <div className="h-10 w-3/4 bg-gray-200 animate-pulse rounded mb-4" />
-        <div className="flex items-center gap-6">
-          <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
-          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
-        </div>
-      </div>
-    </div>
-    <div className="container mx-auto px-4 max-w-5xl space-y-4">
-      <div className="h-4 w-full bg-gray-200 animate-pulse rounded" />
-      <div className="h-4 w-full bg-gray-200 animate-pulse rounded" />
-      <div className="h-4 w-5/6 bg-gray-200 animate-pulse rounded" />
-      <div className="h-64 w-full bg-gray-200 animate-pulse rounded-xl mt-6" />
-    </div>
-  </div>
-);
-
 export default function ArticleDetailPage({ article, fontFamily }: ArticleDetailPageProps) {
   const { trackArticleView, trackCTAContact } = useTracking();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 300);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (article?.id) {
@@ -198,10 +166,6 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
     window.open(xUrl, "_blank", "width=600,height=500,noopener,noreferrer");
     trackCTAContact({ button: "share_twitter", placement: "article_share", article_id: article.id });
   };
-
-  if (isLoading) {
-    return <ArticleSkeleton />;
-  }
 
   return (
     <>
