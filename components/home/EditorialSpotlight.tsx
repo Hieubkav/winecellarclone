@@ -80,8 +80,7 @@ function ArticleCard({ article, index }: ArticleCardProps) {
             {article.title}
           </h3>
         </Link>
-        <div className="mt-auto flex items-center justify-between border-t border-[#f5f5f5] pt-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B2C3B]">Thien Kim Wine</span>
+        <div className="mt-auto flex items-center justify-end border-t border-[#f5f5f5] pt-4">
           <Link
             href={article.href}
             aria-label="Đọc ngay"

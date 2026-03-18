@@ -425,8 +425,7 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                           <h3 className="text-lg font-semibold text-[#1C1C1C] transition-colors group-hover:text-[#9B2C3B]">
                             {articleTitle}
                           </h3>
-                          <div className="mt-auto flex items-center justify-between border-t border-[#f5f5f5] pt-4">
-                            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9B2C3B]">Thien Kim Wine</span>
+                          <div className="mt-auto flex items-center justify-end border-t border-[#f5f5f5] pt-4">
                             <span className="text-xs text-slate-500">
                               {publishedAt ? new Date(publishedAt).toLocaleDateString('vi-VN') : ''}
                             </span>
