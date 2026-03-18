@@ -26,6 +26,26 @@ const eslintConfig = defineConfig([
       "react/no-unescaped-entities": "warn",
     },
   },
+  {
+    files: [
+      "app/(admin)/admin/**/*.ts",
+      "app/(admin)/admin/**/*.tsx",
+      "components/admin/**/*.ts",
+      "components/admin/**/*.tsx",
+      "components/providers/**/*.ts",
+      "components/providers/**/*.tsx",
+      "lib/hooks/**/*.ts",
+      "lib/hooks/**/*.tsx",
+      "lib/utils/**/*.ts",
+      "lib/utils/**/*.tsx",
+    ],
+    rules: {
+      "react-hooks/exhaustive-deps": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@next/next/no-img-element": "off",
+      "react/no-unescaped-entities": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -30,7 +30,6 @@ export function ImageEditModal({ imageId, onClose, onSuccess }: ImageEditModalPr
 
   useEffect(() => {
     void loadImage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageId]);
 
   const loadImage = async () => {

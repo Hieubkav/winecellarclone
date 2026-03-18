@@ -110,15 +110,13 @@ export default function ImagesListPage() {
 
   useEffect(() => {
     void loadImages(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadImages]);
 
   useEffect(() => {
     if (!isInitialLoading) {
       void loadImages(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchTerm, currentPage, perPage, sortConfig]);
+  }, [debouncedSearchTerm, currentPage, perPage, sortConfig, isInitialLoading, loadImages]);
 
   const handleSort = (key: string) => {
     setCurrentPage(1);
