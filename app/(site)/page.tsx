@@ -30,7 +30,7 @@ import { getImageUrl, getProductImageUrl } from "@/lib/utils/image";
 const BrandShowcase = dynamic(() => import("@/components/home/BrandShowcase"));
 const CollectionShowcase = dynamic(() => import("@/components/home/CollectionShowcase"));
 const EditorialSpotlight = dynamic(() => import("@/components/home/EditorialSpotlight"));
-const FaqSection = dynamic(() => import("@/components/home/FaqSection"));
+const FaqSection = dynamic(() => import("@/components/home/FaqSection").then((mod) => mod.default));
 const HomeFooter = dynamic(() => import("@/components/home/Footer"));
 import {
   adaptHeroCarouselProps,
