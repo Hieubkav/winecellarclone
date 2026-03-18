@@ -451,7 +451,7 @@ export default function HomeAuditPage() {
           <p>Settings API: {formatMs(summary?.settingsMs)}</p>
           <p>Settings API (audit uncached): {formatMs(summary?.settingsAuditRequestMs)}</p>
           <p>Settings cache: {summary?.settingsAudit ? `${summary.settingsAudit.cache_driver} / ${summary.settingsAudit.cache_hit ? "hit" : "miss"}` : "-"}</p>
-          <p>Settings server/gap: {summary ? `${formatMs(summary.settingsTiming.serverMs)} / ${formatMs(summary.settingsTiming.roundtripGapMs)}` : "-"}</p>
+          <p>Settings server/gap: {summary?.settingsTiming ? `${formatMs(summary.settingsTiming.serverMs)} / ${formatMs(summary.settingsTiming.roundtripGapMs)}` : "-"}</p>
           <p>Menus API: {formatMs(summary?.menusMs)}</p>
           <p>Speed dial API: {formatMs(summary?.speedDialMs)}</p>
           <p>Social links API: {formatMs(summary?.socialLinksMs)}</p>
