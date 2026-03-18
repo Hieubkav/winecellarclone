@@ -17,6 +17,8 @@ export interface AdminArticle {
   title: string;
   slug: string;
   excerpt: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
   active: boolean;
   cover_image_url: string | null;
   published_at: string | null;

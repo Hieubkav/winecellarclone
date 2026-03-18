@@ -36,6 +36,8 @@ export interface AdminProductImage {
 
 export interface AdminProductDetail extends AdminProduct {
   description: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
   category_ids: number[];
   images?: AdminProductImage[];
   terms?: Array<{

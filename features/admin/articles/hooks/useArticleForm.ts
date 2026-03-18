@@ -7,6 +7,7 @@ import {
   updateArticle,
 } from "../api/articles.api";
 import { uploadArticleImage, uploadArticleImageUrl } from "../api/articles.uploads";
+import { stripHtmlTags } from "@/lib/utils/article-content";
 
 export interface ArticleImageItem {
   url: string;
@@ -28,6 +29,13 @@ const generateSlug = (text: string) =>
     .replace(/-+/g, "-")
     .trim();
 
+const truncateText = (value: string, maxLength: number) => {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (trimmed.length <= maxLength) return trimmed;
+  return trimmed.slice(0, maxLength).trim();
+};
+
 export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
   const router = useRouter();
   const isEditMode = useMemo(() => Boolean(articleId), [articleId]);
@@ -37,6 +45,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
   const [active, setActive] = useState(true);
   const [showSlugEditor, setShowSlugEditor] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -61,6 +71,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       setTitle(article.title);
       setSlug(article.slug);
       setContent(article.content || "");
+      setMetaTitle(article.meta_title || "");
+      setMetaDescription(article.meta_description || "");
       setActive(article.active);
 
       if (article.images && Array.isArray(article.images) && article.images.length > 0) {
@@ -219,6 +231,12 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       return;
     }
 
+    const resolvedMetaTitle = truncateText(metaTitle.trim() || title.trim(), 60);
+    const resolvedMetaDescription = truncateText(
+      metaDescription.trim() || stripHtmlTags(content || ""),
+      160
+    );
+
     if (isEditMode && !articleId) return;
 
     setIsSubmitting(true);
@@ -228,6 +246,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
         title: title.trim(),
         slug: slug.trim() || generateSlug(title),
         content: content?.trim() || null,
+        meta_title: resolvedMetaTitle || null,
+        meta_description: resolvedMetaDescription || null,
         active: Boolean(active),
         image_paths: imagePaths,
       };
@@ -268,6 +288,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       title,
       slug,
       content,
+      metaTitle,
+      metaDescription,
       active,
       showSlugEditor,
       isUploadingImage,
@@ -280,6 +302,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       setTitle: handleTitleChange,
       setSlug,
       setContent,
+      setMetaTitle,
+      setMetaDescription,
       setActive,
       setShowSlugEditor,
       setGalleryImages,

@@ -12,6 +12,7 @@ import { ProductImageCropModal } from '../../../components/ProductImageCropModal
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
 import { getImageUrl } from '@/lib/utils/image';
+import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
 import { toast } from 'sonner';
 import { useAdminLayout } from '../../../AdminLayoutContext';
@@ -33,6 +34,13 @@ const formatNumberInput = (value: string) => {
 };
 
 const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, '')) : null);
+
+const truncateText = (value: string, maxLength: number) => {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (trimmed.length <= maxLength) return trimmed;
+  return trimmed.slice(0, maxLength).trim();
+};
 
 const generateSlug = (text: string): string => {
   return text
@@ -62,6 +70,8 @@ const generateSlug = (text: string): string => {
    const [typeId, setTypeId] = useState('');
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
    const [description, setDescription] = useState('');
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
    const [active, setActive] = useState(true);
   const [showSlugEditor, setShowSlugEditor] = useState(false);
   const [initialDescription, setInitialDescription] = useState('');
@@ -132,6 +142,8 @@ const generateSlug = (text: string): string => {
          setTypeId(product.type_id?.toString() || '');
          setCategoryIds(product.category_ids || []);
          setDescription(product.description || '');
+        setMetaTitle(product.meta_title || '');
+        setMetaDescription(product.meta_description || '');
         setInitialDescription(product.description || '');
          setActive(product.active);
         setGalleryImages(
@@ -399,6 +411,12 @@ const generateSlug = (text: string): string => {
        toast.error('Vui lòng nhập tên sản phẩm');
        return;
      }
+
+    const resolvedMetaTitle = truncateText(metaTitle.trim() || name.trim(), 60);
+    const resolvedMetaDescription = truncateText(
+      metaDescription.trim() || stripHtmlTags(description || ''),
+      160
+    );
  
      setIsSubmitting(true);
      try {
@@ -426,6 +444,8 @@ const generateSlug = (text: string): string => {
          type_id: typeId ? Number(typeId) : null,
          category_ids: categoryIds,
          description: description.trim(),
+        meta_title: resolvedMetaTitle || null,
+        meta_description: resolvedMetaDescription || null,
          active,
         image_paths: galleryImages.map(image => image.path),
         extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
@@ -802,6 +822,52 @@ const generateSlug = (text: string): string => {
              </div>
  
            </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">SEO</h2>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Meta Title</Label>
+                <span className={`text-xs ${metaTitle.length > 60 ? 'text-red-500' : 'text-slate-400'}`}>
+                  {metaTitle.length}/60
+                </span>
+              </div>
+              <Input
+                value={metaTitle}
+                onChange={(e) => setMetaTitle(e.target.value)}
+                placeholder="Lấy theo tên sản phẩm nếu để trống"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Meta Description</Label>
+                <span className={`text-xs ${metaDescription.length > 160 ? 'text-red-500' : 'text-slate-400'}`}>
+                  {metaDescription.length}/160
+                </span>
+              </div>
+              <textarea
+                value={metaDescription}
+                onChange={(e) => setMetaDescription(e.target.value)}
+                className="w-full min-h-[90px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                placeholder="Lấy theo mô tả sản phẩm nếu bạn để trống"
+              />
+            </div>
+            <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 py-3 text-sm">
+              <div className="text-blue-600 font-medium truncate">
+                {metaTitle.trim() || name.trim() || 'Tên sản phẩm'}
+              </div>
+              <div className="text-emerald-600 text-xs">
+                /san-pham/{slug || 'san-pham'}
+              </div>
+              <div className="text-slate-600 text-xs mt-1 line-clamp-2">
+                {metaDescription.trim()
+                  || truncateText(stripHtmlTags(description || ''), 160)
+                  || 'Mô tả ngắn sẽ hiển thị tại đây.'}
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         <div

@@ -7,7 +7,15 @@ import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
 import { LexicalEditor } from '@/app/(admin)/admin/components/LexicalEditor';
 import { API_BASE_URL } from '@/lib/api/client';
+import { stripHtmlTags } from '@/lib/utils/article-content';
 import { useArticleForm } from '../hooks/useArticleForm';
+
+const truncateText = (value: string, maxLength: number) => {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  if (trimmed.length <= maxLength) return trimmed;
+  return trimmed.slice(0, maxLength).trim();
+};
 
 export const ArticleCreateScreen = () => {
   const { state, actions } = useArticleForm();
@@ -17,6 +25,8 @@ export const ArticleCreateScreen = () => {
     title,
     slug,
     content,
+    metaTitle,
+    metaDescription,
     active,
     showSlugEditor,
     isUploadingImage,
@@ -28,6 +38,8 @@ export const ArticleCreateScreen = () => {
     setTitle,
     setSlug,
     setContent,
+    setMetaTitle,
+    setMetaDescription,
     setActive,
     setShowSlugEditor,
     setImageUrlInput,
@@ -251,6 +263,52 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
               <LexicalEditor initialContent={content} onChange={setContent} folder="articles" />
             </div>
 
+          </div>
+        </Card>
+
+        <Card>
+          <div className="p-6 space-y-4">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">SEO</h2>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Meta Title</Label>
+                <span className={`text-xs ${metaTitle.length > 60 ? 'text-red-500' : 'text-slate-400'}`}>
+                  {metaTitle.length}/60
+                </span>
+              </div>
+              <Input
+                value={metaTitle}
+                onChange={(event) => setMetaTitle(event.target.value)}
+                placeholder="Lấy theo tiêu đề bài viết nếu để trống"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Meta Description</Label>
+                <span className={`text-xs ${metaDescription.length > 160 ? 'text-red-500' : 'text-slate-400'}`}>
+                  {metaDescription.length}/160
+                </span>
+              </div>
+              <textarea
+                value={metaDescription}
+                onChange={(event) => setMetaDescription(event.target.value)}
+                className="w-full min-h-[90px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                placeholder="Lấy theo nội dung bài viết nếu để trống"
+              />
+            </div>
+            <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 py-3 text-sm">
+              <div className="text-blue-600 font-medium truncate">
+                {metaTitle.trim() || title || 'Tiêu đề bài viết'}
+              </div>
+              <div className="text-emerald-600 text-xs">
+                /bai-viet/{slug || generateSlug(title) || 'bai-viet'}
+              </div>
+              <div className="text-slate-600 text-xs mt-1 line-clamp-2">
+                {metaDescription.trim()
+                  || truncateText(stripHtmlTags(content || ''), 160)
+                  || 'Mô tả ngắn sẽ hiển thị tại đây.'}
+              </div>
+            </div>
           </div>
         </Card>
 
