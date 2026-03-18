@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../../components/ui";
 import { fetchHomeComponents, fetchHomeComponentsWithMeta, fetchSpeedDialComponent, type HomeComponentAuditEntry } from "@/lib/api/home";
 import { fetchMenus } from "@/lib/api/menus";
-import { fetchSettings } from "@/lib/api/settings";
+import { fetchSettings, fetchSettingsWithMeta, type SettingsAuditMeta } from "@/lib/api/settings";
 import { fetchSocialLinks } from "@/lib/api/socialLinks";
 
 type AuditStep = {
@@ -16,6 +16,8 @@ type AuditStep = {
 
 type HomeAuditSummary = {
   settingsMs: number | null;
+  settingsAuditRequestMs: number | null;
+  settingsAudit: SettingsAuditMeta | null;
   menusMs: number | null;
   speedDialMs: number | null;
   socialLinksMs: number | null;
@@ -135,21 +137,29 @@ export default function HomeAuditPage() {
       `- Home components API (cached baseline): ${formatMs(data.homeComponentsMs)}`,
       `- Home components API (audit uncached): ${formatMs(data.homeComponentsAuditRequestMs)}`,
       "",
-      "2. Homepage Data Summary",
+      "2. Settings Audit",
+      `- Settings API (audit uncached): ${formatMs(data.settingsAuditRequestMs)}`,
+      `- Cache driver: ${data.settingsAudit?.cache_driver ?? "-"}`,
+      `- Cache hit: ${data.settingsAudit ? (data.settingsAudit.cache_hit ? "yes" : "no") : "-"}`,
+      `- Cache read: ${formatMs(data.settingsAudit?.cache_read_ms ?? null)}`,
+      `- DB query: ${formatMs(data.settingsAudit?.query_ms ?? null)}`,
+      `- Serialize: ${formatMs(data.settingsAudit?.serialize_ms ?? null)}`,
+      "",
+      "3. Homepage Data Summary",
       `- Home components: ${data.componentCount}`,
       `- Component types: ${data.componentTypes.join(", ") || "-"}`,
       `- Menus: ${data.menuCount}`,
       `- Social links: ${data.socialLinkCount}`,
       `- Speed dial items: ${data.speedDialItemCount}`,
       "",
-      "3. Home Components Audit",
+      "4. Home Components Audit",
       `- Home components transform total: ${formatMs(data.homeComponentsAuditTotalMs)}`,
       data.slowestHomeComponent
         ? `- Slowest component: ${data.slowestHomeComponent.type}#${data.slowestHomeComponent.component_id} (${formatMs(data.slowestHomeComponent.duration_ms)})`
         : "- Slowest component: -",
       ...data.homeComponentBreakdown.map((item) => `- ${item.type}#${item.component_id}: ${formatMs(item.duration_ms)}${item.transformed ? " ok" : " skipped"}`),
       "",
-      "4. Parallel vs Sequential",
+      "5. Parallel vs Sequential",
       `- Layout parallel (settings + menus + speed dial + social links): ${formatMs(data.layoutParallelMs)}`,
       `- Full parallel (layout + home components): ${formatMs(data.fullParallelMs)}`,
       `- Full sequential: ${formatMs(data.fullSequentialMs)}`,
@@ -157,10 +167,10 @@ export default function HomeAuditPage() {
         ? `- Delta: ${formatMs(data.fullSequentialMs - data.fullParallelMs)}`
         : "- Delta: -",
       "",
-      "5. Initial Conclusion",
+      "6. Initial Conclusion",
       ...buildConclusion(data),
       "",
-      "6. Raw Events",
+      "7. Raw Events",
       ...stepLogs.map((step) => `- ${step.label}: ${formatMs(step.durationMs)} ${step.status}${step.note ? ` (${step.note})` : ""}`),
     ];
 
@@ -181,8 +191,15 @@ export default function HomeAuditPage() {
     };
 
     try {
-      const settingsResult = await runStep("fetch settings", () => fetchSettings());
-      pushStep(settingsResult.step);
+      const settingsBaselineResult = await runStep("fetch settings", () => fetchSettings());
+      pushStep(settingsBaselineResult.step);
+
+      const settingsAuditResult = await runStep("fetch settings (audit uncached)", async () => {
+        const response = await fetchSettingsWithMeta({ audit: true });
+
+        return response.meta?.audit ?? null;
+      });
+      pushStep(settingsAuditResult.step);
 
       const menusResult = await runStep("fetch menus", () => fetchMenus());
       pushStep(menusResult.step);
@@ -241,7 +258,9 @@ export default function HomeAuditPage() {
       const speedDial = speedDialResult.value;
 
       const finalSummary: HomeAuditSummary = {
-        settingsMs: settingsResult.step.durationMs,
+        settingsMs: settingsBaselineResult.step.durationMs,
+        settingsAuditRequestMs: settingsAuditResult.step.durationMs,
+        settingsAudit: settingsAuditResult.value,
         menusMs: menusResult.step.durationMs,
         speedDialMs: speedDialResult.step.durationMs,
         socialLinksMs: socialLinksResult.step.durationMs,
@@ -334,6 +353,8 @@ export default function HomeAuditPage() {
         </CardHeader>
         <CardContent className="space-y-1 text-sm text-slate-600">
           <p>Settings API: {formatMs(summary?.settingsMs)}</p>
+          <p>Settings API (audit uncached): {formatMs(summary?.settingsAuditRequestMs)}</p>
+          <p>Settings cache: {summary?.settingsAudit ? `${summary.settingsAudit.cache_driver} / ${summary.settingsAudit.cache_hit ? "hit" : "miss"}` : "-"}</p>
           <p>Menus API: {formatMs(summary?.menusMs)}</p>
           <p>Speed dial API: {formatMs(summary?.speedDialMs)}</p>
           <p>Social links API: {formatMs(summary?.socialLinksMs)}</p>

@@ -9,6 +9,15 @@ export type WatermarkType = 'image' | 'text';
 export type WatermarkTextSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | 'xxlarge';
 export type WatermarkTextPosition = 'top' | 'center' | 'bottom';
 
+export interface SettingsAuditMeta {
+  cache_driver: string;
+  cache_key: string;
+  cache_hit: boolean;
+  cache_read_ms: number;
+  query_ms: number | null;
+  serialize_ms: number | null;
+}
+
 export interface SettingsResponse {
   data: {
     logo_url: string | null;
@@ -37,6 +46,11 @@ export interface SettingsResponse {
       keywords: string | null;
     };
     extra: Record<string, unknown>;
+  };
+  meta?: {
+    api_version?: string;
+    timestamp?: string;
+    audit?: SettingsAuditMeta;
   };
 }
 
@@ -74,10 +88,17 @@ export interface Settings {
  * Endpoint: GET /api/v1/settings
  * Cache: 5 minutes (300s)
  */
-export async function fetchSettings(): Promise<Settings> {
-  const response = await apiFetch<SettingsResponse>("/v1/settings", {
-    next: { revalidate: 300, tags: ["settings"] },
+export async function fetchSettingsWithMeta(options?: { audit?: boolean }): Promise<SettingsResponse> {
+  const params = options?.audit ? "?audit=1" : "";
+
+  return apiFetch<SettingsResponse>(`/v1/settings${params}`, {
+    cache: options?.audit ? "no-store" : undefined,
+    next: options?.audit ? { revalidate: 0 } : { revalidate: 300, tags: ["settings"] },
   });
+}
+
+export async function fetchSettings(): Promise<Settings> {
+  const response = await fetchSettingsWithMeta();
 
   return response.data;
 }
