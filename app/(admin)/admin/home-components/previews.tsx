@@ -322,19 +322,32 @@ interface EditorialSpotlightPreviewProps {
   articleIds: string; // "1,2,3"
 }
 
+interface ArticleSelectItem {
+  id?: number;
+  value: number;
+  title?: string;
+  label: string;
+  published_at?: string;
+  cover_image?: {
+    id: number;
+    url: string;
+    alt: string;
+  } | null;
+}
+
 export const EditorialSpotlightPreview = ({ label, title, description, articleIds }: EditorialSpotlightPreviewProps) => {
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   
   const ids = articleIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
   
-  const { data: articles, isLoading } = useQuery({
+  const { data: articles, isLoading, isError } = useQuery({
     queryKey: ['articles', 'by-ids', ids],
     queryFn: async () => {
       if (ids.length === 0) return [];
-      const response = await fetch(`${API_BASE_URL}/v1/admin/articles/list-for-select?ids=${ids.join(',')}&limit=100`);
-      if (!response.ok) throw new Error('Failed to fetch articles');
-      const json = await response.json();
-      return json.data || [];
+      const payload = await apiFetch<{ data: ArticleSelectItem[] }>(
+        `v1/admin/articles/list-for-select?ids=${ids.join(',')}&limit=100`,
+      );
+      return payload.data || [];
     },
     enabled: ids.length > 0,
   });
@@ -384,12 +397,17 @@ export const EditorialSpotlightPreview = ({ label, title, description, articleId
                   <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-400" />
                   <p className="text-sm text-slate-500 mt-2">Đang tải bài viết...</p>
                 </div>
+              ) : isError ? (
+                <div className="text-center py-12">
+                  <FileText size={48} className="mx-auto text-slate-300 mb-2" />
+                  <p className="text-sm text-slate-500">Không thể tải preview bài viết</p>
+                </div>
               ) : articles && articles.length > 0 ? (
                 <div className={cn(
                   "grid gap-8",
                   device === 'mobile' ? 'grid-cols-1' : 'md:grid-cols-3'
                 )}>
-                  {articles.slice(0, 3).map((article: any) => {
+                  {articles.slice(0, 3).map((article) => {
                     // listForSelect API returns: value, label, cover_image, published_at
                     const articleId = article.value || article.id;
                     const articleTitle = article.label?.replace(/\s*\(#\d+\)$/, '') || article.title || '';
