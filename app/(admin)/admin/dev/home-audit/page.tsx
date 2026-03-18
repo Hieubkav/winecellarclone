@@ -20,6 +20,7 @@ type HomeAuditSummary = {
   speedDialMs: number | null;
   socialLinksMs: number | null;
   homeComponentsMs: number | null;
+  homeComponentsAuditRequestMs: number | null;
   layoutParallelMs: number | null;
   fullParallelMs: number | null;
   fullSequentialMs: number | null;
@@ -83,7 +84,7 @@ export default function HomeAuditPage() {
       ["menus", data.menusMs],
       ["speed dial", data.speedDialMs],
       ["social links", data.socialLinksMs],
-      ["home components", data.homeComponentsMs],
+      ["home components (cached)", data.homeComponentsMs],
     ] as const;
 
     const slowest = apiPairs.reduce<(typeof apiPairs)[number] | null>((carry, current) => {
@@ -106,7 +107,11 @@ export default function HomeAuditPage() {
     }
 
     if (data.homeComponentsMs !== null && data.homeComponentsMs > 1000) {
-      lines.push("- Home components API đáng audit nếu homepage còn cảm giác chậm.");
+      lines.push("- Home components cached baseline vẫn đáng theo dõi nếu homepage còn cảm giác chậm.");
+    }
+
+    if (data.homeComponentsAuditTotalMs !== null && data.homeComponentsAuditTotalMs < 100) {
+      lines.push("- Transformer home components hiện rất nhẹ; độ trễ chủ yếu không nằm ở bước transform.");
     }
 
     if (lines.length === 0) {
@@ -127,7 +132,8 @@ export default function HomeAuditPage() {
       `- Menus API: ${formatMs(data.menusMs)}`,
       `- Speed dial API: ${formatMs(data.speedDialMs)}`,
       `- Social links API: ${formatMs(data.socialLinksMs)}`,
-      `- Home components API: ${formatMs(data.homeComponentsMs)}`,
+      `- Home components API (cached baseline): ${formatMs(data.homeComponentsMs)}`,
+      `- Home components API (audit uncached): ${formatMs(data.homeComponentsAuditRequestMs)}`,
       "",
       "2. Homepage Data Summary",
       `- Home components: ${data.componentCount}`,
@@ -187,7 +193,10 @@ export default function HomeAuditPage() {
       const socialLinksResult = await runStep("fetch social links", () => fetchSocialLinks());
       pushStep(socialLinksResult.step);
 
-      const homeComponentsResult = await runStep("fetch home components", async () => {
+      const homeComponentsBaselineResult = await runStep("fetch home components (cached baseline)", () => fetchHomeComponents());
+      pushStep(homeComponentsBaselineResult.step);
+
+      const homeComponentsAuditResult = await runStep("fetch home components (audit uncached)", async () => {
         const response = await fetchHomeComponentsWithMeta({ audit: true });
 
         return {
@@ -195,7 +204,7 @@ export default function HomeAuditPage() {
           audit: response.meta.audit,
         };
       });
-      pushStep(homeComponentsResult.step);
+      pushStep(homeComponentsAuditResult.step);
 
       const layoutParallelResult = await runStep("layout parallel fetch", async () => {
         await Promise.all([
@@ -227,8 +236,8 @@ export default function HomeAuditPage() {
       });
       pushStep(fullSequentialResult.step);
 
-      const homeComponents = homeComponentsResult.value.components;
-      const homeComponentsAudit = homeComponentsResult.value.audit;
+      const homeComponents = homeComponentsBaselineResult.value;
+      const homeComponentsAudit = homeComponentsAuditResult.value.audit;
       const speedDial = speedDialResult.value;
 
       const finalSummary: HomeAuditSummary = {
@@ -236,7 +245,8 @@ export default function HomeAuditPage() {
         menusMs: menusResult.step.durationMs,
         speedDialMs: speedDialResult.step.durationMs,
         socialLinksMs: socialLinksResult.step.durationMs,
-        homeComponentsMs: homeComponentsResult.step.durationMs,
+        homeComponentsMs: homeComponentsBaselineResult.step.durationMs,
+        homeComponentsAuditRequestMs: homeComponentsAuditResult.step.durationMs,
         layoutParallelMs: layoutParallelResult.step.durationMs,
         fullParallelMs: fullParallelResult.step.durationMs,
         fullSequentialMs: fullSequentialResult.step.durationMs,
@@ -327,7 +337,8 @@ export default function HomeAuditPage() {
           <p>Menus API: {formatMs(summary?.menusMs)}</p>
           <p>Speed dial API: {formatMs(summary?.speedDialMs)}</p>
           <p>Social links API: {formatMs(summary?.socialLinksMs)}</p>
-          <p>Home components API: {formatMs(summary?.homeComponentsMs)}</p>
+          <p>Home components API (cached baseline): {formatMs(summary?.homeComponentsMs)}</p>
+          <p>Home components API (audit uncached): {formatMs(summary?.homeComponentsAuditRequestMs)}</p>
           <p>Home components transform total: {formatMs(summary?.homeComponentsAuditTotalMs)}</p>
           <p>Slowest component: {summary?.slowestHomeComponent ? `${summary.slowestHomeComponent.type}#${summary.slowestHomeComponent.component_id} (${formatMs(summary.slowestHomeComponent.duration_ms)})` : "-"}</p>
           <p>Full parallel: {formatMs(summary?.fullParallelMs)}</p>
