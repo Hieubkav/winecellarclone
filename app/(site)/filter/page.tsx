@@ -30,11 +30,20 @@ const resolveFilterLabel = (slug: string | null, options: { name: string; slug: 
   return options.find((option) => option.slug === slug)?.name || slug;
 };
 
+type FilterRouteSearchParams = {
+  type?: string;
+  category?: string;
+  q?: string;
+  price_min?: string;
+  price_max?: string;
+};
+
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<FilterRouteSearchParams>;
 }): Promise<Metadata> {
+  const params = await searchParams;
   let settings = FALLBACK_SETTINGS;
   let filterOptions = null;
 
@@ -49,11 +58,11 @@ export async function generateMetadata({
     console.error("Failed to load settings for filter metadata:", error);
   }
 
-  const typeSlug = typeof searchParams.type === "string" ? searchParams.type : null;
-  const categorySlug = typeof searchParams.category === "string" ? searchParams.category : null;
-  const query = typeof searchParams.q === "string" ? searchParams.q.trim() : null;
-  const priceMin = typeof searchParams.price_min === "string" ? searchParams.price_min : null;
-  const priceMax = typeof searchParams.price_max === "string" ? searchParams.price_max : null;
+  const typeSlug = typeof params.type === "string" ? params.type : null;
+  const categorySlug = typeof params.category === "string" ? params.category : null;
+  const query = typeof params.q === "string" ? params.q.trim() : null;
+  const priceMin = typeof params.price_min === "string" ? params.price_min : null;
+  const priceMax = typeof params.price_max === "string" ? params.price_max : null;
 
   const typeName = filterOptions ? resolveFilterLabel(typeSlug, filterOptions.types) : typeSlug;
   const categoryName = filterOptions ? resolveFilterLabel(categorySlug, filterOptions.categories) : categorySlug;
