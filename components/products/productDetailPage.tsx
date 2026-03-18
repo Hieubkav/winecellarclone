@@ -16,6 +16,7 @@ import DynamicIcon from "@/components/shared/DynamicIcon";
 
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
+import { buildProductBreadcrumbs } from "@/lib/products/product-breadcrumbs";
 import { processProductContent, getImageUrl } from "@/lib/utils/article-content";
 import { PRODUCT_IMAGE_ASPECT_CLASS, PRODUCT_IMAGE_ASPECT_RATIO } from "@/lib/constants/product-image";
 import RelatedProductsSection from "./RelatedProducts";
@@ -355,21 +356,28 @@ export default function ProductDetailPage({
 
   const priceLabel = formatPrice(product);
   const originalPriceLabel = formatOriginalPrice(product);
+  const breadcrumbs = useMemo(() => buildProductBreadcrumbs(product), [product]);
 
   return (
     <div className="min-h-screen bg-[#fcfbf9]" style={fontFamily ? { fontFamily } : undefined}>
       {/* Breadcrumb */}
       <div className="bg-[#f5f0e8] py-2 md:py-3 border-b border-[#e5ddd0]">
         <div className="container mx-auto px-3 md:px-4 text-[11px] md:text-sm text-slate-600 flex gap-1.5 md:gap-2">
-          <Link href="/" className="hover:text-[#9B2C3B] cursor-pointer transition-colors">
-            Trang chủ
-          </Link>
-          <span>/</span>
-          <Link href="/san-pham" className="hover:text-[#9B2C3B] cursor-pointer transition-colors">
-            Sản phẩm
-          </Link>
-          <span>/</span>
-          <span className="text-slate-900 font-medium truncate">{product.name}</span>
+          {breadcrumbs.map((item, index) => {
+            const isLast = index === breadcrumbs.length - 1;
+            return (
+              <div key={`${item.label}-${index}`} className="flex items-center gap-1.5 md:gap-2 min-w-0">
+                {isLast ? (
+                  <span className="text-slate-900 font-medium truncate">{item.label}</span>
+                ) : (
+                  <Link href={item.href} className="hover:text-[#9B2C3B] cursor-pointer transition-colors truncate">
+                    {item.label}
+                  </Link>
+                )}
+                {!isLast && <span>/</span>}
+              </div>
+            );
+          })}
         </div>
       </div>
 

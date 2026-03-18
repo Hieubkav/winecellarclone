@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import ProductDetailPage from "@/components/products/productDetailPage";
 import { fetchProductDetail } from "@/lib/api/products";
 import { ProductSchema, BreadcrumbSchema } from "@/lib/seo/structured-data";
+import { buildProductBreadcrumbs } from "@/lib/products/product-breadcrumbs";
 import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
@@ -104,6 +105,7 @@ export default async function ProductDetailRoute({
   const sellerName = settings.site_name || "Thiên Kim Wine";
 
   const productUrl = `${SITE_URL}/san-pham/${product.slug}`;
+  const breadcrumbItems = buildProductBreadcrumbs(product, { siteUrl: SITE_URL });
   
   return (
     <>
@@ -121,11 +123,10 @@ export default async function ProductDetailRoute({
       
       {/* SEO: Breadcrumb */}
       <BreadcrumbSchema
-        items={[
-          { name: 'Trang chủ', url: SITE_URL },
-          { name: 'Sản phẩm', url: `${SITE_URL}/san-pham` },
-          { name: product.name, url: productUrl },
-        ]}
+        items={breadcrumbItems.map((item) => ({
+          name: item.label,
+          url: item.href,
+        }))}
       />
 
       <ProductDetailPage

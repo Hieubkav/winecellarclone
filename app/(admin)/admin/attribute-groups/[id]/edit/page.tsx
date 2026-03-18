@@ -62,6 +62,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
   
   const [terms, setTerms] = useState<any[]>([]);
   const [productTypes, setProductTypes] = useState<Array<{ id: number; name: string }>>([]);
+  const isOriginAttribute = code === 'xuat_xu';
 
   useEffect(() => {
     async function loadData() {
@@ -208,6 +209,19 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
                 className="bg-slate-50 dark:bg-slate-900 text-slate-500"
               />
               <p className="text-xs text-slate-500">Mã không thể thay đổi sau khi tạo</p>
+              {isOriginAttribute && (
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200">
+                  <p className="font-semibold">Thuộc tính đặc thù (hardcode)</p>
+                  <p className="mt-1">
+                    Thuộc tính này đang được sử dụng để dựng breadcrumb trang chi tiết sản phẩm. Nếu sản phẩm có
+                    giá trị <strong>xuất xứ</strong>, breadcrumb sẽ là <strong>Trang chủ &gt; danh mục &gt; giá trị xuất xứ</strong>.
+                    Nếu không có dữ liệu, breadcrumb sẽ fallback về <strong>Trang chủ &gt; danh mục</strong>.
+                  </p>
+                  <p className="mt-1">
+                    Khi click breadcrumb sẽ mở đúng trang <strong>/filter</strong> theo danh mục và giá trị xuất xứ.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
