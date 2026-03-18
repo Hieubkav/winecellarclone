@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Search, Type, X } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '@/app/(admin)/admin/components/ui';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -150,6 +152,45 @@ export const SettingsScreen = () => {
     xxlarge: 32,
   };
   const previewFontSize = previewFontSizeMap[watermarkTextSize] ?? 20;
+  const previewPadding = Math.max(12, Math.round(previewFontSize * 1.3));
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const previewBottleSvg = encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <rect width="200" height="200" fill="none" />
+      <g opacity="0.45" stroke="#94a3b8" stroke-width="4" fill="none">
+        <path d="M92 18h16v30c0 8 20 12 20 26v90c0 18-14 32-28 32s-28-14-28-32V74c0-14 20-18 20-26V18z" />
+        <path d="M82 60h36" />
+      </g>
+    </svg>`
+  );
+
+  const updatePreviewPosition = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const rect = previewRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const usableHeight = Math.max(1, rect.height - previewPadding * 2);
+    const relativeY = event.clientY - rect.top - previewPadding;
+    const nextPosition = Math.max(0, Math.min(100, Math.round((relativeY / usableHeight) * 100)));
+    setWatermarkTextPositionY(nextPosition);
+  };
+
+  const handlePreviewPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    updatePreviewPosition(event);
+  };
+
+  const handlePreviewPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    updatePreviewPosition(event);
+  };
+
+  const handlePreviewPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setIsDragging(false);
+  };
 
   return (
     <div className="space-y-4">
@@ -480,20 +521,46 @@ export const SettingsScreen = () => {
                           <option value="xxlarge">Cực lớn</option>
                         </select>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Vị trí dọc</Label>
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                          <div className="relative aspect-square w-full max-w-[220px] rounded-md border border-slate-200 bg-slate-100/70 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+                      <div className="space-y-2 md:col-span-2">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <Label>Vị trí dọc · {previewPositionY}%</Label>
+                          <span className="text-xs text-slate-500">Kéo watermark trên ảnh để đổi vị trí</span>
+                        </div>
+                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_180px]">
+                          <div
+                            ref={previewRef}
+                            onPointerDown={handlePreviewPointerDown}
+                            onPointerMove={handlePreviewPointerMove}
+                            onPointerUp={handlePreviewPointerUp}
+                            onPointerCancel={handlePreviewPointerUp}
+                            className={`relative aspect-square w-full rounded-xl border border-slate-200 bg-white/70 p-4 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-400 dark:border-slate-700 dark:bg-slate-900/40 ${
+                              isDragging ? "ring-2 ring-blue-400" : ""
+                            }`}
+                            style={{
+                              backgroundImage: `linear-gradient(180deg, rgba(255,255,255,0.6), rgba(148,163,184,0.05)), url("data:image/svg+xml;utf8,${previewBottleSvg}")`,
+                              backgroundPosition: "center",
+                              backgroundRepeat: "no-repeat",
+                              backgroundSize: "cover",
+                              touchAction: "none",
+                            }}
+                            role="slider"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={previewPositionY}
+                            aria-label="Vị trí watermark chữ"
+                          >
+                            <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/30 via-white/10 to-slate-900/10" />
                             <div
-                              className="absolute left-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 px-3"
+                              className="absolute left-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 px-4"
                               style={{ top: `${previewPositionY}%` }}
                             >
                               <div
-                                className={`flex w-full ${watermarkTextRepeat ? "gap-6" : "justify-center"}`}
+                                className={`flex w-full items-center ${watermarkTextRepeat ? "gap-6" : "justify-center"} cursor-grab active:cursor-grabbing`}
                                 style={{
                                   fontSize: `${previewFontSize}px`,
                                   color: `rgba(255, 255, 255, ${previewOpacity / 100})`,
-                                  textShadow: `0 1px 2px rgba(15, 23, 42, ${previewOpacity / 100})`,
+                                  textShadow: `0 2px 6px rgba(15, 23, 42, ${previewOpacity / 100})`,
+                                  padding: `${Math.round(previewPadding * 0.35)}px 0`,
                                 }}
                               >
                                 {watermarkTextRepeat ? (
@@ -508,19 +575,18 @@ export const SettingsScreen = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="flex flex-1 items-center gap-4">
-                            <div className="flex h-40 items-center justify-center">
-                              <input
-                                type="range"
-                                min="0"
-                                max="100"
-                                step="1"
-                                value={previewPositionY}
-                                onChange={(event) => setWatermarkTextPositionY(Number(event.target.value))}
-                                className="w-40 h-2 -rotate-90 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
-                              />
-                            </div>
-                            <span className="text-xs text-slate-500">Vị trí: {previewPositionY}%</span>
+                          <div className="flex flex-col justify-center gap-2">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              step="1"
+                              value={previewPositionY}
+                              onChange={(event) => setWatermarkTextPositionY(Number(event.target.value))}
+                              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
+                              aria-label="Tinh chỉnh vị trí watermark"
+                            />
+                            <span className="text-xs text-slate-500">Tinh chỉnh chính xác khi cần</span>
                           </div>
                         </div>
                       </div>
