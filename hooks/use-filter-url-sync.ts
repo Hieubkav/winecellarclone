@@ -221,7 +221,7 @@ export function useFilterUrlSync() {
       }
     }
 
-    applyUrlFilters()
+    void applyUrlFilters()
   }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange, options.categories, options.productTypes])
 
   // Effect 2: Store → URL (sync filter changes to URL with slug for SEO-friendly URLs)

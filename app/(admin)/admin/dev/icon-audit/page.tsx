@@ -277,7 +277,7 @@ export default function IconAuditPage() {
   }, []);
 
   useEffect(() => {
-    loadAudit();
+    void loadAudit();
   }, [loadAudit]);
 
   const summary = useMemo(() => {

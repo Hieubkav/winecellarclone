@@ -162,7 +162,7 @@ export default function ContactConfigPage() {
   }, []);
 
   useEffect(() => {
-    loadConfig();
+    void loadConfig();
   }, [loadConfig]);
 
   const loadFromSettings = async () => {

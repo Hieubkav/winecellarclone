@@ -153,7 +153,7 @@ const generateSlug = (text: string): string => {
          setIsLoading(false);
        }
       if (product?.type_id) {
-        fetchProductFilters(product.type_id)
+        void fetchProductFilters(product.type_id)
           .then((typeFilters) => {
             syncFiltersWithProduct(typeFilters, product);
           })
@@ -162,7 +162,7 @@ const generateSlug = (text: string): string => {
           });
       }
      }
-     loadData();
+     void loadData();
    }, [id]);
  
   useEffect(() => {
@@ -173,7 +173,7 @@ const generateSlug = (text: string): string => {
     }
 
     if (typeId) {
-      fetchProductFilters(Number(typeId)).then(filters => {
+      void fetchProductFilters(Number(typeId)).then(filters => {
         setCategories(filters.categories);
         setAttributeFilters(filters.attribute_filters || []);
         setSelectedTermIds({});
@@ -357,7 +357,7 @@ const generateSlug = (text: string): string => {
   const handleDropFiles = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     if (event.dataTransfer.files?.length) {
-      handleGalleryUpload(event.dataTransfer.files);
+      void handleGalleryUpload(event.dataTransfer.files);
     }
   }, [handleGalleryUpload]);
 
@@ -584,7 +584,7 @@ const generateSlug = (text: string): string => {
                           onClick={() => {
                             const url = window.prompt('Nhập URL ảnh mới');
                             if (url) {
-                              handleReplaceFromUrl(index, url.trim());
+                              void handleReplaceFromUrl(index, url.trim());
                             }
                           }}
                           className="text-[10px] px-2 py-1 rounded bg-white/90 text-slate-700"
@@ -607,7 +607,7 @@ const generateSlug = (text: string): string => {
                       accept="image/*"
                       multiple
                       className="hidden"
-                      onChange={(e) => handleGalleryUpload(e.target.files)}
+                      onChange={(e) => void handleGalleryUpload(e.target.files)}
                       disabled={isUploadingImage}
                     />
                     {isUploadingImage ? (

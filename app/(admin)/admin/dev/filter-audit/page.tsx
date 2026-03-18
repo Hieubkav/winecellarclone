@@ -5,8 +5,6 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "../../componen
 import {
   fetchProductFilters,
   fetchProductList,
-  type ProductFiltersPayload,
-  type ProductListResponse,
 } from "@/lib/api/products";
 
 type AuditStep = {
@@ -51,7 +49,7 @@ export default function FilterAuditPage() {
   const [status, setStatus] = useState<"idle" | "running" | "done" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [summary, setSummary] = useState<AuditSummary | null>(null);
-  const [steps, setSteps] = useState<AuditStep[]>([]);
+  const [, setSteps] = useState<AuditStep[]>([]);
   const [reportText, setReportText] = useState<string>("");
   const reportRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -62,7 +60,6 @@ export default function FilterAuditPage() {
       const durationMs = now() - startedAt;
       return { durationMs, status: "ok" as const, label, result };
     } catch (error) {
-      const durationMs = now() - startedAt;
       const note = String(error);
       throw new Error(`${label}: ${note}`);
     }

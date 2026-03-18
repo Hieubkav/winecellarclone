@@ -157,7 +157,7 @@ export function ImageUploadField({
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    handleFileSelect(e.dataTransfer.files);
+    void handleFileSelect(e.dataTransfer.files);
   }, [handleFileSelect]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {

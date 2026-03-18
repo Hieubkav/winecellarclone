@@ -96,7 +96,7 @@ export default function CategoriesListPage() {
   }, [debouncedSearchTerm, filterType, currentPage, perPage, sortConfig]);
 
   useEffect(() => {
-    loadData(true);
+    void loadData(true);
   }, []);
 
   useEffect(() => {
@@ -109,12 +109,12 @@ export default function CategoriesListPage() {
       }
     };
 
-    loadFilters();
+    void loadFilters();
   }, []);
 
   useEffect(() => {
     if (!isInitialLoading) {
-      loadData(false);
+      void loadData(false);
     }
   }, [debouncedSearchTerm, filterType, currentPage, perPage, sortConfig]);
 
@@ -156,7 +156,7 @@ export default function CategoriesListPage() {
         setSelectedIds([]);
       }
       setDeleteConfirm(null);
-      loadData();
+      void loadData();
     } catch (error: any) {
       console.error('Failed to delete:', error);
       toast.error(error?.message || 'Xóa danh mục thất bại. Vui lòng thử lại.');
@@ -168,7 +168,7 @@ export default function CategoriesListPage() {
   const handleFormSuccess = () => {
     setIsFormOpen(false);
     setEditingCategory(null);
-    loadData();
+    void loadData();
   };
 
   const handleToggleStatus = async (id: number, currentStatus: boolean) => {

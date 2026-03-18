@@ -44,7 +44,8 @@ async function analyzePerformance() {
 
       console.log(`← ${response.status()} ${request.url()} (${duration.toFixed(2)}ms, ${(parseInt(contentLength) / 1024).toFixed(2)}KB)`);
     } catch (error) {
-      console.error(`Error processing response for ${request.url()}: ${error}`);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Error processing response for ${request.url()}: ${message}`);
     }
   });
 
@@ -170,4 +171,4 @@ async function analyzePerformance() {
   }
 }
 
-analyzePerformance();
+void analyzePerformance();

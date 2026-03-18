@@ -370,12 +370,40 @@ export async function readExcelFile(file: File): Promise<ExcelJS.Workbook> {
   return workbook;
 }
 
+const stringifyCellValue = (value: ExcelJS.CellValue | null | undefined): string => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "object") {
+    if ("text" in value && typeof value.text === "string") {
+      return value.text;
+    }
+
+    if ("result" in value && typeof value.result === "string") {
+      return value.result;
+    }
+
+    return JSON.stringify(value);
+  }
+
+  return "";
+};
+
 export function worksheetToJson(worksheet: ExcelJS.Worksheet): Record<string, unknown>[] {
   const data: Record<string, unknown>[] = [];
   const headers: string[] = [];
   
   worksheet.getRow(1).eachCell((cell, colNumber) => {
-    headers[colNumber - 1] = String(cell.value).replace(' *', '');
+    headers[colNumber - 1] = stringifyCellValue(cell.value).replace(' *', '');
   });
   
   worksheet.eachRow((row, rowNumber) => {
@@ -414,7 +442,9 @@ export function validateProductRow(row: Record<string, unknown>, columns: ExcelC
       errors.push(`${col.header} phải là số`);
     }
     
-    if (value && col.type === 'select' && col.options && !col.options.includes(String(value))) {
+    const valueText = stringifyCellValue(value as ExcelJS.CellValue | null | undefined);
+
+    if (value && col.type === 'select' && col.options && !col.options.includes(valueText)) {
       errors.push(`${col.header} phải là một trong: ${col.options.join(', ')}`);
     }
   });

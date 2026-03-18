@@ -21,10 +21,10 @@ export default function ImageEditPage({ params }: { params: Promise<{ id: string
   const [active, setActive] = useState(true);
 
   useEffect(() => {
-    params.then(p => {
+    void params.then(p => {
       const id = parseInt(p.id);
       setImageId(id);
-      loadImage(id);
+      void loadImage(id);
     });
   }, []);
 

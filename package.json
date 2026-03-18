@@ -41,6 +41,7 @@
     "lexical": "^0.39.0",
     "lucide-react": "^0.546.0",
     "next": "15.5.7",
+    "oxlint-tsgolint": "^0.17.0",
     "react": "19.0.1",
     "react-dom": "19.0.1",
     "recharts": "^3.7.0",

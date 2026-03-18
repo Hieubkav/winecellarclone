@@ -74,7 +74,7 @@ export default function HomeAuditPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [summary, setSummary] = useState<HomeAuditSummary | null>(null);
   const [reportText, setReportText] = useState("");
-  const [steps, setSteps] = useState<AuditStep[]>([]);
+  const [, setSteps] = useState<AuditStep[]>([]);
 
   const runStep = useCallback(async <T,>(label: string, action: () => Promise<T>) => {
     const startedAt = now();
@@ -322,6 +322,7 @@ export default function HomeAuditPage() {
       const speedDialAudit = speedDialResult.value.audit;
       const menusAudit = menusResult.value.audit;
       const socialLinksAudit = socialLinksResult.value.audit;
+      const speedDialItems = (speedDial?.config as { items?: unknown[] } | undefined)?.items;
 
       const finalSummary: HomeAuditSummary = {
         settingsMs: settingsBaselineResult.step.durationMs,
@@ -367,9 +368,7 @@ export default function HomeAuditPage() {
         fullSequentialMs: fullSequentialResult.step.durationMs,
         componentCount: homeComponents.length,
         componentTypes: [...new Set(homeComponents.map((item) => item.type))],
-        speedDialItemCount: Array.isArray((speedDial?.config as { items?: unknown[] } | undefined)?.items)
-          ? ((speedDial?.config as { items?: unknown[] }).items?.length ?? 0)
-          : 0,
+        speedDialItemCount: Array.isArray(speedDialItems) ? speedDialItems.length : 0,
         menuCount: menusResult.value.items.length,
         socialLinkCount: socialLinksResult.value.items.length,
         homeComponentsAuditTotalMs: homeComponentsAudit?.total_ms ?? null,

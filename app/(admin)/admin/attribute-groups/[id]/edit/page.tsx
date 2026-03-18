@@ -98,7 +98,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
       }
     }
 
-    loadData();
+    void loadData();
   }, [id]);
   
   const reloadTerms = async () => {

@@ -131,7 +131,7 @@ export const ProductsListScreen = () => {
                 <button
                   className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm"
                   onClick={() => {
-                    handleExportCurrent();
+                    void handleExportCurrent();
                     setShowExportMenu(false);
                   }}
                   disabled={isExporting || sortedData.length === 0}
@@ -142,7 +142,7 @@ export const ProductsListScreen = () => {
                 <button
                   className="w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm border-t border-slate-200 dark:border-slate-700"
                   onClick={() => {
-                    handleExportAll();
+                    void handleExportAll();
                     setShowExportMenu(false);
                   }}
                   disabled={isExporting}

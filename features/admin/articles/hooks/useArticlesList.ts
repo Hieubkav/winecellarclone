@@ -104,12 +104,12 @@ export const useArticlesList = () => {
   );
 
   useEffect(() => {
-    loadArticles(true);
+    void loadArticles(true);
   }, []);
 
   useEffect(() => {
     if (!isInitialLoading) {
-      loadArticles(false);
+      void loadArticles(false);
     }
   }, [currentPage, debouncedSearchTerm, perPage, sortConfig]);
 
@@ -149,7 +149,7 @@ export const useArticlesList = () => {
         setSelectedIds([]);
       }
       setDeleteConfirm(null);
-      loadArticles(false);
+      void loadArticles(false);
     } catch (error) {
       console.error("Failed to delete:", error);
       toast.error("Xóa bài viết thất bại. Vui lòng thử lại.");

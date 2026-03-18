@@ -177,13 +177,13 @@ export default function UsersPage() {
   }, [page, search]);
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, [loadUsers]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    loadUsers();
+    void loadUsers();
   };
 
   const handleEdit = (user: AdminUser) => {
@@ -213,7 +213,7 @@ export default function UsersPage() {
       const res = await deleteUser(id);
       if (res.success) {
         toast.success(res.message);
-        loadUsers();
+        void loadUsers();
       }
     } catch (error) {
       console.error(error);

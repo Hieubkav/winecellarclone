@@ -155,7 +155,7 @@ export default function HomeComponentsListPage() {
   }, [currentPage, perPage]);
 
   useEffect(() => {
-    loadComponents();
+    void loadComponents();
   }, [loadComponents]);
 
   const handleSort = (key: string) => {
@@ -184,7 +184,7 @@ export default function HomeComponentsListPage() {
     } catch (error) {
       console.error('Reorder failed:', error);
       toast.error('Không thể cập nhật thứ tự');
-      loadComponents();
+      void loadComponents();
     }
   };
 
@@ -211,7 +211,7 @@ export default function HomeComponentsListPage() {
         toast.success(`Đã xóa ${selectedIds.length} thành phần`);
       }
       setDeleteConfirm(null);
-      loadComponents();
+      void loadComponents();
     } catch (error) {
       console.error('Delete failed:', error);
       toast.error('Xóa thất bại');

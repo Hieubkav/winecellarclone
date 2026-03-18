@@ -163,9 +163,15 @@ export async function bulkImportProducts(products: Record<string, unknown>[]): P
       }
     } catch (error) {
       results.failed++;
+      const name =
+        typeof product.name === "string"
+          ? product.name
+          : product.name == null
+            ? "Unknown"
+            : JSON.stringify(product.name);
       results.errors.push({
         row: i + 2,
-        name: String(product.name || "Unknown"),
+        name,
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

@@ -121,7 +121,7 @@ export function ImageUploadField({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
-        uploadImage(file);
+        void uploadImage(file);
       }
     },
     [uploadImage]
@@ -144,7 +144,7 @@ export function ImageUploadField({
 
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) {
-        uploadImage(file);
+        void uploadImage(file);
       } else {
         toast.error('Vui lòng thả file ảnh hợp lệ');
       }
@@ -162,7 +162,7 @@ export function ImageUploadField({
       toast.error('Vui lòng nhập URL ảnh');
       return;
     }
-    uploadImageFromUrl(urlInput.trim());
+    void uploadImageFromUrl(urlInput.trim());
   }, [urlInput, uploadImageFromUrl]);
 
   return (

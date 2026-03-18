@@ -319,7 +319,7 @@ export async function fetchProductSuggestions(
   const { limit = 6, params } = options ?? {};
 
   const searchQuery = buildQueryString({
-    ...(params ?? {}),
+    ...params,
     q: query,
     limit,
   });

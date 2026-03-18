@@ -177,7 +177,7 @@ class TrackingService {
     if (typeof window === "undefined") return;
 
     this.sessionCheckTimer = setInterval(() => {
-      this.trackVisitor();
+      void this.trackVisitor();
     }, SESSION_CHECK_INTERVAL);
   }
 

@@ -71,12 +71,12 @@ export default function AttributeGroupsPage() {
   };
 
   useEffect(() => {
-    loadData(true);
+    void loadData(true);
   }, []);
 
   useEffect(() => {
     if (!isInitialLoading) {
-      loadData(false);
+      void loadData(false);
     }
   }, [debouncedSearchTerm, filterFilterable, currentPage, perPage, sortConfig]);
 

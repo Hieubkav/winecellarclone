@@ -220,7 +220,7 @@ export default function FooterConfigPage() {
   }, []);
 
   useEffect(() => {
-    loadConfig();
+    void loadConfig();
   }, [loadConfig]);
 
   const loadFromSettings = async () => {

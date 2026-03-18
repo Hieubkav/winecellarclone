@@ -45,7 +45,7 @@ export function ProductGridSelector({
   // Load initial selected products
   useEffect(() => {
     if (value.length > 0 && selectedProducts.length === 0) {
-      loadProducts('');
+      void loadProducts('');
     }
   }, [value]);
 
@@ -54,7 +54,7 @@ export function ProductGridSelector({
     if (!showSearch) return;
     
     const timer = setTimeout(() => {
-      loadProducts(searchQuery);
+      void loadProducts(searchQuery);
     }, 300);
 
     return () => clearTimeout(timer);

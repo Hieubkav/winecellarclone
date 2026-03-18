@@ -57,7 +57,7 @@ http.get('http://127.0.0.1:8000/api/v1/san-pham/filters/options', (res) => {
       if (json.data) {
         console.log('   ✅ Response structure is correct\n');
       }
-    } catch (e) {
+    } catch {
       console.log('   ❌ Invalid JSON response\n');
     }
   });

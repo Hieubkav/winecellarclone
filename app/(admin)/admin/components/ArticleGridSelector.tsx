@@ -45,7 +45,7 @@ export function ArticleGridSelector({
   // Load initial selected articles
   useEffect(() => {
     if (value.length > 0 && selectedArticles.length === 0) {
-      loadArticles('');
+      void loadArticles('');
     }
   }, [value]);
 
@@ -54,7 +54,7 @@ export function ArticleGridSelector({
     if (!showSearch) return;
     
     const timer = setTimeout(() => {
-      loadArticles(searchQuery);
+      void loadArticles(searchQuery);
     }, 300);
 
     return () => clearTimeout(timer);

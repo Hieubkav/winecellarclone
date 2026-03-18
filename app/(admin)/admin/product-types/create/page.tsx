@@ -31,7 +31,7 @@ export default function ProductTypeCreatePage() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    loadAttributes();
+    void loadAttributes();
   }, []);
 
   async function loadAttributes() {

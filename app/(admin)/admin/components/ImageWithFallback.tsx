@@ -74,7 +74,7 @@ export function ImageWithFallback({
       sizes={sizes}
       fill={fill}
       priority={priority}
-      onError={(e) => {
+      onError={() => {
         setHasError(true);
         if (onError) onError();
       }}

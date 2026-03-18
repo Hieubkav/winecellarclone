@@ -156,7 +156,7 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
                           onClick={() => {
                             const url = window.prompt('Nhập URL ảnh mới');
                             if (url) {
-                              handleReplaceFromUrl(index, url.trim());
+                              void handleReplaceFromUrl(index, url.trim());
                             }
                           }}
                           className="text-[10px] px-2 py-1 rounded bg-white/90 text-slate-700"

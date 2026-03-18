@@ -22,7 +22,7 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
         isInitialized.current = true;
         // Track initial page view after initialization
         if (pathname) {
-          trackingService.trackPageView(pathname);
+          await trackingService.trackPageView(pathname);
           lastTrackedPath.current = pathname;
         }
       } catch (error) {
@@ -30,7 +30,7 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initTracking();
+    void initTracking();
 
     // Cleanup on unmount
     return () => {
@@ -42,7 +42,7 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only track if already initialized (subsequent route changes)
     if (pathname && isInitialized.current && pathname !== lastTrackedPath.current) {
-      trackingService.trackPageView(pathname);
+      void trackingService.trackPageView(pathname);
       lastTrackedPath.current = pathname;
     }
   }, [pathname]);

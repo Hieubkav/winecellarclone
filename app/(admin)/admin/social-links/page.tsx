@@ -57,7 +57,7 @@ export default function SocialLinksListPage() {
   }, [currentPage, perPage, sortConfig]);
 
   useEffect(() => {
-    loadLinks();
+    void loadLinks();
   }, [loadLinks]);
 
   const handleSort = (key: string) => {
@@ -88,7 +88,7 @@ export default function SocialLinksListPage() {
         toast.success(`Đã xóa ${selectedIds.length} liên kết`);
       }
       setDeleteConfirm(null);
-      loadLinks();
+      void loadLinks();
     } catch (error) {
       console.error('Delete failed:', error);
       toast.error('Xóa thất bại');

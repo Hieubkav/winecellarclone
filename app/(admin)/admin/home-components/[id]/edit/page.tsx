@@ -117,10 +117,10 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
   const [speedDialItems, setSpeedDialItems] = useState<SpeedDialItem[]>([]);
 
   useEffect(() => {
-    params.then(p => {
+    void params.then(p => {
       const id = parseInt(p.id);
       setComponentId(id);
-      loadComponent(id);
+      void loadComponent(id);
     });
   }, []);
 
@@ -324,7 +324,7 @@ export default function HomeComponentEditPage({ params }: { params: Promise<{ id
       setComponentType(component.type);
       setActive(component.active);
       
-      parseConfig(component.type, component.config);
+      void parseConfig(component.type, component.config);
 
       // Update URL with component type for better UX
       const typeInfo = getComponentTypeInfo(component.type);

@@ -510,7 +510,6 @@ export const useWineStore = create<WineStore>((set, get) => ({
         return false
       }
       
-      const options = get().options
       const mapped = response.data.map((item) => mapProductToWine(item))
       
       set((state) => {

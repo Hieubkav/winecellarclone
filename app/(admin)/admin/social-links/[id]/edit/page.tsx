@@ -20,10 +20,10 @@ export default function SocialLinkEditPage({ params }: { params: Promise<{ id: s
   const [active, setActive] = useState(true);
 
   useEffect(() => {
-    params.then(p => {
+    void params.then(p => {
       const id = parseInt(p.id);
       setLinkId(id);
-      loadLink(id);
+      void loadLink(id);
     });
   }, []);
 

@@ -82,12 +82,12 @@ export default function ProductTypesPage() {
   };
 
   useEffect(() => {
-    loadData(true);
+    void loadData(true);
   }, []);
 
   useEffect(() => {
     if (!isInitialLoading) {
-      loadData(false);
+      void loadData(false);
     }
   }, [debouncedSearchTerm, filterActive, currentPage, perPage, sortConfig]);
 
@@ -159,7 +159,7 @@ export default function ProductTypesPage() {
       await deleteProductType(deleteConfirm);
       setDeleteConfirm(null);
       toast.success("Xóa nhóm sản phẩm thành công");
-      loadData();
+      void loadData();
     } catch (error) {
       console.error('Failed to delete:', error);
       if (error instanceof ApiError && error.payload && typeof error.payload === 'object' && 'message' in error.payload) {
@@ -177,7 +177,7 @@ export default function ProductTypesPage() {
     try {
       const res = await seedCatalogBaseline();
       toast.success(res.message || 'Khôi phục nhóm sản phẩm mặc định thành công');
-      loadData();
+      void loadData();
       setSeedConfirm(false);
     } catch (error) {
       console.error('Failed to seed baseline:', error);
@@ -217,7 +217,7 @@ export default function ProductTypesPage() {
         next.delete(typeId);
       } else {
         next.add(typeId);
-        loadAttributeGroups(typeId);
+        void loadAttributeGroups(typeId);
       }
       return next;
     });

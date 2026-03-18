@@ -65,6 +65,19 @@ const normalizeUrl = (base: string, path: string): string => {
   return `${trimmedBase}/${trimmedPath}`;
 };
 
+const mergeHeaders = (base: HeadersInit, extra?: HeadersInit): Headers => {
+  const merged = new Headers(base);
+
+  if (extra) {
+    const extraHeaders = new Headers(extra);
+    extraHeaders.forEach((value, key) => {
+      merged.set(key, value);
+    });
+  }
+
+  return merged;
+};
+
 const resolveApiBaseUrl = (): string => {
   const fromEnv = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -100,15 +113,17 @@ export async function apiFetch<TResponse>(
 
   const response = await fetch(url, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
-      ...(init?.headers ?? {}),
-    },
+    headers: mergeHeaders(
+      {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+      },
+      init?.headers
+    ),
     ...(isAdminRequest
       ? { cache: init?.cache ?? 'no-store' }
-      : { next: { revalidate: 300, ...(init?.next ?? {}) } }),
+      : { next: { revalidate: 300, ...init?.next } }),
   });
 
   const contentType = response.headers.get("content-type");
@@ -151,10 +166,10 @@ export async function apiDownload(path: string, init?: RequestInit): Promise<Res
 
   const response = await fetch(url, {
     ...init,
-    headers: {
-      ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
-      ...(init?.headers ?? {}),
-    },
+    headers: mergeHeaders(
+      adminToken ? { Authorization: `Bearer ${adminToken}` } : {},
+      init?.headers
+    ),
   });
 
   if (!response.ok) {

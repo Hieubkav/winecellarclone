@@ -175,7 +175,7 @@ export const useSettingsForm = () => {
   }, [backendUrl]);
 
   useEffect(() => {
-    loadSettings();
+    void loadSettings();
   }, [loadSettings]);
 
   useEffect(() => {

@@ -109,13 +109,13 @@ export default function ImagesListPage() {
   }, [debouncedSearchTerm, currentPage, perPage, sortConfig]);
 
   useEffect(() => {
-    loadImages(true);
+    void loadImages(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!isInitialLoading) {
-      loadImages(false);
+      void loadImages(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchTerm, currentPage, perPage, sortConfig]);
@@ -154,7 +154,7 @@ export default function ImagesListPage() {
         toast.success(`Đã xóa ${selectedIds.length} hình ảnh`);
       }
       setDeleteConfirm(null);
-      loadImages(false);
+      void loadImages(false);
     } catch (error) {
       console.error('Delete failed:', error);
       toast.error('Xóa thất bại');
@@ -449,7 +449,7 @@ export default function ImagesListPage() {
         <ImageEditModal
           imageId={editingImageId}
           onClose={() => setEditingImageId(null)}
-          onSuccess={() => loadImages(false)}
+          onSuccess={() => void loadImages(false)}
         />
       )}
     </div>

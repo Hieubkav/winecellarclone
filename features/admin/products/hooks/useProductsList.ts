@@ -124,16 +124,16 @@ export const useProductsList = () => {
   }, [filterType]);
 
   useEffect(() => {
-    loadProducts(true);
+    void loadProducts(true);
   }, []);
 
   useEffect(() => {
-    loadFilters();
+    void loadFilters();
   }, [loadFilters]);
 
   useEffect(() => {
     if (!isInitialLoading) {
-      loadProducts(false);
+      void loadProducts(false);
     }
   }, [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage, sortConfig]);
 
@@ -184,7 +184,7 @@ export const useProductsList = () => {
         setSelectedIds([]);
       }
       setDeleteConfirm(null);
-      loadProducts();
+      void loadProducts();
     } catch (error) {
       console.error("Failed to delete:", error);
       toast.error("Xóa sản phẩm thất bại. Vui lòng thử lại.");
@@ -246,7 +246,7 @@ export const useProductsList = () => {
   };
 
   const handleImportSuccess = () => {
-    loadProducts(false);
+    void loadProducts(false);
   };
 
   return {

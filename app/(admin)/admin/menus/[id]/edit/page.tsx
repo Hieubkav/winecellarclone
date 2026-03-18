@@ -57,7 +57,7 @@
    }, [menuId, router]);
  
    useEffect(() => {
-     loadMenu();
+    void loadMenu();
    }, [loadMenu]);
  
    const handleSubmit = async (e: React.FormEvent) => {
@@ -110,7 +110,7 @@
        const result = await createMenuBlock(menuId, { title: blockTitle.trim() });
        if (result.success) {
          toast.success('Thêm block thành công');
-         loadMenu();
+          void loadMenu();
        }
      } catch (error) {
        console.error('Failed to create block:', error);
@@ -124,7 +124,7 @@
      try {
        await deleteMenuBlock(menuId, blockId);
        toast.success('Xóa block thành công');
-       loadMenu();
+        void loadMenu();
      } catch (error) {
        console.error('Failed to delete block:', error);
        toast.error('Không thể xóa block');
@@ -144,7 +144,7 @@
        });
        if (result.success) {
          toast.success('Thêm item thành công');
-         loadMenu();
+          void loadMenu();
        }
      } catch (error) {
        console.error('Failed to create item:', error);
@@ -158,7 +158,7 @@
      try {
        await deleteMenuBlockItem(blockId, itemId);
        toast.success('Xóa item thành công');
-       loadMenu();
+        void loadMenu();
      } catch (error) {
        console.error('Failed to delete item:', error);
        toast.error('Không thể xóa item');
@@ -328,7 +328,7 @@
                    className="text-red-600 hover:text-red-700 h-8 w-8"
                    onClick={(e) => {
                      e.stopPropagation();
-                     handleDeleteBlock(block.id);
+                      void handleDeleteBlock(block.id);
                    }}
                  >
                    <Trash2 size={14} />

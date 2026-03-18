@@ -95,7 +95,7 @@ export default function ProductTypeEditPage({ params }: PageProps) {
       }
     }
 
-    loadData();
+    void loadData();
   }, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {

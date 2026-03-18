@@ -12,11 +12,16 @@ const getAdminToken = (): string | null => {
 
 const buildAuthHeaders = (headers?: HeadersInit): HeadersInit => {
   const token = getAdminToken();
+  const merged = new Headers(token ? { Authorization: `Bearer ${token}` } : undefined);
 
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(headers ?? {}),
-  };
+  if (headers) {
+    const extra = new Headers(headers);
+    extra.forEach((value, key) => {
+      merged.set(key, value);
+    });
+  }
+
+  return merged;
 };
 
 export interface UploadedImagePayload {

@@ -67,17 +67,17 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
          setIsLoading(false);
        }
      }
-     loadFilters();
+    void loadFilters();
    }, []);
  
    useEffect(() => {
      if (typeId) {
-       fetchProductFilters(Number(typeId)).then(filters => {
-         setCategories(filters.categories);
+      void fetchProductFilters(Number(typeId)).then(filters => {
+        setCategories(filters.categories);
         setAttributeFilters(filters.attribute_filters || []);
         setSelectedTermIds({});
         setManualAttributes({});
-       });
+      });
     } else {
       setAttributeFilters([]);
       setSelectedTermIds({});
@@ -221,7 +221,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
   const handleDropFiles = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     if (event.dataTransfer.files?.length) {
-      handleGalleryUpload(event.dataTransfer.files);
+      void handleGalleryUpload(event.dataTransfer.files);
     }
   }, [handleGalleryUpload]);
 
@@ -433,7 +433,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                           onClick={() => {
                             const url = window.prompt('Nhập URL ảnh mới');
                             if (url) {
-                              handleReplaceFromUrl(index, url.trim());
+                              void handleReplaceFromUrl(index, url.trim());
                             }
                           }}
                           className="text-[10px] px-2 py-1 rounded bg-white/90 text-slate-700"
@@ -456,7 +456,7 @@ const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, 
                       accept="image/*"
                       multiple
                       className="hidden"
-                      onChange={(e) => handleGalleryUpload(e.target.files)}
+                      onChange={(e) => void handleGalleryUpload(e.target.files)}
                       disabled={isUploadingImage}
                     />
                     {isUploadingImage ? (

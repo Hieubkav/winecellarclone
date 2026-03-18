@@ -278,8 +278,20 @@ export function ImportProductsDialog({
                       {importedData.slice(0, 100).map((item, index) => (
                         <tr key={index} className="border-t border-slate-200 dark:border-slate-700">
                           <td className="px-4 py-2">{index + 1}</td>
-                          <td className="px-4 py-2">{String(item.name || '')}</td>
-                          <td className="px-4 py-2">{String(item.type_name || '')}</td>
+                          <td className="px-4 py-2">
+                            {typeof item.name === "string"
+                              ? item.name
+                              : item.name == null
+                                ? ""
+                                : JSON.stringify(item.name)}
+                          </td>
+                          <td className="px-4 py-2">
+                            {typeof item.type_name === "string"
+                              ? item.type_name
+                              : item.type_name == null
+                                ? ""
+                                : JSON.stringify(item.type_name)}
+                          </td>
                           <td className="px-4 py-2">
                             {item.price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(item.price)) : 'Liên hệ'}
                           </td>

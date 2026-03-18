@@ -187,7 +187,7 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       if (event.dataTransfer.files?.length) {
-        handleGalleryUpload(event.dataTransfer.files);
+        void handleGalleryUpload(event.dataTransfer.files);
       }
     },
     [handleGalleryUpload]

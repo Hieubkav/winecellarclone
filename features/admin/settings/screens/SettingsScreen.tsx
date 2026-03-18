@@ -69,7 +69,6 @@ export const SettingsScreen = () => {
     setGoogleMapEmbed,
     setMetaTitle,
     setMetaDescription,
-    setMetaKeywords,
     setKeywordInput,
     setSiteTagline,
     setOrganizationLegalName,

@@ -38,14 +38,14 @@ export function MultiSelect({
   // Load initial selected options from IDs
   useEffect(() => {
     if (value.length > 0 && selectedOptions.length === 0) {
-      loadOptions('');
+      void loadOptions('');
     }
   }, [value]);
 
   // Load options when search query changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadOptions(searchQuery);
+      void loadOptions(searchQuery);
     }, 300);
 
     return () => clearTimeout(timer);

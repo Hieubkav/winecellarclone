@@ -11,25 +11,25 @@ import { trackingService } from "@/lib/services/trackingService";
 export function useTracking() {
   const trackProductView = useCallback(
     (productId: number, metadata?: Record<string, unknown>) => {
-      trackingService.trackProductView(productId, metadata);
+      void trackingService.trackProductView(productId, metadata);
     },
     []
   );
 
   const trackArticleView = useCallback(
     (articleId: number, metadata?: Record<string, unknown>) => {
-      trackingService.trackArticleView(articleId, metadata);
+      void trackingService.trackArticleView(articleId, metadata);
     },
     []
   );
 
   const trackCTAContact = useCallback((metadata?: Record<string, unknown>) => {
-    trackingService.trackCTAContact(metadata);
+    void trackingService.trackCTAContact(metadata);
   }, []);
 
   const trackPageView = useCallback(
     (pagePath: string, metadata?: Record<string, unknown>) => {
-      trackingService.trackPageView(pagePath, metadata);
+      void trackingService.trackPageView(pagePath, metadata);
     },
     []
   );
@@ -52,7 +52,7 @@ export function usePageViewTracking() {
 
   useEffect(() => {
     if (pathname) {
-      trackingService.trackPageView(pathname);
+      void trackingService.trackPageView(pathname);
     }
   }, [pathname]);
 }
