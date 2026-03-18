@@ -143,7 +143,7 @@ export const SettingsScreen = () => {
 
       <form onSubmit={handleSubmit} noValidate>
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2 mb-6 h-auto bg-transparent p-0">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 gap-2 mb-6 h-auto bg-transparent p-0">
             <TabsTrigger value="info" className="flex w-full min-h-10 items-center justify-center gap-2 px-2 sm:px-3">
               <Globe size={16} />
               <span className="hidden sm:inline">Thông tin</span>
