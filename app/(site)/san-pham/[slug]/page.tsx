@@ -133,6 +133,7 @@ export default async function ProductDetailRoute({
         product={product}
         fontFamily={productDetailFontStyle.fontFamily}
         productContactCtaConfig={settings.product_contact_cta_config}
+        shopeeLinkEnabled={Boolean(settings.product_shopee_link_enabled)}
       />
     </>
   );

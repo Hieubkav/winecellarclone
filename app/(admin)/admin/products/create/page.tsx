@@ -12,6 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { createProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
+import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
@@ -50,6 +51,7 @@ const truncateText = (value: string, maxLength: number) => {
    const [slug, setSlug] = useState('');
    const [price, setPrice] = useState('');
    const [originalPrice, setOriginalPrice] = useState('');
+  const [shopeeUrl, setShopeeUrl] = useState('');
    const [typeId, setTypeId] = useState('');
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
    const [description, setDescription] = useState('');
@@ -69,14 +71,19 @@ const truncateText = (value: string, maxLength: number) => {
   const cropUrlRef = useRef<string | null>(null);
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
+  const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const previewSize = PRODUCT_IMAGE_PREVIEW_SIZE;
    useEffect(() => {
      async function loadFilters() {
        try {
-         const filters = await fetchProductFilters();
+         const [filters, settingsResult] = await Promise.all([
+           fetchProductFilters(),
+           fetchAdminSettings().catch(() => null),
+         ]);
          setTypes(filters.types);
          setCategories(filters.categories);
+         setProductShopeeLinkEnabled(Boolean(settingsResult?.data.product_shopee_link_enabled));
        } catch (error) {
          console.error('Failed to load filters:', error);
        } finally {
@@ -333,6 +340,7 @@ const truncateText = (value: string, maxLength: number) => {
          description: description.trim(),
         meta_title: resolvedMetaTitle || null,
         meta_description: resolvedMetaDescription || null,
+        shopee_url: shopeeUrl.trim() || null,
          active,
         image_paths: galleryImages.map(image => image.path),
         extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
@@ -577,6 +585,20 @@ const truncateText = (value: string, maxLength: number) => {
                  />
                </div>
              </div>
+
+            {productShopeeLinkEnabled && (
+              <div className="space-y-2">
+                <Label htmlFor="shopeeUrl">Link Shopee</Label>
+                <Input
+                  id="shopeeUrl"
+                  type="url"
+                  placeholder="https://shopee.vn/..."
+                  value={shopeeUrl}
+                  onChange={(e) => setShopeeUrl(e.target.value)}
+                />
+                <p className="text-xs text-slate-500">Hiển thị nút “Xem sản phẩm ở Shopee” trên trang chi tiết.</p>
+              </div>
+            )}
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div className="space-y-2">

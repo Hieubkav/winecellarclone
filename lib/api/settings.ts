@@ -34,6 +34,7 @@ export interface SettingsResponse {
     footer_config: FooterConfig | null;
     contact_config: ContactConfig | null;
     product_contact_cta_config: ProductContactCtaConfig | null;
+    product_shopee_link_enabled: boolean | null;
     product_watermark_url: string | null;
     product_watermark_position: WatermarkPosition | null;
     product_watermark_size: WatermarkSize | null;
@@ -88,6 +89,7 @@ export interface Settings {
   footer_config: FooterConfig | null;
   contact_config: ContactConfig | null;
   product_contact_cta_config: ProductContactCtaConfig | null;
+  product_shopee_link_enabled: boolean | null;
   product_watermark_url: string | null;
   product_watermark_position: WatermarkPosition | null;
   product_watermark_size: WatermarkSize | null;
@@ -167,6 +169,7 @@ export const FALLBACK_SETTINGS: Settings = {
       tiktok: null,
     },
   },
+  product_shopee_link_enabled: false,
   product_watermark_url: null,
   product_watermark_position: 'none',
   product_watermark_size: '128x128',

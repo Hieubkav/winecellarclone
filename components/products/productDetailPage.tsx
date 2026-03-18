@@ -35,6 +35,7 @@ interface ProductDetailPageProps {
   product: ProductDetail;
   fontFamily?: string;
   productContactCtaConfig?: ProductContactCtaConfig | null;
+  shopeeLinkEnabled?: boolean;
 }
 
 interface ProductGalleryItem {
@@ -106,10 +107,13 @@ export default function ProductDetailPage({
   product,
   fontFamily,
   productContactCtaConfig,
+  shopeeLinkEnabled,
 }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
   const contactCtaMode = productContactCtaConfig?.mode || "contact_page";
   const contactCtaItems = productContactCtaConfig?.items || {};
+  const shopeeUrl = product.shopee_url?.trim();
+  const showShopeeButton = Boolean(shopeeLinkEnabled && shopeeUrl);
   const contactActions = useMemo(() => {
     const actions = [
       {
@@ -636,30 +640,43 @@ export default function ProductDetailPage({
 
             {/* CTA Buttons */}
             {contactCtaMode === "social_4_buttons" && contactActions.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                {contactActions.map((action) => (
-                  <Link
-                    key={action.id}
-                    href={action.href as string}
-                    target={action.targetBlank ? "_blank" : undefined}
-                    rel={action.targetBlank ? "noopener noreferrer" : undefined}
-                    className="flex items-center justify-center gap-2 h-12 rounded-md text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                    style={{ backgroundColor: action.bg }}
-                    onClick={() => trackCTAContact({
-                      button: action.id,
-                      placement: "product_detail",
-                      product_id: product.id,
-                      product_name: product.name,
-                    })}
+              <div className="pt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {contactActions.map((action) => (
+                    <Link
+                      key={action.id}
+                      href={action.href as string}
+                      target={action.targetBlank ? "_blank" : undefined}
+                      rel={action.targetBlank ? "noopener noreferrer" : undefined}
+                      className="flex items-center justify-center gap-2 h-12 rounded-md text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: action.bg }}
+                      onClick={() => trackCTAContact({
+                        button: action.id,
+                        placement: "product_detail",
+                        product_id: product.id,
+                        product_name: product.name,
+                      })}
+                    >
+                      {action.iconType === "image" ? (
+                        <img src="/icons/zalo.png" alt="Zalo" className="h-5 w-5" />
+                      ) : (
+                        action.Icon ? <action.Icon className="h-5 w-5" /> : null
+                      )}
+                      <span>{action.label}</span>
+                    </Link>
+                  ))}
+                </div>
+                {showShopeeButton && (
+                  <Button
+                    asChild
+                    size="lg"
+                    className="mt-3 w-full h-12 bg-[#EE4D2D] hover:bg-[#EE4D2D]/90 text-white text-sm sm:text-base"
                   >
-                    {action.iconType === "image" ? (
-                      <img src="/icons/zalo.png" alt="Zalo" className="h-5 w-5" />
-                    ) : (
-                      action.Icon ? <action.Icon className="h-5 w-5" /> : null
-                    )}
-                    <span>{action.label}</span>
-                  </Link>
-                ))}
+                    <a href={shopeeUrl} target="_blank" rel="noopener noreferrer">
+                      Xem sản phẩm ở Shopee
+                    </a>
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -678,6 +695,17 @@ export default function ProductDetailPage({
                     <Phone className="w-5 h-5 mr-2" /> Liên hệ đặt hàng
                   </Link>
                 </Button>
+                {showShopeeButton && (
+                  <Button
+                    asChild
+                    size="lg"
+                    className="flex-1 h-12 bg-[#EE4D2D] hover:bg-[#EE4D2D]/90 text-white text-sm sm:text-base"
+                  >
+                    <a href={shopeeUrl} target="_blank" rel="noopener noreferrer">
+                      Xem sản phẩm ở Shopee
+                    </a>
+                  </Button>
+                )}
               </div>
             )}
           </div>

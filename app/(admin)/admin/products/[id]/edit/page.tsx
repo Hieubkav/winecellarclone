@@ -11,6 +11,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
+import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
@@ -72,6 +73,7 @@ const generateSlug = (text: string): string => {
    const [slug, setSlug] = useState('');
    const [price, setPrice] = useState('');
    const [originalPrice, setOriginalPrice] = useState('');
+  const [shopeeUrl, setShopeeUrl] = useState('');
    const [typeId, setTypeId] = useState('');
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
    const [description, setDescription] = useState('');
@@ -95,6 +97,7 @@ const generateSlug = (text: string): string => {
   const previewSize = PRODUCT_IMAGE_PREVIEW_SIZE;
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
+  const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
   const didSyncTypeRef = useRef(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
  
@@ -135,9 +138,10 @@ const generateSlug = (text: string): string => {
     async function loadData() {
       let product: Awaited<ReturnType<typeof fetchAdminProduct>>['data'] | null = null;
        try {
-         const [productRes, filtersRes] = await Promise.all([
+       const [productRes, filtersRes, settingsRes] = await Promise.all([
            fetchAdminProduct(Number(id)),
            fetchProductFilters(),
+           fetchAdminSettings().catch(() => null),
          ]);
  
         product = productRes.data;
@@ -150,6 +154,7 @@ const generateSlug = (text: string): string => {
          setDescription(product.description || '');
         setMetaTitle(product.meta_title || '');
         setMetaDescription(product.meta_description || '');
+        setShopeeUrl(product.shopee_url || '');
         setInitialDescription(product.description || '');
          setActive(product.active);
         setGalleryImages(
@@ -162,6 +167,7 @@ const generateSlug = (text: string): string => {
         );
  
          setTypes(filtersRes.types);
+        setProductShopeeLinkEnabled(Boolean(settingsRes?.data.product_shopee_link_enabled));
  
         syncFiltersWithProduct(filtersRes, product);
        } catch (error) {
@@ -452,6 +458,7 @@ const generateSlug = (text: string): string => {
          description: description.trim(),
         meta_title: resolvedMetaTitle || null,
         meta_description: resolvedMetaDescription || null,
+       shopee_url: shopeeUrl.trim() || null,
          active,
         image_paths: galleryImages.map(image => image.path),
         extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
@@ -730,6 +737,20 @@ const generateSlug = (text: string): string => {
                  />
                </div>
              </div>
+
+            {productShopeeLinkEnabled && (
+              <div className="space-y-2">
+                <Label htmlFor="shopeeUrl">Link Shopee</Label>
+                <Input
+                  id="shopeeUrl"
+                  type="url"
+                  placeholder="https://shopee.vn/..."
+                  value={shopeeUrl}
+                  onChange={(e) => setShopeeUrl(e.target.value)}
+                />
+                <p className="text-xs text-slate-500">Hiển thị nút “Xem sản phẩm ở Shopee” trên trang chi tiết.</p>
+              </div>
+            )}
 
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div className="space-y-2">

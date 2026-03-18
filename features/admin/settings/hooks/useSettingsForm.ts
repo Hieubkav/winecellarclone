@@ -117,6 +117,7 @@ export const useSettingsForm = () => {
   const [productContactCtaZalo, setProductContactCtaZalo] = useState("");
   const [productContactCtaPhone, setProductContactCtaPhone] = useState("");
   const [productContactCtaTiktok, setProductContactCtaTiktok] = useState("");
+  const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
 
   const [logoImageId, setLogoImageId] = useState<number | null>(null);
   const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
@@ -177,6 +178,7 @@ export const useSettingsForm = () => {
       setProductContactCtaZalo(productContactConfig?.items?.zalo || "");
       setProductContactCtaPhone(productContactConfig?.items?.phone || fallbackPhone);
       setProductContactCtaTiktok(productContactConfig?.items?.tiktok || "");
+      setProductShopeeLinkEnabled(Boolean(data.product_shopee_link_enabled));
 
       setLogoImageId(data.logo_image_id || null);
       setLogoImageUrl(data.logo_image_url ? `${backendUrl}${data.logo_image_url}` : null);
@@ -345,6 +347,7 @@ export const useSettingsForm = () => {
             tiktok: productContactCtaTiktok || null,
           },
         },
+        product_shopee_link_enabled: productShopeeLinkEnabled,
         logo_image_id: logoImageId,
         favicon_image_id: faviconImageId,
         og_image_id: ogImageId,
@@ -409,6 +412,7 @@ export const useSettingsForm = () => {
       productContactCtaZalo,
       productContactCtaPhone,
       productContactCtaTiktok,
+      productShopeeLinkEnabled,
       logoImageId,
       logoImageUrl,
       faviconImageId,
@@ -460,6 +464,7 @@ export const useSettingsForm = () => {
       setProductContactCtaZalo,
       setProductContactCtaPhone,
       setProductContactCtaTiktok,
+      setProductShopeeLinkEnabled,
       setLogoImageId,
       setLogoImageUrl,
       setFaviconImageId,

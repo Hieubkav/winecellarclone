@@ -43,6 +43,7 @@ export const SettingsScreen = () => {
     productContactCtaZalo,
     productContactCtaPhone,
     productContactCtaTiktok,
+    productShopeeLinkEnabled,
     logoImageId,
     logoImageUrl,
     faviconImageId,
@@ -93,6 +94,7 @@ export const SettingsScreen = () => {
     setProductContactCtaZalo,
     setProductContactCtaPhone,
     setProductContactCtaTiktok,
+    setProductShopeeLinkEnabled,
     setLogoImageId,
     setLogoImageUrl,
     setFaviconImageId,
@@ -376,6 +378,22 @@ export const SettingsScreen = () => {
                         disabled={productContactCtaMode !== "social_4_buttons"}
                       />
                     </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">Liên kết Shopee</h2>
+                  <p className="text-sm text-slate-500">Bật để nhập link Shopee khi tạo/chỉnh sửa sản phẩm</p>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                    <Checkbox
+                      checked={productShopeeLinkEnabled}
+                      onCheckedChange={(value) => setProductShopeeLinkEnabled(Boolean(value))}
+                    />
+                    <span>Hiển thị trường link Shopee trên form sản phẩm</span>
                   </div>
                 </div>
               </Card>

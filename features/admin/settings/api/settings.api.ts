@@ -12,6 +12,7 @@ export interface AdminSetting {
   footer_config: Record<string, unknown> | null;
   contact_config: Record<string, unknown> | null;
   product_contact_cta_config: ProductContactCtaConfig | null;
+  product_shopee_link_enabled: boolean | null;
   meta_default_title: string | null;
   meta_default_description: string | null;
   meta_default_keywords: string | string[] | null;

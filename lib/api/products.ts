@@ -96,6 +96,7 @@ export interface ProductDetail {
   name: string;
   slug: string;
   description: string | null;
+  shopee_url?: string | null;
   price: number | null;
   original_price: number | null;
   discount_percent: number | null;
