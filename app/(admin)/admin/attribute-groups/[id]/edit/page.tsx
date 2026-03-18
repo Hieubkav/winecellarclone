@@ -192,7 +192,14 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm thuộc tính</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm thuộc tính</h1>
+            {isOriginAttribute && (
+              <Badge className="bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/40 dark:text-red-200 dark:border-red-900/40">
+                Đặc thù
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-slate-500 dark:text-slate-400">Chỉnh sửa thông tin nhóm thuộc tính</p>
         </div>
       </div>

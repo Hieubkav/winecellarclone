@@ -228,6 +228,7 @@ export default function AttributeGroupsPage() {
           </TableHeader>
           <TableBody>
             {attributes.map(attr => {
+              const isOriginAttribute = attr.code === 'xuat_xu';
               const resolvedIcon = resolveIconInput(attr.icon_path);
               const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
               
@@ -245,13 +246,28 @@ export default function AttributeGroupsPage() {
                             imageClassName="w-4 h-4"
                           />
                         </div>
-                        <span className="font-medium">{attr.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{attr.name}</span>
+                          {isOriginAttribute && (
+                            <Badge className="bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/40 dark:text-red-200 dark:border-red-900/40">
+                              Đặc thù
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                   )}
                   {visibleAttributeColumns.includes('code') && (
                     <TableCell>
-                      <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{attr.code}</code>
+                      <code
+                        className={
+                          isOriginAttribute
+                            ? "text-xs bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded dark:bg-red-900/40 dark:text-red-200 dark:border-red-900/40"
+                            : "text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded"
+                        }
+                      >
+                        {attr.code}
+                      </code>
                     </TableCell>
                   )}
                   {visibleAttributeColumns.includes('filter_type') && <TableCell>{getFilterTypeBadge(attr.filter_type)}</TableCell>}
