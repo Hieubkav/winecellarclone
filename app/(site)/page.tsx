@@ -19,6 +19,7 @@ import FavouriteProducts from "@/components/home/FavouriteProducts";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 import {
   ItemListSchema,
+  LocalBusinessSchema,
   OrganizationSchema,
   WebPageSchema,
   WebSiteSchema,
@@ -65,9 +66,11 @@ export default async function Home() {
   const organizationName = settings.site_name || "Thiên Kim Wine";
   const organizationDescription = settings.meta_defaults.description;
   const organizationLogo = getImageUrl(
-    settings.logo_url || settings.og_image_url || "/media/logo.webp"
+    settings.logo_url || settings.og_image_url || FALLBACK_SETTINGS.logo_url
   );
   const homepageTitle = settings.meta_defaults.title || organizationName;
+  const sameAsLinks = (settings.social_links_schema || [])
+    .filter((link) => typeof link === "string" && link.trim().length > 0);
 
   const favouriteProductsComponent = components.find(
     (component) => component.type === "favourite_products"
@@ -95,8 +98,21 @@ export default async function Home() {
         logo={organizationLogo}
         description={organizationDescription}
         address={settings.address || undefined}
-        telephone={settings.hotline || undefined}
-        email={settings.email || undefined}
+        telephone={settings.primary_phone || settings.hotline || undefined}
+        email={settings.primary_email || settings.email || undefined}
+        socialLinks={sameAsLinks.map((link) => ({ url: link, platform: "other" }))}
+      />
+      <LocalBusinessSchema
+        name={settings.organization_legal_name || organizationName}
+        url={normalizedSiteUrl}
+        logo={organizationLogo}
+        image={organizationLogo}
+        description={organizationDescription}
+        address={settings.address || undefined}
+        telephone={settings.primary_phone || settings.hotline || undefined}
+        email={settings.primary_email || settings.email || undefined}
+        priceRange={settings.price_range || undefined}
+        sameAs={sameAsLinks}
       />
       <WebSiteSchema
         name={organizationName}

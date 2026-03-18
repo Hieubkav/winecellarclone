@@ -100,16 +100,23 @@ export async function generateMetadata(): Promise<Metadata> {
     console.error("Failed to fetch settings for metadata:", error);
   }
 
-  const faviconUrl = settings.favicon_url || "/media/logo.webp";
-  const ogImageUrl = settings.og_image_url || settings.logo_url || `${SITE_URL}/media/logo.webp`;
+  const fallbackLogo = FALLBACK_SETTINGS.logo_url ?? "";
+  const faviconUrl = settings.favicon_url || FALLBACK_SETTINGS.favicon_url || fallbackLogo || "";
+  const ogImageUrl = settings.og_image_url || settings.logo_url || FALLBACK_SETTINGS.og_image_url || fallbackLogo || "";
   const title = settings.meta_defaults.title;
   const description = settings.meta_defaults.description;
+  const titleTemplate = settings.default_meta_title_template?.trim()
+    ? settings.default_meta_title_template.trim()
+    : `%s | ${settings.site_name}`;
+  const ogTitle = settings.default_og_title?.trim() || title;
+  const ogDescription = settings.default_og_description?.trim() || description;
+  const indexingEnabled = settings.indexing_enabled !== false;
   
   return {
     metadataBase: new URL(SITE_URL),
     title: {
       default: title,
-      template: `%s | ${settings.site_name}`,
+      template: titleTemplate,
     },
     description,
     keywords: settings.meta_defaults.keywords || undefined,
@@ -124,40 +131,42 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: "vi_VN",
       url: SITE_URL,
       siteName: settings.site_name,
-      title,
-      description,
-      images: [
+      title: ogTitle,
+      description: ogDescription,
+      images: ogImageUrl ? [
         {
           url: ogImageUrl,
           width: 1200,
           height: 630,
           alt: settings.site_name,
         }
-      ],
+      ] : [],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
-      images: [ogImageUrl],
+      title: ogTitle,
+      description: ogDescription,
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
     robots: {
-      index: true,
-      follow: true,
+      index: indexingEnabled,
+      follow: indexingEnabled,
       googleBot: {
-        index: true,
-        follow: true,
+        index: indexingEnabled,
+        follow: indexingEnabled,
         'max-video-preview': -1,
         'max-image-preview': 'large',
         'max-snippet': -1,
       },
     },
-    icons: {
-      icon: [{ url: faviconUrl, type: "image/webp" }],
-      shortcut: faviconUrl,
-      apple: faviconUrl,
-      other: [{ rel: "icon", url: faviconUrl, type: "image/webp" }],
-    },
+    icons: faviconUrl
+      ? {
+          icon: [{ url: faviconUrl, type: "image/webp" }],
+          shortcut: faviconUrl,
+          apple: faviconUrl,
+          other: [{ rel: "icon", url: faviconUrl, type: "image/webp" }],
+        }
+      : undefined,
     verification: {
       google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "OfJxli24KN_kG9FcbbuAy0q6bXumGnVsKWVrr0V8Iac",
       yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || undefined,

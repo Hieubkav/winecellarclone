@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { fetchAdminSettings, updateSettings } from "../api/settings.api";
-import { DEFAULT_FONT_KEY, isValidFontKey } from "@/lib/fonts/registry";
+import { DEFAULT_FONT_KEY, isValidFontKey, type FontKey } from "@/lib/fonts/registry";
 
 const VALID_TABS = ["info", "map", "watermark", "seo", "fonts"] as const;
 
@@ -31,7 +31,22 @@ const parseKeywordValues = (input: string | string[] | null): string[] => {
   return [];
 };
 
-const normalizeFontKey = (value: string | null | undefined): string | null => {
+const parseSocialLinks = (input: string | string[] | null): string[] => {
+  if (Array.isArray(input)) {
+    return input.map((value) => String(value).trim()).filter(Boolean);
+  }
+
+  if (typeof input === "string" && input.trim()) {
+    return input
+      .split(/\n|,/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const normalizeFontKey = (value: string | null | undefined): FontKey | null => {
   if (!value) {
     return null;
   }
@@ -57,6 +72,17 @@ export const useSettingsForm = () => {
   const [metaDescription, setMetaDescription] = useState("");
   const [metaKeywords, setMetaKeywords] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState("");
+  const [siteTagline, setSiteTagline] = useState("");
+  const [organizationLegalName, setOrganizationLegalName] = useState("");
+  const [organizationShortName, setOrganizationShortName] = useState("");
+  const [primaryPhone, setPrimaryPhone] = useState("");
+  const [primaryEmail, setPrimaryEmail] = useState("");
+  const [priceRange, setPriceRange] = useState("");
+  const [socialLinksInput, setSocialLinksInput] = useState("");
+  const [defaultMetaTitleTemplate, setDefaultMetaTitleTemplate] = useState("");
+  const [defaultOgTitle, setDefaultOgTitle] = useState("");
+  const [defaultOgDescription, setDefaultOgDescription] = useState("");
+  const [indexingEnabled, setIndexingEnabled] = useState(true);
 
   const [logoImageId, setLogoImageId] = useState<number | null>(null);
   const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
@@ -97,6 +123,17 @@ export const useSettingsForm = () => {
       setGoogleMapEmbed(data.google_map_embed || "");
       setMetaTitle(data.meta_default_title || "");
       setMetaDescription(data.meta_default_description || "");
+      setSiteTagline(data.site_tagline || "");
+      setOrganizationLegalName(data.organization_legal_name || "");
+      setOrganizationShortName(data.organization_short_name || "");
+      setPrimaryPhone(data.primary_phone || "");
+      setPrimaryEmail(data.primary_email || "");
+      setPriceRange(data.price_range || "");
+      setSocialLinksInput(parseSocialLinks(data.social_links_schema).join("\n"));
+      setDefaultMetaTitleTemplate(data.default_meta_title_template || "");
+      setDefaultOgTitle(data.default_og_title || "");
+      setDefaultOgDescription(data.default_og_description || "");
+      setIndexingEnabled(data.indexing_enabled !== false);
 
       setLogoImageId(data.logo_image_id || null);
       setLogoImageUrl(data.logo_image_url ? `${backendUrl}${data.logo_image_url}` : null);
@@ -241,6 +278,17 @@ export const useSettingsForm = () => {
         meta_default_title: metaTitle || null,
         meta_default_description: metaDescription || null,
         meta_default_keywords: metaKeywords.length > 0 ? metaKeywords.join(", ") : null,
+        site_tagline: siteTagline || null,
+        organization_legal_name: organizationLegalName || null,
+        organization_short_name: organizationShortName || null,
+        primary_phone: primaryPhone || null,
+        primary_email: primaryEmail || null,
+        price_range: priceRange || null,
+        social_links_schema: parseSocialLinks(socialLinksInput),
+        default_meta_title_template: defaultMetaTitleTemplate || null,
+        default_og_title: defaultOgTitle || null,
+        default_og_description: defaultOgDescription || null,
+        indexing_enabled: indexingEnabled,
         logo_image_id: logoImageId,
         favicon_image_id: faviconImageId,
         og_image_id: ogImageId,
@@ -288,6 +336,17 @@ export const useSettingsForm = () => {
       metaDescription,
       metaKeywords,
       keywordInput,
+      siteTagline,
+      organizationLegalName,
+      organizationShortName,
+      primaryPhone,
+      primaryEmail,
+      priceRange,
+      socialLinksInput,
+      defaultMetaTitleTemplate,
+      defaultOgTitle,
+      defaultOgDescription,
+      indexingEnabled,
       logoImageId,
       logoImageUrl,
       faviconImageId,
@@ -322,6 +381,17 @@ export const useSettingsForm = () => {
       setMetaDescription,
       setMetaKeywords,
       setKeywordInput,
+      setSiteTagline,
+      setOrganizationLegalName,
+      setOrganizationShortName,
+      setPrimaryPhone,
+      setPrimaryEmail,
+      setPriceRange,
+      setSocialLinksInput,
+      setDefaultMetaTitleTemplate,
+      setDefaultOgTitle,
+      setDefaultOgDescription,
+      setIndexingEnabled,
       setLogoImageId,
       setLogoImageUrl,
       setFaviconImageId,

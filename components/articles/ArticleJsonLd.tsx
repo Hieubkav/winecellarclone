@@ -1,14 +1,19 @@
 import type { ArticleDetail } from "@/lib/api/articles";
+import { FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { useSettingsStore } from "@/lib/stores/settingsStore";
 import { getImageUrl } from "@/lib/utils/article-content";
+import { getImageUrl as resolveImageUrl } from "@/lib/utils/image";
 
 interface ArticleJsonLdProps {
   article: ArticleDetail;
 }
 
 export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
+  const settings = useSettingsStore((state) => state.settings);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn").replace(/\/$/, "");
-  const publisherName = "Thiên Kim Wine";
-  const publisherLogo = `${siteUrl}/media/logo.webp`;
+  const publisherName = settings?.site_name || FALLBACK_SETTINGS.site_name;
+  const publisherLogo = settings?.logo_url || settings?.og_image_url || FALLBACK_SETTINGS.logo_url;
+  const publisherLogoUrl = publisherLogo ? resolveImageUrl(publisherLogo) : null;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -28,10 +33,10 @@ export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
     publisher: {
       "@type": "Organization",
       name: publisherName,
-      logo: {
+      logo: publisherLogoUrl ? {
         "@type": "ImageObject",
-        url: publisherLogo,
-      },
+        url: publisherLogoUrl,
+      } : undefined,
     },
     mainEntityOfPage: {
       "@type": "WebPage",

@@ -24,7 +24,11 @@ export async function generateMetadata({
   params: Promise<ProductDetailRouteParams>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await fetchProductDetail(slug);
+  const [product, settingsResult] = await Promise.all([
+    fetchProductDetail(slug),
+    fetchSettings().catch(() => null),
+  ]);
+  const settings = settingsResult ?? FALLBACK_SETTINGS;
 
   if (!product) {
     return {
@@ -33,9 +37,16 @@ export async function generateMetadata({
     };
   }
 
-  const title = product.meta?.title || `${product.name} - Thiên Kim Wine`;
-  const description = product.meta?.description || product.description?.substring(0, 160) || `Mua ${product.name} chính hãng tại Thiên Kim Wine. Giá tốt, giao hàng nhanh.`;
+  const siteName = settings.site_name || "Thiên Kim Wine";
+  const title = product.meta?.title || `Mua ${product.name} chính hãng | ${siteName}`;
+  const description = product.meta?.description
+    || product.description?.substring(0, 160)
+    || `Mua ${product.name} chính hãng tại ${siteName}. Giá tốt, tư vấn nhanh và giao hàng tận nơi.`;
   const url = `${SITE_URL}/san-pham/${product.slug}`;
+  const ogImageUrl = product.cover_image_url
+    || settings.og_image_url
+    || settings.logo_url
+    || FALLBACK_SETTINGS.logo_url;
 
   return {
     title,
@@ -47,14 +58,14 @@ export async function generateMetadata({
       title,
       description,
       url,
-      siteName: "Thiên Kim Wine",
+      siteName,
       locale: "vi_VN",
       type: "website",
-      images: product.cover_image_url ? [
+      images: ogImageUrl ? [
         {
-          url: product.cover_image_url,
-          width: 800,
-          height: 800,
+          url: ogImageUrl,
+          width: product.cover_image_url ? 800 : 1200,
+          height: product.cover_image_url ? 800 : 630,
           alt: product.name,
         }
       ] : [],
@@ -63,7 +74,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: product.cover_image_url ? [product.cover_image_url] : [],
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
     other: {
       "product:price:amount": product.price?.toString() || "",
@@ -90,6 +101,7 @@ export default async function ProductDetailRoute({
 
   const settings = settingsResult ?? FALLBACK_SETTINGS;
   const productDetailFontStyle = getScopedFontStyle(settings, "product_detail");
+  const sellerName = settings.site_name || "Thiên Kim Wine";
 
   const productUrl = `${SITE_URL}/san-pham/${product.slug}`;
   
@@ -103,6 +115,7 @@ export default async function ProductDetailRoute({
         brand={product.brand_term?.name || undefined}
         price={product.price || undefined}
         availability='in stock'
+        sellerName={sellerName}
         url={productUrl}
       />
       

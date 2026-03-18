@@ -56,6 +56,62 @@ export function OrganizationSchema({
   )
 }
 
+interface LocalBusinessSchemaProps {
+  name: string
+  url?: string
+  logo?: string
+  image?: string
+  description?: string
+  address?: string
+  telephone?: string
+  email?: string
+  priceRange?: string
+  sameAs?: string[]
+}
+
+export function LocalBusinessSchema({
+  name,
+  url = SITE_URL,
+  logo,
+  image,
+  description,
+  address,
+  telephone,
+  email,
+  priceRange,
+  sameAs = [],
+}: LocalBusinessSchemaProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'LiquorStore',
+    name,
+    url,
+    image,
+    description,
+    priceRange,
+    logo: logo ? {
+      '@type': 'ImageObject',
+      url: logo,
+    } : undefined,
+    address: address ? {
+      '@type': 'PostalAddress',
+      streetAddress: address,
+    } : undefined,
+    telephone,
+    email,
+    sameAs: sameAs.length > 0 ? sameAs : undefined,
+  }
+
+  return (
+    <Script
+      id="local-business-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      strategy="afterInteractive"
+    />
+  )
+}
+
 interface ProductSchemaProps {
   name: string
   description?: string
@@ -65,6 +121,7 @@ interface ProductSchemaProps {
   price?: number
   currency?: string
   availability?: 'in stock' | 'out of stock'
+  sellerName?: string
   url: string
   aggregateRating?: {
     ratingValue: number
@@ -81,6 +138,7 @@ export function ProductSchema({
   price,
   currency = 'VND',
   availability = 'in stock',
+  sellerName = 'Thiên Kim Wine',
   url,
   aggregateRating,
 }: ProductSchemaProps) {
@@ -105,7 +163,7 @@ export function ProductSchema({
         : 'https://schema.org/OutOfStock',
       seller: {
         '@type': 'Organization',
-        name: 'Thiên Kim Wine',
+        name: sellerName,
       },
     },
     aggregateRating: aggregateRating ? {

@@ -23,7 +23,11 @@ export async function generateMetadata({
   params: Promise<ArticleDetailRouteParams>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = await fetchArticleDetail(slug);
+  const [article, settingsResult] = await Promise.all([
+    fetchArticleDetail(slug),
+    fetchSettings().catch(() => null),
+  ]);
+  const settings = settingsResult ?? FALLBACK_SETTINGS;
 
   if (!article) {
     return {
@@ -32,17 +36,35 @@ export async function generateMetadata({
     };
   }
 
+  const siteName = settings.site_name || "Thiên Kim Wine";
+  const canonicalUrl = `${SITE_URL}/bai-viet/${article.slug}`;
+  const ogImageUrl = article.cover_image_url
+    || settings.og_image_url
+    || settings.logo_url
+    || FALLBACK_SETTINGS.logo_url;
+
   return {
     title: article.meta.title || article.title,
     description: article.meta.description || article.excerpt || undefined,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: article.meta.title || article.title,
       description: article.meta.description || article.excerpt || undefined,
-      images: article.cover_image_url ? [article.cover_image_url] : [],
+      images: ogImageUrl ? [ogImageUrl] : [],
+      url: canonicalUrl,
+      siteName,
       type: "article",
       publishedTime: article.published_at,
       modifiedTime: article.updated_at,
       authors: article.author ? [article.author.name] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.meta.title || article.title,
+      description: article.meta.description || article.excerpt || undefined,
+      images: ogImageUrl ? [ogImageUrl] : [],
     },
   };
 }
@@ -66,6 +88,7 @@ export default async function ArticleDetailRoute({
   const articleDetailFontStyle = getScopedFontStyle(settings, "article_detail");
 
   const articleUrl = `${SITE_URL}/bai-viet/${article.slug}`;
+  const publisherLogo = settings.logo_url || settings.og_image_url || FALLBACK_SETTINGS.logo_url;
 
   return (
     <>
@@ -77,6 +100,10 @@ export default async function ArticleDetailRoute({
         datePublished={article.published_at}
         dateModified={article.updated_at}
         author={article.author?.name}
+        publisher={{
+          name: settings.site_name || "Thiên Kim Wine",
+          logo: publisherLogo || undefined,
+        }}
         url={articleUrl}
       />
 

@@ -52,6 +52,17 @@ export interface SettingsResponse {
       description: string;
       keywords: string | null;
     };
+    site_tagline: string | null;
+    organization_legal_name: string | null;
+    organization_short_name: string | null;
+    primary_phone: string | null;
+    primary_email: string | null;
+    price_range: string | null;
+    social_links_schema: string[] | null;
+    default_meta_title_template: string | null;
+    default_og_title: string | null;
+    default_og_description: string | null;
+    indexing_enabled: boolean | null;
     extra: Record<string, unknown>;
   };
   meta?: {
@@ -93,6 +104,17 @@ export interface Settings {
     description: string;
     keywords: string | null;
   };
+  site_tagline: string | null;
+  organization_legal_name: string | null;
+  organization_short_name: string | null;
+  primary_phone: string | null;
+  primary_email: string | null;
+  price_range: string | null;
+  social_links_schema: string[] | null;
+  default_meta_title_template: string | null;
+  default_og_title: string | null;
+  default_og_description: string | null;
+  indexing_enabled: boolean | null;
   extra: Record<string, unknown>;
 }
 
@@ -151,5 +173,16 @@ export const FALLBACK_SETTINGS: Settings = {
     description: "Thiên Kim Wine - Bộ sưu tập rượu vang cao cấp cho mọi dịp.",
     keywords: null,
   },
+  site_tagline: "",
+  organization_legal_name: null,
+  organization_short_name: null,
+  primary_phone: null,
+  primary_email: null,
+  price_range: null,
+  social_links_schema: [],
+  default_meta_title_template: null,
+  default_og_title: null,
+  default_og_description: null,
+  indexing_enabled: true,
   extra: {},
 };

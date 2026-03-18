@@ -25,6 +25,17 @@ export const SettingsScreen = () => {
     metaDescription,
     metaKeywords,
     keywordInput,
+    siteTagline,
+    organizationLegalName,
+    organizationShortName,
+    primaryPhone,
+    primaryEmail,
+    priceRange,
+    socialLinksInput,
+    defaultMetaTitleTemplate,
+    defaultOgTitle,
+    defaultOgDescription,
+    indexingEnabled,
     logoImageId,
     logoImageUrl,
     faviconImageId,
@@ -60,6 +71,17 @@ export const SettingsScreen = () => {
     setMetaDescription,
     setMetaKeywords,
     setKeywordInput,
+    setSiteTagline,
+    setOrganizationLegalName,
+    setOrganizationShortName,
+    setPrimaryPhone,
+    setPrimaryEmail,
+    setPriceRange,
+    setSocialLinksInput,
+    setDefaultMetaTitleTemplate,
+    setDefaultOgTitle,
+    setDefaultOgDescription,
+    setIndexingEnabled,
     setLogoImageId,
     setLogoImageUrl,
     setFaviconImageId,
@@ -485,6 +507,116 @@ export const SettingsScreen = () => {
                   </div>
                   <p className="text-xs text-slate-500">Nhấn Enter để thêm từ khóa mới</p>
                 </div>
+
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4"></div>
+                <div className="space-y-2">
+                  <Label htmlFor="siteTagline">Tagline thương hiệu</Label>
+                  <Input
+                    id="siteTagline"
+                    value={siteTagline}
+                    onChange={(event) => setSiteTagline(event.target.value)}
+                    placeholder="VD: Rượu vang chính hãng, tư vấn chuẩn gu"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="defaultMetaTitleTemplate">Template tiêu đề mặc định</Label>
+                  <Input
+                    id="defaultMetaTitleTemplate"
+                    value={defaultMetaTitleTemplate}
+                    onChange={(event) => setDefaultMetaTitleTemplate(event.target.value)}
+                    placeholder="%s | Thiên Kim Wine"
+                  />
+                  <p className="text-xs text-slate-500">Dùng %s cho tiêu đề trang con</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="defaultOgTitle">Tiêu đề OG mặc định</Label>
+                  <Input
+                    id="defaultOgTitle"
+                    value={defaultOgTitle}
+                    onChange={(event) => setDefaultOgTitle(event.target.value)}
+                    placeholder="Thiên Kim Wine - Rượu vang cao cấp"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="defaultOgDescription">Mô tả OG mặc định</Label>
+                  <textarea
+                    id="defaultOgDescription"
+                    value={defaultOgDescription}
+                    onChange={(event) => setDefaultOgDescription(event.target.value)}
+                    placeholder="Mô tả ngắn cho ảnh chia sẻ mạng xã hội"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                  <Checkbox
+                    checked={indexingEnabled}
+                    onCheckedChange={(value) => setIndexingEnabled(Boolean(value))}
+                  />
+                  <span>Cho phép index website trên Google/Bing</span>
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="organizationLegalName">Tên pháp lý doanh nghiệp</Label>
+                    <Input
+                      id="organizationLegalName"
+                      value={organizationLegalName}
+                      onChange={(event) => setOrganizationLegalName(event.target.value)}
+                      placeholder="Công ty TNHH Thiên Kim Wine"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="organizationShortName">Tên viết tắt</Label>
+                    <Input
+                      id="organizationShortName"
+                      value={organizationShortName}
+                      onChange={(event) => setOrganizationShortName(event.target.value)}
+                      placeholder="Thiên Kim Wine"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="primaryPhone">SĐT hiển thị schema</Label>
+                    <Input
+                      id="primaryPhone"
+                      value={primaryPhone}
+                      onChange={(event) => setPrimaryPhone(event.target.value)}
+                      placeholder="0938 110 888"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="primaryEmail">Email hiển thị schema</Label>
+                    <Input
+                      id="primaryEmail"
+                      type="email"
+                      value={primaryEmail}
+                      onChange={(event) => setPrimaryEmail(event.target.value)}
+                      placeholder="info@thienkimwine.vn"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="priceRange">Khoảng giá</Label>
+                    <Input
+                      id="priceRange"
+                      value={priceRange}
+                      onChange={(event) => setPriceRange(event.target.value)}
+                      placeholder="₫₫₫"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="socialLinks">Liên kết mạng xã hội (mỗi dòng 1 URL)</Label>
+                  <textarea
+                    id="socialLinks"
+                    value={socialLinksInput}
+                    onChange={(event) => setSocialLinksInput(event.target.value)}
+                    placeholder="https://facebook.com/...
+https://instagram.com/..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </Card>
           </TabsContent>
@@ -497,12 +629,12 @@ export const SettingsScreen = () => {
               productDetailFontKey={productDetailFontKey}
               articleListFontKey={articleListFontKey}
               articleDetailFontKey={articleDetailFontKey}
-              onGlobalFontChange={setGlobalFontKey}
-              onHomeFontChange={setHomeFontKey}
-              onProductListFontChange={setProductListFontKey}
-              onProductDetailFontChange={setProductDetailFontKey}
-              onArticleListFontChange={setArticleListFontKey}
-              onArticleDetailFontChange={setArticleDetailFontKey}
+              onGlobalFontChange={(value) => setGlobalFontKey(value as typeof globalFontKey)}
+              onHomeFontChange={(value) => setHomeFontKey(value as typeof homeFontKey)}
+              onProductListFontChange={(value) => setProductListFontKey(value as typeof productListFontKey)}
+              onProductDetailFontChange={(value) => setProductDetailFontKey(value as typeof productDetailFontKey)}
+              onArticleListFontChange={(value) => setArticleListFontKey(value as typeof articleListFontKey)}
+              onArticleDetailFontChange={(value) => setArticleDetailFontKey(value as typeof articleDetailFontKey)}
             />
           </TabsContent>
         </Tabs>

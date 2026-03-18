@@ -13,6 +13,17 @@ export interface AdminSetting {
   meta_default_title: string | null;
   meta_default_description: string | null;
   meta_default_keywords: string | string[] | null;
+  site_tagline: string | null;
+  organization_legal_name: string | null;
+  organization_short_name: string | null;
+  primary_phone: string | null;
+  primary_email: string | null;
+  price_range: string | null;
+  social_links_schema: string[] | null;
+  default_meta_title_template: string | null;
+  default_og_title: string | null;
+  default_og_description: string | null;
+  indexing_enabled: boolean | null;
   logo_image_id: number | null;
   logo_image_url: string | null;
   favicon_image_id: number | null;
