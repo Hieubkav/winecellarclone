@@ -54,7 +54,7 @@ export const SettingsScreen = () => {
     watermarkSize,
     watermarkText,
     watermarkTextSize,
-    watermarkTextPosition,
+    watermarkTextPositionY,
     watermarkTextOpacity,
     watermarkTextRepeat,
     globalFontKey,
@@ -104,7 +104,7 @@ export const SettingsScreen = () => {
     setWatermarkSize,
     setWatermarkText,
     setWatermarkTextSize,
-    setWatermarkTextPosition,
+    setWatermarkTextPositionY,
     setWatermarkTextOpacity,
     setWatermarkTextRepeat,
     setGlobalFontKey,
@@ -136,6 +136,20 @@ export const SettingsScreen = () => {
       </div>
     );
   }
+
+  const previewText = watermarkText.trim() || "Watermark";
+  const previewOpacity = Math.max(5, Math.min(100, watermarkTextOpacity));
+  const previewPositionY = Math.max(0, Math.min(100, watermarkTextPositionY));
+  const previewFontSizeMap: Record<string, number> = {
+    xxsmall: 12,
+    xsmall: 14,
+    small: 16,
+    medium: 20,
+    large: 24,
+    xlarge: 28,
+    xxlarge: 32,
+  };
+  const previewFontSize = previewFontSizeMap[watermarkTextSize] ?? 20;
 
   return (
     <div className="space-y-4">
@@ -467,17 +481,48 @@ export const SettingsScreen = () => {
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="watermarkTextPosition">Vị trí</Label>
-                        <select
-                          id="watermarkTextPosition"
-                          value={watermarkTextPosition}
-                          onChange={(event) => setWatermarkTextPosition(event.target.value)}
-                          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="top">Trên</option>
-                          <option value="center">Giữa</option>
-                          <option value="bottom">Dưới</option>
-                        </select>
+                        <Label>Vị trí dọc</Label>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                          <div className="relative aspect-square w-full max-w-[220px] rounded-md border border-slate-200 bg-slate-100/70 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+                            <div
+                              className="absolute left-1/2 flex w-full -translate-x-1/2 -translate-y-1/2 px-3"
+                              style={{ top: `${previewPositionY}%` }}
+                            >
+                              <div
+                                className={`flex w-full ${watermarkTextRepeat ? "gap-6" : "justify-center"}`}
+                                style={{
+                                  fontSize: `${previewFontSize}px`,
+                                  color: `rgba(255, 255, 255, ${previewOpacity / 100})`,
+                                  textShadow: `0 1px 2px rgba(15, 23, 42, ${previewOpacity / 100})`,
+                                }}
+                              >
+                                {watermarkTextRepeat ? (
+                                  Array.from({ length: 4 }).map((_, index) => (
+                                    <span key={index} className="whitespace-nowrap">
+                                      {previewText}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="whitespace-nowrap">{previewText}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-1 items-center gap-4">
+                            <div className="flex h-40 items-center justify-center">
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={previewPositionY}
+                                onChange={(event) => setWatermarkTextPositionY(Number(event.target.value))}
+                                className="w-40 h-2 -rotate-90 bg-slate-200 rounded-lg appearance-none cursor-pointer dark:bg-slate-700"
+                              />
+                            </div>
+                            <span className="text-xs text-slate-500">Vị trí: {previewPositionY}%</span>
+                          </div>
+                        </div>
                       </div>
                       <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="watermarkTextOpacity">Độ trong suốt: {watermarkTextOpacity}%</Label>

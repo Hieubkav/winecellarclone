@@ -6,6 +6,32 @@ import { DEFAULT_FONT_KEY, isValidFontKey, type FontKey } from "@/lib/fonts/regi
 import type { ProductContactCtaMode } from "@/lib/types/product-contact-cta";
 
 const VALID_TABS = ["info", "map", "watermark", "seo", "fonts"] as const;
+const DEFAULT_WATERMARK_TEXT_POSITION_Y = 50;
+
+const clampWatermarkPositionY = (value: number) => Math.max(0, Math.min(100, value));
+
+const mapWatermarkTextPositionToY = (value?: string | null) => {
+  switch (value) {
+    case "top":
+      return 15;
+    case "bottom":
+      return 85;
+    default:
+      return DEFAULT_WATERMARK_TEXT_POSITION_Y;
+  }
+};
+
+const mapWatermarkPositionYToLegacy = (value: number) => {
+  if (value <= 33) {
+    return "top";
+  }
+
+  if (value >= 67) {
+    return "bottom";
+  }
+
+  return "center";
+};
 
 type TabValue = (typeof VALID_TABS)[number];
 
@@ -107,6 +133,7 @@ export const useSettingsForm = () => {
   const [watermarkText, setWatermarkText] = useState("");
   const [watermarkTextSize, setWatermarkTextSize] = useState("medium");
   const [watermarkTextPosition, setWatermarkTextPosition] = useState("center");
+  const [watermarkTextPositionY, setWatermarkTextPositionY] = useState(DEFAULT_WATERMARK_TEXT_POSITION_Y);
   const [watermarkTextOpacity, setWatermarkTextOpacity] = useState(50);
   const [watermarkTextRepeat, setWatermarkTextRepeat] = useState(false);
 
@@ -172,7 +199,11 @@ export const useSettingsForm = () => {
       setWatermarkSize(data.product_watermark_size || "128x128");
       setWatermarkText(data.product_watermark_text || "");
       setWatermarkTextSize(data.product_watermark_text_size || "medium");
-      setWatermarkTextPosition(data.product_watermark_text_position || "center");
+      const resolvedWatermarkPositionY = Number.isFinite(data.product_watermark_text_position_y)
+        ? clampWatermarkPositionY(Number(data.product_watermark_text_position_y))
+        : mapWatermarkTextPositionToY(data.product_watermark_text_position);
+      setWatermarkTextPosition(mapWatermarkPositionYToLegacy(resolvedWatermarkPositionY));
+      setWatermarkTextPositionY(resolvedWatermarkPositionY);
       setWatermarkTextOpacity(data.product_watermark_text_opacity || 50);
       setWatermarkTextRepeat(Boolean(data.product_watermark_text_repeat));
 
@@ -323,7 +354,8 @@ export const useSettingsForm = () => {
         product_watermark_size: watermarkSize,
         product_watermark_text: watermarkText || null,
         product_watermark_text_size: watermarkTextSize,
-        product_watermark_text_position: watermarkTextPosition,
+        product_watermark_text_position: mapWatermarkPositionYToLegacy(watermarkTextPositionY),
+        product_watermark_text_position_y: clampWatermarkPositionY(watermarkTextPositionY),
         product_watermark_text_opacity: watermarkTextOpacity,
         product_watermark_text_repeat: watermarkTextRepeat,
         global_font_key: globalFontKey,
@@ -391,6 +423,7 @@ export const useSettingsForm = () => {
       watermarkText,
       watermarkTextSize,
       watermarkTextPosition,
+      watermarkTextPositionY,
       watermarkTextOpacity,
       watermarkTextRepeat,
       globalFontKey,
@@ -441,6 +474,7 @@ export const useSettingsForm = () => {
       setWatermarkText,
       setWatermarkTextSize,
       setWatermarkTextPosition,
+      setWatermarkTextPositionY,
       setWatermarkTextOpacity,
       setWatermarkTextRepeat,
       setGlobalFontKey,

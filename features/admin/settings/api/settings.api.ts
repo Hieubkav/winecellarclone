@@ -40,6 +40,7 @@ export interface AdminSetting {
   product_watermark_text: string | null;
   product_watermark_text_size: string | null;
   product_watermark_text_position: string | null;
+  product_watermark_text_position_y: number | null;
   product_watermark_text_opacity: number | null;
   product_watermark_text_repeat: boolean | null;
   global_font_key: string | null;
