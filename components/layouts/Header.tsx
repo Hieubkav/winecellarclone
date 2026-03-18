@@ -77,7 +77,7 @@ export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
 
   return (
     <header
-      className={`${montserrat.className} sticky top-0 z-40 w-full bg-white text-sm text-[#1C1C1C] shadow-[0_12px_30px_rgba(28,28,28,0.08)]`}
+      className={`${montserrat.className} lg:sticky lg:top-0 z-40 w-full bg-white text-sm text-[#1C1C1C] shadow-[0_12px_30px_rgba(28,28,28,0.08)]`}
       style={{ color: BRAND_BASE }}
     >
       <MainBar menuItems={convertedMenuItems.length > 0 ? convertedMenuItems : undefined} />
@@ -96,17 +96,17 @@ function MainBar({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
 
   return (
     <div className="border-b border-[#e8e8e8] bg-white">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-4 pb-2 md:gap-4">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-12 items-center gap-2 px-3 pb-1 md:gap-4 md:px-4 md:pb-2">
         {/* Logo */}
         <div className="col-span-6 flex items-center md:col-span-3 md:justify-start">
-          <Link href="/" className="flex items-center gap-3" aria-label={`${siteName} - Trang chủ`}>
+          <Link href="/" className="flex items-center gap-2 md:gap-3" aria-label={`${siteName} - Trang chủ`}>
             <Image
               src={logoUrl}
               alt={`${siteName} logo`}
               width={72}
               height={72}
               priority
-              className="h-16 w-16 object-contain"
+              className="h-12 w-12 object-contain md:h-16 md:w-16"
             />
             <span className="hidden text-xs font-bold uppercase tracking-[0.32em] text-[#ECAA4D] md:inline md:text-sm">
               {siteName}
@@ -146,7 +146,7 @@ function SearchMobile() {
 
   const triggerButton = (
     <button
-      className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
+      className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
       style={{ backgroundColor: BRAND_HIGHLIGHT }}
       aria-label="Mở tìm kiếm"
     >
@@ -398,7 +398,7 @@ function MobileTrigger({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
   return (
     <>
       <button
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md text-[#ECAA4D] shadow-[0_6px_18px_rgba(155,44,59,0.45)] transition hover:brightness-110"
         style={{ backgroundColor: BRAND_HIGHLIGHT }}
         aria-label="Mở menu"
         onClick={() => setOpen(true)}

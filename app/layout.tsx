@@ -14,6 +14,7 @@ import {
 import "./globals.css";
 import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { QueryProvider } from "@/lib/query-client";
+import { getImageUrl } from "@/lib/utils/image";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin"],
@@ -101,7 +102,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   const fallbackLogo = FALLBACK_SETTINGS.logo_url ?? "";
-  const faviconUrl = settings.favicon_url || FALLBACK_SETTINGS.favicon_url || fallbackLogo || "";
+  const rawFaviconUrl = settings.favicon_url || FALLBACK_SETTINGS.favicon_url || fallbackLogo || "";
+  const faviconUrl = rawFaviconUrl ? getImageUrl(rawFaviconUrl) : "";
   const ogImageUrl = settings.og_image_url || settings.logo_url || FALLBACK_SETTINGS.og_image_url || fallbackLogo || "";
   const title = settings.meta_defaults.title;
   const description = settings.meta_defaults.description;
@@ -161,10 +163,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: faviconUrl
       ? {
-          icon: [{ url: faviconUrl, type: "image/webp" }],
+          icon: [{ url: faviconUrl }],
           shortcut: faviconUrl,
           apple: faviconUrl,
-          other: [{ rel: "icon", url: faviconUrl, type: "image/webp" }],
+          other: [{ rel: "icon", url: faviconUrl }],
         }
       : undefined,
     verification: {

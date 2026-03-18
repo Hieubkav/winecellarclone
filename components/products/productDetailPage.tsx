@@ -11,6 +11,7 @@ import {
 import { useTracking } from "@/hooks/use-tracking";
 import { ProductImage } from "@/components/ui/product-image";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import DynamicIcon from "@/components/shared/DynamicIcon";
 
 import { Button } from "@/components/ui/button";
@@ -220,6 +221,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
   }, [product]);
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
@@ -254,6 +256,25 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
   }, [processedDescription]);
 
   useEffect(() => {
+    if (!carouselApi) {
+      return;
+    }
+
+    const handleSelect = () => {
+      setSelectedImage(carouselApi.selectedScrollSnap());
+    };
+
+    handleSelect();
+    carouselApi.on("select", handleSelect);
+    carouselApi.on("reInit", handleSelect);
+
+    return () => {
+      carouselApi.off("select", handleSelect);
+      carouselApi.off("reInit", handleSelect);
+    };
+  }, [carouselApi]);
+
+  useEffect(() => {
     if (selectedImage < thumbnailStartIndex) {
       setThumbnailStartIndex(selectedImage);
       return;
@@ -271,8 +292,8 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
   return (
     <div className="min-h-screen bg-[#fcfbf9]" style={fontFamily ? { fontFamily } : undefined}>
       {/* Breadcrumb */}
-      <div className="bg-[#f5f0e8] py-3 border-b border-[#e5ddd0]">
-        <div className="container mx-auto px-4 text-xs md:text-sm text-slate-600 flex gap-2">
+      <div className="bg-[#f5f0e8] py-2 md:py-3 border-b border-[#e5ddd0]">
+        <div className="container mx-auto px-3 md:px-4 text-[11px] md:text-sm text-slate-600 flex gap-1.5 md:gap-2">
           <Link href="/" className="hover:text-[#9B2C3B] cursor-pointer transition-colors">
             Trang chủ
           </Link>
@@ -285,69 +306,64 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 lg:items-start">
+      <div className="container mx-auto px-4 py-5 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 lg:gap-16 lg:items-start">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
-          <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-4">
-            <div className="flex flex-col gap-4 lg:hidden">
-              <div className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0]/40 bg-white shadow-sm">
-                {discountPercentage > 0 && (
-                  <span className="absolute top-4 left-4 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-xs font-bold px-2 py-1 rounded-sm shadow-sm">
-                    -{discountPercentage}%
-                  </span>
-                )}
-                {/* Blur background layer */}
-                <div 
-                  className="absolute inset-0 scale-150 blur-3xl opacity-40"
-                  style={{
-                    backgroundImage: `url(${selectedImageSrc})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                  }}
-                />
-                {/* Main image container */}
-                <button
-                  type="button"
-                  onClick={() => setIsImagePreviewOpen(true)}
-                  className="relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
-                  style={{ aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO }}
-                  aria-label="Xem ảnh sản phẩm lớn hơn"
-                >
-                  <ProductImage
-                    src={selectedImageSrc}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    className="object-contain"
-                    priority
-                  />
-                </button>
-              </div>
-
-              {imageItems.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+          <div className="lg:col-span-7 space-y-3 md:space-y-4 lg:sticky lg:top-4">
+            <div className="flex flex-col gap-3 lg:hidden">
+              <Carousel
+                setApi={setCarouselApi}
+                opts={{ align: "start", loop: false }}
+                className="relative"
+              >
+                <CarouselContent className="ml-0">
                   {imageItems.map((img, idx) => (
-                    <button
-                      key={img.src}
-                      type="button"
-                      onClick={() => setSelectedImage(idx)}
-                      className={`relative ${PRODUCT_IMAGE_ASPECT_CLASS} w-16 md:w-20 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
-                        selectedImage === idx 
-                          ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
-                          : 'border-[#e5ddd0]/40 opacity-70'
-                      }`}
-                    >
-                      <ProductImage 
-                        src={img.src} 
-                        alt={`Thumbnail ${idx + 1}`} 
-                        fill 
-                        className="object-contain p-0.5" 
-                        sizes="80px"
-                      />
-                    </button>
+                    <CarouselItem key={img.src} className="pl-0">
+                      <div className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0]/40 bg-white shadow-sm">
+                        {discountPercentage > 0 && (
+                          <span className="absolute top-3 left-3 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-sm shadow-sm">
+                            -{discountPercentage}%
+                          </span>
+                        )}
+                        {/* Blur background layer */}
+                        <div
+                          className="absolute inset-0 scale-150 blur-3xl opacity-40"
+                          style={{
+                            backgroundImage: `url(${img.src})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                        />
+                        {/* Main image container */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedImage(idx);
+                            setIsImagePreviewOpen(true);
+                          }}
+                          className="relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
+                          style={{ aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO }}
+                          aria-label="Xem ảnh sản phẩm lớn hơn"
+                        >
+                          <ProductImage
+                            src={img.src}
+                            alt={product.name}
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 50vw"
+                            className="object-contain"
+                            priority={idx === 0}
+                          />
+                        </button>
+                        {imageItems.length > 1 && (
+                          <div className="absolute bottom-3 right-3 z-10 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
+                            {idx + 1}/{imageItems.length}
+                          </div>
+                        )}
+                      </div>
+                    </CarouselItem>
                   ))}
-                </div>
-              )}
+                </CarouselContent>
+              </Carousel>
             </div>
 
             <div className="hidden lg:flex lg:items-start lg:gap-6">
@@ -482,34 +498,34 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
           {/* Right Column: Product Info (5/12 columns) */}
           <div className="lg:col-span-5 flex flex-col animate-in slide-in-from-right-4 duration-500">
             {/* Category Badge */}
-            <div className="flex items-center gap-2 text-sm text-[#9B2C3B] font-medium tracking-wide uppercase mb-2">
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] md:text-sm text-[#9B2C3B] font-medium tracking-wide uppercase mb-1.5 md:mb-2">
               {product.type?.name && (
-                <span className="inline-flex items-center rounded-full border border-transparent bg-[#ECAA4D] text-[hsl(20,14.3%,4.1%)] px-2.5 py-0.5 text-xs font-semibold">
+                <span className="inline-flex items-center rounded-full border border-transparent bg-[#ECAA4D] text-[hsl(20,14.3%,4.1%)] px-2 py-0.5 text-[10px] md:text-xs font-semibold">
                   {product.type.name}
                 </span>
               )}
               {product.category?.name && (
-                <span className="text-xs">{product.category.name}</span>
+                <span className="text-[10px] md:text-xs">{product.category.name}</span>
               )}
             </div>
 
             {/* Product Title */}
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight mb-6">
+            <h1 className="text-2xl md:text-4xl font-bold text-slate-900 leading-tight mb-3 md:mb-6">
               {product.name}
             </h1>
 
             {/* Price Section */}
-            <div className="flex items-end gap-3 p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-6">
-              <div className="text-3xl md:text-4xl font-bold text-[#9B2C3B]">
+            <div className="flex items-end gap-2.5 p-3 md:p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-4 md:mb-6">
+              <div className="text-2xl md:text-4xl font-bold text-[#9B2C3B]">
                 {priceLabel}
               </div>
               {originalPriceLabel && (
-                <span className="text-lg text-slate-400 line-through mb-1.5">
+                <span className="text-sm md:text-lg text-slate-400 line-through mb-1">
                   {originalPriceLabel}
                 </span>
               )}
               {discountPercentage > 0 && (
-                <span className="mb-2 ml-auto inline-flex items-center rounded-full border border-transparent bg-[hsl(0,84.2%,60.2%)] text-white px-2.5 py-0.5 text-xs font-semibold">
+                <span className="mb-1 ml-auto inline-flex items-center rounded-full border border-transparent bg-[hsl(0,84.2%,60.2%)] text-white px-2 py-0.5 text-[10px] md:text-xs font-semibold">
                   -{discountPercentage}%
                 </span>
               )}
@@ -517,23 +533,25 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
 
             {/* Specifications Grid - Compact */}
             {attributeItems.length > 0 && (
-              <div className="grid grid-cols-2 gap-4 py-4 border-y border-[#e5ddd0] mb-6">
+              <div className="grid grid-cols-3 gap-2 md:gap-4 py-3 md:py-4 border-y border-[#e5ddd0] mb-4 md:mb-6">
                 {attributeItems.map((attr, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <div className="mt-0.5 p-1.5 bg-[#ECAA4D]/20 rounded-md text-[#9B2C3B]">
+                  <div key={idx} className="flex items-start gap-2 min-w-0">
+                    <div className="mt-0.5 p-1 md:p-1.5 bg-[#ECAA4D]/20 rounded-md text-[#9B2C3B]">
                       <AttributeIcon iconName={attr.iconName} iconUrl={attr.iconUrl} />
                     </div>
-                    <div className="overflow-hidden">
-                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{attr.label}</p>
+                    <div className="overflow-hidden min-w-0">
+                      <p className="text-[9px] md:text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+                        {attr.label}
+                      </p>
                       {attr.filterUrl ? (
                         <Link 
                           href={attr.filterUrl} 
-                          className="text-sm font-medium text-slate-900 truncate block hover:text-[#9B2C3B] transition-colors"
+                          className="text-[11px] md:text-sm font-medium text-slate-900 truncate block hover:text-[#9B2C3B] transition-colors"
                         >
                           {attr.value}
                         </Link>
                       ) : (
-                        <p className="text-sm font-medium text-slate-900 truncate">{attr.value}</p>
+                        <p className="text-[11px] md:text-sm font-medium text-slate-900 truncate">{attr.value}</p>
                       )}
                     </div>
                   </div>
