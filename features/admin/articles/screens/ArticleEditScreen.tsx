@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, AlertTriangle } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
 import { LexicalEditor } from '@/app/(admin)/admin/components/LexicalEditor';
@@ -263,12 +263,16 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
                   Hủy
                 </Button>
               </Link>
-              {publicSlug && (
+              {publicSlug ? (
                 <Link href={`/bai-viet/${publicSlug}`} target="_blank" rel="noopener noreferrer">
-                  <Button type="button" variant="secondary" disabled={isSubmitting}>
-                    Xem bài viết
+                  <Button type="button" variant="outline" size="icon" aria-label="Xem trên web" disabled={isSubmitting}>
+                    <ExternalLink size={16} />
                   </Button>
                 </Link>
+              ) : (
+                <Button type="button" variant="outline" size="icon" aria-label="Xem trên web" disabled>
+                  <ExternalLink size={16} />
+                </Button>
               )}
             </>
           }
