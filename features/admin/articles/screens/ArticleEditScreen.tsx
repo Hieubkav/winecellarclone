@@ -71,6 +71,8 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
     );
   }
 
+  const publicSlug = slug || generateSlug(title);
+
   return (
     <div className="space-y-4 pb-28">
       <div className="flex items-center justify-between gap-4">
@@ -255,11 +257,20 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
 
         <AdminStickyActionBar
           leftActions={
-            <Link href="/admin/articles">
-              <Button type="button" variant="outline" disabled={isSubmitting}>
-                Hủy
-              </Button>
-            </Link>
+            <>
+              <Link href="/admin/articles">
+                <Button type="button" variant="outline" disabled={isSubmitting}>
+                  Hủy
+                </Button>
+              </Link>
+              {publicSlug && (
+                <Link href={`/bai-viet/${publicSlug}`} target="_blank" rel="noopener noreferrer">
+                  <Button type="button" variant="secondary" disabled={isSubmitting}>
+                    Xem bài viết
+                  </Button>
+                </Link>
+              )}
+            </>
           }
           rightActions={
             <>
