@@ -5,6 +5,8 @@ import { fetchArticleList } from '@/lib/api/articles'
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const SITEMAP_BATCH_SIZE = 100
+
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -43,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all products (limit to reasonable number for sitemap)
     const productsResponse = await fetchProductList({ 
       page: 1, 
-      per_page: 1000, // Adjust based on your needs
+      per_page: SITEMAP_BATCH_SIZE,
     })
     
     const productPages: MetadataRoute.Sitemap = productsResponse.data.map((product) => ({
@@ -56,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all articles
     const articlesResponse = await fetchArticleList({
       page: 1,
-      per_page: 1000,
+      per_page: SITEMAP_BATCH_SIZE,
     })
 
     const articlePages: MetadataRoute.Sitemap = articlesResponse.data.map((article) => ({
