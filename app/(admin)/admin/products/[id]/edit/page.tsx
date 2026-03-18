@@ -14,6 +14,11 @@ import { uploadProductImage } from '@/features/admin/products/api/products.uploa
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
+import {
+  PRODUCT_IMAGE_OUTPUT_LABEL,
+  PRODUCT_IMAGE_PREVIEW_SIZE,
+  PRODUCT_IMAGE_RATIO_LABEL,
+} from '@/lib/constants/product-image';
 import { toast } from 'sonner';
 import { useAdminLayout } from '../../../AdminLayoutContext';
 
@@ -87,6 +92,7 @@ const generateSlug = (text: string): string => {
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isNameCopied, setIsNameCopied] = useState(false);
   const { isSidebarCollapsed } = useAdminLayout();
+  const previewSize = PRODUCT_IMAGE_PREVIEW_SIZE;
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
   const didSyncTypeRef = useRef(false);
@@ -544,7 +550,7 @@ const generateSlug = (text: string): string => {
 
             <div className="space-y-2">
               <Label>Ảnh sản phẩm</Label>
-              <p className="text-xs text-slate-500">Khuyến nghị ảnh dọc 4:5 (1200x1500), chai nằm giữa khung.</p>
+              <p className="text-xs text-slate-500">Khuyến nghị ảnh {PRODUCT_IMAGE_RATIO_LABEL} ({PRODUCT_IMAGE_OUTPUT_LABEL}), chai nằm giữa khung.</p>
               <p className="text-xs text-slate-500">Kéo thả để sắp xếp. Ảnh đầu tiên là ảnh chính.</p>
               <div
                 onDrop={handleDropFiles}
@@ -568,12 +574,13 @@ const generateSlug = (text: string): string => {
                       <Image
                         src={getImageUrl(image.url)}
                         alt={`Gallery ${index + 1}`}
-                        width={180}
-                        height={225}
-                        sizes="180px"
+                        width={previewSize}
+                        height={previewSize}
+                        sizes={`${previewSize}px`}
                         priority={index === 0}
                         fetchPriority={index === 0 ? 'high' : 'auto'}
-                        className="w-[180px] h-[225px] object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                        className="object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                        style={{ width: previewSize, height: previewSize }}
                       />
                       {index === 0 && (
                         <span className="absolute left-1 top-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white">
@@ -621,7 +628,10 @@ const generateSlug = (text: string): string => {
                       </button>
                     </div>
                   ))}
-                  <label className="flex flex-col items-center justify-center w-[180px] h-[225px] border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
+                  <label
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
+                    style={{ width: previewSize, height: previewSize }}
+                  >
                     <input
                       type="file"
                       accept="image/*"

@@ -3,6 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw, Loader2 } from "lucide-react";
 import { Button, Label } from "./ui";
+import {
+  PRODUCT_IMAGE_CROP_RATIO,
+  PRODUCT_IMAGE_OUTPUT_HEIGHT,
+  PRODUCT_IMAGE_OUTPUT_WIDTH,
+  PRODUCT_IMAGE_RATIO_LABEL,
+} from "@/lib/constants/product-image";
 
 interface ProductImageCropModalProps {
   open: boolean;
@@ -18,10 +24,9 @@ interface ProductImageCropModalProps {
 
 type ImageSize = { width: number; height: number };
 
-const DEFAULT_OUTPUT_WIDTH = 1200;
-const DEFAULT_OUTPUT_HEIGHT = 1500;
-const PREVIEW_WIDTH = 430;
-const PREVIEW_HEIGHT = 240;
+const DEFAULT_OUTPUT_WIDTH = PRODUCT_IMAGE_OUTPUT_WIDTH;
+const DEFAULT_OUTPUT_HEIGHT = PRODUCT_IMAGE_OUTPUT_HEIGHT;
+const PREVIEW_SIZE = 360;
 
 export function ProductImageCropModal({
   open,
@@ -30,7 +35,7 @@ export function ProductImageCropModal({
   onCancel,
   onConfirm,
   isProcessing = false,
-  aspectRatio = 4 / 5,
+  aspectRatio = PRODUCT_IMAGE_CROP_RATIO,
   outputWidth = DEFAULT_OUTPUT_WIDTH,
   outputHeight = DEFAULT_OUTPUT_HEIGHT,
 }: ProductImageCropModalProps) {
@@ -63,7 +68,7 @@ export function ProductImageCropModal({
   }, [isProcessing]);
 
   const previewSize = useMemo(() => {
-    return { width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT };
+    return { width: PREVIEW_SIZE, height: PREVIEW_SIZE };
   }, []);
 
   useEffect(() => {
@@ -204,7 +209,7 @@ export function ProductImageCropModal({
         <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2.5">
           <div>
             <h2 className="text-base font-semibold text-slate-900">Cắt ảnh sản phẩm</h2>
-            <p className="text-[11px] text-slate-500">Khung 4:5 • Kéo để canh ảnh</p>
+            <p className="text-[11px] text-slate-500">Khung {PRODUCT_IMAGE_RATIO_LABEL} • Kéo để canh ảnh</p>
           </div>
           <Button variant="ghost" size="icon" onClick={onCancel} disabled={isProcessing || isConfirming}>
             <X size={18} />
@@ -217,8 +222,8 @@ export function ProductImageCropModal({
               ref={containerRef}
               className="relative overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
               style={{
-                width: `${PREVIEW_WIDTH}px`,
-                height: `${PREVIEW_HEIGHT}px`,
+                width: `${PREVIEW_SIZE}px`,
+                height: `${PREVIEW_SIZE}px`,
               }}
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
@@ -267,7 +272,7 @@ export function ProductImageCropModal({
                 <ZoomIn size={16} className="text-slate-500" />
               </div>
               <div className="flex items-center justify-between text-[10px] text-slate-500">
-                <span>Ảnh gốc • khung 4:5</span>
+                <span>Ảnh gốc • khung {PRODUCT_IMAGE_RATIO_LABEL}</span>
                 <span>{outputWidth}×{outputHeight}</span>
               </div>
             </div>

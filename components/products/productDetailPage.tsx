@@ -16,6 +16,7 @@ import DynamicIcon from "@/components/shared/DynamicIcon";
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
 import { processProductContent, getImageUrl } from "@/lib/utils/article-content";
+import { PRODUCT_IMAGE_ASPECT_CLASS, PRODUCT_IMAGE_ASPECT_RATIO } from "@/lib/constants/product-image";
 import RelatedProductsSection from "./RelatedProducts";
 
 interface AttributeDisplayItem {
@@ -229,7 +230,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
   const selectedImageAspectRatio =
     selectedImageItem?.width && selectedImageItem?.height
       ? `${selectedImageItem.width} / ${selectedImageItem.height}`
-      : "4 / 5";
+      : PRODUCT_IMAGE_ASPECT_RATIO;
   const desktopThumbnailCount = 3;
   const maxThumbnailStart = Math.max(0, imageItems.length - desktopThumbnailCount);
   const needsDesktopThumbnailPager = imageItems.length > desktopThumbnailCount;
@@ -309,7 +310,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
                   className="relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
-                  style={{ aspectRatio: '4 / 5' }}
+                  style={{ aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
                   <ProductImage
@@ -330,7 +331,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
                       key={img.src}
                       type="button"
                       onClick={() => setSelectedImage(idx)}
-                      className={`relative aspect-[4/5] w-16 md:w-20 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
+                      className={`relative ${PRODUCT_IMAGE_ASPECT_CLASS} w-16 md:w-20 flex-none overflow-hidden rounded-lg border bg-white transition-all ${
                         selectedImage === idx 
                           ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]' 
                           : 'border-[#e5ddd0]/40 opacity-70'
@@ -368,7 +369,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
 
                   <div
                     className="relative w-24 overflow-hidden"
-                    style={{ height: "calc(3 * 7.5rem + 2 * 1rem)" }}
+                    style={{ height: "calc(3 * 6rem + 2 * 1rem)" }}
                   >
                     {needsDesktopThumbnailPager && canScrollUp && (
                       <div className="pointer-events-none absolute left-0 top-0 z-10 h-6 w-full bg-gradient-to-b from-white to-transparent" />
@@ -392,7 +393,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
                                 ? 'ring-2 ring-[#9B2C3B] border-[#9B2C3B]'
                                 : 'border-[#e5ddd0]/40 opacity-70'
                             }`}
-                            style={{ aspectRatio: '4 / 5' }}
+                            style={{ aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO }}
                           >
                             <ProductImage 
                               src={img.src} 
@@ -443,7 +444,7 @@ export default function ProductDetailPage({ product, fontFamily }: ProductDetail
                   type="button"
                   onClick={() => setIsImagePreviewOpen(true)}
                   className="relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
-                  style={{ aspectRatio: '4 / 5' }}
+                  style={{ aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO }}
                   aria-label="Xem ảnh sản phẩm lớn hơn"
                 >
                   <ProductImage

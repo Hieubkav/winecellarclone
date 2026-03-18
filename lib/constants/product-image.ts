@@ -1,0 +1,10 @@
+export const PRODUCT_IMAGE_ASPECT_RATIO = "1 / 1";
+export const PRODUCT_IMAGE_RATIO_LABEL = "1:1";
+export const PRODUCT_IMAGE_ASPECT_CLASS = "aspect-square";
+
+export const PRODUCT_IMAGE_CROP_RATIO = 1;
+export const PRODUCT_IMAGE_OUTPUT_WIDTH = 1200;
+export const PRODUCT_IMAGE_OUTPUT_HEIGHT = 1200;
+export const PRODUCT_IMAGE_OUTPUT_LABEL = "1200x1200";
+
+export const PRODUCT_IMAGE_PREVIEW_SIZE = 180;

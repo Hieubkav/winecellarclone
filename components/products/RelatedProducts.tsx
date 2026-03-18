@@ -7,6 +7,7 @@ import type { ProductListItem } from "@/lib/api/products";
 import { ProductImage } from "@/components/ui/product-image";
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/lib/utils/article-content";
+import { PRODUCT_IMAGE_ASPECT_CLASS } from "@/lib/constants/product-image";
 
 interface RelatedProductsSectionProps {
   title: string;
@@ -84,7 +85,7 @@ export default function RelatedProductsSection({
               className="relative flex flex-col overflow-hidden rounded-lg border border-[#e5ddd0]/40 bg-white"
             >
               {/* Image */}
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#f5f0e8]">
+              <div className={`relative ${PRODUCT_IMAGE_ASPECT_CLASS} overflow-hidden bg-[#f5f0e8]`}>
                 <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-1">
                   <ProductImage 
                     src={getImageUrl(product.main_image_url)} 
