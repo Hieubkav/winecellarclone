@@ -500,7 +500,7 @@ export function FilterSidebar() {
     }, [filters, options.priceRange, options.rangeFilterBounds])
 
     const handleCategoryChange = (value: string) => {
-        void setSelectedCategory(value === "all" ? null : Number(value))
+         setSelectedCategory(value === "all" ? null : Number(value))
     }
 
     const handleProductTypeChange = (value: string) => {
