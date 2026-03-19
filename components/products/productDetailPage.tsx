@@ -401,10 +401,10 @@ export default function ProductDetailPage({
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-5 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 lg:gap-16 lg:items-start">
+      <div className="container mx-auto px-4 py-4 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 lg:gap-16 lg:items-start">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
-          <div className="lg:col-span-7 space-y-3 md:space-y-4 lg:sticky lg:top-4">
+          <div className="lg:col-span-7 space-y-2 md:space-y-4 lg:sticky lg:top-4">
             <div className="flex flex-col gap-3 lg:hidden">
               <Carousel
                 setApi={setCarouselApi}
@@ -735,7 +735,6 @@ export default function ProductDetailPage({
             )}
             {normalizedDetailRules.length > 0 && (
               <div className="mt-4 rounded-lg border border-[#e5ddd0] bg-[#f8f3ec] p-3 md:p-4 text-slate-700">
-                <p className="text-xs md:text-sm font-semibold text-slate-700 mb-2">Lưu ý</p>
                 <ul className="list-disc space-y-1 pl-4 text-xs md:text-sm leading-relaxed text-slate-600">
                   {normalizedDetailRules.map((rule, index) => (
                     <li key={`${index}-${rule}`}>{rule}</li>
