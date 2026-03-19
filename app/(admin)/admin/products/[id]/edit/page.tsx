@@ -19,9 +19,30 @@ import {
   PRODUCT_IMAGE_OUTPUT_LABEL,
   PRODUCT_IMAGE_PREVIEW_SIZE,
   PRODUCT_IMAGE_RATIO_LABEL,
+  PRODUCT_IMAGE_CROP_RATIO,
 } from '@/lib/constants/product-image';
 import { toast } from 'sonner';
 import { useAdminLayout } from '../../../AdminLayoutContext';
+
+const IMAGE_RATIO_TOLERANCE = 0.01;
+
+const getImageSizeFromFile = (file: File): Promise<{ width: number; height: number }> =>
+  new Promise((resolve, reject) => {
+    const image = new window.Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      resolve({ width: image.naturalWidth, height: image.naturalHeight });
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image'));
+    };
+
+    image.src = objectUrl;
+  });
 
 const LexicalEditor = dynamic(
   () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
@@ -242,6 +263,48 @@ const generateSlug = (text: string): string => {
     return uploadProductImage(file);
   }, []);
 
+  const isMatchingProductImageRatio = useCallback(async (file: File) => {
+    try {
+      const { width, height } = await getImageSizeFromFile(file);
+      if (!width || !height) return false;
+      const ratio = width / height;
+      return Math.abs(ratio - PRODUCT_IMAGE_CROP_RATIO) <= IMAGE_RATIO_TOLERANCE;
+    } catch (error) {
+      console.error('Image ratio check failed:', error);
+      return false;
+    }
+  }, []);
+
+  const uploadDirectImage = useCallback(async (file: File, targetIndex?: number) => {
+    try {
+      const uploaded = await uploadSingleImage(file);
+      if (!uploaded) return null;
+
+      if (typeof targetIndex === 'number') {
+        setGalleryImages(prev => prev.map((img, i) => (i === targetIndex ? uploaded : img)));
+        toast.success('Đã thay thế ảnh');
+      } else {
+        setGalleryImages(prev => [...prev, uploaded]);
+        toast.success('Đã tải ảnh lên');
+      }
+
+      return uploaded;
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Không thể tải ảnh lên');
+      return null;
+    }
+  }, [uploadSingleImage]);
+
+  const uploadDirectImageWithLoading = useCallback(async (file: File, targetIndex?: number) => {
+    setIsUploadingImage(true);
+    try {
+      await uploadDirectImage(file, targetIndex);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }, [uploadDirectImage]);
+
   const openCropWithFile = useCallback((file: File, targetIndex?: number) => {
     if (cropUrlRef.current) {
       URL.revokeObjectURL(cropUrlRef.current);
@@ -292,26 +355,10 @@ const generateSlug = (text: string): string => {
 
   const handleCroppedUpload = useCallback(async (file: File) => {
     if (isUploadingImage) return;
-    setIsUploadingImage(true);
-    try {
-      const uploaded = await uploadSingleImage(file);
-      if (uploaded) {
-        if (cropTargetIndex !== null) {
-          setGalleryImages(prev => prev.map((img, i) => (i === cropTargetIndex ? uploaded : img)));
-          toast.success('Đã thay thế ảnh');
-        } else {
-          setGalleryImages(prev => [...prev, uploaded]);
-          toast.success('Đã tải ảnh lên');
-        }
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Không thể tải ảnh lên');
-    } finally {
-      setIsUploadingImage(false);
-      closeCrop();
-    }
-  }, [closeCrop, cropTargetIndex, uploadSingleImage]);
+    const targetIndex = typeof cropTargetIndex === 'number' ? cropTargetIndex : undefined;
+    await uploadDirectImageWithLoading(file, targetIndex);
+    closeCrop();
+  }, [closeCrop, cropTargetIndex, isUploadingImage, uploadDirectImageWithLoading]);
 
   const handleCopyName = useCallback(async () => {
     const text = name.trim();
@@ -340,8 +387,33 @@ const generateSlug = (text: string): string => {
 
   const handleGalleryUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    setCropQueue(prev => [...prev, ...Array.from(files)]);
-  }, []);
+
+    const cropCandidates: File[] = [];
+    let didUpload = false;
+
+    for (const file of Array.from(files)) {
+      const matchesRatio = await isMatchingProductImageRatio(file);
+      if (!matchesRatio) {
+        cropCandidates.push(file);
+        continue;
+      }
+
+      if (!didUpload) {
+        setIsUploadingImage(true);
+        didUpload = true;
+      }
+
+      await uploadDirectImage(file);
+    }
+
+    if (didUpload) {
+      setIsUploadingImage(false);
+    }
+
+    if (cropCandidates.length > 0) {
+      setCropQueue(prev => [...prev, ...cropCandidates]);
+    }
+  }, [isMatchingProductImageRatio, uploadDirectImage]);
 
   const handleUrlUpload = useCallback(async () => {
     const url = imageUrlInput.trim();
@@ -358,7 +430,14 @@ const generateSlug = (text: string): string => {
       }
       const extension = blob.type.split('/')[1] || 'jpg';
       const file = new File([blob], `image-${Date.now()}.${extension}`, { type: blob.type });
-      setCropQueue(prev => [...prev, file]);
+      const matchesRatio = await isMatchingProductImageRatio(file);
+
+      if (matchesRatio) {
+        await uploadDirectImage(file);
+      } else {
+        setCropQueue(prev => [...prev, file]);
+      }
+
       setImageUrlInput('');
     } catch (error) {
       console.error('Upload error:', error);
@@ -366,7 +445,7 @@ const generateSlug = (text: string): string => {
     } finally {
       setIsUploadingImage(false);
     }
-  }, [imageUrlInput]);
+  }, [imageUrlInput, isMatchingProductImageRatio, uploadDirectImage]);
 
   const handleReplaceFromUrl = useCallback(async (index: number, url: string) => {
     if (!url) return;
@@ -382,19 +461,32 @@ const generateSlug = (text: string): string => {
       }
       const extension = blob.type.split('/')[1] || 'jpg';
       const file = new File([blob], `image-${Date.now()}.${extension}`, { type: blob.type });
-      openCropWithFile(file, index);
+      const matchesRatio = await isMatchingProductImageRatio(file);
+
+      if (matchesRatio) {
+        await uploadDirectImage(file, index);
+      } else {
+        openCropWithFile(file, index);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Không thể tải ảnh từ URL. Vui lòng tải file và upload.');
     } finally {
       setIsUploadingImage(false);
     }
-  }, [openCropWithFile]);
+  }, [isMatchingProductImageRatio, openCropWithFile, uploadDirectImage]);
 
   const handleReplaceFile = useCallback(async (index: number, file: File | null) => {
     if (!file) return;
+    const matchesRatio = await isMatchingProductImageRatio(file);
+
+    if (matchesRatio) {
+      await uploadDirectImageWithLoading(file, index);
+      return;
+    }
+
     openCropWithFile(file, index);
-  }, [openCropWithFile]);
+  }, [isMatchingProductImageRatio, openCropWithFile, uploadDirectImageWithLoading]);
 
   const handleDropFiles = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
