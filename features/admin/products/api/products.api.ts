@@ -83,17 +83,40 @@ export interface AdminProductFiltersResponse {
   };
 }
 
+const adminProductFiltersCache = new Map<string, Promise<AdminProductFiltersResponse['data']>>();
+
+const buildAdminFiltersCacheKey = (typeId?: number | null) => (typeId ? `type:${typeId}` : "all");
+
+export async function fetchAdminProductFilters(
+  typeId?: number | null,
+  options?: { bypassCache?: boolean }
+): Promise<AdminProductFiltersResponse['data']> {
+  const cacheKey = buildAdminFiltersCacheKey(typeId);
+  const cachedPromise = !options?.bypassCache ? adminProductFiltersCache.get(cacheKey) : null;
+  if (cachedPromise) {
+    return cachedPromise;
+  }
+
+  const requestPromise = (async () => {
+    const query = buildQueryString(typeId ? { type_id: typeId } : undefined);
+    const response = await apiFetch<AdminProductFiltersResponse>(`v1/admin/products/filters${query}`);
+    return response.data;
+  })();
+
+  adminProductFiltersCache.set(cacheKey, requestPromise);
+
+  try {
+    return await requestPromise;
+  } catch (error) {
+    adminProductFiltersCache.delete(cacheKey);
+    throw error;
+  }
+}
+
 export async function fetchAdminProducts(params?: Record<string, string | number>): Promise<AdminProductsResponse> {
   const query = buildQueryString(params);
   return apiFetch<AdminProductsResponse>(`v1/admin/products${query}`);
 }
-
-export async function fetchAdminProductFilters(typeId?: number | null): Promise<AdminProductFiltersResponse['data']> {
-  const query = buildQueryString(typeId ? { type_id: typeId } : undefined);
-  const response = await apiFetch<AdminProductFiltersResponse>(`v1/admin/products/filters${query}`);
-  return response.data;
-}
-
 export async function downloadAdminProductsExport(
   params?: Record<string, string | number>
 ): Promise<{ blob: Blob; filename: string }> {

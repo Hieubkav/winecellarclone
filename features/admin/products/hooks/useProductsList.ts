@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/client";
 import { type ProductFilterOption } from "@/lib/api/products";
@@ -59,6 +59,7 @@ export const useProductsList = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<ProductDeleteConfirm>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(DEFAULT_COLUMNS.map((column) => column.key));
+  const hasLoadedFiltersRef = useRef(false);
 
   const { isExporting, exportProducts, exportTemplate } = useProductExcel();
 
@@ -128,8 +129,22 @@ export const useProductsList = () => {
   }, []);
 
   useEffect(() => {
+    if (isInitialLoading) {
+      return;
+    }
+
+    if (!hasLoadedFiltersRef.current) {
+      hasLoadedFiltersRef.current = true;
+      void loadFilters();
+    }
+  }, [isInitialLoading, loadFilters]);
+
+  useEffect(() => {
+    if (!hasLoadedFiltersRef.current) {
+      return;
+    }
     void loadFilters();
-  }, [loadFilters]);
+  }, [filterType, loadFilters]);
 
   useEffect(() => {
     if (!isInitialLoading) {
