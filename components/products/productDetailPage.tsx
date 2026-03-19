@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
 import { buildProductBreadcrumbs } from "@/lib/products/product-breadcrumbs";
 import { processProductContent, getImageUrl } from "@/lib/utils/article-content";
-import { PRODUCT_IMAGE_ASPECT_CLASS, PRODUCT_IMAGE_ASPECT_RATIO } from "@/lib/constants/product-image";
+import { PRODUCT_IMAGE_ASPECT_RATIO } from "@/lib/constants/product-image";
 import RelatedProductsSection from "./RelatedProducts";
 import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
 
