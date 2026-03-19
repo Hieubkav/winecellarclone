@@ -129,6 +129,10 @@ export type ApiFetchTiming = {
   total_ms: number;
 };
 
+export type ApiFetchAbsoluteOptions = {
+  withAdminAuth?: boolean;
+};
+
 export async function apiFetch<TResponse>(
   path: string,
   init?: RequestInit
@@ -217,6 +221,54 @@ export async function apiFetchWithTiming<TResponse>(
         responseHeaders: Object.fromEntries(response.headers.entries()),
       });
     }
+
+    throw new ApiError(
+      `API request failed with status ${response.status}`,
+      response.status,
+      payload
+    );
+  }
+
+  return {
+    payload: payload as TResponse,
+    timing: {
+      response_ms: Math.round(responseAt - startAt),
+      parse_ms: Math.round(parsedAt - responseAt),
+      total_ms: Math.round(parsedAt - startAt),
+    },
+  };
+}
+
+export async function apiFetchAbsoluteWithTiming<TResponse>(
+  url: string,
+  init?: RequestInit,
+  options?: ApiFetchAbsoluteOptions
+): Promise<{ payload: TResponse; timing: ApiFetchTiming }> {
+  const adminToken = options?.withAdminAuth ? getAdminToken() : null;
+
+  const startAt = now();
+  const response = await fetch(url, {
+    ...init,
+    headers: resolveRequestHeaders(adminToken, init),
+    cache: init?.cache ?? "no-store",
+  });
+  const responseAt = now();
+
+  const contentType = response.headers.get("content-type");
+  const payload =
+    contentType && contentType.includes("application/json")
+      ? await response.json()
+      : await response.text();
+  const parsedAt = now();
+
+  if (!response.ok) {
+    console.error("[API Error]", {
+      url,
+      status: response.status,
+      statusText: response.statusText,
+      payload,
+      responseHeaders: Object.fromEntries(response.headers.entries()),
+    });
 
     throw new ApiError(
       `API request failed with status ${response.status}`,

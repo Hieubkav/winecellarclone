@@ -5,7 +5,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "../../componen
 import { type AdminProductsResponse, type AdminProductDetail } from "@/features/admin/products/api/products.api";
 import { type AdminArticlesResponse } from "@/features/admin/articles/api/articles.api";
 import { fetchProductFilters } from "@/lib/api/products";
-import { apiFetchWithTiming, type ApiFetchTiming } from "@/lib/api/client";
+import { API_BASE_URL, apiFetchAbsoluteWithTiming, apiFetchWithTiming, type ApiFetchTiming } from "@/lib/api/client";
 
 type AuditStatus = "idle" | "running" | "done" | "error";
 
@@ -122,6 +122,13 @@ type ArticleEditAudit = {
   articleId: number | null;
 };
 
+type ProbeMatrix = {
+  noAuth127: ClientTiming | null;
+  noAuthLocalhost: ClientTiming | null;
+  auth127: ClientTiming | null;
+  authLocalhost: ClientTiming | null;
+};
+
 type CrudAuditSummary = {
   productsList: ProductsListAudit;
   productCreate: ProductCreateAudit;
@@ -129,6 +136,7 @@ type CrudAuditSummary = {
   articlesList: ArticlesListAudit;
   articleCreate: ArticleCreateAudit;
   articleEdit: ArticleEditAudit;
+  probeMatrix: ProbeMatrix;
 };
 
 const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
@@ -167,6 +175,10 @@ const formatAudit = (durationMs: number | null, audit?: BackendAudit | null) => 
 const formatClientTiming = (timing?: ClientTiming | null) => {
   if (!timing) return "-";
   return `total ${formatMs(timing.total_ms)} | fetch ${formatMs(timing.response_ms)} | parse ${formatMs(timing.parse_ms)}`;
+};
+
+const formatProbe = (label: string, timing: ClientTiming | null) => {
+  return `- ${label}: ${formatClientTiming(timing)}`;
 };
 
 const formatDateTime = (value: Date) => value.toISOString().replace("T", " ").slice(0, 19);
@@ -283,6 +295,12 @@ export default function AdminCrudAuditPage() {
       "ADMIN CRUD AUDIT REPORT",
       `Time: ${timeText}`,
       "Route: /admin/dev/admin-crud-audit",
+      "",
+      "0. Local Probe Matrix",
+      formatProbe("127.0.0.1 no-auth", data.probeMatrix.noAuth127),
+      formatProbe("localhost no-auth", data.probeMatrix.noAuthLocalhost),
+      formatProbe("127.0.0.1 auth-ping", data.probeMatrix.auth127),
+      formatProbe("localhost auth-ping", data.probeMatrix.authLocalhost),
       "",
       "1. Scope",
       "- Products: list/create/edit",
@@ -498,6 +516,13 @@ export default function AdminCrudAuditPage() {
       );
     };
 
+    const buildProbeBase = (hostname: string) => {
+      const baseUrl = new URL(API_BASE_URL);
+      baseUrl.hostname = hostname;
+      baseUrl.pathname = baseUrl.pathname.replace(/\/$/, "");
+      return baseUrl.toString().replace(/\/$/, "");
+    };
+
     const localSteps: AuditStep[] = [];
     const pushStep = (step: AuditStep) => {
       localSteps.push(step);
@@ -505,6 +530,32 @@ export default function AdminCrudAuditPage() {
     };
 
     try {
+      const probeBase127 = buildProbeBase("127.0.0.1");
+      const probeBaseLocalhost = buildProbeBase("localhost");
+      const probeNoAuth127 = await runStep("probe 127 no-auth", async () =>
+        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBase127}/v1/dev/probe/ping`)
+      );
+      pushStep({ label: probeNoAuth127.label, durationMs: probeNoAuth127.durationMs, status: "ok" });
+
+      const probeNoAuthLocalhost = await runStep("probe localhost no-auth", async () =>
+        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBaseLocalhost}/v1/dev/probe/ping`)
+      );
+      pushStep({ label: probeNoAuthLocalhost.label, durationMs: probeNoAuthLocalhost.durationMs, status: "ok" });
+
+      const probeAuth127 = await runStep("probe 127 auth-ping", async () =>
+        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBase127}/v1/admin/dev/probe/auth-ping`, undefined, {
+          withAdminAuth: true,
+        })
+      );
+      pushStep({ label: probeAuth127.label, durationMs: probeAuth127.durationMs, status: "ok" });
+
+      const probeAuthLocalhost = await runStep("probe localhost auth-ping", async () =>
+        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBaseLocalhost}/v1/admin/dev/probe/auth-ping`, undefined, {
+          withAdminAuth: true,
+        })
+      );
+      pushStep({ label: probeAuthLocalhost.label, durationMs: probeAuthLocalhost.durationMs, status: "ok" });
+
       const perPage = 25;
       const productsSearchParams = { q: "vang", page: 1, per_page: perPage };
       const articlesSearchParams = { q: "vang", page: 1, per_page: perPage, sort_by: "published_at", sort_dir: "desc" };
@@ -800,6 +851,12 @@ export default function AdminCrudAuditPage() {
         articlesList: articlesListSummary,
         articleCreate: articleCreateSummary,
         articleEdit: articleEditSummary,
+        probeMatrix: {
+          noAuth127: probeNoAuth127.result.timing,
+          noAuthLocalhost: probeNoAuthLocalhost.result.timing,
+          auth127: probeAuth127.result.timing,
+          authLocalhost: probeAuthLocalhost.result.timing,
+        },
       };
 
       setSummary(finalSummary);
