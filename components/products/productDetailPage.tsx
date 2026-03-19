@@ -303,6 +303,13 @@ export default function ProductDetailPage({
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [showExpandButton, setShowExpandButton] = useState(false);
+  const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
+  const preloadedImagesRef = useRef(new Set<string>());
+  const imageItemsKey = useMemo(() => imageItems.map((item) => item.src).join("|"), [imageItems]);
+  const warmupTargets = useMemo(
+    () => imageItems.slice(1, 4).map((item) => item.src).filter(Boolean),
+    [imageItems]
+  );
   const descriptionRef = useRef<HTMLDivElement>(null);
   const selectedImageItem = imageItems[selectedImage] ?? imageItems[0];
   const selectedImageSrc = selectedImageItem?.src ?? "/placeholder/wine-bottle.svg";
@@ -342,6 +349,33 @@ export default function ProductDetailPage({
       setShowExpandButton(scrollHeight > 200);
     }
   }, [processedDescription]);
+
+  useEffect(() => {
+    preloadedImagesRef.current.clear();
+    setIsHeroImageLoaded(false);
+  }, [imageItemsKey]);
+
+  useEffect(() => {
+    if (!isHeroImageLoaded) {
+      return;
+    }
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (!window.matchMedia("(max-width: 1023px)").matches) {
+      return;
+    }
+
+    warmupTargets.forEach((src) => {
+      if (!src || preloadedImagesRef.current.has(src)) {
+        return;
+      }
+
+      const img = new window.Image();
+      img.src = src;
+      preloadedImagesRef.current.add(src);
+    });
+  }, [isHeroImageLoaded, warmupTargets]);
 
   useEffect(() => {
     if (!carouselApi) {
@@ -457,6 +491,7 @@ export default function ProductDetailPage({
                             sizes="(max-width: 1024px) 100vw, 50vw"
                             className="object-contain"
                             priority={idx === 0}
+                            onLoadComplete={idx === 0 ? () => setIsHeroImageLoaded(true) : undefined}
                           />
                         </button>
                         {imageItems.length > 1 && (

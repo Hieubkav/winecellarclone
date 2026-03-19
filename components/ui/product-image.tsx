@@ -13,9 +13,11 @@ interface ProductImageProps {
   sizes?: string;
   className?: string;
   priority?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
   loading?: "eager" | "lazy";
   style?: React.CSSProperties;
   showSkeleton?: boolean;
+  onLoadComplete?: () => void;
 }
 
 /**
@@ -37,15 +39,22 @@ export function ProductImage({
   sizes,
   className = "",
   priority = false,
+  fetchPriority,
   loading,
   style,
   showSkeleton = true,
+  onLoadComplete,
 }: ProductImageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
   const handleLoad = () => {
     setIsLoading(false);
+  };
+
+  const handleLoadComplete = () => {
+    setIsLoading(false);
+    onLoadComplete?.();
   };
 
   const handleError = () => {
@@ -123,8 +132,10 @@ export function ProductImage({
             isLoading ? "opacity-0" : "opacity-100"
           )}
           priority={priority}
+          fetchPriority={fetchPriority}
           loading={loading}
           onLoad={handleLoad}
+          onLoadingComplete={handleLoadComplete}
           onError={handleError}
         />
       </div>
@@ -146,9 +157,11 @@ export function ProductImage({
           isLoading ? "opacity-0" : "opacity-100"
         )}
         priority={priority}
+        fetchPriority={fetchPriority}
         loading={loading}
         style={style}
         onLoad={handleLoad}
+        onLoadingComplete={handleLoadComplete}
         onError={handleError}
       />
     </div>
