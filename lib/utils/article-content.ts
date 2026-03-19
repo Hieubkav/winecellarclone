@@ -71,7 +71,25 @@ export function processProductContent(content: string | null): string {
  * Strip HTML tags for plain text extraction (e.g., for excerpts)
  */
 export function stripHtmlTags(html: string): string {
-  return html.replace(/<[^>]*>/g, "");
+  if (!html) return "";
+
+  const withSeparators = html
+    .replace(/<(\/)?(p|div|li|ul|ol|h[1-6]|blockquote|pre|tr|td|th)[^>]*>/gi, " ")
+    .replace(/<br\s*\/?\s*>/gi, " ")
+    .replace(/<[^>]*>/g, " ");
+
+  const decoded = withSeparators
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&ldquo;|&rdquo;/gi, '"')
+    .replace(/&lsquo;|&rsquo;/gi, "'")
+    .replace(/&hellip;/gi, "...");
+
+  return decoded.replace(/\s+/g, " ").trim();
 }
 
 /**
