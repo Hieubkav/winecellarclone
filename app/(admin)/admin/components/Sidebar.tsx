@@ -125,6 +125,9 @@ import { useAdminSession } from '../AdminSessionContext';
    setMobileMenuOpen: (open: boolean) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
+  siteName: string;
+  logoUrl: string | null;
+  isBrandingLoading: boolean;
  }
  
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -132,9 +135,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setMobileMenuOpen,
   isCollapsed,
   setIsCollapsed,
+  siteName,
+  logoUrl,
+  isBrandingLoading,
 }) => {
    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
-   const [siteName] = useState<string>('Thiên Kim Wine');
    const pathname = usePathname();
    const router = useRouter();
    const { adminProfile, setAdminProfile } = useAdminSession();
@@ -208,6 +213,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
  
   const navItems = navGroups;
 
+  const normalizedSiteName = siteName.trim() || 'Thiên Kim Wine';
+  const brandingInitial = normalizedSiteName.charAt(0).toUpperCase();
   const adminDisplayName = adminProfile?.name?.trim() || 'Admin';
   const adminDisplayEmail = adminProfile?.email?.trim() || 'admin@winecellar.local';
   const adminInitial = adminDisplayName.charAt(0).toUpperCase();
@@ -228,11 +235,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
        )}>
          <div className={cn("h-16 flex items-center border-b border-slate-100 dark:border-slate-800 transition-all duration-300", isCollapsed ? "justify-center px-0" : "px-6 justify-between")}>
            <div className="flex items-center gap-3 overflow-hidden">
-             <div className="w-9 h-9 bg-gradient-to-br from-amber-600 to-amber-500 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-               <span className="font-bold text-lg">{siteName.charAt(0).toUpperCase()}</span>
+             <div
+               className={cn(
+                 "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                 logoUrl
+                   ? "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                   : "bg-gradient-to-br from-amber-600 to-amber-500 text-white shadow-md"
+               )}
+             >
+               {logoUrl ? (
+                 <img
+                   src={logoUrl}
+                   alt={normalizedSiteName}
+                   className={cn(
+                     "w-full h-full object-contain rounded-xl",
+                     isBrandingLoading && "opacity-80"
+                   )}
+                 />
+               ) : (
+                 <span className="font-bold text-lg">{brandingInitial}</span>
+               )}
              </div>
-             <span className={cn("font-bold text-xl text-slate-800 dark:text-slate-100 whitespace-nowrap transition-opacity duration-300", isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto")}>
-               {siteName}
+             <span
+               className={cn(
+                 "font-bold text-xl text-slate-800 dark:text-slate-100 whitespace-nowrap transition-opacity duration-300",
+                 isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 w-auto"
+               )}
+             >
+               {normalizedSiteName}
              </span>
            </div>
            <button className="lg:hidden" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">

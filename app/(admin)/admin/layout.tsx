@@ -7,6 +7,7 @@ import { Header } from './components/Header';
 import { Toaster } from 'sonner';
 import { AdminSessionProvider, useAdminSession } from './AdminSessionContext';
 import { AdminLayoutProvider, useAdminLayout } from './AdminLayoutContext';
+import { useAdminBranding } from './hooks/useAdminBranding';
  
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,6 +15,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { isSidebarCollapsed, setIsSidebarCollapsed } = useAdminLayout();
   const { authChecked } = useAdminSession();
+  const { siteName, logoUrl, isLoading: isBrandingLoading } = useAdminBranding();
 
   const isLoginPage = pathname === '/admin/login';
 
@@ -56,6 +58,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         setMobileMenuOpen={setMobileMenuOpen}
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
+        siteName={siteName}
+        logoUrl={logoUrl}
+        isBrandingLoading={isBrandingLoading}
       />
  
       <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
