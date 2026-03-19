@@ -399,7 +399,7 @@ export const SettingsScreen = () => {
                   ) : (
                     <div className="space-y-3">
                       {productDetailRules.map((rule, index) => (
-                        <div key={`${index}-${rule}`} className="flex items-start gap-2">
+                        <div key={index} className="flex items-start gap-2">
                           <Input
                             value={rule}
                             onChange={(event) => updateProductDetailRule(index, event.target.value)}
