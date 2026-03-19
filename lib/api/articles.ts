@@ -1,4 +1,4 @@
-import { apiFetch, ApiError } from "./client";
+import { apiFetch, ApiError, isBackendUnavailableError } from "./client";
 
 export interface ApiImage {
   id: number;
@@ -132,6 +132,26 @@ export async function fetchArticleList(params?: QueryParams): Promise<ArticleLis
   const query = buildQueryString(params);
 
   return apiFetch<ArticleListResponse>(`v1/bai-viet${query}`);
+}
+
+let didWarnArticleList = false;
+
+export async function fetchArticleListSafe(
+  params?: QueryParams
+): Promise<ArticleListResponse | null> {
+  try {
+    return await fetchArticleList(params);
+  } catch (error) {
+    if (!didWarnArticleList) {
+      didWarnArticleList = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua article list."
+        : "Không lấy được article list, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
+  }
 }
 
 export async function fetchArticleDetail(slug: string): Promise<ArticleDetail | null> {

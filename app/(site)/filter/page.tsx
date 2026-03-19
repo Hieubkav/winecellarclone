@@ -1,8 +1,8 @@
 import { Metadata } from "next";
-import { fetchProductFilters, fetchProductList } from "@/lib/api/products";
+import { fetchProductFiltersSafe, fetchProductListSafe } from "@/lib/api/products";
 import ProductList from "@/components/filter/product-list";
 import { CollectionPageSchema, ItemListSchema, WebPageSchema } from "@/lib/seo/structured-data";
-import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { fetchSettingsSafe, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -44,19 +44,10 @@ export async function generateMetadata({
   searchParams: Promise<FilterRouteSearchParams>;
 }): Promise<Metadata> {
   const params = await searchParams;
-  let settings = FALLBACK_SETTINGS;
-  let filterOptions = null;
-
-  try {
-    const [settingsResult, filtersResult] = await Promise.all([
-      fetchSettings().catch(() => null),
-      fetchProductFilters().catch(() => null),
-    ]);
-    settings = settingsResult ?? FALLBACK_SETTINGS;
-    filterOptions = filtersResult;
-  } catch (error) {
-    console.error("Failed to load settings for filter metadata:", error);
-  }
+  const [settings, filterOptions] = await Promise.all([
+    fetchSettingsSafe(),
+    fetchProductFiltersSafe(),
+  ]);
 
   const typeSlug = typeof params.type === "string" ? params.type : null;
   const categorySlug = typeof params.category === "string" ? params.category : null;
@@ -139,17 +130,15 @@ export async function generateMetadata({
 }
 
 export default async function Page() {
-  const [filterOptions, initialProducts, settingsResult] = await Promise.all([
-    fetchProductFilters().catch(() => null),
-    fetchProductList({
+  const [filterOptions, initialProducts, settings] = await Promise.all([
+    fetchProductFiltersSafe(),
+    fetchProductListSafe({
       page: 1,
       per_page: 24,
       sort: 'name',
-    }).catch(() => null),
-    fetchSettings().catch(() => null),
+    }),
+    fetchSettingsSafe(),
   ]);
-
-  const settings = settingsResult ?? FALLBACK_SETTINGS;
   const productListFontStyle = getScopedFontStyle(settings, "product_list");
 
   const itemListProducts = initialProducts?.data?.map((product) => ({

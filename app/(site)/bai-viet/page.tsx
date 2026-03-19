@@ -4,8 +4,8 @@ export const runtime = "nodejs";
 
 import { Metadata } from "next";
 import ArticleListPage from "@/components/articles/ArticleListPage";
-import { fetchArticleList } from "@/lib/api/articles";
-import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { fetchArticleListSafe } from "@/lib/api/articles";
+import { fetchSettingsSafe } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -51,17 +51,40 @@ export default async function ArticleListRoute({
   const perPage = parseInt(params.per_page || "12", 10);
   const sort = params.sort || "-created_at";
 
-  const [data, settingsResult] = await Promise.all([
-    fetchArticleList({
+  const [data, settings] = await Promise.all([
+    fetchArticleListSafe({
       page,
       per_page: perPage,
       sort,
     }),
-    fetchSettings().catch(() => null),
+    fetchSettingsSafe(),
   ]);
-
-  const settings = settingsResult ?? FALLBACK_SETTINGS;
   const articleListFontStyle = getScopedFontStyle(settings, "article_list");
 
-  return <ArticleListPage data={data} fontFamily={articleListFontStyle.fontFamily} />;
+  return (
+    <ArticleListPage
+      data={
+        data ?? {
+          data: [],
+          meta: {
+            pagination: {
+              page,
+              per_page: perPage,
+              total: 0,
+              last_page: 1,
+              has_more: false,
+            },
+            sorting: { sort },
+            filtering: { author: null, q: null },
+            api_version: "offline",
+            timestamp: new Date().toISOString(),
+          },
+          _links: {
+            self: { href: `${SITE_URL}/bai-viet`, method: "GET" },
+          },
+        }
+      }
+      fontFamily={articleListFontStyle.fontFamily}
+    />
+  );
 }

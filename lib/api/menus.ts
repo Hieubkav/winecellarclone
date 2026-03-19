@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, isBackendUnavailableError } from "./client";
 
 // Menu item leaf (link cuối cùng trong cây)
 export interface MenuLeaf {
@@ -50,4 +50,22 @@ export async function fetchMenus(): Promise<MenuItem[]> {
   const response = await fetchMenusWithMeta();
 
   return response.data;
+}
+
+let didWarnMenus = false;
+
+export async function fetchMenusSafe(): Promise<MenuItem[] | undefined> {
+  try {
+    return await fetchMenus();
+  } catch (error) {
+    if (!didWarnMenus) {
+      didWarnMenus = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua menus."
+        : "Không lấy được menus, bỏ qua.";
+      console.warn(message);
+    }
+
+    return undefined;
+  }
 }

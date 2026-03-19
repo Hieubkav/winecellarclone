@@ -1,5 +1,5 @@
 import { getImageUrl } from "@/lib/utils/image";
-import { apiFetch, ApiError } from "./client";
+import { apiFetch, ApiError, isBackendUnavailableError } from "./client";
 
 export interface ApiTerm {
   id: number;
@@ -247,6 +247,27 @@ export async function fetchProductList(
   };
 }
 
+let didWarnProductList = false;
+
+export async function fetchProductListSafe(
+  params?: QueryParams,
+  options?: { signal?: AbortSignal }
+): Promise<ProductListResponse | null> {
+  try {
+    return await fetchProductList(params, options);
+  } catch (error) {
+    if (!didWarnProductList) {
+      didWarnProductList = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua product list."
+        : "Không lấy được product list, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
+  }
+}
+
 export async function fetchProductDetail(slug: string): Promise<ProductDetail | null> {
   try {
     const response = await apiFetch<ProductDetailResponse>(`v1/san-pham/${encodeURIComponent(slug)}`, {
@@ -329,6 +350,27 @@ export async function fetchProductFilters(
   } catch (error) {
     productFiltersCache.delete(cacheKey);
     throw error;
+  }
+}
+
+let didWarnProductFilters = false;
+
+export async function fetchProductFiltersSafe(
+  typeId?: number | null,
+  options?: { bypassCache?: boolean }
+): Promise<ProductFiltersPayload | null> {
+  try {
+    return await fetchProductFilters(typeId, options);
+  } catch (error) {
+    if (!didWarnProductFilters) {
+      didWarnProductFilters = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua product filters."
+        : "Không lấy được product filters, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
   }
 }
 

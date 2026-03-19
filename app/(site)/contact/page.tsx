@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
-import { fetchSocialLinks } from "@/lib/api/socialLinks";
+import { fetchSettingsSafe } from "@/lib/api/settings";
+import { fetchSocialLinksSafe } from "@/lib/api/socialLinks";
 import ContactHero from "@/components/contact/ContactHero";
 import ContactInfoGrid from "@/components/contact/ContactInfoGrid";
 import ContactMap from "@/components/contact/ContactMap";
@@ -45,25 +45,10 @@ export const metadata: Metadata = {
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export default async function ContactPage() {
-  // Fetch settings từ API (server-side)
-  let settings = FALLBACK_SETTINGS;
-  
-  try {
-    settings = await fetchSettings();
-  } catch (error) {
-    console.error("Failed to fetch settings for contact page:", error);
-    // Fallback to default settings
-  }
-
-  // Fetch social links từ API (server-side)
-  let socialLinks: Awaited<ReturnType<typeof fetchSocialLinks>> = [];
-  
-  try {
-    socialLinks = await fetchSocialLinks();
-  } catch (error) {
-    console.error("Failed to fetch social links:", error);
-    // Fallback to empty array
-  }
+  const [settings, socialLinks] = await Promise.all([
+    fetchSettingsSafe(),
+    fetchSocialLinksSafe(),
+  ]);
 
   // Get contact config from settings, fallback to default
   const contactConfig: ContactConfig = settings.contact_config || DEFAULT_CONTACT_CONFIG;

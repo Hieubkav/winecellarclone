@@ -102,6 +102,36 @@ export class ApiError extends Error {
   }
 }
 
+const BACKEND_UNAVAILABLE_CODES = new Set([
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "EAI_AGAIN",
+  "ENOTFOUND",
+  "ETIMEDOUT",
+]);
+
+export const isBackendUnavailableError = (error: unknown): boolean => {
+  if (!error) {
+    return false;
+  }
+
+  if (error instanceof TypeError && error.message.toLowerCase().includes("fetch failed")) {
+    return true;
+  }
+
+  const cause = (error as { cause?: { code?: string } }).cause;
+  if (cause?.code && BACKEND_UNAVAILABLE_CODES.has(cause.code)) {
+    return true;
+  }
+
+  const code = (error as { code?: string }).code;
+  if (code && BACKEND_UNAVAILABLE_CODES.has(code)) {
+    return true;
+  }
+
+  return false;
+};
+
 const resolveRequestHeaders = (adminToken: string | null, init?: RequestInit): Headers => {
   return mergeHeaders(
     {

@@ -1,5 +1,5 @@
 import { getImageUrl } from "@/lib/utils/image";
-import { apiFetch } from "./client";
+import { apiFetch, isBackendUnavailableError } from "./client";
 
 // TypeScript types matching Laravel API response
 export interface SocialLinkResponse {
@@ -44,4 +44,22 @@ export async function fetchSocialLinks(): Promise<SocialLink[]> {
     ...item,
     icon_url: item.icon_url ? getImageUrl(item.icon_url) : item.icon_url,
   }));
+}
+
+let didWarnSocialLinks = false;
+
+export async function fetchSocialLinksSafe(): Promise<SocialLink[]> {
+  try {
+    return await fetchSocialLinks();
+  } catch (error) {
+    if (!didWarnSocialLinks) {
+      didWarnSocialLinks = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, dùng social links rỗng."
+        : "Không lấy được social links, dùng danh sách rỗng.";
+      console.warn(message);
+    }
+
+    return [];
+  }
 }

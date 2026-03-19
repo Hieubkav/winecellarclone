@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { apiFetch } from "./client";
+import { apiFetch, isBackendUnavailableError } from "./client";
 import type { ExtraAttr, ProductAttribute } from "@/lib/api/products";
 
 // Base types từ backend
@@ -238,6 +238,24 @@ export const fetchHomeComponents = cache(async (): Promise<HomeComponent[]> => {
   return response.data;
 });
 
+let didWarnHomeComponents = false;
+
+export async function fetchHomeComponentsSafe(): Promise<HomeComponent[]> {
+  try {
+    return await fetchHomeComponents();
+  } catch (error) {
+    if (!didWarnHomeComponents) {
+      didWarnHomeComponents = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, dùng home components rỗng."
+        : "Không lấy được home components, dùng danh sách rỗng.";
+      console.warn(message);
+    }
+
+    return [];
+  }
+}
+
 export async function fetchSpeedDialComponentWithMeta(options?: { audit?: boolean }): Promise<SpeedDialResponse> {
   const params = options?.audit ? "?audit=1" : "";
 
@@ -251,3 +269,21 @@ export const fetchSpeedDialComponent = cache(async (): Promise<HomeComponent | n
   const response = await fetchSpeedDialComponentWithMeta();
   return response.data;
 });
+
+let didWarnSpeedDial = false;
+
+export async function fetchSpeedDialComponentSafe(): Promise<HomeComponent | null> {
+  try {
+    return await fetchSpeedDialComponent();
+  } catch (error) {
+    if (!didWarnSpeedDial) {
+      didWarnSpeedDial = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua speed dial."
+        : "Không lấy được speed dial, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
+  }
+}

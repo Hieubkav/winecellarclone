@@ -1,4 +1,4 @@
-import { apiFetch } from "./client";
+import { apiFetch, isBackendUnavailableError } from "./client";
 import type { FooterConfig } from "@/lib/types/footer";
 import type { ContactConfig } from "@/lib/types/contact";
 import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
@@ -147,6 +147,24 @@ export async function fetchSettings(): Promise<Settings> {
   const response = await fetchSettingsWithMeta();
 
   return response.data;
+}
+
+let didWarnSettings = false;
+
+export async function fetchSettingsSafe(): Promise<Settings> {
+  try {
+    return await fetchSettings();
+  } catch (error) {
+    if (!didWarnSettings) {
+      didWarnSettings = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, dùng fallback settings."
+        : "Không lấy được settings, dùng fallback settings.";
+      console.warn(message);
+    }
+
+    return FALLBACK_SETTINGS;
+  }
 }
 
 /**

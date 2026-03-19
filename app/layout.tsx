@@ -12,7 +12,7 @@ import {
   Noto_Serif,
 } from "next/font/google";
 import "./globals.css";
-import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { fetchSettingsSafe, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { QueryProvider } from "@/lib/query-client";
 import { getImageUrl } from "@/lib/utils/image";
 
@@ -93,13 +93,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
  * Fallback về hard-code values nếu API fail
  */
 export async function generateMetadata(): Promise<Metadata> {
-  let settings = FALLBACK_SETTINGS;
-  
-  try {
-    settings = await fetchSettings();
-  } catch (error) {
-    console.error("Failed to fetch settings for metadata:", error);
-  }
+  const settings = await fetchSettingsSafe();
 
   const fallbackLogo = FALLBACK_SETTINGS.logo_url ?? "";
   const rawFaviconUrl = settings.favicon_url || FALLBACK_SETTINGS.favicon_url || fallbackLogo || "";
