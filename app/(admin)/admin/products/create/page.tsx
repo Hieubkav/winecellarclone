@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
  import { useRouter } from 'next/navigation';
@@ -12,11 +13,10 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { createProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
-import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
+import { fetchAdminSettingsLite } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
-import { LexicalEditor } from '../../components/LexicalEditor';
 import {
   PRODUCT_IMAGE_OUTPUT_LABEL,
   PRODUCT_IMAGE_PREVIEW_SIZE,
@@ -38,6 +38,16 @@ const truncateText = (value: string, maxLength: number) => {
   if (trimmed.length <= maxLength) return trimmed;
   return trimmed.slice(0, maxLength).trim();
 };
+
+const LexicalEditor = dynamic(
+  () => import('../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+    ),
+  }
+);
 
  export default function ProductCreatePage() {
    const router = useRouter();
@@ -79,7 +89,7 @@ const truncateText = (value: string, maxLength: number) => {
        try {
          const [filters, settingsResult] = await Promise.all([
            fetchProductFilters(),
-           fetchAdminSettings().catch(() => null),
+           fetchAdminSettingsLite().catch(() => null),
          ]);
          setTypes(filters.types);
          setCategories(filters.categories);

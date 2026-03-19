@@ -53,8 +53,18 @@ export interface AdminSetting {
   updated_at?: string;
 }
 
+export interface AdminSettingLite {
+  id: number;
+  product_shopee_link_enabled: boolean;
+  updated_at?: string;
+}
+
 export async function fetchAdminSettings(): Promise<{ data: AdminSetting }> {
   return apiFetch("v1/admin/settings");
+}
+
+export async function fetchAdminSettingsLite(): Promise<{ data: AdminSettingLite }> {
+  return apiFetch("v1/admin/settings/lite");
 }
 
 export async function updateSettings(

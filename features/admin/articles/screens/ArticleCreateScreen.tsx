@@ -2,10 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles } from 'lucide-react';
 import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
-import { LexicalEditor } from '@/app/(admin)/admin/components/LexicalEditor';
 import { API_BASE_URL } from '@/lib/api/client';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { useArticleForm } from '../hooks/useArticleForm';
@@ -16,6 +16,16 @@ const truncateText = (value: string, maxLength: number) => {
   if (trimmed.length <= maxLength) return trimmed;
   return trimmed.slice(0, maxLength).trim();
 };
+
+const LexicalEditor = dynamic(
+  () => import('@/app/(admin)/admin/components/LexicalEditor').then((mod) => mod.LexicalEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+    ),
+  }
+);
 
 export const ArticleCreateScreen = () => {
   const { state, actions } = useArticleForm();

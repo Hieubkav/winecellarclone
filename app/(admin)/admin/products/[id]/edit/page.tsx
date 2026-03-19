@@ -11,7 +11,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
-import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
+import { fetchAdminSettingsLite } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
@@ -141,7 +141,7 @@ const generateSlug = (text: string): string => {
        const [productRes, filtersRes, settingsRes] = await Promise.all([
            fetchAdminProduct(Number(id)),
            fetchProductFilters(),
-           fetchAdminSettings().catch(() => null),
+           fetchAdminSettingsLite().catch(() => null),
          ]);
  
         product = productRes.data;

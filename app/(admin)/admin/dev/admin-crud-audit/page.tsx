@@ -5,7 +5,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "../../componen
 import { fetchAdminProducts, fetchAdminProductFilters, fetchAdminProduct } from "@/features/admin/products/api/products.api";
 import { fetchAdminArticles, fetchAdminArticle } from "@/features/admin/articles/api/articles.api";
 import { fetchProductFilters } from "@/lib/api/products";
-import { fetchAdminSettings } from "@/features/admin/settings/api/settings.api";
+import { fetchAdminSettingsLite } from "@/features/admin/settings/api/settings.api";
 
 type AuditStatus = "idle" | "running" | "done" | "error";
 
@@ -162,19 +162,25 @@ export default function AdminCrudAuditPage() {
     }
 
     if (data.productsList.searchPerceivedMs !== null && data.productsList.searchRequestMs !== null) {
-      lines.push(
-        data.productsList.searchPerceivedMs - data.productsList.searchRequestMs > 300
-          ? "- Products search: debounce chiếm đa số latency cảm nhận."
-          : "- Products search: latency chủ yếu từ request."
-      );
+      const debounceGap = data.productsList.searchPerceivedMs - data.productsList.searchRequestMs;
+      if (data.productsList.searchRequestMs > 1000) {
+        lines.push("- Products search: request gốc đã rất chậm, debounce không phải nguyên nhân chính.");
+      } else if (debounceGap > 300) {
+        lines.push("- Products search: debounce chiếm đa số latency cảm nhận.");
+      } else {
+        lines.push("- Products search: latency chủ yếu từ request.");
+      }
     }
 
     if (data.articlesList.searchPerceivedMs !== null && data.articlesList.searchRequestMs !== null) {
-      lines.push(
-        data.articlesList.searchPerceivedMs - data.articlesList.searchRequestMs > 300
-          ? "- Articles search: debounce là phần lớn latency cảm nhận."
-          : "- Articles search: latency chủ yếu từ request."
-      );
+      const debounceGap = data.articlesList.searchPerceivedMs - data.articlesList.searchRequestMs;
+      if (data.articlesList.searchRequestMs > 1000) {
+        lines.push("- Articles search: request gốc đã rất chậm, debounce không phải nguyên nhân chính.");
+      } else if (debounceGap > 300) {
+        lines.push("- Articles search: debounce là phần lớn latency cảm nhận.");
+      } else {
+        lines.push("- Articles search: latency chủ yếu từ request.");
+      }
     }
 
     if (data.productEdit.dependentFiltersMs !== null && data.productEdit.dependentFiltersMs > 150) {
@@ -444,7 +450,7 @@ export default function AdminCrudAuditPage() {
       const productCreateParallel = await runStep("product create parallel", async () => {
         return Promise.all([
           fetchProductFilters(),
-          fetchAdminSettings().catch(() => null),
+          fetchAdminSettingsLite().catch(() => null),
         ]);
       });
       pushStep({ label: productCreateParallel.label, durationMs: productCreateParallel.durationMs, status: "ok" });
@@ -456,7 +462,7 @@ export default function AdminCrudAuditPage() {
       pushStep({ label: productCreateFiltersMs.label, durationMs: productCreateFiltersMs.durationMs, status: "ok" });
 
       const productCreateSettingsMs = await runStep("product create settings (baseline)", async () => {
-        return fetchAdminSettings().catch(() => null);
+        return fetchAdminSettingsLite().catch(() => null);
       });
       pushStep({ label: productCreateSettingsMs.label, durationMs: productCreateSettingsMs.durationMs, status: "ok" });
 
@@ -485,7 +491,7 @@ export default function AdminCrudAuditPage() {
           const [productRes, filtersRes, settingsRes] = await Promise.all([
             fetchAdminProduct(productIdForEdit),
             fetchProductFilters(),
-            fetchAdminSettings().catch(() => null),
+            fetchAdminSettingsLite().catch(() => null),
           ]);
           return { productRes, filtersRes, settingsRes };
         });
@@ -507,7 +513,7 @@ export default function AdminCrudAuditPage() {
         pushStep({ label: editFiltersBaseline.label, durationMs: editFiltersBaseline.durationMs, status: "ok" });
 
         const editSettingsBaseline = await runStep("product edit settings baseline", async () => {
-          return fetchAdminSettings().catch(() => null);
+          return fetchAdminSettingsLite().catch(() => null);
         });
         productEditSettingsMs = editSettingsBaseline.durationMs;
         pushStep({ label: editSettingsBaseline.label, durationMs: editSettingsBaseline.durationMs, status: "ok" });
