@@ -76,13 +76,6 @@ export function ProductImageCropModal({
     setContainerSize(previewSize);
   }, [previewSize]);
 
-  const baseScale = useMemo(() => {
-    if (!imageSize || !containerSize) return 1;
-    return Math.min(containerSize.width / imageSize.width, containerSize.height / imageSize.height);
-  }, [imageSize, containerSize]);
-
-  const actualScale = baseScale * zoom;
-
   const cropRect = useMemo(() => {
     if (!containerSize) return null;
     const cropWidth = Math.min(containerSize.width, containerSize.height * aspectRatio);
@@ -94,6 +87,13 @@ export function ProductImageCropModal({
       top: (containerSize.height - cropHeight) / 2,
     };
   }, [aspectRatio, containerSize]);
+
+  const baseScale = useMemo(() => {
+    if (!imageSize || !containerSize || !cropRect) return 1;
+    return Math.max(cropRect.width / imageSize.width, cropRect.height / imageSize.height);
+  }, [cropRect, imageSize, containerSize]);
+
+  const actualScale = baseScale * zoom;
 
   const clampOffset = useCallback(
     (nextOffset: { x: number; y: number }) => {
