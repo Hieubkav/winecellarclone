@@ -118,6 +118,7 @@ export const useSettingsForm = () => {
   const [productContactCtaPhone, setProductContactCtaPhone] = useState("");
   const [productContactCtaTiktok, setProductContactCtaTiktok] = useState("");
   const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
+  const [productMobileMainImageHeight, setProductMobileMainImageHeight] = useState<number | null>(null);
 
   const [logoImageId, setLogoImageId] = useState<number | null>(null);
   const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
@@ -179,6 +180,11 @@ export const useSettingsForm = () => {
       setProductContactCtaPhone(productContactConfig?.items?.phone || fallbackPhone);
       setProductContactCtaTiktok(productContactConfig?.items?.tiktok || "");
       setProductShopeeLinkEnabled(Boolean(data.product_shopee_link_enabled));
+      setProductMobileMainImageHeight(
+        Number.isFinite(data.product_mobile_main_image_height)
+          ? Number(data.product_mobile_main_image_height)
+          : null
+      );
 
       setLogoImageId(data.logo_image_id || null);
       setLogoImageUrl(data.logo_image_url ? `${backendUrl}${data.logo_image_url}` : null);
@@ -348,6 +354,7 @@ export const useSettingsForm = () => {
           },
         },
         product_shopee_link_enabled: productShopeeLinkEnabled,
+        product_mobile_main_image_height: productMobileMainImageHeight,
         logo_image_id: logoImageId,
         favicon_image_id: faviconImageId,
         og_image_id: ogImageId,
@@ -413,6 +420,7 @@ export const useSettingsForm = () => {
       productContactCtaPhone,
       productContactCtaTiktok,
       productShopeeLinkEnabled,
+      productMobileMainImageHeight,
       logoImageId,
       logoImageUrl,
       faviconImageId,
@@ -465,6 +473,7 @@ export const useSettingsForm = () => {
       setProductContactCtaPhone,
       setProductContactCtaTiktok,
       setProductShopeeLinkEnabled,
+      setProductMobileMainImageHeight,
       setLogoImageId,
       setLogoImageUrl,
       setFaviconImageId,

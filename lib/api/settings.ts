@@ -35,6 +35,7 @@ export interface SettingsResponse {
     contact_config: ContactConfig | null;
     product_contact_cta_config: ProductContactCtaConfig | null;
     product_shopee_link_enabled: boolean | null;
+    product_mobile_main_image_height: number | null;
     product_watermark_url: string | null;
     product_watermark_position: WatermarkPosition | null;
     product_watermark_size: WatermarkSize | null;
@@ -90,6 +91,7 @@ export interface Settings {
   contact_config: ContactConfig | null;
   product_contact_cta_config: ProductContactCtaConfig | null;
   product_shopee_link_enabled: boolean | null;
+  product_mobile_main_image_height: number | null;
   product_watermark_url: string | null;
   product_watermark_position: WatermarkPosition | null;
   product_watermark_size: WatermarkSize | null;
@@ -170,6 +172,7 @@ export const FALLBACK_SETTINGS: Settings = {
     },
   },
   product_shopee_link_enabled: false,
+  product_mobile_main_image_height: null,
   product_watermark_url: null,
   product_watermark_position: 'none',
   product_watermark_size: '128x128',

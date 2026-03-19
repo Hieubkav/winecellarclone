@@ -13,6 +13,7 @@ export interface AdminSetting {
   contact_config: Record<string, unknown> | null;
   product_contact_cta_config: ProductContactCtaConfig | null;
   product_shopee_link_enabled: boolean | null;
+  product_mobile_main_image_height: number | null;
   meta_default_title: string | null;
   meta_default_description: string | null;
   meta_default_keywords: string | string[] | null;

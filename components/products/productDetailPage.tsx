@@ -37,6 +37,7 @@ interface ProductDetailPageProps {
   fontFamily?: string;
   productContactCtaConfig?: ProductContactCtaConfig | null;
   shopeeLinkEnabled?: boolean;
+  mobileMainImageHeight?: number | null;
 }
 
 interface ProductGalleryItem {
@@ -109,6 +110,7 @@ export default function ProductDetailPage({
   fontFamily,
   productContactCtaConfig,
   shopeeLinkEnabled,
+  mobileMainImageHeight,
 }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
   const contactCtaMode = productContactCtaConfig?.mode || "contact_page";
@@ -320,6 +322,10 @@ export default function ProductDetailPage({
     () => processProductContent(product.description),
     [product.description]
   );
+  const resolvedMobileImageHeight =
+    typeof mobileMainImageHeight === "number" && Number.isFinite(mobileMainImageHeight) && mobileMainImageHeight > 0
+      ? Math.round(mobileMainImageHeight)
+      : null;
 
   useEffect(() => {
     if (descriptionRef.current) {
@@ -399,7 +405,10 @@ export default function ProductDetailPage({
                 <CarouselContent className="ml-0">
                   {imageItems.map((img, idx) => (
                     <CarouselItem key={img.src} className="pl-0">
-                      <div className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0]/40 bg-white shadow-sm">
+                      <div
+                        className="relative w-full max-w-[480px] mx-auto overflow-hidden rounded-xl border border-[#e5ddd0]/40 bg-white shadow-sm"
+                        style={resolvedMobileImageHeight ? { height: `${resolvedMobileImageHeight}px` } : undefined}
+                      >
                         {discountPercentage > 0 && (
                           <span className="absolute top-3 left-3 z-10 bg-[hsl(0,84.2%,60.2%)] text-white text-[10px] font-bold px-2 py-0.5 rounded-sm shadow-sm">
                             -{discountPercentage}%
@@ -421,8 +430,14 @@ export default function ProductDetailPage({
                             setSelectedImage(idx);
                             setIsImagePreviewOpen(true);
                           }}
-                          className="relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in"
-                          style={{ aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO }}
+                          className={`relative w-full p-1 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9B2C3B] focus-visible:ring-offset-2 cursor-zoom-in ${
+                            resolvedMobileImageHeight ? "h-full" : ""
+                          }`}
+                          style={
+                            resolvedMobileImageHeight
+                              ? { height: "100%" }
+                              : { aspectRatio: PRODUCT_IMAGE_ASPECT_RATIO }
+                          }
                           aria-label="Xem ảnh sản phẩm lớn hơn"
                         >
                           <ProductImage

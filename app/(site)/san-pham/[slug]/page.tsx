@@ -134,6 +134,7 @@ export default async function ProductDetailRoute({
         fontFamily={productDetailFontStyle.fontFamily}
         productContactCtaConfig={settings.product_contact_cta_config}
         shopeeLinkEnabled={Boolean(settings.product_shopee_link_enabled)}
+        mobileMainImageHeight={settings.product_mobile_main_image_height}
       />
     </>
   );

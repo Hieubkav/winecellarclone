@@ -44,6 +44,7 @@ export const SettingsScreen = () => {
     productContactCtaPhone,
     productContactCtaTiktok,
     productShopeeLinkEnabled,
+    productMobileMainImageHeight,
     logoImageId,
     logoImageUrl,
     faviconImageId,
@@ -95,6 +96,7 @@ export const SettingsScreen = () => {
     setProductContactCtaPhone,
     setProductContactCtaTiktok,
     setProductShopeeLinkEnabled,
+    setProductMobileMainImageHeight,
     setLogoImageId,
     setLogoImageUrl,
     setFaviconImageId,
@@ -379,6 +381,35 @@ export const SettingsScreen = () => {
                       />
                     </div>
                   </div>
+                </div>
+              </Card>
+
+              <Card>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">Ảnh chủ sản phẩm (mobile)</h2>
+                  <p className="text-sm text-slate-500">Chỉ áp dụng trên mobile, ảnh giữ tỉ lệ 1:1</p>
+                </div>
+                <div className="p-6 space-y-2">
+                  <Label htmlFor="productMobileMainImageHeight">Chiều cao khung ảnh (px)</Label>
+                  <Input
+                    id="productMobileMainImageHeight"
+                    type="number"
+                    inputMode="numeric"
+                    min={240}
+                    max={520}
+                    value={productMobileMainImageHeight ?? ""}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      if (!value) {
+                        setProductMobileMainImageHeight(null);
+                        return;
+                      }
+                      const parsed = Number(value);
+                      setProductMobileMainImageHeight(Number.isFinite(parsed) ? parsed : null);
+                    }}
+                    placeholder="Ví dụ: 360"
+                  />
+                  <p className="text-xs text-slate-500">Khuyến nghị 240–520px để ảnh không bị quá chật.</p>
                 </div>
               </Card>
 
