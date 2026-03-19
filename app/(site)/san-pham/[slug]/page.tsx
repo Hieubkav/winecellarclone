@@ -7,10 +7,10 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import ProductDetailPage from "@/components/products/productDetailPage";
-import { fetchProductDetail } from "@/lib/api/products";
+import { fetchProductDetailSafe } from "@/lib/api/products";
 import { ProductSchema, BreadcrumbSchema } from "@/lib/seo/structured-data";
 import { buildProductBreadcrumbs } from "@/lib/products/product-breadcrumbs";
-import { fetchSettings, FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { fetchSettingsSafe, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 type ProductDetailRouteParams = {
@@ -25,11 +25,10 @@ export async function generateMetadata({
   params: Promise<ProductDetailRouteParams>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const [product, settingsResult] = await Promise.all([
-    fetchProductDetail(slug),
-    fetchSettings().catch(() => null),
+  const [product, settings] = await Promise.all([
+    fetchProductDetailSafe(slug),
+    fetchSettingsSafe(),
   ]);
-  const settings = settingsResult ?? FALLBACK_SETTINGS;
 
   if (!product) {
     return {
@@ -91,16 +90,14 @@ export default async function ProductDetailRoute({
   params: Promise<ProductDetailRouteParams>;
 }) {
   const { slug } = await params;
-  const [product, settingsResult] = await Promise.all([
-    fetchProductDetail(slug),
-    fetchSettings().catch(() => null),
+  const [product, settings] = await Promise.all([
+    fetchProductDetailSafe(slug),
+    fetchSettingsSafe(),
   ]);
 
   if (!product) {
     notFound();
   }
-
-  const settings = settingsResult ?? FALLBACK_SETTINGS;
   const productDetailFontStyle = getScopedFontStyle(settings, "product_detail");
   const sellerName = settings.site_name || "Thiên Kim Wine";
 

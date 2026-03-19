@@ -283,6 +283,24 @@ export async function fetchProductDetail(slug: string): Promise<ProductDetail | 
   }
 }
 
+let didWarnProductDetail = false;
+
+export async function fetchProductDetailSafe(slug: string): Promise<ProductDetail | null> {
+  try {
+    return await fetchProductDetail(slug);
+  } catch (error) {
+    if (!didWarnProductDetail) {
+      didWarnProductDetail = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua product detail."
+        : "Không lấy được product detail, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
+  }
+}
+
 export interface ProductFilterOption {
   id: number;
   name: string;

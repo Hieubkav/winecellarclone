@@ -168,3 +168,21 @@ export async function fetchArticleDetail(slug: string): Promise<ArticleDetail | 
     throw error;
   }
 }
+
+let didWarnArticleDetail = false;
+
+export async function fetchArticleDetailSafe(slug: string): Promise<ArticleDetail | null> {
+  try {
+    return await fetchArticleDetail(slug);
+  } catch (error) {
+    if (!didWarnArticleDetail) {
+      didWarnArticleDetail = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua article detail."
+        : "Không lấy được article detail, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
+  }
+}
