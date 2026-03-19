@@ -131,6 +131,7 @@ export type ApiFetchTiming = {
 
 export type ApiFetchAbsoluteOptions = {
   withAdminAuth?: boolean;
+  suppressErrorLog?: boolean;
 };
 
 export async function apiFetch<TResponse>(
@@ -262,13 +263,15 @@ export async function apiFetchAbsoluteWithTiming<TResponse>(
   const parsedAt = now();
 
   if (!response.ok) {
-    console.error("[API Error]", {
-      url,
-      status: response.status,
-      statusText: response.statusText,
-      payload,
-      responseHeaders: Object.fromEntries(response.headers.entries()),
-    });
+    if (!options?.suppressErrorLog) {
+      console.error("[API Error]", {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        payload,
+        responseHeaders: Object.fromEntries(response.headers.entries()),
+      });
+    }
 
     throw new ApiError(
       `API request failed with status ${response.status}`,

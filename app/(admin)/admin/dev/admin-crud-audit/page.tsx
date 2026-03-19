@@ -5,7 +5,7 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "../../componen
 import { type AdminProductsResponse, type AdminProductDetail } from "@/features/admin/products/api/products.api";
 import { type AdminArticlesResponse } from "@/features/admin/articles/api/articles.api";
 import { fetchProductFilters } from "@/lib/api/products";
-import { API_BASE_URL, apiFetchAbsoluteWithTiming, apiFetchWithTiming, type ApiFetchTiming } from "@/lib/api/client";
+import { API_BASE_URL, ApiError, apiFetchAbsoluteWithTiming, apiFetchWithTiming, type ApiFetchTiming } from "@/lib/api/client";
 
 type AuditStatus = "idle" | "running" | "done" | "error";
 
@@ -122,11 +122,16 @@ type ArticleEditAudit = {
   articleId: number | null;
 };
 
+type ProbeResult = {
+  timing: ClientTiming | null;
+  error: string | null;
+};
+
 type ProbeMatrix = {
-  noAuth127: ClientTiming | null;
-  noAuthLocalhost: ClientTiming | null;
-  auth127: ClientTiming | null;
-  authLocalhost: ClientTiming | null;
+  noAuth127: ProbeResult;
+  noAuthLocalhost: ProbeResult;
+  auth127: ProbeResult;
+  authLocalhost: ProbeResult;
 };
 
 type CrudAuditSummary = {
@@ -177,8 +182,11 @@ const formatClientTiming = (timing?: ClientTiming | null) => {
   return `total ${formatMs(timing.total_ms)} | fetch ${formatMs(timing.response_ms)} | parse ${formatMs(timing.parse_ms)}`;
 };
 
-const formatProbe = (label: string, timing: ClientTiming | null) => {
-  return `- ${label}: ${formatClientTiming(timing)}`;
+const formatProbe = (label: string, result: ProbeResult) => {
+  if (result.error) {
+    return `- ${label}: ${result.error}`;
+  }
+  return `- ${label}: ${formatClientTiming(result.timing)}`;
 };
 
 const formatDateTime = (value: Date) => value.toISOString().replace("T", " ").slice(0, 19);
@@ -529,32 +537,50 @@ export default function AdminCrudAuditPage() {
       setSteps([...localSteps]);
     };
 
+    const runProbeSafe = async (
+      label: string,
+      url: string,
+      options?: { withAdminAuth?: boolean }
+    ): Promise<ProbeResult> => {
+      const startedAt = now();
+      try {
+        const result = await apiFetchAbsoluteWithTiming<{ ok: boolean }>(url, undefined, {
+          withAdminAuth: options?.withAdminAuth,
+          suppressErrorLog: true,
+        });
+        const durationMs = now() - startedAt;
+        pushStep({ label, durationMs, status: "ok" });
+        return { timing: result.timing, error: null };
+      } catch (error) {
+        const durationMs = now() - startedAt;
+        const errorLabel = error instanceof ApiError
+          ? `error ${error.status}`
+          : error instanceof Error
+          ? error.message
+          : "error";
+        pushStep({ label, durationMs, status: "error", note: errorLabel });
+        return { timing: null, error: errorLabel };
+      }
+    };
+
     try {
       const probeBase127 = buildProbeBase("127.0.0.1");
       const probeBaseLocalhost = buildProbeBase("localhost");
-      const probeNoAuth127 = await runStep("probe 127 no-auth", async () =>
-        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBase127}/v1/dev/probe/ping`)
+      const probeNoAuth127 = await runProbeSafe("probe 127 no-auth", `${probeBase127}/v1/dev/probe/ping`);
+      const probeNoAuthLocalhost = await runProbeSafe(
+        "probe localhost no-auth",
+        `${probeBaseLocalhost}/v1/dev/probe/ping`
       );
-      pushStep({ label: probeNoAuth127.label, durationMs: probeNoAuth127.durationMs, status: "ok" });
-
-      const probeNoAuthLocalhost = await runStep("probe localhost no-auth", async () =>
-        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBaseLocalhost}/v1/dev/probe/ping`)
+      const probeAuth127 = await runProbeSafe(
+        "probe 127 auth-ping",
+        `${probeBase127}/v1/admin/dev/probe/auth-ping`,
+        { withAdminAuth: true }
       );
-      pushStep({ label: probeNoAuthLocalhost.label, durationMs: probeNoAuthLocalhost.durationMs, status: "ok" });
-
-      const probeAuth127 = await runStep("probe 127 auth-ping", async () =>
-        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBase127}/v1/admin/dev/probe/auth-ping`, undefined, {
-          withAdminAuth: true,
-        })
+      const probeAuthLocalhost = await runProbeSafe(
+        "probe localhost auth-ping",
+        `${probeBaseLocalhost}/v1/admin/dev/probe/auth-ping`,
+        { withAdminAuth: true }
       );
-      pushStep({ label: probeAuth127.label, durationMs: probeAuth127.durationMs, status: "ok" });
-
-      const probeAuthLocalhost = await runStep("probe localhost auth-ping", async () =>
-        apiFetchAbsoluteWithTiming<{ ok: boolean }>(`${probeBaseLocalhost}/v1/admin/dev/probe/auth-ping`, undefined, {
-          withAdminAuth: true,
-        })
-      );
-      pushStep({ label: probeAuthLocalhost.label, durationMs: probeAuthLocalhost.durationMs, status: "ok" });
 
       const perPage = 25;
       const productsSearchParams = { q: "vang", page: 1, per_page: perPage };
@@ -852,10 +878,10 @@ export default function AdminCrudAuditPage() {
         articleCreate: articleCreateSummary,
         articleEdit: articleEditSummary,
         probeMatrix: {
-          noAuth127: probeNoAuth127.result.timing,
-          noAuthLocalhost: probeNoAuthLocalhost.result.timing,
-          auth127: probeAuth127.result.timing,
-          authLocalhost: probeAuthLocalhost.result.timing,
+          noAuth127: probeNoAuth127,
+          noAuthLocalhost: probeNoAuthLocalhost,
+          auth127: probeAuth127,
+          authLocalhost: probeAuthLocalhost,
         },
       };
 
