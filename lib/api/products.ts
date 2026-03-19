@@ -299,13 +299,37 @@ interface ProductFiltersResponse {
   data: ProductFiltersPayload;
 }
 
-export async function fetchProductFilters(typeId?: number | null): Promise<ProductFiltersPayload> {
-  const query = typeId ? `?type_id=${typeId}` : '';
-  const response = await apiFetch<ProductFiltersResponse>(`v1/san-pham/filters/options${query}`, {
-    next: { tags: ['filters'] },
-  });
+const productFiltersCache = new Map<string, Promise<ProductFiltersPayload>>();
 
-  return normalizeProductFilters(response.data);
+const buildFiltersCacheKey = (typeId?: number | null) => (typeId ? `type:${typeId}` : 'all');
+
+export async function fetchProductFilters(
+  typeId?: number | null,
+  options?: { bypassCache?: boolean }
+): Promise<ProductFiltersPayload> {
+  const cacheKey = buildFiltersCacheKey(typeId);
+  const cachedPromise = !options?.bypassCache ? productFiltersCache.get(cacheKey) : null;
+  if (cachedPromise) {
+    return cachedPromise;
+  }
+
+  const requestPromise = (async () => {
+    const query = typeId ? `?type_id=${typeId}` : '';
+    const response = await apiFetch<ProductFiltersResponse>(`v1/san-pham/filters/options${query}`, {
+      next: { tags: ['filters'] },
+    });
+
+    return normalizeProductFilters(response.data);
+  })();
+
+  productFiltersCache.set(cacheKey, requestPromise);
+
+  try {
+    return await requestPromise;
+  } catch (error) {
+    productFiltersCache.delete(cacheKey);
+    throw error;
+  }
 }
 
 interface ProductSuggestionOptions {

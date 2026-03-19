@@ -99,6 +99,7 @@ const generateSlug = (text: string): string => {
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
   const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
   const didSyncTypeRef = useRef(false);
+  const currentFiltersTypeRef = useRef<number | null>(null);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
  
    useEffect(() => {
@@ -202,6 +203,7 @@ const generateSlug = (text: string): string => {
  
          setTypes(filtersRes.types);
         setProductShopeeLinkEnabled(Boolean(settingsRes?.data.product_shopee_link_enabled));
+        currentFiltersTypeRef.current = product.type_id ?? null;
  
         syncFiltersWithProduct(filtersRes, product);
        } catch (error) {
@@ -222,11 +224,17 @@ const generateSlug = (text: string): string => {
     }
 
     if (typeId) {
-      void fetchProductFilters(Number(typeId)).then(filters => {
+      const nextTypeId = Number(typeId);
+      if (currentFiltersTypeRef.current === nextTypeId) {
+        return;
+      }
+
+      void fetchProductFilters(nextTypeId).then(filters => {
         setCategories(filters.categories);
         setAttributeFilters(filters.attribute_filters || []);
         setSelectedTermIds({});
         setManualAttributes({});
+        currentFiltersTypeRef.current = nextTypeId;
       });
       return;
     }
@@ -234,6 +242,7 @@ const generateSlug = (text: string): string => {
     setAttributeFilters([]);
     setSelectedTermIds({});
     setManualAttributes({});
+    currentFiltersTypeRef.current = null;
   }, [typeId, isLoading]);
 
   const uploadSingleImage = useCallback(async (file: File) => {

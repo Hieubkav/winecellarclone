@@ -84,6 +84,7 @@ const LexicalEditor = dynamic(
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
   const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const currentFiltersTypeRef = useRef<number | null>(null);
   const previewSize = PRODUCT_IMAGE_PREVIEW_SIZE;
    useEffect(() => {
      async function loadFilters() {
@@ -95,6 +96,7 @@ const LexicalEditor = dynamic(
          setTypes(filters.types);
          setCategories(filters.categories);
          setProductShopeeLinkEnabled(Boolean(settingsResult?.data.product_shopee_link_enabled));
+        currentFiltersTypeRef.current = null;
        } catch (error) {
          console.error('Failed to load filters:', error);
        } finally {
@@ -112,16 +114,23 @@ const LexicalEditor = dynamic(
  
    useEffect(() => {
      if (typeId) {
-      void fetchProductFilters(Number(typeId)).then(filters => {
+      const nextTypeId = Number(typeId);
+      if (currentFiltersTypeRef.current === nextTypeId) {
+        return;
+      }
+
+      void fetchProductFilters(nextTypeId).then(filters => {
         setCategories(filters.categories);
         setAttributeFilters(filters.attribute_filters || []);
         setSelectedTermIds({});
         setManualAttributes({});
+        currentFiltersTypeRef.current = nextTypeId;
       });
     } else {
       setAttributeFilters([]);
       setSelectedTermIds({});
       setManualAttributes({});
+      currentFiltersTypeRef.current = null;
      }
    }, [typeId]);
  
