@@ -41,7 +41,7 @@ export function useAdminBranding(): AdminBrandingState {
         const data = res.data;
         setSiteName(normalizeSiteName(data.site_name));
         setLogoUrl(data.logo_image_url ? `${backendUrl}${data.logo_image_url}` : null);
-      } catch (error) {
+      } catch {
         if (!cancelled) {
           setSiteName(DEFAULT_SITE_NAME);
           setLogoUrl(null);
