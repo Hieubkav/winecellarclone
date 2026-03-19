@@ -100,10 +100,12 @@ const generateSlug = (text: string): string => {
   const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
   const didSyncTypeRef = useRef(false);
   const currentFiltersTypeRef = useRef<number | null>(null);
+  const productDataRef = useRef<Awaited<ReturnType<typeof fetchAdminProduct>>['data'] | null>(null);
+  const [isAttributeLoading, setIsAttributeLoading] = useState(false);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
- 
-   useEffect(() => {
-    const syncFiltersWithProduct = (
+
+  const syncFiltersWithProduct = useCallback(
+    (
       filters: Awaited<ReturnType<typeof fetchProductFilters>>,
       product: Awaited<ReturnType<typeof fetchAdminProduct>>['data']
     ) => {
@@ -134,52 +136,21 @@ const generateSlug = (text: string): string => {
 
       setSelectedTermIds(nextSelectedTermIds);
       setManualAttributes(nextManualAttributes);
-    };
-
-    const syncSecondaryFilters = (filters: Awaited<ReturnType<typeof fetchProductFilters>>) => {
-      setCategories(filters.categories);
-      setAttributeFilters(filters.attribute_filters || []);
-
-      const allowedOptionIds = new Set<number>();
-      const allowedGroupCodes = new Set<string>();
-      (filters.attribute_filters || []).forEach(group => {
-        allowedGroupCodes.add(group.code);
-        (group.options || []).forEach(option => allowedOptionIds.add(option.id));
-      });
-
-      setSelectedTermIds(prev => {
-        const next: Record<string, number[]> = {};
-        Object.entries(prev).forEach(([code, ids]) => {
-          if (!allowedGroupCodes.has(code)) return;
-          const filtered = ids.filter(id => allowedOptionIds.has(id));
-          if (filtered.length > 0) {
-            next[code] = filtered;
-          }
-        });
-        return next;
-      });
-
-      setManualAttributes(prev => {
-        const next: Record<string, string> = {};
-        Object.entries(prev).forEach(([code, value]) => {
-          if (allowedGroupCodes.has(code)) {
-            next[code] = value;
-          }
-        });
-        return next;
-      });
-    };
-
+    },
+    []
+  );
+ 
+   useEffect(() => {
     async function loadData() {
       let product: Awaited<ReturnType<typeof fetchAdminProduct>>['data'] | null = null;
        try {
-       const [productRes, settingsRes] = await Promise.all([
+       const [productRes, settingsRes, baseFilters] = await Promise.all([
            fetchAdminProduct(Number(id)),
            fetchAdminSettingsLite().catch(() => null),
+           fetchProductFilters().catch(() => null),
          ]);
 
         product = productRes.data;
-        const filtersRes = await fetchProductFilters(product.type_id ?? undefined);
          setName(product.name);
          setSlug(product.slug);
         setPrice(formatNumberInput(product.price?.toString() || ''));
@@ -201,11 +172,14 @@ const generateSlug = (text: string): string => {
             .filter((image: { url: string; path: string }) => image.url && image.path)
         );
  
-         setTypes(filtersRes.types);
+         setTypes(baseFilters?.types ?? []);
+        setCategories(baseFilters?.categories ?? []);
+        setAttributeFilters([]);
         setProductShopeeLinkEnabled(Boolean(settingsRes?.data.product_shopee_link_enabled));
-        currentFiltersTypeRef.current = product.type_id ?? null;
- 
-        syncFiltersWithProduct(filtersRes, product);
+        currentFiltersTypeRef.current = null;
+        productDataRef.current = product;
+        didSyncTypeRef.current = false;
+        setIsAttributeLoading(Boolean(product.type_id));
        } catch (error) {
          console.error('Failed to load product:', error);
          setNotFound(true);
@@ -218,24 +192,31 @@ const generateSlug = (text: string): string => {
  
   useEffect(() => {
     if (isLoading) return;
-    if (!didSyncTypeRef.current) {
-      didSyncTypeRef.current = true;
-      return;
-    }
-
     if (typeId) {
       const nextTypeId = Number(typeId);
       if (currentFiltersTypeRef.current === nextTypeId) {
         return;
       }
 
-      void fetchProductFilters(nextTypeId).then(filters => {
-        setCategories(filters.categories);
-        setAttributeFilters(filters.attribute_filters || []);
-        setSelectedTermIds({});
-        setManualAttributes({});
-        currentFiltersTypeRef.current = nextTypeId;
-      });
+      setIsAttributeLoading(true);
+      void fetchProductFilters(nextTypeId)
+        .then(filters => {
+          setCategories(filters.categories);
+          setAttributeFilters(filters.attribute_filters || []);
+
+          if (!didSyncTypeRef.current && productDataRef.current) {
+            syncFiltersWithProduct(filters, productDataRef.current);
+            didSyncTypeRef.current = true;
+          } else {
+            setSelectedTermIds({});
+            setManualAttributes({});
+          }
+
+          currentFiltersTypeRef.current = nextTypeId;
+        })
+        .finally(() => {
+          setIsAttributeLoading(false);
+        });
       return;
     }
 
@@ -243,6 +224,9 @@ const generateSlug = (text: string): string => {
     setSelectedTermIds({});
     setManualAttributes({});
     currentFiltersTypeRef.current = null;
+    didSyncTypeRef.current = false;
+    productDataRef.current = null;
+    setIsAttributeLoading(false);
   }, [typeId, isLoading]);
 
   const uploadSingleImage = useCallback(async (file: File) => {
@@ -818,61 +802,69 @@ const generateSlug = (text: string): string => {
                </div>
              </div>
 
-            {attributeFilters.length > 0 && (
+            {(attributeFilters.length > 0 || isAttributeLoading) && (
               <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                 <Label className="text-base font-medium">Thuộc tính sản phẩm</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {attributeFilters.map(group => (
-                    <div key={group.code} className="space-y-2">
-                      <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                        <DynamicIcon
-                          iconUrl={group.icon_url ? getImageUrl(group.icon_url) : null}
-                          iconName={group.icon_name}
-                          size={16}
-                          className="w-4 h-4 text-red-500"
-                          imageClassName="w-4 h-4"
-                        />
-                        {group.name}
-                        {group.filter_type === 'chon_don' && (
-                          <span className="text-xs text-slate-400">(chọn 1)</span>
+                {isAttributeLoading && attributeFilters.length === 0 ? (
+                  <div className="space-y-2 text-sm text-slate-500">
+                    <div className="h-4 w-40 rounded bg-slate-200" />
+                    <div className="h-4 w-56 rounded bg-slate-200" />
+                    <p>Đang tải thuộc tính theo loại sản phẩm...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {attributeFilters.map(group => (
+                      <div key={group.code} className="space-y-2">
+                        <Label className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                          <DynamicIcon
+                            iconUrl={group.icon_url ? getImageUrl(group.icon_url) : null}
+                            iconName={group.icon_name}
+                            size={16}
+                            className="w-4 h-4 text-red-500"
+                            imageClassName="w-4 h-4"
+                          />
+                          {group.name}
+                          {group.filter_type === 'chon_don' && (
+                            <span className="text-xs text-slate-400">(chọn 1)</span>
+                          )}
+                          {(group.filter_type === 'range' || group.filter_type === 'nhap_tay') && group.input_type === 'number' && (
+                            <span className="text-xs text-slate-400">({group.filter_type === 'range' ? 'khoảng giá trị' : 'nhập số'})</span>
+                          )}
+                        </Label>
+                        {(group.filter_type === 'nhap_tay' || group.filter_type === 'range') && group.input_type ? (
+                          <Input
+                            type={group.input_type === 'number' ? 'number' : 'text'}
+                            placeholder={group.input_type === 'number' ? '0' : 'Nhập giá trị'}
+                            min={group.input_type === 'number' ? 0 : undefined}
+                            step={group.input_type === 'number' ? 'any' : undefined}
+                            value={manualAttributes[group.code] || ''}
+                            onChange={(e) => handleManualAttributeChange(group.code, e.target.value)}
+                          />
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {group.options.map(option => {
+                              const isSelected = (selectedTermIds[group.code] || []).includes(option.id);
+                              return (
+                                <button
+                                  key={option.id}
+                                  type="button"
+                                  onClick={() => handleTermChange(group.code, option.id, group.filter_type)}
+                                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                                    isSelected
+                                      ? 'bg-blue-500 text-white border-blue-500'
+                                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
+                                  }`}
+                                >
+                                  {option.name}
+                                </button>
+                              );
+                            })}
+                          </div>
                         )}
-                        {(group.filter_type === 'range' || group.filter_type === 'nhap_tay') && group.input_type === 'number' && (
-                          <span className="text-xs text-slate-400">({group.filter_type === 'range' ? 'khoảng giá trị' : 'nhập số'})</span>
-                        )}
-                      </Label>
-                      {(group.filter_type === 'nhap_tay' || group.filter_type === 'range') && group.input_type ? (
-                        <Input
-                          type={group.input_type === 'number' ? 'number' : 'text'}
-                          placeholder={group.input_type === 'number' ? '0' : 'Nhập giá trị'}
-                          min={group.input_type === 'number' ? 0 : undefined}
-                          step={group.input_type === 'number' ? 'any' : undefined}
-                          value={manualAttributes[group.code] || ''}
-                          onChange={(e) => handleManualAttributeChange(group.code, e.target.value)}
-                        />
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {group.options.map(option => {
-                            const isSelected = (selectedTermIds[group.code] || []).includes(option.id);
-                            return (
-                              <button
-                                key={option.id}
-                                type="button"
-                                onClick={() => handleTermChange(group.code, option.id, group.filter_type)}
-                                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                                  isSelected
-                                    ? 'bg-blue-500 text-white border-blue-500'
-                                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
-                                }`}
-                              >
-                                {option.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
  
