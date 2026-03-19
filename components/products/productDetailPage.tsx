@@ -620,18 +620,18 @@ export default function ProductDetailPage({
                       <AttributeIcon iconName={attr.iconName} iconUrl={attr.iconUrl} />
                     </div>
                     <div className="overflow-hidden min-w-0">
-                      <p className="text-[9px] md:text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+                      <p className="text-[10px] md:text-[10px] font-medium text-slate-500 uppercase tracking-wider">
                         {attr.label}
                       </p>
                       {attr.filterUrl ? (
                         <Link 
                           href={attr.filterUrl} 
-                          className="text-[11px] md:text-sm font-medium text-slate-900 truncate block hover:text-[#9B2C3B] transition-colors"
+                          className="text-xs md:text-sm font-medium text-slate-900 truncate block hover:text-[#9B2C3B] transition-colors"
                         >
                           {attr.value}
                         </Link>
                       ) : (
-                        <p className="text-[11px] md:text-sm font-medium text-slate-900 truncate">{attr.value}</p>
+                        <p className="text-xs md:text-sm font-medium text-slate-900 truncate">{attr.value}</p>
                       )}
                     </div>
                   </div>
