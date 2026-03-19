@@ -38,6 +38,7 @@ interface ProductDetailPageProps {
   productContactCtaConfig?: ProductContactCtaConfig | null;
   shopeeLinkEnabled?: boolean;
   mobileMainImageHeight?: number | null;
+  productDetailRules?: string[] | null;
 }
 
 interface ProductGalleryItem {
@@ -111,6 +112,7 @@ export default function ProductDetailPage({
   productContactCtaConfig,
   shopeeLinkEnabled,
   mobileMainImageHeight,
+  productDetailRules,
 }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
   const contactCtaMode = productContactCtaConfig?.mode || "contact_page";
@@ -321,6 +323,13 @@ export default function ProductDetailPage({
   const processedDescription = useMemo(
     () => processProductContent(product.description),
     [product.description]
+  );
+  const normalizedDetailRules = useMemo(
+    () =>
+      (productDetailRules ?? [])
+        .map((rule) => (typeof rule === "string" ? rule.trim() : ""))
+        .filter(Boolean),
+    [productDetailRules]
   );
   const resolvedMobileImageHeight =
     typeof mobileMainImageHeight === "number" && Number.isFinite(mobileMainImageHeight) && mobileMainImageHeight > 0
@@ -722,6 +731,16 @@ export default function ProductDetailPage({
                     </a>
                   </Button>
                 )}
+              </div>
+            )}
+            {normalizedDetailRules.length > 0 && (
+              <div className="mt-4 rounded-lg border border-[#e5ddd0] bg-[#f8f3ec] p-3 md:p-4 text-slate-700">
+                <p className="text-xs md:text-sm font-semibold text-slate-700 mb-2">Lưu ý</p>
+                <ul className="list-disc space-y-1 pl-4 text-xs md:text-sm leading-relaxed text-slate-600">
+                  {normalizedDetailRules.map((rule, index) => (
+                    <li key={`${index}-${rule}`}>{rule}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>

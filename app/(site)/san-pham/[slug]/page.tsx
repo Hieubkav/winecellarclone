@@ -135,6 +135,7 @@ export default async function ProductDetailRoute({
         productContactCtaConfig={settings.product_contact_cta_config}
         shopeeLinkEnabled={Boolean(settings.product_shopee_link_enabled)}
         mobileMainImageHeight={settings.product_mobile_main_image_height}
+        productDetailRules={settings.product_detail_rules}
       />
     </>
   );

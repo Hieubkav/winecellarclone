@@ -14,6 +14,7 @@ export interface AdminSetting {
   product_contact_cta_config: ProductContactCtaConfig | null;
   product_shopee_link_enabled: boolean | null;
   product_mobile_main_image_height: number | null;
+  product_detail_rules: string[] | null;
   meta_default_title: string | null;
   meta_default_description: string | null;
   meta_default_keywords: string | string[] | null;

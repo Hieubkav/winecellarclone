@@ -119,6 +119,7 @@ export const useSettingsForm = () => {
   const [productContactCtaTiktok, setProductContactCtaTiktok] = useState("");
   const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
   const [productMobileMainImageHeight, setProductMobileMainImageHeight] = useState<number | null>(null);
+  const [productDetailRules, setProductDetailRules] = useState<string[]>([]);
 
   const [logoImageId, setLogoImageId] = useState<number | null>(null);
   const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
@@ -185,6 +186,12 @@ export const useSettingsForm = () => {
           ? Number(data.product_mobile_main_image_height)
           : null
       );
+      const resolvedProductDetailRules = Array.isArray(data.product_detail_rules)
+        ? data.product_detail_rules
+            .map((item) => String(item))
+            .filter((value) => value.trim() !== "")
+        : [];
+      setProductDetailRules(resolvedProductDetailRules);
 
       setLogoImageId(data.logo_image_id || null);
       setLogoImageUrl(data.logo_image_url ? `${backendUrl}${data.logo_image_url}` : null);
@@ -289,6 +296,18 @@ export const useSettingsForm = () => {
     return true;
   };
 
+  const addProductDetailRule = () => {
+    setProductDetailRules((prev) => [...prev, ""]);
+  };
+
+  const updateProductDetailRule = (index: number, value: string) => {
+    setProductDetailRules((prev) => prev.map((item, idx) => (idx === index ? value : item)));
+  };
+
+  const removeProductDetailRule = (index: number) => {
+    setProductDetailRules((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -355,6 +374,7 @@ export const useSettingsForm = () => {
         },
         product_shopee_link_enabled: productShopeeLinkEnabled,
         product_mobile_main_image_height: productMobileMainImageHeight,
+        product_detail_rules: productDetailRules,
         logo_image_id: logoImageId,
         favicon_image_id: faviconImageId,
         og_image_id: ogImageId,
@@ -421,6 +441,7 @@ export const useSettingsForm = () => {
       productContactCtaTiktok,
       productShopeeLinkEnabled,
       productMobileMainImageHeight,
+      productDetailRules,
       logoImageId,
       logoImageUrl,
       faviconImageId,
@@ -474,6 +495,9 @@ export const useSettingsForm = () => {
       setProductContactCtaTiktok,
       setProductShopeeLinkEnabled,
       setProductMobileMainImageHeight,
+      addProductDetailRule,
+      updateProductDetailRule,
+      removeProductDetailRule,
       setLogoImageId,
       setLogoImageUrl,
       setFaviconImageId,

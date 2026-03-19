@@ -45,6 +45,7 @@ export const SettingsScreen = () => {
     productContactCtaTiktok,
     productShopeeLinkEnabled,
     productMobileMainImageHeight,
+    productDetailRules,
     logoImageId,
     logoImageUrl,
     faviconImageId,
@@ -97,6 +98,9 @@ export const SettingsScreen = () => {
     setProductContactCtaTiktok,
     setProductShopeeLinkEnabled,
     setProductMobileMainImageHeight,
+    addProductDetailRule,
+    updateProductDetailRule,
+    removeProductDetailRule,
     setLogoImageId,
     setLogoImageUrl,
     setFaviconImageId,
@@ -381,6 +385,43 @@ export const SettingsScreen = () => {
                       />
                     </div>
                   </div>
+                </div>
+              </Card>
+
+              <Card>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                  <h2 className="font-semibold text-slate-900 dark:text-slate-100">Lưu ý trang chi tiết sản phẩm</h2>
+                  <p className="text-sm text-slate-500">Mỗi dòng sẽ hiển thị thành một gạch đầu dòng dưới khu vực giá/nút mua.</p>
+                </div>
+                <div className="p-6 space-y-3">
+                  {productDetailRules.length === 0 ? (
+                    <p className="text-sm text-slate-500">Chưa có dòng lưu ý nào.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {productDetailRules.map((rule, index) => (
+                        <div key={`${index}-${rule}`} className="flex items-start gap-2">
+                          <Input
+                            value={rule}
+                            onChange={(event) => updateProductDetailRule(index, event.target.value)}
+                            placeholder={`Dòng ${index + 1}`}
+                            maxLength={255}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-10 w-10 shrink-0"
+                            onClick={() => removeProductDetailRule(index)}
+                            aria-label={`Xóa dòng ${index + 1}`}
+                          >
+                            <X size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={addProductDetailRule}>
+                    Thêm dòng
+                  </Button>
                 </div>
               </Card>
 
