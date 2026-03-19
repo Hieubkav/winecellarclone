@@ -135,6 +135,40 @@ const generateSlug = (text: string): string => {
       setManualAttributes(nextManualAttributes);
     };
 
+    const syncSecondaryFilters = (filters: Awaited<ReturnType<typeof fetchProductFilters>>) => {
+      setCategories(filters.categories);
+      setAttributeFilters(filters.attribute_filters || []);
+
+      const allowedOptionIds = new Set<number>();
+      const allowedGroupCodes = new Set<string>();
+      (filters.attribute_filters || []).forEach(group => {
+        allowedGroupCodes.add(group.code);
+        (group.options || []).forEach(option => allowedOptionIds.add(option.id));
+      });
+
+      setSelectedTermIds(prev => {
+        const next: Record<string, number[]> = {};
+        Object.entries(prev).forEach(([code, ids]) => {
+          if (!allowedGroupCodes.has(code)) return;
+          const filtered = ids.filter(id => allowedOptionIds.has(id));
+          if (filtered.length > 0) {
+            next[code] = filtered;
+          }
+        });
+        return next;
+      });
+
+      setManualAttributes(prev => {
+        const next: Record<string, string> = {};
+        Object.entries(prev).forEach(([code, value]) => {
+          if (allowedGroupCodes.has(code)) {
+            next[code] = value;
+          }
+        });
+        return next;
+      });
+    };
+
     async function loadData() {
       let product: Awaited<ReturnType<typeof fetchAdminProduct>>['data'] | null = null;
        try {
@@ -179,7 +213,7 @@ const generateSlug = (text: string): string => {
       if (product?.type_id) {
         void fetchProductFilters(product.type_id)
           .then((typeFilters) => {
-            syncFiltersWithProduct(typeFilters, product);
+            syncSecondaryFilters(typeFilters);
           })
           .catch((error) => {
             console.error('Failed to load product filters:', error);

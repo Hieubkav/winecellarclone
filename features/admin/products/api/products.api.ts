@@ -59,7 +59,15 @@ export interface AdminProductsResponse {
     last_page: number;
     per_page: number;
     total: number;
+    audit?: AdminAuditMeta;
   };
+}
+
+export interface AdminAuditMeta {
+  auth_ms?: number;
+  query_ms?: number;
+  transform_ms?: number;
+  controller_ms?: number;
 }
 
 export interface AdminProductFilterOption {
@@ -99,7 +107,9 @@ export async function downloadAdminProductsExport(
   return { blob, filename };
 }
 
-export async function fetchAdminProduct(id: number): Promise<{ data: AdminProductDetail }> {
+export async function fetchAdminProduct(
+  id: number
+): Promise<{ data: AdminProductDetail; meta?: { audit?: AdminAuditMeta } }> {
   return apiFetch(`v1/admin/products/${id}`);
 }
 

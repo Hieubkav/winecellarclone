@@ -6,6 +6,7 @@ import { fetchAdminProducts, fetchAdminProductFilters, fetchAdminProduct } from 
 import { fetchAdminArticles, fetchAdminArticle } from "@/features/admin/articles/api/articles.api";
 import { fetchProductFilters } from "@/lib/api/products";
 import { fetchAdminSettingsLite } from "@/features/admin/settings/api/settings.api";
+import { apiFetch } from "@/lib/api/client";
 
 type AuditStatus = "idle" | "running" | "done" | "error";
 
@@ -33,6 +34,9 @@ type ProductsListAudit = {
   hasImages: boolean;
   visibleColumns: number;
   typeWaterfallMs: number | null;
+  productsAudit: BackendAudit | null;
+  filtersAudit: BackendAudit | null;
+  searchAudit: BackendAudit | null;
   sampleProductId: number | null;
   searchParams: Record<string, string | number>;
 };
@@ -42,6 +46,8 @@ type ProductCreateAudit = {
   filtersMs: number | null;
   settingsMs: number | null;
   typeWaterfallMs: number | null;
+  filtersAudit: BackendAudit | null;
+  settingsAudit: BackendAudit | null;
   typesCount: number;
   categoriesCount: number;
   attributeGroups: number;
@@ -59,6 +65,9 @@ type ProductEditAudit = {
   settingsMs: number | null;
   dependentFiltersMs: number | null;
   totalReadyMs: number | null;
+  productAudit: BackendAudit | null;
+  filtersAudit: BackendAudit | null;
+  settingsAudit: BackendAudit | null;
   imagesCount: number;
   editorStrategy: "eager" | "lazy";
   hasStickyBar: boolean;
@@ -81,6 +90,8 @@ type ArticlesListAudit = {
   hasImages: boolean;
   hasExcerpt: boolean;
   visibleColumns: number;
+  listAudit: BackendAudit | null;
+  searchAudit: BackendAudit | null;
   sampleArticleId: number | null;
   searchParams: Record<string, string | number>;
 };
@@ -99,6 +110,7 @@ type ArticleEditAudit = {
   imagesCount: number;
   hasSeoBlock: boolean;
   reloadAfterSave: boolean;
+  fetchAudit: BackendAudit | null;
   articleId: number | null;
 };
 
@@ -120,6 +132,28 @@ const formatMs = (value?: number | null) => {
   return `${Math.round(value)}ms`;
 };
 
+type BackendAudit = {
+  auth_ms?: number;
+  query_ms?: number;
+  transform_ms?: number;
+  controller_ms?: number;
+};
+
+const formatAudit = (durationMs: number | null, audit?: BackendAudit | null) => {
+  if (!audit) return "-";
+  const roundtripGap =
+    durationMs !== null && audit.controller_ms !== undefined
+      ? Math.max(0, Math.round(durationMs - audit.controller_ms))
+      : null;
+  return [
+    `auth ${formatMs(audit.auth_ms)}`,
+    `query ${formatMs(audit.query_ms)}`,
+    `transform ${formatMs(audit.transform_ms)}`,
+    `controller ${formatMs(audit.controller_ms)}`,
+    `gap ${formatMs(roundtripGap)}`,
+  ].join(" | ");
+};
+
 const formatDateTime = (value: Date) => value.toISOString().replace("T", " ").slice(0, 19);
 
 const pickMax = (candidates: Array<{ label: string; value: number | null }>) => {
@@ -128,6 +162,10 @@ const pickMax = (candidates: Array<{ label: string; value: number | null }>) => 
     if (!carry || (carry.value ?? -1) < current.value) return current;
     return carry;
   }, null);
+};
+
+const extractAuditMeta = (payload?: { meta?: { audit?: BackendAudit } } | null) => {
+  return payload?.meta?.audit ?? null;
 };
 
 export default function AdminCrudAuditPage() {
@@ -243,11 +281,14 @@ export default function AdminCrudAuditPage() {
       "3. Products List",
       "3.1 Observation",
       `- Products API: ${formatMs(data.productsList.productsMs)}`,
+      `- Products API backend: ${formatAudit(data.productsList.productsMs, data.productsList.productsAudit)}`,
       `- Filters API: ${formatMs(data.productsList.filtersMs)}`,
+      `- Filters API backend: ${formatAudit(data.productsList.filtersMs, data.productsList.filtersAudit)}`,
       `- Parallel total: ${formatMs(data.productsList.parallelMs)}`,
       `- Sequential total: ${formatMs(data.productsList.sequentialMs)}`,
       `- Type change waterfall: ${formatMs(data.productsList.typeWaterfallMs)}`,
       `- Search request: ${formatMs(data.productsList.searchRequestMs)}`,
+      `- Search backend: ${formatAudit(data.productsList.searchRequestMs, data.productsList.searchAudit)}`,
       `- Search perceived (debounce 400ms): ${formatMs(data.productsList.searchPerceivedMs)}`,
       `- Pagination pages: ${data.productsList.paginationMs.map(formatMs).join(" / ") || "-"}`,
       "3.2 Raw Snapshot",
@@ -268,7 +309,9 @@ export default function AdminCrudAuditPage() {
       "4. Product Create",
       "4.1 Observation",
       `- Filters API: ${formatMs(data.productCreate.filtersMs)}`,
+      `- Filters API backend: ${formatAudit(data.productCreate.filtersMs, data.productCreate.filtersAudit)}`,
       `- Settings API: ${formatMs(data.productCreate.settingsMs)}`,
+      `- Settings API backend: ${formatAudit(data.productCreate.settingsMs, data.productCreate.settingsAudit)}`,
       `- Parallel total: ${formatMs(data.productCreate.parallelMs)}`,
       `- Type change waterfall: ${formatMs(data.productCreate.typeWaterfallMs)}`,
       "4.2 Raw Snapshot",
@@ -288,8 +331,11 @@ export default function AdminCrudAuditPage() {
       "5. Product Edit",
       "5.1 Observation",
       `- Product API: ${formatMs(data.productEdit.productMs)}`,
+      `- Product API backend: ${formatAudit(data.productEdit.productMs, data.productEdit.productAudit)}`,
       `- Filters API: ${formatMs(data.productEdit.filtersMs)}`,
+      `- Filters API backend: ${formatAudit(data.productEdit.filtersMs, data.productEdit.filtersAudit)}`,
       `- Settings API: ${formatMs(data.productEdit.settingsMs)}`,
+      `- Settings API backend: ${formatAudit(data.productEdit.settingsMs, data.productEdit.settingsAudit)}`,
       `- Parallel total: ${formatMs(data.productEdit.parallelMs)}`,
       `- Dependent type filters: ${formatMs(data.productEdit.dependentFiltersMs)}`,
       `- Total ready (parallel + dependent): ${formatMs(data.productEdit.totalReadyMs)}`,
@@ -310,7 +356,9 @@ export default function AdminCrudAuditPage() {
       "6. Articles List",
       "6.1 Observation",
       `- Articles API: ${formatMs(data.articlesList.listMs)}`,
+      `- Articles API backend: ${formatAudit(data.articlesList.listMs, data.articlesList.listAudit)}`,
       `- Search request: ${formatMs(data.articlesList.searchRequestMs)}`,
+      `- Search backend: ${formatAudit(data.articlesList.searchRequestMs, data.articlesList.searchAudit)}`,
       `- Search perceived (debounce 400ms): ${formatMs(data.articlesList.searchPerceivedMs)}`,
       `- Pagination pages: ${data.articlesList.paginationMs.map(formatMs).join(" / ") || "-"}`,
       "6.2 Raw Snapshot",
@@ -342,6 +390,7 @@ export default function AdminCrudAuditPage() {
       "8. Article Edit",
       "8.1 Observation",
       `- Article API: ${formatMs(data.articleEdit.fetchMs)}`,
+      `- Article API backend: ${formatAudit(data.articleEdit.fetchMs, data.articleEdit.fetchAudit)}`,
       "8.2 Raw Snapshot",
       `- article_id: ${data.articleEdit.articleId ?? "-"}`,
       `- images_count: ${data.articleEdit.imagesCount}`,
@@ -387,6 +436,27 @@ export default function AdminCrudAuditPage() {
     setReportText("");
     setSteps([]);
 
+    const fetchAdminSettingsLiteAudit = async () =>
+      apiFetch<{ data: { id: number; product_shopee_link_enabled: boolean; updated_at?: string }; meta?: { audit?: BackendAudit } }>(
+        "v1/admin/settings/lite?audit=1"
+      );
+    const fetchAdminProductAudit = async (productId: number) =>
+      apiFetch<{ data: Awaited<ReturnType<typeof fetchAdminProduct>>["data"]; meta?: { audit?: BackendAudit } }>(
+        `v1/admin/products/${productId}?audit=1`
+      );
+    const fetchAdminArticleAudit = async (articleId: number) =>
+      apiFetch<{ data: Awaited<ReturnType<typeof fetchAdminArticle>>["data"]; meta?: { audit?: BackendAudit } }>(
+        `v1/admin/articles/${articleId}?audit=1`
+      );
+    const fetchAdminProductFiltersAudit = async (typeId?: number | null) => {
+      const params = new URLSearchParams();
+      if (typeId) params.set("type_id", String(typeId));
+      params.set("audit", "1");
+      return apiFetch<{ data: { categories: Array<{ id: number; name: string; slug: string }>; types: Array<{ id: number; name: string; slug: string }> }; meta?: { audit?: BackendAudit } }>(
+        `v1/admin/products/filters?${params.toString()}`
+      );
+    };
+
     const localSteps: AuditStep[] = [];
     const pushStep = (step: AuditStep) => {
       localSteps.push(step);
@@ -399,49 +469,49 @@ export default function AdminCrudAuditPage() {
       const articlesSearchParams = { q: "vang", page: 1, per_page: perPage, sort_by: "published_at", sort_dir: "desc" };
 
       const productsListResult = await runStep("products list", async () => {
-        return fetchAdminProducts({ page: 1, per_page: perPage });
+        return fetchAdminProducts({ page: 1, per_page: perPage, audit: 1 });
       });
       pushStep({ label: productsListResult.label, durationMs: productsListResult.durationMs, status: "ok" });
 
       const productsFiltersResult = await runStep("products filters", async () => {
-        return fetchAdminProductFilters();
+        return fetchAdminProductFiltersAudit();
       });
       pushStep({ label: productsFiltersResult.label, durationMs: productsFiltersResult.durationMs, status: "ok" });
 
       const productsParallelResult = await runStep("products parallel list+filters", async () => {
         await Promise.all([
-          fetchAdminProducts({ page: 1, per_page: perPage }),
-          fetchAdminProductFilters(),
+          fetchAdminProducts({ page: 1, per_page: perPage, audit: 1 }),
+          fetchAdminProductFiltersAudit(),
         ]);
       });
       pushStep({ label: productsParallelResult.label, durationMs: productsParallelResult.durationMs, status: "ok" });
 
       const productsSequentialResult = await runStep("products sequential list->filters", async () => {
-        await fetchAdminProducts({ page: 1, per_page: perPage });
-        await fetchAdminProductFilters();
+        await fetchAdminProducts({ page: 1, per_page: perPage, audit: 1 });
+        await fetchAdminProductFiltersAudit();
       });
       pushStep({ label: productsSequentialResult.label, durationMs: productsSequentialResult.durationMs, status: "ok" });
 
-      const typeIdForList = productsFiltersResult.result.types?.[0]?.id ?? null;
+      const typeIdForList = productsFiltersResult.result.data.types?.[0]?.id ?? null;
       let productsTypeWaterfallMs: number | null = null;
       if (typeIdForList) {
         const typeWaterfallResult = await runStep(`products type waterfall type=${typeIdForList}`, async () => {
-          await fetchAdminProductFilters(typeIdForList);
-          await fetchAdminProducts({ page: 1, per_page: perPage, type_id: typeIdForList });
+          await fetchAdminProductFiltersAudit(typeIdForList);
+          await fetchAdminProducts({ page: 1, per_page: perPage, type_id: typeIdForList, audit: 1 });
         });
         productsTypeWaterfallMs = typeWaterfallResult.durationMs;
         pushStep({ label: typeWaterfallResult.label, durationMs: typeWaterfallResult.durationMs, status: "ok" });
       }
 
       const productsSearchResult = await runStep("products search", async () => {
-        return fetchAdminProducts(productsSearchParams);
+        return fetchAdminProducts({ ...productsSearchParams, audit: 1 });
       });
       pushStep({ label: productsSearchResult.label, durationMs: productsSearchResult.durationMs, status: "ok" });
 
       const productsPaginationMs: number[] = [];
       for (let page = 1; page <= 3; page += 1) {
         const pageResult = await runStep(`products page ${page}`, async () => {
-          await fetchAdminProducts({ page, per_page: perPage });
+          await fetchAdminProducts({ page, per_page: perPage, audit: 1 });
         });
         productsPaginationMs.push(pageResult.durationMs);
         pushStep({ label: pageResult.label, durationMs: pageResult.durationMs, status: "ok" });
@@ -450,19 +520,19 @@ export default function AdminCrudAuditPage() {
       const productCreateParallel = await runStep("product create parallel", async () => {
         return Promise.all([
           fetchProductFilters(),
-          fetchAdminSettingsLite().catch(() => null),
+          fetchAdminSettingsLiteAudit().catch(() => null),
         ]);
       });
       pushStep({ label: productCreateParallel.label, durationMs: productCreateParallel.durationMs, status: "ok" });
 
-      const [productCreateFilters] = productCreateParallel.result;
+      const [productCreateFilters, productCreateSettings] = productCreateParallel.result;
       const productCreateFiltersMs = await runStep("product create filters (baseline)", async () => {
         return fetchProductFilters();
       });
       pushStep({ label: productCreateFiltersMs.label, durationMs: productCreateFiltersMs.durationMs, status: "ok" });
 
       const productCreateSettingsMs = await runStep("product create settings (baseline)", async () => {
-        return fetchAdminSettingsLite().catch(() => null);
+        return fetchAdminSettingsLiteAudit().catch(() => null);
       });
       pushStep({ label: productCreateSettingsMs.label, durationMs: productCreateSettingsMs.durationMs, status: "ok" });
 
@@ -485,23 +555,25 @@ export default function AdminCrudAuditPage() {
       let productEditSettingsMs: number | null = null;
       let productEditProductMs: number | null = null;
       let productEditFiltersMs: number | null = null;
+      let productEditSettingsAudit: BackendAudit | null = null;
 
       if (productIdForEdit) {
         const editParallel = await runStep("product edit parallel", async () => {
           const [productRes, filtersRes, settingsRes] = await Promise.all([
-            fetchAdminProduct(productIdForEdit),
+            fetchAdminProductAudit(productIdForEdit),
             fetchProductFilters(),
-            fetchAdminSettingsLite().catch(() => null),
+            fetchAdminSettingsLiteAudit().catch(() => null),
           ]);
           return { productRes, filtersRes, settingsRes };
         });
         productEditParallelMs = editParallel.durationMs;
         productEditDetail = editParallel.result.productRes;
         productEditFilters = editParallel.result.filtersRes;
+        productEditSettingsAudit = extractAuditMeta(editParallel.result.settingsRes);
         pushStep({ label: editParallel.label, durationMs: editParallel.durationMs, status: "ok" });
 
         const editProductBaseline = await runStep("product edit product baseline", async () => {
-          return fetchAdminProduct(productIdForEdit);
+          return fetchAdminProductAudit(productIdForEdit);
         });
         productEditProductMs = editProductBaseline.durationMs;
         pushStep({ label: editProductBaseline.label, durationMs: editProductBaseline.durationMs, status: "ok" });
@@ -513,9 +585,10 @@ export default function AdminCrudAuditPage() {
         pushStep({ label: editFiltersBaseline.label, durationMs: editFiltersBaseline.durationMs, status: "ok" });
 
         const editSettingsBaseline = await runStep("product edit settings baseline", async () => {
-          return fetchAdminSettingsLite().catch(() => null);
+          return fetchAdminSettingsLiteAudit().catch(() => null);
         });
         productEditSettingsMs = editSettingsBaseline.durationMs;
+        productEditSettingsAudit = extractAuditMeta(editSettingsBaseline.result ?? null);
         pushStep({ label: editSettingsBaseline.label, durationMs: editSettingsBaseline.durationMs, status: "ok" });
 
         const editTypeId = editParallel.result.productRes.data.type_id;
@@ -535,19 +608,19 @@ export default function AdminCrudAuditPage() {
       }
 
       const articlesListResult = await runStep("articles list", async () => {
-        return fetchAdminArticles({ page: 1, per_page: perPage, sort_by: "published_at", sort_dir: "desc" });
+        return fetchAdminArticles({ page: 1, per_page: perPage, sort_by: "published_at", sort_dir: "desc", audit: 1 });
       });
       pushStep({ label: articlesListResult.label, durationMs: articlesListResult.durationMs, status: "ok" });
 
       const articlesSearchResult = await runStep("articles search", async () => {
-        return fetchAdminArticles(articlesSearchParams);
+        return fetchAdminArticles({ ...articlesSearchParams, audit: 1 });
       });
       pushStep({ label: articlesSearchResult.label, durationMs: articlesSearchResult.durationMs, status: "ok" });
 
       const articlesPaginationMs: number[] = [];
       for (let page = 1; page <= 3; page += 1) {
         const pageResult = await runStep(`articles page ${page}`, async () => {
-          await fetchAdminArticles({ page, per_page: perPage, sort_by: "published_at", sort_dir: "desc" });
+          await fetchAdminArticles({ page, per_page: perPage, sort_by: "published_at", sort_dir: "desc", audit: 1 });
         });
         articlesPaginationMs.push(pageResult.durationMs);
         pushStep({ label: pageResult.label, durationMs: pageResult.durationMs, status: "ok" });
@@ -558,7 +631,7 @@ export default function AdminCrudAuditPage() {
       let articleEditResult: Awaited<ReturnType<typeof fetchAdminArticle>> | null = null;
       if (articleIdForEdit) {
         const articleEditResultStep = await runStep("article edit fetch", async () => {
-          return fetchAdminArticle(articleIdForEdit);
+          return fetchAdminArticleAudit(articleIdForEdit);
         });
         articleEditResultMs = articleEditResultStep.durationMs;
         articleEditResult = articleEditResultStep.result;
@@ -578,12 +651,15 @@ export default function AdminCrudAuditPage() {
         perPage,
         total: productsListResult.result.meta.total,
         lastPage: productsListResult.result.meta.last_page,
-        categoriesCount: productsFiltersResult.result.categories.length,
-        typesCount: productsFiltersResult.result.types.length,
+        categoriesCount: productsFiltersResult.result.data.categories.length,
+        typesCount: productsFiltersResult.result.data.types.length,
         itemsCount: productsListResult.result.data.length,
         hasImages: productsListResult.result.data.some((item) => Boolean(item.cover_image_url)),
         visibleColumns: 8,
         typeWaterfallMs: productsTypeWaterfallMs,
+        productsAudit: extractAuditMeta(productsListResult.result),
+        filtersAudit: extractAuditMeta(productsFiltersResult.result),
+        searchAudit: extractAuditMeta(productsSearchResult.result),
         sampleProductId: productIdForEdit,
         searchParams: productsSearchParams,
       };
@@ -593,6 +669,8 @@ export default function AdminCrudAuditPage() {
         filtersMs: productCreateFiltersMs.durationMs,
         settingsMs: productCreateSettingsMs.durationMs,
         typeWaterfallMs: productCreateTypeWaterfallMs,
+        filtersAudit: null,
+        settingsAudit: extractAuditMeta(productCreateSettings),
         typesCount: productCreateFilters.types.length,
         categoriesCount: productCreateFilters.categories.length,
         attributeGroups: productCreateFilters.attribute_filters.length,
@@ -610,6 +688,9 @@ export default function AdminCrudAuditPage() {
         settingsMs: productEditSettingsMs,
         dependentFiltersMs: productEditDependentMs,
         totalReadyMs: productEditTotalReadyMs,
+        productAudit: extractAuditMeta(productEditDetail),
+        filtersAudit: null,
+        settingsAudit: productEditSettingsAudit,
         imagesCount: productEditDetail?.data.images?.length ?? 0,
         editorStrategy: "lazy",
         hasStickyBar: true,
@@ -632,6 +713,8 @@ export default function AdminCrudAuditPage() {
         hasImages: articlesListResult.result.data.some((item) => Boolean(item.cover_image_url)),
         hasExcerpt: true,
         visibleColumns: 4,
+        listAudit: extractAuditMeta(articlesListResult.result),
+        searchAudit: extractAuditMeta(articlesSearchResult.result),
         sampleArticleId: articleIdForEdit,
         searchParams: articlesSearchParams,
       };
@@ -650,6 +733,7 @@ export default function AdminCrudAuditPage() {
         imagesCount: articleEditResult?.data.images?.length ?? 0,
         hasSeoBlock: true,
         reloadAfterSave: true,
+        fetchAudit: extractAuditMeta(articleEditResult),
         articleId: articleIdForEdit,
       };
 

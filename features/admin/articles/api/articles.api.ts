@@ -38,6 +38,12 @@ export interface AdminArticlesResponse {
     last_page: number;
     per_page: number;
     total: number;
+    audit?: {
+      auth_ms?: number;
+      query_ms?: number;
+      transform_ms?: number;
+      controller_ms?: number;
+    };
   };
 }
 
@@ -46,7 +52,9 @@ export async function fetchAdminArticles(params?: Record<string, string | number
   return apiFetch<AdminArticlesResponse>(`v1/admin/articles${query}`);
 }
 
-export async function fetchAdminArticle(id: number): Promise<{ data: AdminArticle & { content: string } }> {
+export async function fetchAdminArticle(
+  id: number
+): Promise<{ data: AdminArticle & { content: string }; meta?: { audit?: AdminArticlesResponse['meta']['audit'] } }> {
   return apiFetch(`v1/admin/articles/${id}`);
 }
 
