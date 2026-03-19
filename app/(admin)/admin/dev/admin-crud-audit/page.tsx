@@ -2,11 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "../../components/ui";
-import { fetchAdminProducts, fetchAdminProductFilters, fetchAdminProduct } from "@/features/admin/products/api/products.api";
-import { fetchAdminArticles, fetchAdminArticle } from "@/features/admin/articles/api/articles.api";
+import { type AdminProductsResponse, type AdminProductDetail } from "@/features/admin/products/api/products.api";
+import { type AdminArticlesResponse } from "@/features/admin/articles/api/articles.api";
 import { fetchProductFilters } from "@/lib/api/products";
-import { fetchAdminSettingsLite } from "@/features/admin/settings/api/settings.api";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetchWithTiming, type ApiFetchTiming } from "@/lib/api/client";
 
 type AuditStatus = "idle" | "running" | "done" | "error";
 
@@ -37,6 +36,9 @@ type ProductsListAudit = {
   productsAudit: BackendAudit | null;
   filtersAudit: BackendAudit | null;
   searchAudit: BackendAudit | null;
+  productsClient: ClientTiming | null;
+  filtersClient: ClientTiming | null;
+  searchClient: ClientTiming | null;
   sampleProductId: number | null;
   searchParams: Record<string, string | number>;
 };
@@ -48,6 +50,7 @@ type ProductCreateAudit = {
   typeWaterfallMs: number | null;
   filtersAudit: BackendAudit | null;
   settingsAudit: BackendAudit | null;
+  settingsClient: ClientTiming | null;
   typesCount: number;
   categoriesCount: number;
   attributeGroups: number;
@@ -68,6 +71,8 @@ type ProductEditAudit = {
   productAudit: BackendAudit | null;
   filtersAudit: BackendAudit | null;
   settingsAudit: BackendAudit | null;
+  productClient: ClientTiming | null;
+  settingsClient: ClientTiming | null;
   imagesCount: number;
   editorStrategy: "eager" | "lazy";
   hasStickyBar: boolean;
@@ -92,6 +97,8 @@ type ArticlesListAudit = {
   visibleColumns: number;
   listAudit: BackendAudit | null;
   searchAudit: BackendAudit | null;
+  listClient: ClientTiming | null;
+  searchClient: ClientTiming | null;
   sampleArticleId: number | null;
   searchParams: Record<string, string | number>;
 };
@@ -111,6 +118,7 @@ type ArticleEditAudit = {
   hasSeoBlock: boolean;
   reloadAfterSave: boolean;
   fetchAudit: BackendAudit | null;
+  fetchClient: ClientTiming | null;
   articleId: number | null;
 };
 
@@ -139,6 +147,8 @@ type BackendAudit = {
   controller_ms?: number;
 };
 
+type ClientTiming = ApiFetchTiming;
+
 const formatAudit = (durationMs: number | null, audit?: BackendAudit | null) => {
   if (!audit) return "-";
   const roundtripGap =
@@ -152,6 +162,11 @@ const formatAudit = (durationMs: number | null, audit?: BackendAudit | null) => 
     `controller ${formatMs(audit.controller_ms)}`,
     `gap ${formatMs(roundtripGap)}`,
   ].join(" | ");
+};
+
+const formatClientTiming = (timing?: ClientTiming | null) => {
+  if (!timing) return "-";
+  return `total ${formatMs(timing.total_ms)} | fetch ${formatMs(timing.response_ms)} | parse ${formatMs(timing.parse_ms)}`;
 };
 
 const formatDateTime = (value: Date) => value.toISOString().replace("T", " ").slice(0, 19);
@@ -282,13 +297,16 @@ export default function AdminCrudAuditPage() {
       "3.1 Observation",
       `- Products API: ${formatMs(data.productsList.productsMs)}`,
       `- Products API backend: ${formatAudit(data.productsList.productsMs, data.productsList.productsAudit)}`,
+      `- Products API client: ${formatClientTiming(data.productsList.productsClient)}`,
       `- Filters API: ${formatMs(data.productsList.filtersMs)}`,
       `- Filters API backend: ${formatAudit(data.productsList.filtersMs, data.productsList.filtersAudit)}`,
+      `- Filters API client: ${formatClientTiming(data.productsList.filtersClient)}`,
       `- Parallel total: ${formatMs(data.productsList.parallelMs)}`,
       `- Sequential total: ${formatMs(data.productsList.sequentialMs)}`,
       `- Type change waterfall: ${formatMs(data.productsList.typeWaterfallMs)}`,
       `- Search request: ${formatMs(data.productsList.searchRequestMs)}`,
       `- Search backend: ${formatAudit(data.productsList.searchRequestMs, data.productsList.searchAudit)}`,
+      `- Search client: ${formatClientTiming(data.productsList.searchClient)}`,
       `- Search perceived (debounce 400ms): ${formatMs(data.productsList.searchPerceivedMs)}`,
       `- Pagination pages: ${data.productsList.paginationMs.map(formatMs).join(" / ") || "-"}`,
       "3.2 Raw Snapshot",
@@ -312,6 +330,7 @@ export default function AdminCrudAuditPage() {
       `- Filters API backend: ${formatAudit(data.productCreate.filtersMs, data.productCreate.filtersAudit)}`,
       `- Settings API: ${formatMs(data.productCreate.settingsMs)}`,
       `- Settings API backend: ${formatAudit(data.productCreate.settingsMs, data.productCreate.settingsAudit)}`,
+      `- Settings API client: ${formatClientTiming(data.productCreate.settingsClient)}`,
       `- Parallel total: ${formatMs(data.productCreate.parallelMs)}`,
       `- Type change waterfall: ${formatMs(data.productCreate.typeWaterfallMs)}`,
       "4.2 Raw Snapshot",
@@ -332,10 +351,12 @@ export default function AdminCrudAuditPage() {
       "5.1 Observation",
       `- Product API: ${formatMs(data.productEdit.productMs)}`,
       `- Product API backend: ${formatAudit(data.productEdit.productMs, data.productEdit.productAudit)}`,
+      `- Product API client: ${formatClientTiming(data.productEdit.productClient)}`,
       `- Filters API: ${formatMs(data.productEdit.filtersMs)}`,
       `- Filters API backend: ${formatAudit(data.productEdit.filtersMs, data.productEdit.filtersAudit)}`,
       `- Settings API: ${formatMs(data.productEdit.settingsMs)}`,
       `- Settings API backend: ${formatAudit(data.productEdit.settingsMs, data.productEdit.settingsAudit)}`,
+      `- Settings API client: ${formatClientTiming(data.productEdit.settingsClient)}`,
       `- Parallel total: ${formatMs(data.productEdit.parallelMs)}`,
       `- Dependent type filters: ${formatMs(data.productEdit.dependentFiltersMs)}`,
       `- Total ready (parallel + dependent): ${formatMs(data.productEdit.totalReadyMs)}`,
@@ -357,8 +378,10 @@ export default function AdminCrudAuditPage() {
       "6.1 Observation",
       `- Articles API: ${formatMs(data.articlesList.listMs)}`,
       `- Articles API backend: ${formatAudit(data.articlesList.listMs, data.articlesList.listAudit)}`,
+      `- Articles API client: ${formatClientTiming(data.articlesList.listClient)}`,
       `- Search request: ${formatMs(data.articlesList.searchRequestMs)}`,
       `- Search backend: ${formatAudit(data.articlesList.searchRequestMs, data.articlesList.searchAudit)}`,
+      `- Search client: ${formatClientTiming(data.articlesList.searchClient)}`,
       `- Search perceived (debounce 400ms): ${formatMs(data.articlesList.searchPerceivedMs)}`,
       `- Pagination pages: ${data.articlesList.paginationMs.map(formatMs).join(" / ") || "-"}`,
       "6.2 Raw Snapshot",
@@ -391,6 +414,7 @@ export default function AdminCrudAuditPage() {
       "8.1 Observation",
       `- Article API: ${formatMs(data.articleEdit.fetchMs)}`,
       `- Article API backend: ${formatAudit(data.articleEdit.fetchMs, data.articleEdit.fetchAudit)}`,
+      `- Article API client: ${formatClientTiming(data.articleEdit.fetchClient)}`,
       "8.2 Raw Snapshot",
       `- article_id: ${data.articleEdit.articleId ?? "-"}`,
       `- images_count: ${data.articleEdit.imagesCount}`,
@@ -436,23 +460,40 @@ export default function AdminCrudAuditPage() {
     setReportText("");
     setSteps([]);
 
+    const buildQueryString = (params?: Record<string, string | number>) => {
+      if (!params) return "";
+      const search = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === "") return;
+        search.set(key, String(value));
+      });
+      const query = search.toString();
+      return query ? `?${query}` : "";
+    };
+
+    const fetchAdminProductsAudit = async (params?: Record<string, string | number>) =>
+      apiFetchWithTiming<AdminProductsResponse>(`v1/admin/products${buildQueryString(params)}`);
+
+    const fetchAdminArticlesAudit = async (params?: Record<string, string | number>) =>
+      apiFetchWithTiming<AdminArticlesResponse>(`v1/admin/articles${buildQueryString(params)}`);
+
     const fetchAdminSettingsLiteAudit = async () =>
-      apiFetch<{ data: { id: number; product_shopee_link_enabled: boolean; updated_at?: string }; meta?: { audit?: BackendAudit } }>(
+      apiFetchWithTiming<{ data: { id: number; product_shopee_link_enabled: boolean; updated_at?: string }; meta?: { audit?: BackendAudit } }>(
         "v1/admin/settings/lite?audit=1"
       );
     const fetchAdminProductAudit = async (productId: number) =>
-      apiFetch<{ data: Awaited<ReturnType<typeof fetchAdminProduct>>["data"]; meta?: { audit?: BackendAudit } }>(
+      apiFetchWithTiming<{ data: AdminProductDetail; meta?: { audit?: BackendAudit } }>(
         `v1/admin/products/${productId}?audit=1`
       );
     const fetchAdminArticleAudit = async (articleId: number) =>
-      apiFetch<{ data: Awaited<ReturnType<typeof fetchAdminArticle>>["data"]; meta?: { audit?: BackendAudit } }>(
+      apiFetchWithTiming<{ data: AdminArticlesResponse["data"][number] & { content: string }; meta?: { audit?: BackendAudit } }>(
         `v1/admin/articles/${articleId}?audit=1`
       );
     const fetchAdminProductFiltersAudit = async (typeId?: number | null) => {
       const params = new URLSearchParams();
       if (typeId) params.set("type_id", String(typeId));
       params.set("audit", "1");
-      return apiFetch<{ data: { categories: Array<{ id: number; name: string; slug: string }>; types: Array<{ id: number; name: string; slug: string }> }; meta?: { audit?: BackendAudit } }>(
+      return apiFetchWithTiming<{ data: { categories: Array<{ id: number; name: string; slug: string }>; types: Array<{ id: number; name: string; slug: string }> }; meta?: { audit?: BackendAudit } }>(
         `v1/admin/products/filters?${params.toString()}`
       );
     };
@@ -469,7 +510,7 @@ export default function AdminCrudAuditPage() {
       const articlesSearchParams = { q: "vang", page: 1, per_page: perPage, sort_by: "published_at", sort_dir: "desc" };
 
       const productsListResult = await runStep("products list", async () => {
-        return fetchAdminProducts({ page: 1, per_page: perPage, audit: 1 });
+        return fetchAdminProductsAudit({ page: 1, per_page: perPage, audit: 1 });
       });
       pushStep({ label: productsListResult.label, durationMs: productsListResult.durationMs, status: "ok" });
 
@@ -480,38 +521,38 @@ export default function AdminCrudAuditPage() {
 
       const productsParallelResult = await runStep("products parallel list+filters", async () => {
         await Promise.all([
-          fetchAdminProducts({ page: 1, per_page: perPage, audit: 1 }),
+          fetchAdminProductsAudit({ page: 1, per_page: perPage, audit: 1 }),
           fetchAdminProductFiltersAudit(),
         ]);
       });
       pushStep({ label: productsParallelResult.label, durationMs: productsParallelResult.durationMs, status: "ok" });
 
       const productsSequentialResult = await runStep("products sequential list->filters", async () => {
-        await fetchAdminProducts({ page: 1, per_page: perPage, audit: 1 });
+        await fetchAdminProductsAudit({ page: 1, per_page: perPage, audit: 1 });
         await fetchAdminProductFiltersAudit();
       });
       pushStep({ label: productsSequentialResult.label, durationMs: productsSequentialResult.durationMs, status: "ok" });
 
-      const typeIdForList = productsFiltersResult.result.data.types?.[0]?.id ?? null;
+      const typeIdForList = productsFiltersResult.result.payload.data.types?.[0]?.id ?? null;
       let productsTypeWaterfallMs: number | null = null;
       if (typeIdForList) {
         const typeWaterfallResult = await runStep(`products type waterfall type=${typeIdForList}`, async () => {
           await fetchAdminProductFiltersAudit(typeIdForList);
-          await fetchAdminProducts({ page: 1, per_page: perPage, type_id: typeIdForList, audit: 1 });
+          await fetchAdminProductsAudit({ page: 1, per_page: perPage, type_id: typeIdForList, audit: 1 });
         });
         productsTypeWaterfallMs = typeWaterfallResult.durationMs;
         pushStep({ label: typeWaterfallResult.label, durationMs: typeWaterfallResult.durationMs, status: "ok" });
       }
 
       const productsSearchResult = await runStep("products search", async () => {
-        return fetchAdminProducts({ ...productsSearchParams, audit: 1 });
+        return fetchAdminProductsAudit({ ...productsSearchParams, audit: 1 });
       });
       pushStep({ label: productsSearchResult.label, durationMs: productsSearchResult.durationMs, status: "ok" });
 
       const productsPaginationMs: number[] = [];
       for (let page = 1; page <= 3; page += 1) {
         const pageResult = await runStep(`products page ${page}`, async () => {
-          await fetchAdminProducts({ page, per_page: perPage, audit: 1 });
+          await fetchAdminProductsAudit({ page, per_page: perPage, audit: 1 });
         });
         productsPaginationMs.push(pageResult.durationMs);
         pushStep({ label: pageResult.label, durationMs: pageResult.durationMs, status: "ok" });
@@ -546,12 +587,14 @@ export default function AdminCrudAuditPage() {
         pushStep({ label: typeResult.label, durationMs: typeResult.durationMs, status: "ok" });
       }
 
-      const productIdForEdit = productsListResult.result.data?.[0]?.id ?? null;
+      const productIdForEdit = productsListResult.result.payload.data?.[0]?.id ?? null;
       let productEditParallelMs: number | null = null;
       let productEditDependentMs: number | null = null;
       let productEditTotalReadyMs: number | null = null;
-      let productEditDetail: Awaited<ReturnType<typeof fetchAdminProduct>> | null = null;
+      let productEditDetail: { data: AdminProductDetail; meta?: { audit?: BackendAudit } } | null = null;
       let productEditFilters: Awaited<ReturnType<typeof fetchProductFilters>> | null = null;
+      let productEditProductClient: ClientTiming | null = null;
+      let productEditSettingsClient: ClientTiming | null = null;
       let productEditSettingsMs: number | null = null;
       let productEditProductMs: number | null = null;
       let productEditFiltersMs: number | null = null;
@@ -567,15 +610,16 @@ export default function AdminCrudAuditPage() {
           return { productRes, filtersRes, settingsRes };
         });
         productEditParallelMs = editParallel.durationMs;
-        productEditDetail = editParallel.result.productRes;
+        productEditDetail = editParallel.result.productRes.payload;
         productEditFilters = editParallel.result.filtersRes;
-        productEditSettingsAudit = extractAuditMeta(editParallel.result.settingsRes);
+        productEditSettingsAudit = extractAuditMeta(editParallel.result.settingsRes?.payload ?? null);
         pushStep({ label: editParallel.label, durationMs: editParallel.durationMs, status: "ok" });
 
         const editProductBaseline = await runStep("product edit product baseline", async () => {
           return fetchAdminProductAudit(productIdForEdit);
         });
         productEditProductMs = editProductBaseline.durationMs;
+        productEditProductClient = editProductBaseline.result.timing;
         pushStep({ label: editProductBaseline.label, durationMs: editProductBaseline.durationMs, status: "ok" });
 
         const editFiltersBaseline = await runStep("product edit filters baseline", async () => {
@@ -588,10 +632,11 @@ export default function AdminCrudAuditPage() {
           return fetchAdminSettingsLiteAudit().catch(() => null);
         });
         productEditSettingsMs = editSettingsBaseline.durationMs;
-        productEditSettingsAudit = extractAuditMeta(editSettingsBaseline.result ?? null);
+        productEditSettingsAudit = extractAuditMeta(editSettingsBaseline.result?.payload ?? null);
+        productEditSettingsClient = editSettingsBaseline.result?.timing ?? null;
         pushStep({ label: editSettingsBaseline.label, durationMs: editSettingsBaseline.durationMs, status: "ok" });
 
-        const editTypeId = editParallel.result.productRes.data.type_id;
+        const editTypeId = editParallel.result.productRes.payload.data.type_id;
         if (editTypeId) {
           const dependentResult = await runStep(`product edit type filters type=${editTypeId}`, async () => {
             await fetchProductFilters(editTypeId);
@@ -608,33 +653,35 @@ export default function AdminCrudAuditPage() {
       }
 
       const articlesListResult = await runStep("articles list", async () => {
-        return fetchAdminArticles({ page: 1, per_page: perPage, sort_by: "published_at", sort_dir: "desc", audit: 1 });
+        return fetchAdminArticlesAudit({ page: 1, per_page: perPage, sort_by: "published_at", sort_dir: "desc", audit: 1 });
       });
       pushStep({ label: articlesListResult.label, durationMs: articlesListResult.durationMs, status: "ok" });
 
       const articlesSearchResult = await runStep("articles search", async () => {
-        return fetchAdminArticles({ ...articlesSearchParams, audit: 1 });
+        return fetchAdminArticlesAudit({ ...articlesSearchParams, audit: 1 });
       });
       pushStep({ label: articlesSearchResult.label, durationMs: articlesSearchResult.durationMs, status: "ok" });
 
       const articlesPaginationMs: number[] = [];
       for (let page = 1; page <= 3; page += 1) {
         const pageResult = await runStep(`articles page ${page}`, async () => {
-          await fetchAdminArticles({ page, per_page: perPage, sort_by: "published_at", sort_dir: "desc", audit: 1 });
+          await fetchAdminArticlesAudit({ page, per_page: perPage, sort_by: "published_at", sort_dir: "desc", audit: 1 });
         });
         articlesPaginationMs.push(pageResult.durationMs);
         pushStep({ label: pageResult.label, durationMs: pageResult.durationMs, status: "ok" });
       }
 
-      const articleIdForEdit = articlesListResult.result.data?.[0]?.id ?? null;
+      const articleIdForEdit = articlesListResult.result.payload.data?.[0]?.id ?? null;
       let articleEditResultMs: number | null = null;
-      let articleEditResult: Awaited<ReturnType<typeof fetchAdminArticle>> | null = null;
+      let articleEditResult: { data: AdminArticlesResponse["data"][number] & { content: string }; meta?: { audit?: BackendAudit } } | null = null;
+      let articleEditClient: ClientTiming | null = null;
       if (articleIdForEdit) {
         const articleEditResultStep = await runStep("article edit fetch", async () => {
           return fetchAdminArticleAudit(articleIdForEdit);
         });
         articleEditResultMs = articleEditResultStep.durationMs;
-        articleEditResult = articleEditResultStep.result;
+        articleEditResult = articleEditResultStep.result.payload;
+        articleEditClient = articleEditResultStep.result.timing;
         pushStep({ label: articleEditResultStep.label, durationMs: articleEditResultStep.durationMs, status: "ok" });
       } else {
         pushStep({ label: "article edit skipped: no article", durationMs: 0, status: "ok", note: "no article id" });
@@ -649,17 +696,20 @@ export default function AdminCrudAuditPage() {
         searchPerceivedMs: productsSearchResult.durationMs + 400,
         paginationMs: productsPaginationMs,
         perPage,
-        total: productsListResult.result.meta.total,
-        lastPage: productsListResult.result.meta.last_page,
-        categoriesCount: productsFiltersResult.result.data.categories.length,
-        typesCount: productsFiltersResult.result.data.types.length,
-        itemsCount: productsListResult.result.data.length,
-        hasImages: productsListResult.result.data.some((item) => Boolean(item.cover_image_url)),
+        total: productsListResult.result.payload.meta.total,
+        lastPage: productsListResult.result.payload.meta.last_page,
+        categoriesCount: productsFiltersResult.result.payload.data.categories.length,
+        typesCount: productsFiltersResult.result.payload.data.types.length,
+        itemsCount: productsListResult.result.payload.data.length,
+        hasImages: productsListResult.result.payload.data.some((item) => Boolean(item.cover_image_url)),
         visibleColumns: 8,
         typeWaterfallMs: productsTypeWaterfallMs,
-        productsAudit: extractAuditMeta(productsListResult.result),
-        filtersAudit: extractAuditMeta(productsFiltersResult.result),
-        searchAudit: extractAuditMeta(productsSearchResult.result),
+        productsAudit: extractAuditMeta(productsListResult.result.payload),
+        filtersAudit: extractAuditMeta(productsFiltersResult.result.payload),
+        searchAudit: extractAuditMeta(productsSearchResult.result.payload),
+        productsClient: productsListResult.result.timing,
+        filtersClient: productsFiltersResult.result.timing,
+        searchClient: productsSearchResult.result.timing,
         sampleProductId: productIdForEdit,
         searchParams: productsSearchParams,
       };
@@ -670,12 +720,13 @@ export default function AdminCrudAuditPage() {
         settingsMs: productCreateSettingsMs.durationMs,
         typeWaterfallMs: productCreateTypeWaterfallMs,
         filtersAudit: null,
-        settingsAudit: extractAuditMeta(productCreateSettings),
+        settingsAudit: extractAuditMeta(productCreateSettings?.payload ?? null),
+        settingsClient: productCreateSettingsMs.result?.timing ?? null,
         typesCount: productCreateFilters.types.length,
         categoriesCount: productCreateFilters.categories.length,
         attributeGroups: productCreateFilters.attribute_filters.length,
         attributeOptions: productCreateFilters.attribute_filters.reduce((acc, group) => acc + (group.options?.length ?? 0), 0),
-        editorStrategy: "eager",
+        editorStrategy: "lazy",
         hasImageTools: true,
         hasSeoBlock: true,
         hasAttributeFilters: productCreateFilters.attribute_filters.length > 0,
@@ -691,6 +742,8 @@ export default function AdminCrudAuditPage() {
         productAudit: extractAuditMeta(productEditDetail),
         filtersAudit: null,
         settingsAudit: productEditSettingsAudit,
+        productClient: productEditProductClient,
+        settingsClient: productEditSettingsClient,
         imagesCount: productEditDetail?.data.images?.length ?? 0,
         editorStrategy: "lazy",
         hasStickyBar: true,
@@ -707,21 +760,23 @@ export default function AdminCrudAuditPage() {
         searchPerceivedMs: articlesSearchResult.durationMs + 400,
         paginationMs: articlesPaginationMs,
         perPage,
-        total: articlesListResult.result.meta.total,
-        lastPage: articlesListResult.result.meta.last_page,
-        itemsCount: articlesListResult.result.data.length,
-        hasImages: articlesListResult.result.data.some((item) => Boolean(item.cover_image_url)),
+        total: articlesListResult.result.payload.meta.total,
+        lastPage: articlesListResult.result.payload.meta.last_page,
+        itemsCount: articlesListResult.result.payload.data.length,
+        hasImages: articlesListResult.result.payload.data.some((item) => Boolean(item.cover_image_url)),
         hasExcerpt: true,
         visibleColumns: 4,
-        listAudit: extractAuditMeta(articlesListResult.result),
-        searchAudit: extractAuditMeta(articlesSearchResult.result),
+        listAudit: extractAuditMeta(articlesListResult.result.payload),
+        searchAudit: extractAuditMeta(articlesSearchResult.result.payload),
+        listClient: articlesListResult.result.timing,
+        searchClient: articlesSearchResult.result.timing,
         sampleArticleId: articleIdForEdit,
         searchParams: articlesSearchParams,
       };
 
       const articleCreateSummary: ArticleCreateAudit = {
         baselineMs: null,
-        editorStrategy: "eager",
+        editorStrategy: "lazy",
         hasImageTools: true,
         hasSeoBlock: true,
         hasAiButton: true,
@@ -729,11 +784,12 @@ export default function AdminCrudAuditPage() {
 
       const articleEditSummary: ArticleEditAudit = {
         fetchMs: articleEditResultMs,
-        editorStrategy: "eager",
+        editorStrategy: "lazy",
         imagesCount: articleEditResult?.data.images?.length ?? 0,
         hasSeoBlock: true,
         reloadAfterSave: true,
         fetchAudit: extractAuditMeta(articleEditResult),
+        fetchClient: articleEditClient,
         articleId: articleIdForEdit,
       };
 

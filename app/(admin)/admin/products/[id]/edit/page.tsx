@@ -172,13 +172,13 @@ const generateSlug = (text: string): string => {
     async function loadData() {
       let product: Awaited<ReturnType<typeof fetchAdminProduct>>['data'] | null = null;
        try {
-       const [productRes, filtersRes, settingsRes] = await Promise.all([
+       const [productRes, settingsRes] = await Promise.all([
            fetchAdminProduct(Number(id)),
-           fetchProductFilters(),
            fetchAdminSettingsLite().catch(() => null),
          ]);
- 
+
         product = productRes.data;
+        const filtersRes = await fetchProductFilters(product.type_id ?? undefined);
          setName(product.name);
          setSlug(product.slug);
         setPrice(formatNumberInput(product.price?.toString() || ''));
@@ -210,15 +210,6 @@ const generateSlug = (text: string): string => {
        } finally {
          setIsLoading(false);
        }
-      if (product?.type_id) {
-        void fetchProductFilters(product.type_id)
-          .then((typeFilters) => {
-            syncSecondaryFilters(typeFilters);
-          })
-          .catch((error) => {
-            console.error('Failed to load product filters:', error);
-          });
-      }
      }
      void loadData();
    }, [id]);

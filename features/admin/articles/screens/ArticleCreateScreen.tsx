@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -29,6 +30,7 @@ const LexicalEditor = dynamic(
 
 export const ArticleCreateScreen = () => {
   const { state, actions } = useArticleForm();
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   const {
     isSubmitting,
@@ -62,6 +64,11 @@ export const ArticleCreateScreen = () => {
     handleSubmit,
     generateSlug,
   } = actions;
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsEditorReady(true), 300);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleAIWriting = () => {
     const prompt = encodeURIComponent(`Viết ngay bài viết tiếng Việt về chủ đề rượu vang trending (có thể là: review giống nho mới, xu hướng rượu vang 2026, cách chọn rượu vang theo phong cách, food pairing, vùng rượu nổi bật...).
@@ -270,7 +277,11 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
 
             <div className="space-y-2">
               <Label>Nội dung</Label>
-              <LexicalEditor initialContent={content} onChange={setContent} folder="articles" />
+              {isEditorReady ? (
+                <LexicalEditor initialContent={content} onChange={setContent} folder="articles" />
+              ) : (
+                <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              )}
             </div>
 
           </div>

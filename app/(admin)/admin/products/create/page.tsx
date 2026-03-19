@@ -53,6 +53,7 @@ const LexicalEditor = dynamic(
    const router = useRouter();
    const [isLoading, setIsLoading] = useState(true);
    const [isSubmitting, setIsSubmitting] = useState(false);
+   const [isEditorReady, setIsEditorReady] = useState(false);
    const [types, setTypes] = useState<ProductFilterOption[]>([]);
    const [categories, setCategories] = useState<ProductFilterOption[]>([]);
  
@@ -102,6 +103,12 @@ const LexicalEditor = dynamic(
      }
     void loadFilters();
    }, []);
+
+   useEffect(() => {
+    if (isLoading) return;
+    const timer = window.setTimeout(() => setIsEditorReady(true), 300);
+    return () => window.clearTimeout(timer);
+   }, [isLoading]);
  
    useEffect(() => {
      if (typeId) {
@@ -698,12 +705,16 @@ const LexicalEditor = dynamic(
  
              <div className="space-y-2">
                <Label>Mô tả</Label>
-              <LexicalEditor
-                onChange={setDescription}
-                initialContent={description}
-                folder="products"
-                placeholder="Nhập mô tả sản phẩm..."
-               />
+              {isEditorReady ? (
+                <LexicalEditor
+                  onChange={setDescription}
+                  initialContent={description}
+                  folder="products"
+                  placeholder="Nhập mô tả sản phẩm..."
+                />
+              ) : (
+                <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              )}
              </div>
  
            </CardContent>

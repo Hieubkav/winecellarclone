@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -33,6 +34,7 @@ const LexicalEditor = dynamic(
 
 export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
   const { state, actions } = useArticleForm({ articleId });
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   const {
     isLoading,
@@ -67,6 +69,12 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
     handleSubmit,
     generateSlug,
   } = actions;
+
+  useEffect(() => {
+    if (isLoading) return;
+    const timer = window.setTimeout(() => setIsEditorReady(true), 300);
+    return () => window.clearTimeout(timer);
+  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -271,7 +279,11 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
 
             <div className="space-y-2">
               <Label>Nội dung</Label>
-              <LexicalEditor initialContent={content} onChange={setContent} folder="articles" />
+              {isEditorReady ? (
+                <LexicalEditor initialContent={content} onChange={setContent} folder="articles" />
+              ) : (
+                <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+              )}
             </div>
 
           </div>

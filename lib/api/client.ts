@@ -102,6 +102,33 @@ export class ApiError extends Error {
   }
 }
 
+const resolveRequestHeaders = (adminToken: string | null, init?: RequestInit): Headers => {
+  return mergeHeaders(
+    {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
+    },
+    init?.headers
+  );
+};
+
+const resolveRequestOptions = (isAdminRequest: boolean, init?: RequestInit): RequestInit => {
+  if (isAdminRequest) {
+    return { cache: init?.cache ?? "no-store" };
+  }
+
+  return { next: { revalidate: 300, ...init?.next } };
+};
+
+const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
+
+export type ApiFetchTiming = {
+  response_ms: number;
+  parse_ms: number;
+  total_ms: number;
+};
+
 export async function apiFetch<TResponse>(
   path: string,
   init?: RequestInit
@@ -113,17 +140,8 @@ export async function apiFetch<TResponse>(
 
   const response = await fetch(url, {
     ...init,
-    headers: mergeHeaders(
-      {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...(adminToken ? { Authorization: `Bearer ${adminToken}` } : {}),
-      },
-      init?.headers
-    ),
-    ...(isAdminRequest
-      ? { cache: init?.cache ?? 'no-store' }
-      : { next: { revalidate: 300, ...init?.next } }),
+    headers: resolveRequestHeaders(adminToken, init),
+    ...resolveRequestOptions(isAdminRequest, init),
   });
 
   const contentType = response.headers.get("content-type");
@@ -157,6 +175,64 @@ export async function apiFetch<TResponse>(
   }
 
   return payload as TResponse;
+}
+
+export async function apiFetchWithTiming<TResponse>(
+  path: string,
+  init?: RequestInit
+): Promise<{ payload: TResponse; timing: ApiFetchTiming }> {
+  const url = normalizeUrl(API_BASE_URL, path);
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const isAdminRequest = normalizedPath.startsWith('/v1/admin/');
+  const adminToken = isAdminRequest ? getAdminToken() : null;
+
+  const startAt = now();
+  const response = await fetch(url, {
+    ...init,
+    headers: resolveRequestHeaders(adminToken, init),
+    ...resolveRequestOptions(isAdminRequest, init),
+  });
+  const responseAt = now();
+
+  const contentType = response.headers.get("content-type");
+  const payload =
+    contentType && contentType.includes("application/json")
+      ? await response.json()
+      : await response.text();
+  const parsedAt = now();
+
+  if (!response.ok) {
+    if (isAdminRequest && response.status === 401) {
+      clearAdminSessionCache();
+
+      if (typeof window !== 'undefined' && window.location.pathname !== '/admin/login') {
+        window.location.replace('/admin/login');
+      }
+    } else {
+      console.error("[API Error]", {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        payload,
+        responseHeaders: Object.fromEntries(response.headers.entries()),
+      });
+    }
+
+    throw new ApiError(
+      `API request failed with status ${response.status}`,
+      response.status,
+      payload
+    );
+  }
+
+  return {
+    payload: payload as TResponse,
+    timing: {
+      response_ms: Math.round(responseAt - startAt),
+      parse_ms: Math.round(parsedAt - responseAt),
+      total_ms: Math.round(parsedAt - startAt),
+    },
+  };
 }
 
 export async function apiDownload(path: string, init?: RequestInit): Promise<Response> {
