@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { fetchSettingsSafe, FALLBACK_SETTINGS } from '@/lib/api/settings'
+import { fetchSettingsSafe } from '@/lib/api/settings'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
