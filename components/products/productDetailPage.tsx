@@ -385,9 +385,10 @@ export default function ProductDetailPage({
         <div className="container mx-auto px-3 md:px-4 text-[10px] md:text-sm text-slate-600 flex gap-1 md:gap-2">
           {breadcrumbs.map((item, index) => {
             const isLast = index === breadcrumbs.length - 1;
+            const isCurrentProduct = item.href === `/san-pham/${product.slug}`;
             return (
               <div key={`${item.label}-${index}`} className="flex items-center gap-1 md:gap-2 min-w-0">
-                {isLast ? (
+                {isLast && isCurrentProduct ? (
                   <span className="text-slate-900 font-medium truncate">{item.label}</span>
                 ) : (
                   <Link href={item.href} className="hover:text-[#9B2C3B] cursor-pointer transition-colors truncate">
