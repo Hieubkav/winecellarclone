@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
@@ -658,7 +659,7 @@ export default function ProductDetailPage({
                       })}
                     >
                       {action.iconType === "image" ? (
-                        <img src="/icons/zalo.png" alt="Zalo" className="h-5 w-5" />
+                        <Image src="/icons/zalo.png" alt="Zalo" width={20} height={20} className="h-5 w-5" />
                       ) : (
                         action.Icon ? <action.Icon className="h-5 w-5" /> : null
                       )}
