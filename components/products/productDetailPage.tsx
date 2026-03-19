@@ -381,12 +381,12 @@ export default function ProductDetailPage({
   return (
     <div className="min-h-screen bg-[#fcfbf9]" style={fontFamily ? { fontFamily } : undefined}>
       {/* Breadcrumb */}
-      <div className="bg-[#f5f0e8] py-2 md:py-3 border-b border-[#e5ddd0]">
-        <div className="container mx-auto px-3 md:px-4 text-[11px] md:text-sm text-slate-600 flex gap-1.5 md:gap-2">
+      <div className="bg-[#f5f0e8] py-1.5 md:py-3 border-b border-[#e5ddd0]">
+        <div className="container mx-auto px-3 md:px-4 text-[10px] md:text-sm text-slate-600 flex gap-1 md:gap-2">
           {breadcrumbs.map((item, index) => {
             const isLast = index === breadcrumbs.length - 1;
             return (
-              <div key={`${item.label}-${index}`} className="flex items-center gap-1.5 md:gap-2 min-w-0">
+              <div key={`${item.label}-${index}`} className="flex items-center gap-1 md:gap-2 min-w-0">
                 {isLast ? (
                   <span className="text-slate-900 font-medium truncate">{item.label}</span>
                 ) : (
@@ -401,10 +401,10 @@ export default function ProductDetailPage({
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-4 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 lg:gap-16 lg:items-start">
+      <div className="container mx-auto px-4 py-3 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-8 lg:gap-16 lg:items-start">
           {/* Left Column: Image Gallery (7/12 columns on large screens) */}
-          <div className="lg:col-span-7 space-y-2 md:space-y-4 lg:sticky lg:top-4">
+          <div className="lg:col-span-7 space-y-1.5 md:space-y-4 lg:sticky lg:top-4">
             <div className="flex flex-col gap-3 lg:hidden">
               <Carousel
                 setApi={setCarouselApi}
@@ -614,12 +614,12 @@ export default function ProductDetailPage({
             </div>
 
             {/* Product Title */}
-            <h1 className="text-2xl md:text-4xl font-bold text-slate-900 leading-tight mb-3 md:mb-6">
+            <h1 className="text-xl md:text-4xl font-bold text-slate-900 leading-tight mb-2 md:mb-6">
               {product.name}
             </h1>
 
             {/* Price Section */}
-            <div className="flex items-end gap-2.5 p-3 md:p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-4 md:mb-6">
+            <div className="flex items-end gap-2.5 p-3 md:p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-3 md:mb-6">
               <div className="text-2xl md:text-4xl font-bold text-[#9B2C3B]">
                 {priceLabel}
               </div>
@@ -637,7 +637,7 @@ export default function ProductDetailPage({
 
             {/* Specifications Grid - Compact */}
             {attributeItems.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 md:gap-4 py-3 md:py-4 border-y border-[#e5ddd0] mb-4 md:mb-6">
+              <div className="grid grid-cols-3 gap-2 md:gap-4 py-2.5 md:py-4 border-y border-[#e5ddd0] mb-3 md:mb-6">
                 {attributeItems.map((attr, idx) => (
                   <div key={idx} className="flex items-start gap-2 min-w-0">
                     <div className="mt-0.5 p-1 md:p-1.5 bg-[#ECAA4D]/20 rounded-md text-[#9B2C3B]">
@@ -665,8 +665,8 @@ export default function ProductDetailPage({
 
             {/* CTA Buttons */}
             {contactCtaMode === "social_4_buttons" && contactActions.length > 0 ? (
-              <div className="pt-2">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="pt-1">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                   {contactActions.map((action) => (
                     <Link
                       key={action.id}
@@ -704,7 +704,7 @@ export default function ProductDetailPage({
                 )}
               </div>
             ) : (
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-1">
                 <Button
                   asChild
                   size="lg"
