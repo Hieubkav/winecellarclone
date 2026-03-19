@@ -1,5 +1,5 @@
 import { getImageUrl } from "@/lib/utils/image";
-import { apiFetch, ApiError, isBackendUnavailableError } from "./client";
+import { apiFetch, ApiError, isBackendUnavailableError, shouldSkipApiFetchDuringBuild } from "./client";
 
 export interface ApiTerm {
   id: number;
@@ -253,6 +253,10 @@ export async function fetchProductListSafe(
   params?: QueryParams,
   options?: { signal?: AbortSignal }
 ): Promise<ProductListResponse | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
   try {
     return await fetchProductList(params, options);
   } catch (error) {
@@ -286,6 +290,10 @@ export async function fetchProductDetail(slug: string): Promise<ProductDetail | 
 let didWarnProductDetail = false;
 
 export async function fetchProductDetailSafe(slug: string): Promise<ProductDetail | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
   try {
     return await fetchProductDetail(slug);
   } catch (error) {
@@ -377,6 +385,10 @@ export async function fetchProductFiltersSafe(
   typeId?: number | null,
   options?: { bypassCache?: boolean }
 ): Promise<ProductFiltersPayload | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
   try {
     return await fetchProductFilters(typeId, options);
   } catch (error) {

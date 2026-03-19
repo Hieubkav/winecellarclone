@@ -90,6 +90,23 @@ const resolveApiBaseUrl = (): string => {
 
 export const API_BASE_URL = coerceLoopbackHostname(resolveApiBaseUrl());
 
+const isLoopbackApiBaseUrl = (input: string): boolean => {
+  try {
+    const parsed = new URL(input);
+    return ["127.0.0.1", "localhost", "::1"].includes(parsed.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+};
+
+export const shouldSkipApiFetchDuringBuild = (): boolean => {
+  if (!isServerEnvironment) {
+    return false;
+  }
+
+  return process.env.NEXT_PHASE === "phase-production-build" && isLoopbackApiBaseUrl(API_BASE_URL);
+};
+
 export class ApiError extends Error {
   public readonly status: number;
   public readonly payload: unknown;

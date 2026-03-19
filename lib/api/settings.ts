@@ -1,4 +1,4 @@
-import { apiFetch, isBackendUnavailableError } from "./client";
+import { apiFetch, isBackendUnavailableError, shouldSkipApiFetchDuringBuild } from "./client";
 import type { FooterConfig } from "@/lib/types/footer";
 import type { ContactConfig } from "@/lib/types/contact";
 import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
@@ -152,6 +152,10 @@ export async function fetchSettings(): Promise<Settings> {
 let didWarnSettings = false;
 
 export async function fetchSettingsSafe(): Promise<Settings> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return FALLBACK_SETTINGS;
+  }
+
   try {
     return await fetchSettings();
   } catch (error) {

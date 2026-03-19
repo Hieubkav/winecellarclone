@@ -1,4 +1,4 @@
-import { apiFetch, isBackendUnavailableError } from "./client";
+import { apiFetch, isBackendUnavailableError, shouldSkipApiFetchDuringBuild } from "./client";
 
 // Menu item leaf (link cuối cùng trong cây)
 export interface MenuLeaf {
@@ -55,6 +55,10 @@ export async function fetchMenus(): Promise<MenuItem[]> {
 let didWarnMenus = false;
 
 export async function fetchMenusSafe(): Promise<MenuItem[] | undefined> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return undefined;
+  }
+
   try {
     return await fetchMenus();
   } catch (error) {

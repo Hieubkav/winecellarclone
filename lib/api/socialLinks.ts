@@ -1,5 +1,5 @@
 import { getImageUrl } from "@/lib/utils/image";
-import { apiFetch, isBackendUnavailableError } from "./client";
+import { apiFetch, isBackendUnavailableError, shouldSkipApiFetchDuringBuild } from "./client";
 
 // TypeScript types matching Laravel API response
 export interface SocialLinkResponse {
@@ -49,6 +49,10 @@ export async function fetchSocialLinks(): Promise<SocialLink[]> {
 let didWarnSocialLinks = false;
 
 export async function fetchSocialLinksSafe(): Promise<SocialLink[]> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return [];
+  }
+
   try {
     return await fetchSocialLinks();
   } catch (error) {

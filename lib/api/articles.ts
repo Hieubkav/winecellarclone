@@ -1,4 +1,4 @@
-import { apiFetch, ApiError, isBackendUnavailableError } from "./client";
+import { apiFetch, ApiError, isBackendUnavailableError, shouldSkipApiFetchDuringBuild } from "./client";
 
 export interface ApiImage {
   id: number;
@@ -139,6 +139,10 @@ let didWarnArticleList = false;
 export async function fetchArticleListSafe(
   params?: QueryParams
 ): Promise<ArticleListResponse | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
   try {
     return await fetchArticleList(params);
   } catch (error) {
@@ -172,6 +176,10 @@ export async function fetchArticleDetail(slug: string): Promise<ArticleDetail | 
 let didWarnArticleDetail = false;
 
 export async function fetchArticleDetailSafe(slug: string): Promise<ArticleDetail | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
   try {
     return await fetchArticleDetail(slug);
   } catch (error) {

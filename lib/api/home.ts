@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { apiFetch, isBackendUnavailableError } from "./client";
+import { apiFetch, isBackendUnavailableError, shouldSkipApiFetchDuringBuild } from "./client";
 import type { ExtraAttr, ProductAttribute } from "@/lib/api/products";
 
 // Base types từ backend
@@ -241,6 +241,10 @@ export const fetchHomeComponents = cache(async (): Promise<HomeComponent[]> => {
 let didWarnHomeComponents = false;
 
 export async function fetchHomeComponentsSafe(): Promise<HomeComponent[]> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return [];
+  }
+
   try {
     return await fetchHomeComponents();
   } catch (error) {
@@ -273,6 +277,10 @@ export const fetchSpeedDialComponent = cache(async (): Promise<HomeComponent | n
 let didWarnSpeedDial = false;
 
 export async function fetchSpeedDialComponentSafe(): Promise<HomeComponent | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
   try {
     return await fetchSpeedDialComponent();
   } catch (error) {
