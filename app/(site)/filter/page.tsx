@@ -14,16 +14,7 @@ const formatPrice = (value: string | null) => {
   return parsed.toLocaleString("vi-VN");
 };
 
-const buildCanonicalParams = (params: Record<string, string | null>) => {
-  const searchParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value) {
-      searchParams.set(key, value);
-    }
-  });
-  const query = searchParams.toString();
-  return query ? `${SITE_URL}/filter?${query}` : `${SITE_URL}/filter`;
-};
+const buildCanonicalParams = () => `${SITE_URL}/filter`;
 
 const resolveFilterLabel = (slug: string | null, options: { name: string; slug: string }[]) => {
   if (!slug) return null;
@@ -89,13 +80,7 @@ export async function generateMetadata({
     ].filter(Boolean) as string[])
   );
 
-  const canonical = buildCanonicalParams({
-    type: typeSlug,
-    category: categorySlug,
-    q: query,
-    price_min: priceMin,
-    price_max: priceMax,
-  });
+  const canonical = buildCanonicalParams();
 
   const ogImageUrl = settings.og_image_url || settings.logo_url || FALLBACK_SETTINGS.logo_url;
 

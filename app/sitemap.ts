@@ -47,14 +47,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     per_page: SITEMAP_BATCH_SIZE,
   })
 
-  const productPages: MetadataRoute.Sitemap = productsResponse
-    ? productsResponse.data.map((product) => ({
-        url: `${SITE_URL}/san-pham/${product.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.8,
-      }))
+  const totalProducts = productsResponse?.meta.total ?? productsResponse?.data.length ?? 0
+  const productLastPage = productsResponse
+    ? Math.max(Math.ceil(totalProducts / productsResponse.meta.per_page), 1)
+    : 0
+  const remainingProductRequests = productsResponse && productLastPage > 1
+    ? Array.from({ length: productLastPage - 1 }, (_, index) =>
+        fetchProductListSafe({
+          page: index + 2,
+          per_page: SITEMAP_BATCH_SIZE,
+        })
+      )
     : []
+  const remainingProductResponses = remainingProductRequests.length > 0
+    ? await Promise.all(remainingProductRequests)
+    : []
+  const allProducts = productsResponse
+    ? [
+        ...productsResponse.data,
+        ...remainingProductResponses.flatMap((response) => response?.data ?? []),
+      ]
+    : []
+
+  const productPages: MetadataRoute.Sitemap = allProducts.map((product) => ({
+    url: `${SITE_URL}/san-pham/${product.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }))
 
   const firstArticlesResponse = await fetchArticleListSafe({
     page: 1,
