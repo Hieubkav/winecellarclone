@@ -8,7 +8,7 @@ import { fetchArticleListSafe } from "@/lib/api/articles";
 import { fetchSettingsSafe } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
 export const metadata: Metadata = {
   title: "Bài viết - Kiến thức về rượu vang & cocktail",

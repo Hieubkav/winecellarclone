@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { fetchSettingsSafe } from '@/lib/api/settings'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thienkimwine.vn'
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   const settings = await fetchSettingsSafe()

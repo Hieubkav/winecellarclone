@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { fetchProductListSafe } from '@/lib/api/products'
 import { fetchArticleListSafe } from '@/lib/api/articles'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thienkimwine.vn'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITEMAP_BATCH_SIZE = 100

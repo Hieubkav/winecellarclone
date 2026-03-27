@@ -152,7 +152,7 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
   // Share functionality
   const shareUrl = typeof window !== "undefined" 
     ? window.location.href 
-    : `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/bai-viet/${article.slug}`;
+    : `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn"}/bai-viet/${article.slug}`;
   const shareTitle = article.title;
 
   const handleShareFacebook = () => {

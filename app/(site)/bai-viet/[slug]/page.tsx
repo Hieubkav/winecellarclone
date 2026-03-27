@@ -3,7 +3,7 @@ export const revalidate = 300;
 export const dynamicParams = true;
 export const runtime = "nodejs";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
 import { Metadata } from "next";
 import { notFound } from "next/navigation";

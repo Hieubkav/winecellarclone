@@ -18,7 +18,7 @@ import { DEFAULT_CONTACT_CONFIG } from "@/lib/types/contact";
  * - Performance optimized (lazy load map)
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
 export const metadata: Metadata = {
   title: "Liên hệ - Thiên Kim Wine",

@@ -5,7 +5,7 @@ import { CollectionPageSchema, ItemListSchema, WebPageSchema } from "@/lib/seo/s
 import { fetchSettingsSafe, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
 const formatPrice = (value: string | null) => {
   if (!value) return null;

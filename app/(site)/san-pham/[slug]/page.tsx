@@ -17,7 +17,7 @@ type ProductDetailRouteParams = {
   slug: string;
 };
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
 export async function generateMetadata({
   params,
