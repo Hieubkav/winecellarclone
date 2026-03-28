@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Montserrat } from "next/font/google"
+import { Be_Vietnam_Pro } from "next/font/google"
 import { ArrowUp } from "lucide-react"
 
 import { BRAND_COLORS } from "./header.data"
@@ -12,9 +12,9 @@ import type { FooterConfig, FooterColumn, FooterItem } from "@/lib/types/footer"
 import { getSocialIconSource } from "@/lib/constants/social-icons"
 import { cn } from "@/lib/utils"
 
-const montserrat = Montserrat({
+const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "600", "700"],
 })
 
 const { base: NOIR_BASE, accent: AMBER_ACCENT, highlight: WINE_HIGHLIGHT } = BRAND_COLORS
@@ -51,11 +51,11 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
   // Fallback footer đơn giản
   return (
     <footer
-      className={`${montserrat.className} pb-10 text-sm sm:pb-0`}
+      className={`${beVietnamPro.className} pb-10 text-sm sm:pb-0`}
       style={{ backgroundColor: NOIR_BASE, color: AMBER_ACCENT }}
       aria-label={`${siteName} - Footer`}
     >
-      <div className="mx-auto w-full max-w-8xl px-4 py-6">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6">
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="text-xs text-white/60">
             &copy; {CURRENT_YEAR} {siteName}. All rights reserved.
@@ -83,16 +83,16 @@ function DynamicFooter({ config, siteName, socialLinks, onScrollToTop }: Dynamic
     'grid gap-6',
     activeColumns.length === 1 && 'grid-cols-1',
     activeColumns.length === 2 && 'grid-cols-1 sm:grid-cols-2',
-    activeColumns.length >= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+    activeColumns.length >= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1.6fr_1fr]'
   );
 
   return (
     <footer
-      className={`${montserrat.className} pb-10 text-sm sm:pb-0`}
+      className={`${beVietnamPro.className} pb-10 text-sm sm:pb-0`}
       style={{ backgroundColor: NOIR_BASE, color: AMBER_ACCENT }}
       aria-label={`${siteName} - Footer`}
     >
-      <div className="mx-auto w-full max-w-8xl px-4 py-6">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6">
         {activeColumns.length > 0 && (
           <div className={cn(gridCols, "gap-6 border-b border-white/10 pb-5")}>
             {activeColumns.map((column, idx) => (
