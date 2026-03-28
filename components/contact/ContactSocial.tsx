@@ -30,7 +30,7 @@ const SOCIAL_ICON_FALLBACK: Record<
   linkedin: Linkedin,
   twitter: Twitter,
   tiktok: Youtube, // Lucide doesn't have TikTok, use Youtube as placeholder
-  zalo: "Z", // Simple text "Z" for Zalo
+  zalo: MessageCircle,
   telegram: Send,
   whatsapp: MessageCircle,
   pinterest: Facebook,
@@ -90,6 +90,8 @@ export default function ContactSocial({
           const normalizedPlatform = link.platform?.trim().toLowerCase();
           const FallbackIcon = normalizedPlatform ? SOCIAL_ICON_FALLBACK[normalizedPlatform] : undefined;
 
+          const isZalo = normalizedPlatform === 'zalo';
+
           return (
             <Link
               key={link.id}
@@ -104,6 +106,14 @@ export default function ContactSocial({
                 <Image
                   src={link.icon_url}
                   alt={`${link.platform} icon`}
+                  width={28}
+                  height={28}
+                  className="transition-transform group-hover:scale-110"
+                />
+              ) : isZalo ? (
+                <Image
+                  src="/icons/zalo.png"
+                  alt="Zalo icon"
                   width={28}
                   height={28}
                   className="transition-transform group-hover:scale-110"

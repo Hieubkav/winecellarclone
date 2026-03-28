@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Loader2, Save, Plus, Trash2, GripVertical, Eye, EyeOff, Phone, MapPin, Clock, Mail, HelpCircle, Facebook, Instagram, Youtube, Linkedin, Twitter, MessageCircle, Send, ExternalLink } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
@@ -166,6 +167,7 @@ function SortableSocialLink({ link, onUpdate, onDelete }: SortableSocialLinkProp
     (option) => option.value.toLowerCase() === normalizedPlatform
   );
   const SelectedIcon = matchedOption?.Icon ?? HelpCircle;
+  const isZalo = matchedOption?.value.toLowerCase() === 'zalo';
   const platformValue = matchedOption?.value ?? (link.platform ?? '');
   const optionList = matchedOption || !link.platform
     ? SOCIAL_PLATFORM_OPTIONS
@@ -180,7 +182,11 @@ function SortableSocialLink({ link, onUpdate, onDelete }: SortableSocialLinkProp
               <GripVertical size={16} className="text-slate-400" />
             </button>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ECAA4D] text-[#1C1C1C]">
-              <SelectedIcon size={16} />
+              {isZalo ? (
+                <Image src="/icons/zalo.png" alt="Zalo" width={16} height={16} />
+              ) : (
+                <SelectedIcon size={16} />
+              )}
             </div>
             <select
               value={platformValue}
