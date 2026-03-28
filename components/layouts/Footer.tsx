@@ -80,10 +80,8 @@ function DynamicFooter({ config, siteName, socialLinks, onScrollToTop }: Dynamic
     .replace('{siteName}', siteName);
 
   const gridCols = cn(
-    'grid gap-6',
-    activeColumns.length === 1 && 'grid-cols-1',
-    activeColumns.length === 2 && 'grid-cols-1 sm:grid-cols-2',
-    activeColumns.length >= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1.6fr_1fr]'
+    'grid gap-6 grid-cols-1',
+    activeColumns.length >= 3 && 'lg:grid-cols-[1fr_1.6fr_1fr]'
   );
 
   return (
@@ -147,15 +145,15 @@ interface FooterColumnProps {
 function FooterColumnComponent({ column, socialLinks, isFirst, isLast, totalColumns }: FooterColumnProps) {
   const alignment = cn(
     'text-center',
-    totalColumns > 1 && isFirst && 'sm:text-left',
-    totalColumns > 1 && isLast && 'sm:text-right',
-    totalColumns > 1 && !isFirst && !isLast && 'sm:text-center'
+    totalColumns >= 3 && isFirst && 'lg:text-left',
+    totalColumns >= 3 && isLast && 'lg:text-right',
+    totalColumns >= 3 && !isFirst && !isLast && 'lg:text-center'
   );
 
   const flexAlignment = cn(
     'flex gap-4 justify-center',
-    totalColumns > 1 && isFirst && 'sm:justify-start',
-    totalColumns > 1 && isLast && 'sm:justify-end'
+    totalColumns >= 3 && isFirst && 'lg:justify-start',
+    totalColumns >= 3 && isLast && 'lg:justify-end'
   );
 
   return (

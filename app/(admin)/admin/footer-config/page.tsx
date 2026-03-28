@@ -520,7 +520,12 @@ function FooterPreview({ config, siteName }: { config: FooterConfig; siteName: s
     return (
     <div className="bg-[#1a1a1a] text-amber-100 px-4 py-6">
       <div className="mx-auto w-full max-w-7xl">
-        <div className={cn('grid gap-6 border-b border-white/10 pb-5', activeColumns.length === 1 && 'grid-cols-1', activeColumns.length === 2 && 'grid-cols-1 sm:grid-cols-2', activeColumns.length >= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1.6fr_1fr]')}>
+        <div
+          className={cn(
+            'grid gap-6 border-b border-white/10 pb-5 grid-cols-1',
+            activeColumns.length >= 3 && 'lg:grid-cols-[1fr_1.6fr_1fr]'
+          )}
+        >
           {activeColumns.map((column, idx) => (
             <PreviewColumn 
               key={column.id} 
@@ -559,14 +564,14 @@ function PreviewColumn({ column, isFirst, isLast, totalColumns }: {
 }) {
   const alignment = cn(
     'text-center',
-    totalColumns > 1 && isFirst && 'sm:text-left',
-    totalColumns > 1 && isLast && 'sm:text-right'
+    totalColumns >= 3 && isFirst && 'lg:text-left',
+    totalColumns >= 3 && isLast && 'lg:text-right'
   );
 
   const flexAlignment = cn(
     'flex gap-4 justify-center',
-    totalColumns > 1 && isFirst && 'sm:justify-start',
-    totalColumns > 1 && isLast && 'sm:justify-end'
+    totalColumns >= 3 && isFirst && 'lg:justify-start',
+    totalColumns >= 3 && isLast && 'lg:justify-end'
   );
 
   return (
