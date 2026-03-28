@@ -7,7 +7,7 @@ import { Facebook, Instagram, Youtube, Linkedin, Twitter, ArrowUp } from "lucide
 
 import { BRAND_COLORS } from "./header.data"
 import { useSettingsStore } from "@/lib/stores/settingsStore"
-import type { SocialLink } from "@/lib/api/socialLinks"
+import type { ContactSocialLinkItem } from "@/lib/types/contact"
 import type { FooterConfig, FooterColumn, FooterItem } from "@/lib/types/footer"
 import { cn } from "@/lib/utils"
 
@@ -34,7 +34,7 @@ const SOCIAL_ICON_FALLBACK: Record<string, React.ComponentType<{ className?: str
 }
 
 interface FooterProps {
-  socialLinks?: SocialLink[];
+  socialLinks?: ContactSocialLinkItem[];
 }
 
 export default function Footer({ socialLinks = [] }: FooterProps) {
@@ -81,7 +81,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
 interface DynamicFooterProps {
   config: FooterConfig;
   siteName: string;
-  socialLinks: SocialLink[];
+  socialLinks: ContactSocialLinkItem[];
   onScrollToTop: () => void;
 }
 
@@ -150,7 +150,7 @@ function DynamicFooter({ config, siteName, socialLinks, onScrollToTop }: Dynamic
 
 interface FooterColumnProps {
   column: FooterColumn;
-  socialLinks: SocialLink[];
+  socialLinks: ContactSocialLinkItem[];
   isFirst: boolean;
   isLast: boolean;
   totalColumns: number;
@@ -250,7 +250,7 @@ function FooterItemComponent({ item }: { item: FooterItem }) {
   return <p className="text-sm text-white/80">{value}</p>;
 }
 
-function SocialLinkIcon({ link }: { link: SocialLink }) {
+function SocialLinkIcon({ link }: { link: ContactSocialLinkItem }) {
   // Check if có custom icon (không phải placeholder)
   const isPlaceholder = !link.icon_url || 
     link.icon_url.includes('placehold') || 

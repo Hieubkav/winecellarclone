@@ -6,7 +6,6 @@ import { fetchSpeedDialComponentSafe, type SpeedDialConfig } from "@/lib/api/hom
  import { adaptSpeedDialProps } from "@/components/home/adapters";
 import { fetchMenusSafe } from "@/lib/api/menus";
 import { fetchSettingsSafe } from "@/lib/api/settings";
-import { fetchSocialLinksSafe } from "@/lib/api/socialLinks";
  import { SettingsProvider } from "@/components/providers/SettingsProvider";
  import { TrackingProvider } from "@/components/providers/TrackingProvider";
  import { OrganizationSchema, WebSiteSchema } from "@/lib/seo/structured-data";
@@ -16,12 +15,15 @@ import { fetchSocialLinksSafe } from "@/lib/api/socialLinks";
  }: {
    children: React.ReactNode;
  }) {
-  const [settings, menuItems, speedialComponent, socialLinks] = await Promise.all([
+  const [settings, menuItems, speedialComponent] = await Promise.all([
     fetchSettingsSafe(),
     fetchMenusSafe(),
     fetchSpeedDialComponentSafe(),
-    fetchSocialLinksSafe(),
   ]);
+  const socialLinks = (settings.contact_config?.social_links ?? [])
+    .filter((link) => link && link.active !== false && link.platform && link.url)
+    .slice()
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const speedialProps = speedialComponent
     ? adaptSpeedDialProps(speedialComponent.config as SpeedDialConfig)

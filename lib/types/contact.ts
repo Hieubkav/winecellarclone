@@ -26,11 +26,21 @@ export interface ContactSocialConfig {
   active: boolean;
 }
 
+export interface ContactSocialLinkItem {
+  id: string;
+  platform: string;
+  url: string;
+  order: number;
+  active: boolean;
+  icon_url?: string | null;
+}
+
 export interface ContactConfig {
   hero: ContactHeroConfig;
   cards: ContactCard[];
   map: ContactMapConfig;
   social: ContactSocialConfig;
+  social_links: ContactSocialLinkItem[];
 }
 
 export const DEFAULT_CONTACT_CONFIG: ContactConfig = {
@@ -83,4 +93,5 @@ export const DEFAULT_CONTACT_CONFIG: ContactConfig = {
     footerText: 'Chúng tôi luôn sẵn sàng lắng nghe',
     active: true,
   },
+  social_links: [],
 };

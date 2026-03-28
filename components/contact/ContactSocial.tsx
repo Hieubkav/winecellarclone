@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Youtube, Linkedin, Twitter, MessageCircle, Send } from "lucide-react";
 import { Montserrat } from "next/font/google";
-import type { SocialLink } from "@/lib/api/socialLinks";
+import type { ContactSocialLinkItem } from "@/lib/types/contact";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -12,7 +12,7 @@ const montserrat = Montserrat({
 });
 
 interface ContactSocialProps {
-  socialLinks: SocialLink[];
+  socialLinks: ContactSocialLinkItem[];
   title?: string;
   subtitle?: string;
   footerText?: string;

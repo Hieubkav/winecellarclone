@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2, Save, Download, Plus, Trash2, GripVertical, Facebook, Instagram, Youtube, Linkedin, Twitter, ArrowUp, Eye, EyeOff } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
-import { fetchAdminSettings, updateSettings, fetchAdminSocialLinks, type AdminSocialLink } from '@/lib/api/admin';
+import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -226,12 +226,11 @@ export default function FooterConfigPage() {
   const loadFromSettings = async () => {
     setIsLoadingData(true);
     try {
-      const [settingsRes, socialRes] = await Promise.all([
-        fetchAdminSettings(),
-        fetchAdminSocialLinks({ per_page: 100 }),
-      ]);
+      const settingsRes = await fetchAdminSettings();
       const settings = settingsRes.data;
-      const socialLinks = socialRes.data;
+      const socialLinks = Array.isArray(settings.contact_config?.social_links)
+        ? settings.contact_config.social_links
+        : [];
 
       const newColumns = [...config.columns];
 
@@ -261,9 +260,10 @@ export default function FooterConfigPage() {
       const socialCol = newColumns.find((c) => c.type === 'social');
       if (socialCol) {
         socialCol.items = socialLinks
-          .filter((link: AdminSocialLink) => link.active)
-          .map((link: AdminSocialLink) => ({
-            id: `social-${link.id}`,
+          .filter((link) => link.active && link.platform && link.url)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          .map((link) => ({
+            id: link.id,
             label: link.platform,
             value: link.platform,
             href: link.url,

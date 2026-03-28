@@ -9,8 +9,9 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
-import type { ContactConfig, ContactCard, ContactHeroConfig, ContactMapConfig, ContactSocialConfig } from '@/lib/types/contact';
+import type { ContactConfig, ContactCard, ContactHeroConfig, ContactMapConfig, ContactSocialConfig, ContactSocialLinkItem } from '@/lib/types/contact';
 import { DEFAULT_CONTACT_CONFIG } from '@/lib/types/contact';
+import ContactSocial from '@/components/contact/ContactSocial';
 
 function generateId() {
   return `id-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -151,7 +152,18 @@ export default function ContactConfigPage() {
       const data = res.data;
       setSiteName(data.site_name || 'Wine Cellar');
       if (data.contact_config) {
-        setConfig(data.contact_config as unknown as ContactConfig);
+        const rawConfig = data.contact_config as Partial<ContactConfig>;
+        setConfig({
+          ...DEFAULT_CONTACT_CONFIG,
+          ...rawConfig,
+          hero: { ...DEFAULT_CONTACT_CONFIG.hero, ...(rawConfig.hero ?? {}) },
+          map: { ...DEFAULT_CONTACT_CONFIG.map, ...(rawConfig.map ?? {}) },
+          social: { ...DEFAULT_CONTACT_CONFIG.social, ...(rawConfig.social ?? {}) },
+          cards: Array.isArray(rawConfig.cards) ? rawConfig.cards : DEFAULT_CONTACT_CONFIG.cards,
+          social_links: Array.isArray(rawConfig.social_links) ? rawConfig.social_links : [],
+        });
+      } else {
+        setConfig(DEFAULT_CONTACT_CONFIG);
       }
     } catch (error) {
       console.error('Failed to load contact config:', error);
@@ -253,6 +265,34 @@ export default function ContactConfigPage() {
 
   const updateSocial = (updates: Partial<ContactSocialConfig>) => {
     setConfig({ ...config, social: { ...config.social, ...updates } });
+  };
+
+  const addSocialLink = () => {
+    const maxOrder = config.social_links.reduce((max, link) => Math.max(max, link.order ?? 0), 0);
+    const newLink: ContactSocialLinkItem = {
+      id: generateId(),
+      platform: '',
+      url: '',
+      order: maxOrder + 1,
+      active: true,
+    };
+    setConfig({ ...config, social_links: [...config.social_links, newLink] });
+  };
+
+  const updateSocialLink = (linkId: string, updates: Partial<ContactSocialLinkItem>) => {
+    setConfig({
+      ...config,
+      social_links: config.social_links.map((link) =>
+        link.id === linkId ? { ...link, ...updates } : link
+      ),
+    });
+  };
+
+  const deleteSocialLink = (linkId: string) => {
+    setConfig({
+      ...config,
+      social_links: config.social_links.filter((link) => link.id !== linkId),
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -433,9 +473,78 @@ export default function ContactConfigPage() {
                 placeholder="Theo dõi chúng tôi trên mạng xã hội để cập nhật thông tin mới nhất"
               />
             </div>
-            <p className="text-xs text-slate-500 text-center py-2">
-              Các link mạng xã hội được quản lý tại trang &quot;Mạng xã hội&quot;
-            </p>
+            <div className="space-y-3 border-t border-slate-200 dark:border-slate-700 pt-4">
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm">Danh sách mạng xã hội</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addSocialLink} className="gap-2">
+                  <Plus size={14} />
+                  Thêm link
+                </Button>
+              </div>
+              {config.social_links.length === 0 ? (
+                <p className="text-xs text-slate-500">Chưa có link nào. Nhấn “Thêm link” để bắt đầu.</p>
+              ) : (
+                <div className="space-y-3">
+                  {config.social_links.map((link) => (
+                    <div
+                      key={link.id}
+                      className={cn('rounded-md border border-slate-200 dark:border-slate-700 p-3 space-y-3', !link.active && 'opacity-60')}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Nền tảng</Label>
+                          <Input
+                            value={link.platform ?? ''}
+                            onChange={(e) => updateSocialLink(link.id, { platform: e.target.value })}
+                            placeholder="Facebook, Instagram, ..."
+                          />
+                        </div>
+                        <div className="space-y-1 md:col-span-2">
+                          <Label className="text-xs">URL</Label>
+                          <Input
+                            value={link.url ?? ''}
+                            onChange={(e) => updateSocialLink(link.id, { url: e.target.value })}
+                            placeholder="https://facebook.com/..."
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-end justify-between gap-3">
+                        <div className="space-y-1 w-32">
+                          <Label className="text-xs">Thứ tự</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={Number.isFinite(link.order) ? link.order : 0}
+                            onChange={(e) => {
+                              const nextOrder = Number(e.target.value);
+                              updateSocialLink(link.id, { order: Number.isFinite(nextOrder) ? nextOrder : 0 });
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateSocialLink(link.id, { active: !link.active })}
+                            className={cn('p-2 rounded-md transition-colors', link.active ? 'text-green-600 hover:bg-green-50' : 'text-slate-400 hover:bg-slate-100')}
+                            title={link.active ? 'Đang hiển thị' : 'Đang ẩn'}
+                          >
+                            {link.active ? <Eye size={18} /> : <EyeOff size={18} />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => deleteSocialLink(link.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                            title="Xóa link"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </Card>
 
@@ -471,6 +580,10 @@ export default function ContactConfigPage() {
 function ContactPreview({ config, siteName }: { config: ContactConfig; siteName: string }) {
   const parsedSubtitle = (config.hero.subtitle ?? '').replace('{siteName}', siteName);
   const activeCards = config.cards.filter(c => c.active);
+  const activeSocialLinks = (config.social_links ?? [])
+    .filter((link) => link && link.active && link.platform && link.url)
+    .slice()
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
     <div className="bg-white">
@@ -518,18 +631,14 @@ function ContactPreview({ config, siteName }: { config: ContactConfig; siteName:
       )}
 
       {/* Social Preview */}
-      {config.social.active && (
+      {config.social.active && activeSocialLinks.length > 0 && (
         <div className="bg-gray-50 py-6 px-4 text-center border-t border-slate-100">
-          <h2 className="text-lg font-bold text-[#1C1C1C] mb-1">{config.social.title || 'Kết nối với chúng tôi'}</h2>
-          <p className="text-sm text-[#1C1C1C]/70 mb-4">{config.social.subtitle}</p>
-          <div className="flex justify-center gap-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-10 w-10 rounded-full border-2 border-[#ECAA4D] bg-white" />
-            ))}
-          </div>
-          {config.social.footerText && (
-            <p className="mt-4 text-xs uppercase tracking-wider text-[#1C1C1C]/50">{config.social.footerText}</p>
-          )}
+          <ContactSocial
+            socialLinks={activeSocialLinks}
+            title={config.social.title || 'Kết nối với chúng tôi'}
+            subtitle={config.social.subtitle}
+            footerText={config.social.footerText}
+          />
         </div>
       )}
     </div>

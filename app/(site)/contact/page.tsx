@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { fetchSettingsSafe } from "@/lib/api/settings";
-import { fetchSocialLinksSafe } from "@/lib/api/socialLinks";
 import ContactHero from "@/components/contact/ContactHero";
 import ContactInfoGrid from "@/components/contact/ContactInfoGrid";
 import ContactMap from "@/components/contact/ContactMap";
@@ -45,9 +44,8 @@ export const metadata: Metadata = {
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export default async function ContactPage() {
-  const [settings, socialLinks] = await Promise.all([
+  const [settings] = await Promise.all([
     fetchSettingsSafe(),
-    fetchSocialLinksSafe(),
   ]);
 
   // Get contact config from settings, fallback to default
@@ -59,6 +57,10 @@ export default async function ContactPage() {
   
   // Determine if social section should be shown
   const showSocial = contactConfig.social?.active !== false;
+  const socialLinks = (contactConfig.social_links ?? [])
+    .filter((link) => link && link.active !== false && link.platform && link.url)
+    .slice()
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
     <main className="min-h-screen bg-white">

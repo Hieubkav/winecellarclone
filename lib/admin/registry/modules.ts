@@ -8,7 +8,6 @@ export type AdminModuleKey =
   | "images"
   | "home-components"
   | "menus"
-  | "social-links"
   | "settings"
   | "users";
 
@@ -53,7 +52,6 @@ export const ADMIN_MODULES: AdminModuleMeta[] = [
   { key: "images", label: "Thư viện ảnh", route: "/admin/images", group: "content" },
   { key: "home-components", label: "Trang chủ", route: "/admin/home-components", group: "website" },
   { key: "menus", label: "Menu", route: "/admin/menus", group: "website" },
-  { key: "social-links", label: "Mạng xã hội", route: "/admin/social-links", group: "website" },
   { key: "settings", label: "Cấu hình chung", route: "/admin/settings", group: "system" },
   { key: "users", label: "Users", route: "/admin/users", group: "system" },
 ];
@@ -117,7 +115,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         subItems: [
           { label: "Trang chủ", href: "/admin/home-components" },
           { label: "Menu", href: "/admin/menus" },
-          { label: "Mạng xã hội", href: "/admin/social-links" },
           { label: "Cấu hình Liên hệ", href: "/admin/contact-config" },
           { label: "Cấu hình Footer", href: "/admin/footer-config" },
         ],
