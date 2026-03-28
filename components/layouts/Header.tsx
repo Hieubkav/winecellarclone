@@ -77,7 +77,7 @@ export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
 
   return (
     <header
-      className={`${montserrat.className} lg:sticky lg:top-0 z-40 w-full bg-white text-sm text-[#1C1C1C] shadow-[0_12px_30px_rgba(28,28,28,0.08)]`}
+      className={`${montserrat.className} sticky top-0 z-40 w-full bg-white text-sm text-[#1C1C1C] shadow-[0_12px_30px_rgba(28,28,28,0.08)]`}
       style={{ color: BRAND_BASE }}
     >
       <MainBar menuItems={convertedMenuItems.length > 0 ? convertedMenuItems : undefined} />
@@ -106,7 +106,7 @@ function MainBar({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
               width={72}
               height={72}
               priority
-              className="h-12 w-12 object-contain md:h-16 md:w-16"
+              className="h-[55px] w-[55px] object-contain md:h-16 md:w-16"
             />
             <span className="hidden text-xs font-bold uppercase tracking-[0.32em] text-[#ECAA4D] md:inline md:text-sm">
               {siteName}
