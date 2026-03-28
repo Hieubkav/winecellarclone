@@ -3,12 +3,13 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Montserrat } from "next/font/google"
-import { Facebook, Instagram, Youtube, Linkedin, Twitter, ArrowUp } from "lucide-react"
+import { ArrowUp } from "lucide-react"
 
 import { BRAND_COLORS } from "./header.data"
 import { useSettingsStore } from "@/lib/stores/settingsStore"
 import type { ContactSocialLinkItem } from "@/lib/types/contact"
 import type { FooterConfig, FooterColumn, FooterItem } from "@/lib/types/footer"
+import { getSocialIconSource } from "@/lib/constants/social-icons"
 import { cn } from "@/lib/utils"
 
 const montserrat = Montserrat({
@@ -19,19 +20,6 @@ const montserrat = Montserrat({
 const { base: NOIR_BASE, accent: AMBER_ACCENT, highlight: WINE_HIGHLIGHT } = BRAND_COLORS
 
 const CURRENT_YEAR = new Date().getFullYear()
-
-const SOCIAL_ICON_FALLBACK: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
-  facebook: Facebook,
-  instagram: Instagram,
-  youtube: Youtube,
-  linkedin: Linkedin,
-  twitter: Twitter,
-  tiktok: Youtube,
-  zalo: Facebook,
-  telegram: Facebook,
-  whatsapp: Facebook,
-  pinterest: Facebook,
-}
 
 interface FooterProps {
   socialLinks?: ContactSocialLinkItem[];
@@ -67,7 +55,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
       style={{ backgroundColor: NOIR_BASE, color: AMBER_ACCENT }}
       aria-label={`${siteName} - Footer`}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="text-xs text-white/60">
             &copy; {CURRENT_YEAR} {siteName}. All rights reserved.
@@ -104,9 +92,9 @@ function DynamicFooter({ config, siteName, socialLinks, onScrollToTop }: Dynamic
       style={{ backgroundColor: NOIR_BASE, color: AMBER_ACCENT }}
       aria-label={`${siteName} - Footer`}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-12">
         {activeColumns.length > 0 && (
-          <div className={gridCols}>
+          <div className={cn(gridCols, "gap-8 border-b border-white/10 pb-8")}>
             {activeColumns.map((column, idx) => (
               <FooterColumnComponent
                 key={column.id}
@@ -121,7 +109,7 @@ function DynamicFooter({ config, siteName, socialLinks, onScrollToTop }: Dynamic
         )}
 
         {/* Copyright & Tagline */}
-        <div className="mt-8 flex flex-col items-center gap-1 text-xs text-white/60 sm:flex-row sm:justify-between">
+        <div className="mt-6 flex flex-col items-center gap-1 text-xs text-white/60 sm:flex-row sm:justify-between">
           <span>{parsedCopyright}</span>
           {config.tagline && <span>{config.tagline}</span>}
         </div>
@@ -165,14 +153,14 @@ function FooterColumnComponent({ column, socialLinks, isFirst, isLast, totalColu
   );
 
   const flexAlignment = cn(
-    'flex gap-3 justify-center',
+    'flex gap-4 justify-center',
     totalColumns > 1 && isFirst && 'sm:justify-start',
     totalColumns > 1 && isLast && 'sm:justify-end'
   );
 
   return (
     <div className={alignment}>
-      <p className="text-sm font-semibold mb-2" style={{ color: AMBER_ACCENT }}>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-3" style={{ color: AMBER_ACCENT }}>
         {column.title}
       </p>
 
@@ -189,7 +177,7 @@ function FooterColumnComponent({ column, socialLinks, isFirst, isLast, totalColu
           )}
         </div>
       ) : (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {column.items.map((item) => (
             <FooterItemComponent key={item.id} item={item} />
           ))}
@@ -207,7 +195,7 @@ function FooterItemComponent({ item }: { item: FooterItem }) {
     return (
       <Link
         href={phoneHref}
-        className="block text-lg font-bold transition-opacity hover:opacity-80"
+        className="block text-lg font-semibold transition-opacity hover:opacity-80"
         style={{ color: WINE_HIGHLIGHT }}
       >
         {value}
@@ -241,24 +229,22 @@ function FooterItemComponent({ item }: { item: FooterItem }) {
 
   if (item.type === 'address') {
     return (
-      <address className="not-italic text-sm text-white/90">
+      <address className="not-italic text-sm text-white/80 leading-relaxed">
         {value}
       </address>
     );
   }
 
-  return <p className="text-sm text-white/80">{value}</p>;
+  return <p className="text-sm text-white/80 leading-relaxed">{value}</p>;
 }
 
 function SocialLinkIcon({ link }: { link: ContactSocialLinkItem }) {
-  // Check if có custom icon (không phải placeholder)
   const isPlaceholder = !link.icon_url || 
     link.icon_url.includes('placehold') || 
     link.icon_url.includes('placeholder') ||
     link.icon_url.endsWith('term.svg');
   const hasCustomIcon = !isPlaceholder;
-  const normalizedPlatform = link.platform?.trim().toLowerCase();
-  const FallbackIcon = normalizedPlatform ? SOCIAL_ICON_FALLBACK[normalizedPlatform] : undefined;
+  const iconSource = getSocialIconSource(link.platform);
 
   return (
     <Link
@@ -266,22 +252,17 @@ function SocialLinkIcon({ link }: { link: ContactSocialLinkItem }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={link.platform}
-      className="flex h-10 w-10 items-center justify-center rounded-full border transition hover:-translate-y-0.5 hover:opacity-90"
-      style={{
-        backgroundColor: NOIR_BASE,
-        borderColor: WINE_HIGHLIGHT,
-        color: WINE_HIGHLIGHT,
-      }}
+      className="flex items-center justify-center transition hover:-translate-y-0.5 hover:opacity-90"
     >
       {hasCustomIcon ? (
         <Image
           src={link.icon_url}
           alt={`${link.platform} icon`}
-          width={16}
-          height={16}
+          width={20}
+          height={20}
         />
-      ) : FallbackIcon ? (
-        <FallbackIcon className="h-4 w-4" strokeWidth={1.6} />
+      ) : iconSource ? (
+        <Image src={iconSource.src} alt={`${iconSource.alt} icon`} width={20} height={20} />
       ) : (
         <span className="text-xs font-bold">{link.platform.slice(0, 2)}</span>
       )}
@@ -290,10 +271,7 @@ function SocialLinkIcon({ link }: { link: ContactSocialLinkItem }) {
 }
 
 function SocialLinkFromConfig({ item }: { item: FooterItem }) {
-  const normalizedValue = item.value?.trim().toLowerCase();
-  const normalizedLabel = item.label?.trim().toLowerCase();
-  const FallbackIcon = (normalizedValue && SOCIAL_ICON_FALLBACK[normalizedValue]) 
-    || (normalizedLabel && SOCIAL_ICON_FALLBACK[normalizedLabel]);
+  const iconSource = getSocialIconSource(item.value || item.label);
 
   return (
     <Link
@@ -301,15 +279,10 @@ function SocialLinkFromConfig({ item }: { item: FooterItem }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={item.label}
-      className="flex h-10 w-10 items-center justify-center rounded-full border transition hover:-translate-y-0.5 hover:opacity-90"
-      style={{
-        backgroundColor: NOIR_BASE,
-        borderColor: WINE_HIGHLIGHT,
-        color: WINE_HIGHLIGHT,
-      }}
+      className="flex items-center justify-center transition hover:-translate-y-0.5 hover:opacity-90"
     >
-      {FallbackIcon ? (
-        <FallbackIcon className="h-4 w-4" strokeWidth={1.6} />
+      {iconSource ? (
+        <Image src={iconSource.src} alt={`${iconSource.alt} icon`} width={20} height={20} />
       ) : (
         <span className="text-xs font-bold">{item.label.slice(0, 2)}</span>
       )}
