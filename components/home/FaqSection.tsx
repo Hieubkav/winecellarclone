@@ -17,7 +17,7 @@ type FaqSectionProps = {
 }
 
 export default function FaqSection({ title, eyebrow, items }: FaqSectionProps) {
-  const [openIndex, setOpenIndex] = useState<number>(0)
+  const [openIndex, setOpenIndex] = useState<number>(-1)
 
   if (items.length === 0) {
     return null
