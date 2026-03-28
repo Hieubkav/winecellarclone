@@ -58,7 +58,7 @@ export default function ContactSocial({
   socialLinks,
   title = "Kết nối với chúng tôi",
   subtitle = "Theo dõi chúng tôi trên mạng xã hội để cập nhật thông tin mới nhất",
-  footerText = "Chúng tôi luôn sẵn sàng lắng nghe"
+  footerText
 }: ContactSocialProps) {
   // Nếu không có social links, không render gì
   if (!socialLinks || socialLinks.length === 0) {

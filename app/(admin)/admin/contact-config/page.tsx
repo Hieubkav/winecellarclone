@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, Save, Download, Plus, Trash2, GripVertical, Eye, EyeOff, Phone, MapPin, Clock, Mail, HelpCircle } from 'lucide-react';
+import Link from 'next/link';
+import { Loader2, Save, Plus, Trash2, GripVertical, Eye, EyeOff, Phone, MapPin, Clock, Mail, HelpCircle, Facebook, Instagram, Youtube, Linkedin, Twitter, MessageCircle, Send, ExternalLink } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
 import { toast } from 'sonner';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import type { ContactConfig, ContactCard, ContactHeroConfig, ContactMapConfig, ContactSocialConfig, ContactSocialLinkItem } from '@/lib/types/contact';
@@ -31,6 +32,18 @@ const CARD_TYPE_OPTIONS = [
   { value: 'address', label: 'Địa chỉ' },
   { value: 'hours', label: 'Giờ làm việc' },
   { value: 'custom', label: 'Tùy chỉnh' },
+];
+
+const SOCIAL_PLATFORM_OPTIONS = [
+  { value: 'Facebook', label: 'Facebook', Icon: Facebook },
+  { value: 'Instagram', label: 'Instagram', Icon: Instagram },
+  { value: 'YouTube', label: 'YouTube', Icon: Youtube },
+  { value: 'LinkedIn', label: 'LinkedIn', Icon: Linkedin },
+  { value: 'Twitter', label: 'Twitter/X', Icon: Twitter },
+  { value: 'TikTok', label: 'TikTok', Icon: Youtube },
+  { value: 'Zalo', label: 'Zalo', Icon: MessageCircle },
+  { value: 'Telegram', label: 'Telegram', Icon: Send },
+  { value: 'WhatsApp', label: 'WhatsApp', Icon: MessageCircle },
 ];
 
 interface SortableCardProps {
@@ -133,10 +146,90 @@ function SortableCard({ card, onUpdate, onDelete }: SortableCardProps) {
   );
 }
 
+interface SortableSocialLinkProps {
+  link: ContactSocialLinkItem;
+  onUpdate: (link: ContactSocialLinkItem) => void;
+  onDelete: () => void;
+}
+
+function SortableSocialLink({ link, onUpdate, onDelete }: SortableSocialLinkProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: link.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const normalizedPlatform = link.platform?.trim().toLowerCase() ?? '';
+  const matchedOption = SOCIAL_PLATFORM_OPTIONS.find(
+    (option) => option.value.toLowerCase() === normalizedPlatform
+  );
+  const SelectedIcon = matchedOption?.Icon ?? HelpCircle;
+  const platformValue = matchedOption?.value ?? (link.platform ?? '');
+  const optionList = matchedOption || !link.platform
+    ? SOCIAL_PLATFORM_OPTIONS
+    : [{ value: link.platform, label: link.platform, Icon: HelpCircle }, ...SOCIAL_PLATFORM_OPTIONS];
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className={cn('p-3 space-y-3', !link.active && 'opacity-60')}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
+              <GripVertical size={16} className="text-slate-400" />
+            </button>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ECAA4D] text-[#1C1C1C]">
+              <SelectedIcon size={16} />
+            </div>
+            <select
+              value={platformValue}
+              onChange={(e) => onUpdate({ ...link, platform: e.target.value })}
+              className="h-10 min-w-[160px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
+            >
+              <option value="">Chọn nền tảng</option>
+              {optionList.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onUpdate({ ...link, active: !link.active })}
+              className={cn('p-2 rounded-md transition-colors', link.active ? 'text-green-600 hover:bg-green-50' : 'text-slate-400 hover:bg-slate-100')}
+              title={link.active ? 'Đang hiển thị' : 'Đang ẩn'}
+            >
+              {link.active ? <Eye size={16} /> : <EyeOff size={16} />}
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              title="Xóa link"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">URL</Label>
+          <Input
+            value={link.url ?? ''}
+            onChange={(e) => onUpdate({ ...link, url: e.target.value })}
+            placeholder="https://facebook.com/..."
+          />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export default function ContactConfigPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(false);
   const [config, setConfig] = useState<ContactConfig>(DEFAULT_CONTACT_CONFIG);
   const [siteName, setSiteName] = useState('');
 
@@ -160,7 +253,9 @@ export default function ContactConfigPage() {
           map: { ...DEFAULT_CONTACT_CONFIG.map, ...(rawConfig.map ?? {}) },
           social: { ...DEFAULT_CONTACT_CONFIG.social, ...(rawConfig.social ?? {}) },
           cards: Array.isArray(rawConfig.cards) ? rawConfig.cards : DEFAULT_CONTACT_CONFIG.cards,
-          social_links: Array.isArray(rawConfig.social_links) ? rawConfig.social_links : [],
+          social_links: Array.isArray(rawConfig.social_links)
+            ? rawConfig.social_links.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            : [],
         });
       } else {
         setConfig(DEFAULT_CONTACT_CONFIG);
@@ -177,52 +272,6 @@ export default function ContactConfigPage() {
     void loadConfig();
   }, [loadConfig]);
 
-  const loadFromSettings = async () => {
-    setIsLoadingData(true);
-    try {
-      const res = await fetchAdminSettings();
-      const data = res.data;
-
-      const newCards = [...config.cards];
-
-      // Update từ settings
-      const hotlineCard = newCards.find(c => c.type === 'hotline');
-      if (hotlineCard && data.hotline) {
-        hotlineCard.content = data.hotline;
-        hotlineCard.href = `tel:+84${data.hotline.replace(/\D/g, '').slice(-9)}`;
-      }
-
-      const addressCard = newCards.find(c => c.type === 'address');
-      if (addressCard && data.address) {
-        addressCard.content = data.address;
-      }
-
-      const hoursCard = newCards.find(c => c.type === 'hours');
-      if (hoursCard && data.hours) {
-        hoursCard.content = data.hours;
-      }
-
-      const emailCard = newCards.find(c => c.type === 'email');
-      if (emailCard && data.email) {
-        emailCard.content = data.email;
-        emailCard.href = `mailto:${data.email}`;
-      }
-
-      const newMap = { ...config.map };
-      if (data.google_map_embed) {
-        newMap.embedUrl = data.google_map_embed;
-      }
-
-      setConfig({ ...config, cards: newCards, map: newMap });
-      toast.success('Đã tải dữ liệu từ cấu hình hệ thống');
-    } catch (error) {
-      console.error('Failed to load data:', error);
-      toast.error('Không thể tải dữ liệu');
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -230,6 +279,20 @@ export default function ContactConfigPage() {
     const oldIndex = config.cards.findIndex(c => c.id === active.id);
     const newIndex = config.cards.findIndex(c => c.id === over.id);
     setConfig({ ...config, cards: arrayMove(config.cards, oldIndex, newIndex) });
+  };
+
+  const handleSocialDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = config.social_links.findIndex(link => link.id === active.id);
+    const newIndex = config.social_links.findIndex(link => link.id === over.id);
+    const nextLinks = arrayMove(config.social_links, oldIndex, newIndex).map((link, index) => ({
+      ...link,
+      order: index,
+    }));
+
+    setConfig({ ...config, social_links: nextLinks });
   };
 
   const addCard = () => {
@@ -268,12 +331,11 @@ export default function ContactConfigPage() {
   };
 
   const addSocialLink = () => {
-    const maxOrder = config.social_links.reduce((max, link) => Math.max(max, link.order ?? 0), 0);
     const newLink: ContactSocialLinkItem = {
       id: generateId(),
       platform: '',
       url: '',
-      order: maxOrder + 1,
+      order: config.social_links.length,
       active: true,
     };
     setConfig({ ...config, social_links: [...config.social_links, newLink] });
@@ -313,7 +375,7 @@ export default function ContactConfigPage() {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4].map(i => (
             <Skeleton key={i} className="h-48" />
           ))}
@@ -324,15 +386,17 @@ export default function ContactConfigPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cấu hình trang Liên hệ</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Tùy chỉnh nội dung và bố cục trang liên hệ</p>
         </div>
-        <Button variant="outline" onClick={loadFromSettings} disabled={isLoadingData} className="gap-2">
-          {isLoadingData ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-          Tải từ Settings
-        </Button>
+        <Link href="/contact" target="_blank" rel="noreferrer">
+          <Button variant="outline" className="gap-2">
+            <ExternalLink size={16} />
+            Mở trang Contact
+          </Button>
+        </Link>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -384,7 +448,7 @@ export default function ContactConfigPage() {
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={config.cards.map(c => c.id)} strategy={verticalListSortingStrategy}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {config.cards.map(card => (
                   <SortableCard
                     key={card.id}
@@ -399,7 +463,7 @@ export default function ContactConfigPage() {
 
           {config.cards.length === 0 && (
             <div className="text-center py-8 text-slate-500">
-              Chưa có thẻ liên hệ nào. Nhấn &quot;Thêm thẻ&quot; hoặc &quot;Tải từ Settings&quot; để bắt đầu.
+              Chưa có thẻ liên hệ nào. Nhấn &quot;Thêm thẻ&quot; để bắt đầu.
             </div>
           )}
         </Card>
@@ -455,12 +519,12 @@ export default function ContactConfigPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="social-footer">Dòng cuối</Label>
+                <Label htmlFor="social-footer">Dòng ghi chú cuối</Label>
                 <Input
                   id="social-footer"
                   value={config.social.footerText ?? ''}
                   onChange={(e) => updateSocial({ footerText: e.target.value })}
-                  placeholder="Chúng tôi luôn sẵn sàng lắng nghe"
+                  placeholder="Ví dụ: Chúng tôi luôn sẵn sàng lắng nghe"
                 />
               </div>
             </div>
@@ -484,65 +548,20 @@ export default function ContactConfigPage() {
               {config.social_links.length === 0 ? (
                 <p className="text-xs text-slate-500">Chưa có link nào. Nhấn “Thêm link” để bắt đầu.</p>
               ) : (
-                <div className="space-y-3">
-                  {config.social_links.map((link) => (
-                    <div
-                      key={link.id}
-                      className={cn('rounded-md border border-slate-200 dark:border-slate-700 p-3 space-y-3', !link.active && 'opacity-60')}
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Nền tảng</Label>
-                          <Input
-                            value={link.platform ?? ''}
-                            onChange={(e) => updateSocialLink(link.id, { platform: e.target.value })}
-                            placeholder="Facebook, Instagram, ..."
-                          />
-                        </div>
-                        <div className="space-y-1 md:col-span-2">
-                          <Label className="text-xs">URL</Label>
-                          <Input
-                            value={link.url ?? ''}
-                            onChange={(e) => updateSocialLink(link.id, { url: e.target.value })}
-                            placeholder="https://facebook.com/..."
-                          />
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-end justify-between gap-3">
-                        <div className="space-y-1 w-32">
-                          <Label className="text-xs">Thứ tự</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            value={Number.isFinite(link.order) ? link.order : 0}
-                            onChange={(e) => {
-                              const nextOrder = Number(e.target.value);
-                              updateSocialLink(link.id, { order: Number.isFinite(nextOrder) ? nextOrder : 0 });
-                            }}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => updateSocialLink(link.id, { active: !link.active })}
-                            className={cn('p-2 rounded-md transition-colors', link.active ? 'text-green-600 hover:bg-green-50' : 'text-slate-400 hover:bg-slate-100')}
-                            title={link.active ? 'Đang hiển thị' : 'Đang ẩn'}
-                          >
-                            {link.active ? <Eye size={18} /> : <EyeOff size={18} />}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => deleteSocialLink(link.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                            title="Xóa link"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </div>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSocialDragEnd}>
+                  <SortableContext items={config.social_links.map(link => link.id)} strategy={rectSortingStrategy}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {config.social_links.map((link) => (
+                        <SortableSocialLink
+                          key={link.id}
+                          link={link}
+                          onUpdate={(updated) => updateSocialLink(link.id, updated)}
+                          onDelete={() => deleteSocialLink(link.id)}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
           </div>
