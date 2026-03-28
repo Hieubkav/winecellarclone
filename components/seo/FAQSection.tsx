@@ -22,7 +22,7 @@ export default function FAQSection({
   items,
   className,
 }: FAQSectionProps) {
-  const [openIndex, setOpenIndex] = useState<number | null>(0)
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
     <section className={cn('py-12', className)}>

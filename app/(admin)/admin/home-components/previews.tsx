@@ -940,7 +940,7 @@ export const FaqPreview = ({
   eyebrow?: string;
   items: FaqPreviewItem[];
 }) => {
-  const [openIndex, setOpenIndex] = useState(items.length > 0 ? 0 : -1);
+  const [openIndex, setOpenIndex] = useState(-1);
 
   React.useEffect(() => {
     if (items.length === 0) {
@@ -949,7 +949,7 @@ export const FaqPreview = ({
     }
 
     if (openIndex >= items.length) {
-      setOpenIndex(0);
+      setOpenIndex(-1);
     }
   }, [items.length, openIndex]);
 
