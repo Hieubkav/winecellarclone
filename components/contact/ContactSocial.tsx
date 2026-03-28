@@ -78,7 +78,7 @@ export default function ContactSocial({
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ECAA4D] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#9B2C3B] focus:ring-offset-2 sm:h-16 sm:w-16"
+              className="group flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ECAA4D] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#9B2C3B] focus:ring-offset-2 sm:h-14 sm:w-14"
               aria-label={`Theo dõi chúng tôi trên ${link.platform}`}
             >
               {hasCustomIcon ? (
@@ -86,16 +86,16 @@ export default function ContactSocial({
                 <Image
                   src={link.icon_url}
                   alt={`${link.platform} icon`}
-                  width={28}
-                  height={28}
+                  width={34}
+                  height={34}
                   className="transition-transform group-hover:scale-110"
                 />
               ) : iconSource ? (
                 <Image
                   src={iconSource.src}
                   alt={`${iconSource.alt} icon`}
-                  width={28}
-                  height={28}
+                  width={34}
+                  height={34}
                   className="transition-transform group-hover:scale-110"
                 />
               ) : (

@@ -181,11 +181,11 @@ function SortableSocialLink({ link, onUpdate, onDelete }: SortableSocialLinkProp
             <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
               <GripVertical size={16} className="text-slate-400" />
             </button>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
               {iconSource ? (
-                <Image src={iconSource.src} alt={iconSource.alt} width={16} height={16} />
+                <Image src={iconSource.src} alt={iconSource.alt} width={20} height={20} />
               ) : (
-                <HelpCircle size={16} className="text-slate-500" />
+                <HelpCircle size={20} className="text-slate-500" />
               )}
             </div>
             <select
