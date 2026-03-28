@@ -303,7 +303,7 @@ function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren
   const items: MenuItemWithChildren[] = propMenuItems || defaultMenuItems;
 
   return (
-    <div className="border-b border-[#751826] bg-[#C99041] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
+    <div className="border-b border-[#751826] bg-[#C99041] lg:bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
         <nav className="relative flex items-center gap-4 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
           {items.map((item) => {
