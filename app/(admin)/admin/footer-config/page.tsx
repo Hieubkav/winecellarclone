@@ -35,6 +35,18 @@ interface FooterConfig {
   showBackToTop: boolean;
 }
 
+const SOCIAL_PLATFORM_OPTIONS = [
+  { value: 'Facebook', label: 'Facebook' },
+  { value: 'Instagram', label: 'Instagram' },
+  { value: 'YouTube', label: 'YouTube' },
+  { value: 'LinkedIn', label: 'LinkedIn' },
+  { value: 'Twitter', label: 'Twitter/X' },
+  { value: 'TikTok', label: 'TikTok' },
+  { value: 'Zalo', label: 'Zalo' },
+  { value: 'Telegram', label: 'Telegram' },
+  { value: 'WhatsApp', label: 'WhatsApp' },
+];
+
 const DEFAULT_FOOTER_CONFIG: FooterConfig = {
   columns: [
     {
@@ -87,12 +99,20 @@ function SortableColumn({ column, onUpdate, onDelete }: SortableColumnProps) {
   };
 
   const addItem = () => {
-    const newItem: FooterItem = {
-      id: generateId(),
-      label: 'Mục mới',
-      value: '',
-      type: 'text',
-    };
+    const newItem: FooterItem = column.type === 'social'
+      ? {
+          id: generateId(),
+          label: '',
+          value: '',
+          href: '',
+          type: 'link',
+        }
+      : {
+          id: generateId(),
+          label: 'Mục mới',
+          value: '',
+          type: 'text',
+        };
     onUpdate({ ...column, items: [...column.items, newItem] });
   };
 
@@ -133,46 +153,89 @@ function SortableColumn({ column, onUpdate, onDelete }: SortableColumnProps) {
       </div>
 
       <div className="space-y-3">
-        {column.items.map((item) => (
-          <div key={item.id} className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-            <div className="flex-1 space-y-2">
-              <div className="flex gap-2">
-                <Input
-                  value={item.label ?? ''}
-                  onChange={(e) => updateItem(item.id, { label: e.target.value })}
-                  placeholder="Nhãn"
-                  className="flex-1"
-                />
-                <select
-                  value={item.type}
-                  onChange={(e) => updateItem(item.id, { type: e.target.value as FooterItem['type'] })}
-                  className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
-                >
-                  <option value="text">Văn bản</option>
-                  <option value="phone">Điện thoại</option>
-                  <option value="email">Email</option>
-                  <option value="address">Địa chỉ</option>
-                  <option value="link">Liên kết</option>
-                </select>
-              </div>
-              <Input
-                value={item.value ?? ''}
-                onChange={(e) => updateItem(item.id, { value: e.target.value })}
-                placeholder={item.type === 'phone' ? '0909 123 456' : item.type === 'email' ? 'email@example.com' : 'Nội dung'}
-              />
-              {item.type === 'link' && (
-                <Input
-                  value={item.href ?? ''}
-                  onChange={(e) => updateItem(item.id, { href: e.target.value })}
-                  placeholder="URL (https://...)"
-                />
+        {column.items.map((item) => {
+          const iconSource = column.type === 'social'
+            ? getSocialIconSource(item.value || item.label)
+            : undefined;
+
+          return (
+            <div key={item.id} className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+              {column.type === 'social' ? (
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+                      {iconSource ? (
+                        <Image src={iconSource.src} alt={iconSource.alt} width={18} height={18} />
+                      ) : (
+                        <span className="text-xs font-semibold text-slate-500">?</span>
+                      )}
+                    </div>
+                    <select
+                      value={item.value ?? ''}
+                      onChange={(e) =>
+                        updateItem(item.id, {
+                          value: e.target.value,
+                          label: e.target.value,
+                          type: 'link',
+                        })
+                      }
+                      className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
+                    >
+                      <option value="">Chọn nền tảng</option>
+                      {SOCIAL_PLATFORM_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Input
+                    value={item.href ?? ''}
+                    onChange={(e) => updateItem(item.id, { href: e.target.value, type: 'link' })}
+                    placeholder="URL (https://...)"
+                  />
+                </div>
+              ) : (
+                <div className="flex-1 space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      value={item.label ?? ''}
+                      onChange={(e) => updateItem(item.id, { label: e.target.value })}
+                      placeholder="Nhãn"
+                      className="flex-1"
+                    />
+                    <select
+                      value={item.type}
+                      onChange={(e) => updateItem(item.id, { type: e.target.value as FooterItem['type'] })}
+                      className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
+                    >
+                      <option value="text">Văn bản</option>
+                      <option value="phone">Điện thoại</option>
+                      <option value="email">Email</option>
+                      <option value="address">Địa chỉ</option>
+                      <option value="link">Liên kết</option>
+                    </select>
+                  </div>
+                  <Input
+                    value={item.value ?? ''}
+                    onChange={(e) => updateItem(item.id, { value: e.target.value })}
+                    placeholder={item.type === 'phone' ? '0909 123 456' : item.type === 'email' ? 'email@example.com' : 'Nội dung'}
+                  />
+                  {item.type === 'link' && (
+                    <Input
+                      value={item.href ?? ''}
+                      onChange={(e) => updateItem(item.id, { href: e.target.value })}
+                      placeholder="URL (https://...)"
+                    />
+                  )}
+                </div>
               )}
+              <button onClick={() => deleteItem(item.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors">
+                <Trash2 size={16} />
+              </button>
             </div>
-            <button onClick={() => deleteItem(item.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors">
-              <Trash2 size={16} />
-            </button>
-          </div>
-        ))}
+          );
+        })}
 
         <Button variant="outline" size="sm" onClick={addItem} className="w-full gap-2">
           <Plus size={16} />
