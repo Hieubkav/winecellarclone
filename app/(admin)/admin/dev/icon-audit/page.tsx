@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import DynamicIcon from '@/components/shared/DynamicIcon';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '../../components/ui';
-import { fetchAdminCatalogAttributeGroups, fetchAdminSocialLinks } from '@/lib/api/admin';
+import { fetchAdminCatalogAttributeGroups } from '@/lib/api/admin';
 import {
   fetchProductDetail,
   fetchProductFilters,
@@ -16,7 +16,7 @@ import {
 import { fetchSettings, type Settings } from '@/lib/api/settings';
 import { DYNAMIC_ICON_MAP, resolveIconInput } from '@/lib/icons/dynamicIconRegistry';
 import { getImageUrl } from '@/lib/utils/image';
-import type { AdminCatalogAttributeGroupsResponse, AdminSocialLinksResponse } from '@/lib/api/admin';
+import type { AdminCatalogAttributeGroupsResponse } from '@/lib/api/admin';
 
 type AuditItem = {
   id: string;
@@ -47,10 +47,10 @@ const SOURCE_META: Record<string, SourceMeta> = {
       'components/products/productDetailPage.tsx',
     ],
   },
-  'admin-social-links': {
-    owner: 'Admin social links',
+  'admin-contact-social': {
+    owner: 'Settings.contact_config.social_links',
     affectedFiles: [
-      'app/(admin)/admin/social-links/page.tsx',
+      'app/(admin)/admin/contact-config/page.tsx',
       'components/layouts/Footer.tsx',
       'components/contact/ContactSocial.tsx',
     ],
@@ -157,18 +157,14 @@ export default function IconAuditPage() {
     try {
       const results = await Promise.allSettled([
         fetchAdminCatalogAttributeGroups({ per_page: 200 }),
-        fetchAdminSocialLinks({ per_page: 200 }),
         fetchProductFilters(),
         fetchProductList({ per_page: 40 }),
         fetchSettings(),
       ]);
 
-      const [attributeGroupsResult, socialLinksResult, filtersResult, productListResult, settingsResult] = results;
+      const [attributeGroupsResult, filtersResult, productListResult, settingsResult] = results;
       const attributeGroups = attributeGroupsResult.status === 'fulfilled'
         ? (attributeGroupsResult.value as AdminCatalogAttributeGroupsResponse)
-        : null;
-      const socialLinks = socialLinksResult.status === 'fulfilled'
-        ? (socialLinksResult.value as AdminSocialLinksResponse)
         : null;
       const filters = filtersResult.status === 'fulfilled'
         ? (filtersResult.value as ProductFiltersPayload)
@@ -194,11 +190,11 @@ export default function IconAuditPage() {
         });
       }
 
-      if (socialLinks) {
-        socialLinks.data.forEach((link) => {
+      if (settings?.contact_config?.social_links) {
+        settings.contact_config.social_links.forEach((link) => {
           addItem({
-            id: `admin-social-${link.id}`,
-            source: 'admin-social-links',
+            id: `admin-contact-social-${link.id}`,
+            source: 'admin-contact-social',
             label: `${link.platform} (${link.url})`,
             rawIcon: link.icon_url ?? null,
             iconName: null,
