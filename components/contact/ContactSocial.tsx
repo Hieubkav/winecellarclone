@@ -24,16 +24,16 @@ const SOCIAL_ICON_FALLBACK: Record<
   string,
   React.ComponentType<{ className?: string; strokeWidth?: number }> | string
 > = {
-  Facebook,
-  Instagram,
-  YouTube: Youtube,
-  LinkedIn: Linkedin,
-  Twitter,
-  TikTok: Youtube, // Lucide doesn't have TikTok, use Youtube as placeholder
-  Zalo: "Z", // Simple text "Z" for Zalo
-  Telegram: Send,
-  WhatsApp: MessageCircle,
-  Pinterest: Facebook,
+  facebook: Facebook,
+  instagram: Instagram,
+  youtube: Youtube,
+  linkedin: Linkedin,
+  twitter: Twitter,
+  tiktok: Youtube, // Lucide doesn't have TikTok, use Youtube as placeholder
+  zalo: "Z", // Simple text "Z" for Zalo
+  telegram: Send,
+  whatsapp: MessageCircle,
+  pinterest: Facebook,
 };
 
 /**
@@ -87,7 +87,8 @@ export default function ContactSocial({
           const hasCustomIcon = !isPlaceholder;
           
           // Get fallback Lucide icon nếu không có custom icon
-          const FallbackIcon = SOCIAL_ICON_FALLBACK[link.platform];
+          const normalizedPlatform = link.platform?.trim().toLowerCase();
+          const FallbackIcon = normalizedPlatform ? SOCIAL_ICON_FALLBACK[normalizedPlatform] : undefined;
 
           return (
             <Link

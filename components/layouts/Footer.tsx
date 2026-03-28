@@ -21,16 +21,16 @@ const { base: NOIR_BASE, accent: AMBER_ACCENT, highlight: WINE_HIGHLIGHT } = BRA
 const CURRENT_YEAR = new Date().getFullYear()
 
 const SOCIAL_ICON_FALLBACK: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
-  Facebook,
-  Instagram,
-  YouTube: Youtube,
-  LinkedIn: Linkedin,
-  Twitter,
-  TikTok: Youtube,
-  Zalo: Facebook,
-  Telegram: Facebook,
-  WhatsApp: Facebook,
-  Pinterest: Facebook,
+  facebook: Facebook,
+  instagram: Instagram,
+  youtube: Youtube,
+  linkedin: Linkedin,
+  twitter: Twitter,
+  tiktok: Youtube,
+  zalo: Facebook,
+  telegram: Facebook,
+  whatsapp: Facebook,
+  pinterest: Facebook,
 }
 
 interface FooterProps {
@@ -257,7 +257,8 @@ function SocialLinkIcon({ link }: { link: SocialLink }) {
     link.icon_url.includes('placeholder') ||
     link.icon_url.endsWith('term.svg');
   const hasCustomIcon = !isPlaceholder;
-  const FallbackIcon = SOCIAL_ICON_FALLBACK[link.platform];
+  const normalizedPlatform = link.platform?.trim().toLowerCase();
+  const FallbackIcon = normalizedPlatform ? SOCIAL_ICON_FALLBACK[normalizedPlatform] : undefined;
 
   return (
     <Link
@@ -289,7 +290,10 @@ function SocialLinkIcon({ link }: { link: SocialLink }) {
 }
 
 function SocialLinkFromConfig({ item }: { item: FooterItem }) {
-  const FallbackIcon = SOCIAL_ICON_FALLBACK[item.value] || SOCIAL_ICON_FALLBACK[item.label];
+  const normalizedValue = item.value?.trim().toLowerCase();
+  const normalizedLabel = item.label?.trim().toLowerCase();
+  const FallbackIcon = (normalizedValue && SOCIAL_ICON_FALLBACK[normalizedValue]) 
+    || (normalizedLabel && SOCIAL_ICON_FALLBACK[normalizedLabel]);
 
   return (
     <Link
