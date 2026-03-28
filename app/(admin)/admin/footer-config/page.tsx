@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2, Save, Download, Plus, Trash2, GripVertical, Facebook, Instagram, Youtube, Linkedin, Twitter, ArrowUp, Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
+import { Loader2, Save, Download, Plus, Trash2, GripVertical, ArrowUp, Eye, EyeOff } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
 import { toast } from 'sonner';
@@ -9,6 +10,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
+import { getSocialIconSource } from '@/lib/constants/social-icons';
 
 interface FooterColumn {
   id: string;
@@ -172,18 +174,10 @@ function SortableColumn({ column, onUpdate, onDelete }: SortableColumnProps) {
           </div>
         ))}
 
-        {column.type !== 'social' && (
-          <Button variant="outline" size="sm" onClick={addItem} className="w-full gap-2">
-            <Plus size={16} />
-            Thêm mục
-          </Button>
-        )}
-
-        {column.type === 'social' && (
-          <p className="text-xs text-slate-500 text-center py-2">
-            Mạng xã hội được tải từ cấu hình riêng
-          </p>
-        )}
+        <Button variant="outline" size="sm" onClick={addItem} className="w-full gap-2">
+          <Plus size={16} />
+          Thêm mục
+        </Button>
       </div>
     </Card>
     </div>
@@ -272,7 +266,7 @@ export default function FooterConfigPage() {
       }
 
       setConfig({ ...config, columns: newColumns });
-      toast.success('Đã tải dữ liệu từ cấu hình hệ thống');
+      toast.success('Đã đồng bộ dữ liệu từ cấu hình liên hệ');
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('Không thể tải dữ liệu');
@@ -348,7 +342,7 @@ export default function FooterConfigPage() {
         </div>
         <Button variant="outline" onClick={loadFromSettings} disabled={isLoadingData} className="gap-2">
           {isLoadingData ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-          Tải từ Settings
+          Đồng bộ icon mạng xã hội từ liên hệ
         </Button>
       </div>
 
@@ -492,16 +486,6 @@ function FooterPreview({ config, siteName }: { config: FooterConfig; siteName: s
   );
 }
 
-const SOCIAL_ICON_MAP: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
-  Facebook,
-  Instagram,
-  YouTube: Youtube,
-  LinkedIn: Linkedin,
-  Twitter,
-  TikTok: Youtube,
-  Zalo: Facebook,
-};
-
 function PreviewColumn({ column, isFirst, isLast, totalColumns }: { 
   column: FooterColumn; 
   isFirst: boolean; 
@@ -527,15 +511,15 @@ function PreviewColumn({ column, isFirst, isLast, totalColumns }: {
         <div className={flexAlignment}>
           {column.items.length > 0 ? (
             column.items.map((item) => {
-              const IconComponent = SOCIAL_ICON_MAP[item.value] || SOCIAL_ICON_MAP[item.label];
+              const iconSource = getSocialIconSource(item.value || item.label);
               return (
                 <span
                   key={item.id}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-red-400 text-red-400 transition hover:-translate-y-0.5 hover:opacity-90"
                   title={item.label}
                 >
-                  {IconComponent ? (
-                    <IconComponent className="h-4 w-4" strokeWidth={1.6} />
+                  {iconSource ? (
+                    <Image src={iconSource.src} alt={iconSource.alt} width={20} height={20} />
                   ) : (
                     <span className="text-xs font-bold">{(item.value || item.label).slice(0, 2)}</span>
                   )}
