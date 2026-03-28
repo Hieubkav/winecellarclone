@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Loader2, Save, Plus, Trash2, GripVertical, Eye, EyeOff, Phone, MapPin, Clock, Mail, HelpCircle, Facebook, Instagram, Youtube, Linkedin, Twitter, MessageCircle, Send, ExternalLink } from 'lucide-react';
+import { Loader2, Save, Plus, Trash2, GripVertical, Eye, EyeOff, Phone, MapPin, Clock, Mail, HelpCircle, ExternalLink } from 'lucide-react';
 import { Button, Card, Input, Label, Skeleton } from '../components/ui';
 import { fetchAdminSettings, updateSettings } from '@/lib/api/admin';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import type { ContactConfig, ContactCard, ContactHeroConfig, ContactMapConfig, ContactSocialConfig, ContactSocialLinkItem } from '@/lib/types/contact';
 import { DEFAULT_CONTACT_CONFIG } from '@/lib/types/contact';
 import ContactSocial from '@/components/contact/ContactSocial';
+import { getSocialIconSource } from '@/lib/constants/social-icons';
 
 function generateId() {
   return `id-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -36,15 +37,15 @@ const CARD_TYPE_OPTIONS = [
 ];
 
 const SOCIAL_PLATFORM_OPTIONS = [
-  { value: 'Facebook', label: 'Facebook', Icon: Facebook },
-  { value: 'Instagram', label: 'Instagram', Icon: Instagram },
-  { value: 'YouTube', label: 'YouTube', Icon: Youtube },
-  { value: 'LinkedIn', label: 'LinkedIn', Icon: Linkedin },
-  { value: 'Twitter', label: 'Twitter/X', Icon: Twitter },
-  { value: 'TikTok', label: 'TikTok', Icon: Youtube },
-  { value: 'Zalo', label: 'Zalo', Icon: MessageCircle },
-  { value: 'Telegram', label: 'Telegram', Icon: Send },
-  { value: 'WhatsApp', label: 'WhatsApp', Icon: MessageCircle },
+  { value: 'Facebook', label: 'Facebook' },
+  { value: 'Instagram', label: 'Instagram' },
+  { value: 'YouTube', label: 'YouTube' },
+  { value: 'LinkedIn', label: 'LinkedIn' },
+  { value: 'Twitter', label: 'Twitter/X' },
+  { value: 'TikTok', label: 'TikTok' },
+  { value: 'Zalo', label: 'Zalo' },
+  { value: 'Telegram', label: 'Telegram' },
+  { value: 'WhatsApp', label: 'WhatsApp' },
 ];
 
 interface SortableCardProps {
@@ -166,12 +167,11 @@ function SortableSocialLink({ link, onUpdate, onDelete }: SortableSocialLinkProp
   const matchedOption = SOCIAL_PLATFORM_OPTIONS.find(
     (option) => option.value.toLowerCase() === normalizedPlatform
   );
-  const SelectedIcon = matchedOption?.Icon ?? HelpCircle;
-  const isZalo = matchedOption?.value.toLowerCase() === 'zalo';
+  const iconSource = getSocialIconSource(matchedOption?.value ?? link.platform);
   const platformValue = matchedOption?.value ?? (link.platform ?? '');
   const optionList = matchedOption || !link.platform
     ? SOCIAL_PLATFORM_OPTIONS
-    : [{ value: link.platform, label: link.platform, Icon: HelpCircle }, ...SOCIAL_PLATFORM_OPTIONS];
+    : [{ value: link.platform, label: link.platform }, ...SOCIAL_PLATFORM_OPTIONS];
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -181,11 +181,11 @@ function SortableSocialLink({ link, onUpdate, onDelete }: SortableSocialLinkProp
             <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
               <GripVertical size={16} className="text-slate-400" />
             </button>
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ECAA4D] text-[#1C1C1C]">
-              {isZalo ? (
-                <Image src="/icons/zalo.svg" alt="Zalo" width={16} height={16} />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+              {iconSource ? (
+                <Image src={iconSource.src} alt={iconSource.alt} width={16} height={16} />
               ) : (
-                <SelectedIcon size={16} />
+                <HelpCircle size={16} className="text-slate-500" />
               )}
             </div>
             <select

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Instagram, Youtube, Linkedin, Twitter, MessageCircle, Send } from "lucide-react";
 import { Montserrat } from "next/font/google";
 import type { ContactSocialLinkItem } from "@/lib/types/contact";
+import { getSocialIconSource } from "@/lib/constants/social-icons";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -17,24 +17,6 @@ interface ContactSocialProps {
   subtitle?: string;
   footerText?: string;
 }
-
-// Icon mapping fallback cho các platforms chưa có icon từ backend
-// Map platform names → Lucide React icons hoặc text
-const SOCIAL_ICON_FALLBACK: Record<
-  string,
-  React.ComponentType<{ className?: string; strokeWidth?: number }> | string
-> = {
-  facebook: Facebook,
-  instagram: Instagram,
-  youtube: Youtube,
-  linkedin: Linkedin,
-  twitter: Twitter,
-  tiktok: Youtube, // Lucide doesn't have TikTok, use Youtube as placeholder
-  zalo: MessageCircle,
-  telegram: Send,
-  whatsapp: MessageCircle,
-  pinterest: Facebook,
-};
 
 /**
  * ContactSocial - Social links section
@@ -88,9 +70,7 @@ export default function ContactSocial({
           
           // Get fallback Lucide icon nếu không có custom icon
           const normalizedPlatform = link.platform?.trim().toLowerCase();
-          const FallbackIcon = normalizedPlatform ? SOCIAL_ICON_FALLBACK[normalizedPlatform] : undefined;
-
-          const isZalo = normalizedPlatform === 'zalo';
+          const iconSource = getSocialIconSource(normalizedPlatform);
 
           return (
             <Link
@@ -98,7 +78,7 @@ export default function ContactSocial({
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#ECAA4D] bg-white text-[#1C1C1C] transition-all duration-200 hover:bg-[#ECAA4D] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#9B2C3B] focus:ring-offset-2 sm:h-16 sm:w-16"
+              className="group flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ECAA4D] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#9B2C3B] focus:ring-offset-2 sm:h-16 sm:w-16"
               aria-label={`Theo dõi chúng tôi trên ${link.platform}`}
             >
               {hasCustomIcon ? (
@@ -110,22 +90,14 @@ export default function ContactSocial({
                   height={28}
                   className="transition-transform group-hover:scale-110"
                 />
-              ) : isZalo ? (
+              ) : iconSource ? (
                 <Image
-                  src="/icons/zalo.svg"
-                  alt="Zalo icon"
+                  src={iconSource.src}
+                  alt={`${iconSource.alt} icon`}
                   width={28}
                   height={28}
                   className="transition-transform group-hover:scale-110"
                 />
-              ) : typeof FallbackIcon === 'string' ? (
-                // Text icon (e.g., "Z" for Zalo)
-                <span className={`${montserrat.className} text-2xl font-bold transition-transform group-hover:scale-110`}>
-                  {FallbackIcon}
-                </span>
-              ) : FallbackIcon ? (
-                // Fallback Lucide icon
-                <FallbackIcon className="h-6 w-6 transition-transform group-hover:scale-110 sm:h-7 sm:w-7" strokeWidth={2} />
               ) : (
                 // Text fallback nếu không có icon
                 <span className="text-xs font-bold uppercase">{link.platform.slice(0, 2)}</span>
