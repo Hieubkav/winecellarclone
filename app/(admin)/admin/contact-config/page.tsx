@@ -183,7 +183,7 @@ function SortableSocialLink({ link, onUpdate, onDelete }: SortableSocialLinkProp
             </button>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ECAA4D] text-[#1C1C1C]">
               {isZalo ? (
-                <Image src="/icons/zalo.png" alt="Zalo" width={16} height={16} />
+                <Image src="/icons/zalo.svg" alt="Zalo" width={16} height={16} />
               ) : (
                 <SelectedIcon size={16} />
               )}

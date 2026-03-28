@@ -112,7 +112,7 @@ export default function ContactSocial({
                 />
               ) : isZalo ? (
                 <Image
-                  src="/icons/zalo.png"
+                  src="/icons/zalo.svg"
                   alt="Zalo icon"
                   width={28}
                   height={28}
