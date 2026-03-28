@@ -517,34 +517,36 @@ function FooterPreview({ config, siteName }: { config: FooterConfig; siteName: s
     );
   }
 
-  return (
-    <div className="bg-[#1a1a1a] text-amber-100 p-6">
-      <div className={cn('grid gap-6', activeColumns.length === 1 && 'grid-cols-1', activeColumns.length === 2 && 'grid-cols-1 sm:grid-cols-2', activeColumns.length >= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3')}>
-        {activeColumns.map((column, idx) => (
-          <PreviewColumn 
-            key={column.id} 
-            column={column} 
-            isFirst={idx === 0}
-            isLast={idx === activeColumns.length - 1}
-            totalColumns={activeColumns.length}
-          />
-        ))}
-      </div>
-
-      <div className="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-white/60">
-        <span>{parsedCopyright || `© ${currentYear} ${siteName}. All rights reserved.`}</span>
-        {config.tagline && <span>{config.tagline}</span>}
-      </div>
-
-      {config.showBackToTop && (
-        <div className="mt-6 flex justify-center">
-          <span
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-red-400 text-red-400 cursor-pointer hover:opacity-80 transition-opacity"
-          >
-            <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
-          </span>
+    return (
+    <div className="bg-[#1a1a1a] text-amber-100 px-4 py-6">
+      <div className="mx-auto w-full max-w-8xl">
+        <div className={cn('grid gap-6 border-b border-white/10 pb-5', activeColumns.length === 1 && 'grid-cols-1', activeColumns.length === 2 && 'grid-cols-1 sm:grid-cols-2', activeColumns.length >= 3 && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3')}>
+          {activeColumns.map((column, idx) => (
+            <PreviewColumn 
+              key={column.id} 
+              column={column} 
+              isFirst={idx === 0}
+              isLast={idx === activeColumns.length - 1}
+              totalColumns={activeColumns.length}
+            />
+          ))}
         </div>
-      )}
+
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-white/60">
+          <span>{parsedCopyright || `© ${currentYear} ${siteName}. All rights reserved.`}</span>
+          {config.tagline && <span>{config.tagline}</span>}
+        </div>
+
+        {config.showBackToTop && (
+          <div className="mt-4 flex justify-center">
+            <span
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-red-400 text-red-400 cursor-pointer hover:opacity-80 transition-opacity"
+            >
+              <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -562,14 +564,14 @@ function PreviewColumn({ column, isFirst, isLast, totalColumns }: {
   );
 
   const flexAlignment = cn(
-    'flex gap-3 justify-center',
+    'flex gap-4 justify-center',
     totalColumns > 1 && isFirst && 'sm:justify-start',
     totalColumns > 1 && isLast && 'sm:justify-end'
   );
 
   return (
     <div className={alignment}>
-      <p className="text-sm font-semibold text-amber-200 mb-2">{column.title}</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200 mb-3">{column.title}</p>
       {column.type === 'social' ? (
         <div className={flexAlignment}>
           {column.items.length > 0 ? (
@@ -578,11 +580,11 @@ function PreviewColumn({ column, isFirst, isLast, totalColumns }: {
               return (
                 <span
                   key={item.id}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-red-400 text-red-400 transition hover:-translate-y-0.5 hover:opacity-90"
+                  className="flex items-center justify-center transition hover:-translate-y-0.5 hover:opacity-90"
                   title={item.label}
                 >
                   {iconSource ? (
-                    <Image src={iconSource.src} alt={iconSource.alt} width={20} height={20} />
+                    <Image src={iconSource.src} alt={iconSource.alt} width={24} height={24} />
                   ) : (
                     <span className="text-xs font-bold">{(item.value || item.label).slice(0, 2)}</span>
                   )}
@@ -594,7 +596,7 @@ function PreviewColumn({ column, isFirst, isLast, totalColumns }: {
           )}
         </div>
       ) : (
-        <div className="space-y-1">
+        <div className="space-y-2">
           {column.items.map((item) => (
             <PreviewItem key={item.id} item={item} />
           ))}
@@ -608,7 +610,7 @@ function PreviewItem({ item }: { item: FooterItem }) {
   const value = item.value || item.label;
 
   if (item.type === 'phone') {
-    return <span className="block text-lg font-bold text-red-400">{value || 'Chưa có số'}</span>;
+    return <span className="block text-lg font-semibold text-red-400">{value || 'Chưa có số'}</span>;
   }
 
   if (item.type === 'email') {
@@ -620,8 +622,8 @@ function PreviewItem({ item }: { item: FooterItem }) {
   }
 
   if (item.type === 'address') {
-    return <address className="not-italic text-sm text-white/90">{value}</address>;
+    return <address className="not-italic text-sm text-white/80 leading-relaxed">{value}</address>;
   }
 
-  return <p className="text-sm text-white/80">{value}</p>;
+  return <p className="text-sm text-white/80 leading-relaxed">{value}</p>;
 }

@@ -55,7 +55,7 @@ export default function Footer({ socialLinks = [] }: FooterProps) {
       style={{ backgroundColor: NOIR_BASE, color: AMBER_ACCENT }}
       aria-label={`${siteName} - Footer`}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-10">
+      <div className="mx-auto w-full max-w-8xl px-4 py-6">
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="text-xs text-white/60">
             &copy; {CURRENT_YEAR} {siteName}. All rights reserved.
@@ -92,9 +92,9 @@ function DynamicFooter({ config, siteName, socialLinks, onScrollToTop }: Dynamic
       style={{ backgroundColor: NOIR_BASE, color: AMBER_ACCENT }}
       aria-label={`${siteName} - Footer`}
     >
-      <div className="mx-auto w-full max-w-6xl px-4 py-12">
+      <div className="mx-auto w-full max-w-8xl px-4 py-6">
         {activeColumns.length > 0 && (
-          <div className={cn(gridCols, "gap-8 border-b border-white/10 pb-8")}>
+          <div className={cn(gridCols, "gap-6 border-b border-white/10 pb-5")}>
             {activeColumns.map((column, idx) => (
               <FooterColumnComponent
                 key={column.id}
@@ -109,14 +109,14 @@ function DynamicFooter({ config, siteName, socialLinks, onScrollToTop }: Dynamic
         )}
 
         {/* Copyright & Tagline */}
-        <div className="mt-6 flex flex-col items-center gap-1 text-xs text-white/60 sm:flex-row sm:justify-between">
+        <div className="mt-4 flex flex-col items-center gap-1 text-xs text-white/60 sm:flex-row sm:justify-between">
           <span>{parsedCopyright}</span>
           {config.tagline && <span>{config.tagline}</span>}
         </div>
 
         {/* Back to Top Button */}
         {config.showBackToTop && (
-          <div className="mt-6 flex justify-center">
+          <div className="mt-4 flex justify-center">
             <button
               onClick={onScrollToTop}
               aria-label="Quay lại đầu trang"
@@ -258,11 +258,11 @@ function SocialLinkIcon({ link }: { link: ContactSocialLinkItem }) {
         <Image
           src={link.icon_url}
           alt={`${link.platform} icon`}
-          width={20}
-          height={20}
+          width={24}
+          height={24}
         />
       ) : iconSource ? (
-        <Image src={iconSource.src} alt={`${iconSource.alt} icon`} width={20} height={20} />
+        <Image src={iconSource.src} alt={`${iconSource.alt} icon`} width={24} height={24} />
       ) : (
         <span className="text-xs font-bold">{link.platform.slice(0, 2)}</span>
       )}
@@ -282,7 +282,7 @@ function SocialLinkFromConfig({ item }: { item: FooterItem }) {
       className="flex items-center justify-center transition hover:-translate-y-0.5 hover:opacity-90"
     >
       {iconSource ? (
-        <Image src={iconSource.src} alt={`${iconSource.alt} icon`} width={20} height={20} />
+        <Image src={iconSource.src} alt={`${iconSource.alt} icon`} width={24} height={24} />
       ) : (
         <span className="text-xs font-bold">{item.label.slice(0, 2)}</span>
       )}
