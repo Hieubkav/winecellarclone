@@ -7,7 +7,8 @@ import { Calendar, Clock, ChevronRight, Facebook, Twitter, ChevronLeft } from "l
 import ArticleJsonLd from "./ArticleJsonLd";
 import RelatedArticles from "./RelatedArticles";
 import type { ArticleDetail } from "@/lib/api/articles";
-import { processArticleContent, calculateReadingTime, getImageUrl } from "@/lib/utils/article-content";
+import { processArticleContent, calculateReadingTime } from "@/lib/utils/article-content";
+import { getArticleImageUrl, getImageUrl } from "@/lib/utils/image";
 import { useTracking } from "@/hooks/use-tracking";
 
 interface ArticleDetailPageProps {
@@ -142,11 +143,19 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
 
   const processedContent = processArticleContent(article.content);
   const readingTime = article.content ? calculateReadingTime(article.content) : 5;
-  const coverImage = getImageUrl(article.cover_image_url);
+  const coverImage = getArticleImageUrl(
+    article.cover_image_canonical_url || article.cover_image_url
+  );
 
   // Prepare gallery images
   const galleryImages = article.gallery && article.gallery.length > 0
-    ? article.gallery.map(img => ({ url: getImageUrl(img.url), alt: img.alt || article.title }))
+    ? article.gallery
+        .map((img): { url: string; alt?: string } | null => {
+          const rawUrl = img.canonical_url || img.url;
+          if (!rawUrl) return null;
+          return { url: getImageUrl(rawUrl), alt: img.alt || article.title || undefined };
+        })
+        .filter((img): img is { url: string; alt?: string } => Boolean(img))
     : [];
 
   // Share functionality

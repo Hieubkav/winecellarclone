@@ -7,8 +7,8 @@ import dynamic from 'next/dynamic';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles } from 'lucide-react';
 import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
-import { API_BASE_URL } from '@/lib/api/client';
 import { stripHtmlTags } from '@/lib/utils/article-content';
+import { getImageUrl } from '@/lib/utils/image';
 import { useArticleForm } from '../hooks/useArticleForm';
 
 const truncateText = (value: string, maxLength: number) => {
@@ -152,11 +152,7 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
                       className="relative group cursor-move"
                     >
                       <Image
-                        src={
-                          image.url.startsWith('/')
-                            ? `${API_BASE_URL.replace('/api', '')}${image.url}`
-                            : image.url
-                        }
+                        src={getImageUrl(image.url)}
                         alt={`Gallery ${index + 1}`}
                         width={80}
                         height={80}

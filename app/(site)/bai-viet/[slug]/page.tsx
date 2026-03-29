@@ -12,6 +12,7 @@ import { fetchArticleDetailSafe } from "@/lib/api/articles";
 import { ArticleSchema, BreadcrumbSchema } from "@/lib/seo/structured-data";
 import { fetchSettingsSafe, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
+import { getImageUrl } from "@/lib/utils/image";
 
 type ArticleDetailRouteParams = {
   slug: string;
@@ -37,10 +38,12 @@ export async function generateMetadata({
 
   const siteName = settings.site_name || "Thiên Kim Wine";
   const canonicalUrl = `${SITE_URL}/bai-viet/${article.slug}`;
-  const ogImageUrl = article.cover_image_url
+  const ogImageSource = article.cover_image_canonical_url
+    || article.cover_image_url
     || settings.og_image_url
     || settings.logo_url
     || FALLBACK_SETTINGS.logo_url;
+  const ogImageUrl = ogImageSource ? getImageUrl(ogImageSource) : null;
 
   return {
     title: article.meta.title || article.title,
@@ -86,6 +89,7 @@ export default async function ArticleDetailRoute({
 
   const articleUrl = `${SITE_URL}/bai-viet/${article.slug}`;
   const publisherLogo = settings.logo_url || settings.og_image_url || FALLBACK_SETTINGS.logo_url;
+  const articleImage = article.cover_image_canonical_url || article.cover_image_url || undefined;
 
   return (
     <>
@@ -93,7 +97,7 @@ export default async function ArticleDetailRoute({
       <ArticleSchema
         headline={article.title}
         description={article.excerpt || undefined}
-        image={article.cover_image_url || undefined}
+        image={articleImage}
         datePublished={article.published_at}
         dateModified={article.updated_at}
         author={article.author?.name}

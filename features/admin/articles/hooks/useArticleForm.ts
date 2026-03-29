@@ -5,9 +5,11 @@ import {
   createArticle,
   fetchAdminArticle,
   updateArticle,
+  type AdminArticle,
 } from "../api/articles.api";
 import { uploadArticleImage, uploadArticleImageUrl } from "../api/articles.uploads";
 import { stripHtmlTags } from "@/lib/utils/article-content";
+import { ApiError } from "@/lib/api/client";
 
 export interface ArticleImageItem {
   url: string;
@@ -66,7 +68,7 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     setIsLoading(true);
     try {
       const result = await fetchAdminArticle(articleId);
-      const article = result.data;
+      const article = result.data as AdminArticle & { content?: string | null };
 
       setTitle(article.title);
       setSlug(article.slug);
@@ -76,9 +78,10 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       setActive(article.active);
 
       if (article.images && Array.isArray(article.images) && article.images.length > 0) {
-        const mappedImages = article.images
-          .map((img: any) => {
-            const url = img.url || img.image_url;
+        type AdminArticleImage = NonNullable<AdminArticle["images"]>[number];
+        const mappedImages = (article.images as AdminArticleImage[])
+          .map((img) => {
+            const url = img.canonical_url || img.url || img.image_url;
             const path = img.path || img.image_path || img.file_path;
             return { url, path } as ArticleImageItem;
           })
@@ -265,12 +268,17 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
           router.push("/admin/articles");
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to submit article:", error);
-      if (error.status === 422 && error.payload?.errors) {
-        const errors = error.payload.errors;
+      if (error instanceof ApiError && error.status === 422 && typeof error.payload === "object" && error.payload) {
+        const payload = error.payload as { errors?: Record<string, string[]> };
+        const errors = payload.errors;
+        if (!errors) {
+          toast.error("Lỗi validation. Vui lòng kiểm tra lại dữ liệu.");
+          return;
+        }
         const errorMessages = Object.entries(errors)
-          .map(([field, messages]: [string, any]) => `${field}: ${messages.join(", ")}`)
+          .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
           .join("\n");
         toast.error(`Lỗi validation:\n${errorMessages}`);
       } else {

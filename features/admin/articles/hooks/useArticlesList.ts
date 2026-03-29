@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   bulkDeleteArticles,
@@ -51,6 +51,7 @@ export const useArticlesList = () => {
     }
     return ["title", "published_at", "active"];
   });
+  const didInitialLoad = useRef(false);
 
   useEffect(() => {
     localStorage.setItem("admin_articles_columns", JSON.stringify(visibleColumns));
@@ -104,14 +105,14 @@ export const useArticlesList = () => {
   );
 
   useEffect(() => {
-    void loadArticles(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialLoading) {
-      void loadArticles(false);
+    if (!didInitialLoad.current) {
+      didInitialLoad.current = true;
+      void loadArticles(true);
+      return;
     }
-  }, [currentPage, debouncedSearchTerm, perPage, sortConfig]);
+
+    void loadArticles(false);
+  }, [currentPage, debouncedSearchTerm, perPage, sortConfig, loadArticles]);
 
   const handleSort = (key: string) => {
     setCurrentPage(1);

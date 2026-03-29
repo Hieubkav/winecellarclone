@@ -3,6 +3,7 @@ import { apiFetch, ApiError, isBackendUnavailableError, shouldSkipApiFetchDuring
 export interface ApiImage {
   id: number;
   url: string | null;
+  canonical_url?: string | null;
   alt: string | null;
   width: number | null;
   height: number | null;
@@ -15,6 +16,7 @@ export interface ArticleListItem {
   slug: string;
   excerpt: string | null;
   cover_image_url: string | null;
+  cover_image_canonical_url?: string | null;
   published_at: string;
   _links: {
     self: { href: string; method: string };
@@ -29,6 +31,7 @@ export interface RelatedArticle {
   slug: string;
   excerpt: string | null;
   cover_image_url: string | null;
+  cover_image_canonical_url?: string | null;
   published_at: string;
 }
 
@@ -39,6 +42,7 @@ export interface ArticleDetail {
   excerpt: string | null;
   content: string | null;
   cover_image_url: string | null;
+  cover_image_canonical_url?: string | null;
   gallery: ApiImage[];
   author?: {
     id: number;

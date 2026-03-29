@@ -21,6 +21,7 @@ export interface AdminArticle {
   meta_description?: string | null;
   active: boolean;
   cover_image_url: string | null;
+  cover_image_canonical_url?: string | null;
   published_at: string | null;
   created_at: string;
   images?: Array<{
@@ -28,6 +29,7 @@ export interface AdminArticle {
     path: string;
     image_url?: string;
     image_path?: string;
+    canonical_url?: string;
   }>;
 }
 

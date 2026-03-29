@@ -11,31 +11,43 @@ const getBackendBaseUrl = (): string => {
 /**
  * Convert relative /storage/ path to absolute URL with backend domain
  * Example: /storage/image.jpg -> https://backend.com/storage/image.jpg
- * 
+ *
  * Also handles cases where URL might already be absolute or null
  * Converts localhost URLs to production backend URL
  */
 export function getImageUrl(url: string | null | undefined): string {
   if (!url) return "/placeholder/wine-bottle.svg";
-  
+
   const backendUrl = getBackendBaseUrl();
-  
+
   // Convert localhost URLs to production backend URL
   if (url.includes("127.0.0.1:8000/storage/") || url.includes("localhost:8000/storage/")) {
     const storagePath = url.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000/, "");
     return `${backendUrl}${storagePath}`;
   }
-  
+
   // Already absolute URL with correct domain - return as is
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
-  
+
   // Relative path starting with /storage/ - prepend backend URL
   if (url.startsWith("/storage/")) {
     return `${backendUrl}${url}`;
   }
-  
+
+  if (url.startsWith("storage/")) {
+    return `${backendUrl}/${url}`;
+  }
+
+  if (url.startsWith("/media/")) {
+    return url;
+  }
+
+  if (url.startsWith("media/")) {
+    return `/${url}`;
+  }
+
   // Other relative paths (like /placeholder/) - return as is
   return url;
 }
@@ -47,14 +59,21 @@ export function getImageUrl(url: string | null | undefined): string {
 export function processArticleContent(content: string | null): string {
   if (!content) return "";
 
-  const backendUrl = getBackendBaseUrl();
+  const rewriteAttribute = (value: string) => {
+    if (!value) return value;
+    if (value.startsWith("data:image")) return value;
+    return getImageUrl(value);
+  };
 
-  // Replace relative /storage/ paths with absolute URLs
-  // Matches: src="/storage/..." or src='/storage/...'
-  const processedContent = content.replace(
-    /(src=["'])\/storage\//gi,
-    `$1${backendUrl}/storage/`
-  );
+  const replaceAttributeValue = (source: string, attribute: string) =>
+    source.replace(
+      new RegExp(`(${attribute}=["'])([^"']+)(["'])`, "gi"),
+      (_, prefix, value, suffix) => `${prefix}${rewriteAttribute(value)}${suffix}`
+    );
+
+  let processedContent = content;
+  processedContent = replaceAttributeValue(processedContent, "src");
+  processedContent = replaceAttributeValue(processedContent, "data-url");
 
   return processedContent;
 }

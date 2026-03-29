@@ -151,7 +151,7 @@ export const ArticlesListScreen = () => {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <ImageWithFallback
-                        src={article.cover_image_url}
+                        src={article.cover_image_canonical_url || article.cover_image_url}
                         alt={article.title}
                         width={40}
                         height={40}

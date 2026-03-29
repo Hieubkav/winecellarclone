@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Calendar, ArrowRight } from "lucide-react";
 import type { RelatedArticle } from "@/lib/api/articles";
-import { getImageUrl } from "@/lib/utils/article-content";
+import { getArticleImageUrl } from "@/lib/utils/image";
 
 interface RelatedArticlesProps {
   articles: RelatedArticle[];
@@ -36,7 +36,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
         >
           <div className="relative overflow-hidden rounded-lg aspect-[4/3] mb-4 bg-gray-100 shadow-sm">
             <Image
-              src={getImageUrl(article.cover_image_url)}
+              src={getArticleImageUrl(article.cover_image_canonical_url || article.cover_image_url)}
               alt={article.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"
