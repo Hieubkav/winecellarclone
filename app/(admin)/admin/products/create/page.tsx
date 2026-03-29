@@ -12,7 +12,7 @@ import { AdminStickyActionBar } from '../../components/AdminStickyActionBar';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { createProduct } from '@/features/admin/products/api/products.api';
-import { uploadProductImage } from '@/features/admin/products/api/products.uploads';
+import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
 import { fetchAdminSettingsLite } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
@@ -292,60 +292,45 @@ const LexicalEditor = dynamic(
 
     setIsUploadingImage(true);
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Fetch failed');
-      const blob = await response.blob();
-      if (!blob.type.startsWith('image/')) {
-        toast.error('URL không phải ảnh hợp lệ');
+      const uploaded = await uploadProductImageUrl(url);
+      if (!uploaded) {
+        toast.error('Không thể tải ảnh từ URL.');
         return;
       }
-      const extension = blob.type.split('/')[1] || 'jpg';
-      const file = new File([blob], `image-${Date.now()}.${extension}`, { type: blob.type });
-      const matchesRatio = await isMatchingProductImageRatio(file);
 
-      if (matchesRatio) {
-        await uploadDirectImage(file);
-      } else {
-        setCropQueue(prev => [...prev, file]);
-      }
-
+      setGalleryImages(prev => [...prev, uploaded]);
       setImageUrlInput('');
+      toast.success('Đã nhập ảnh từ URL');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Không thể tải ảnh từ URL. Vui lòng tải file và upload.');
+      const message = error instanceof Error ? error.message : 'Không thể tải ảnh từ URL.';
+      toast.error(message);
     } finally {
       setIsUploadingImage(false);
     }
-  }, [imageUrlInput, isMatchingProductImageRatio, uploadDirectImage]);
+  }, [imageUrlInput]);
 
   const handleReplaceFromUrl = useCallback(async (index: number, url: string) => {
     if (!url) return;
 
     setIsUploadingImage(true);
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Fetch failed');
-      const blob = await response.blob();
-      if (!blob.type.startsWith('image/')) {
-        toast.error('URL không phải ảnh hợp lệ');
+      const uploaded = await uploadProductImageUrl(url);
+      if (!uploaded) {
+        toast.error('Không thể tải ảnh từ URL.');
         return;
       }
-      const extension = blob.type.split('/')[1] || 'jpg';
-      const file = new File([blob], `image-${Date.now()}.${extension}`, { type: blob.type });
-      const matchesRatio = await isMatchingProductImageRatio(file);
 
-      if (matchesRatio) {
-        await uploadDirectImage(file, index);
-      } else {
-        openCropWithFile(file, index);
-      }
+      setGalleryImages(prev => prev.map((img, i) => (i === index ? uploaded : img)));
+      toast.success('Đã thay thế ảnh');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Không thể tải ảnh từ URL. Vui lòng tải file và upload.');
+      const message = error instanceof Error ? error.message : 'Không thể tải ảnh từ URL.';
+      toast.error(message);
     } finally {
       setIsUploadingImage(false);
     }
-  }, [isMatchingProductImageRatio, openCropWithFile, uploadDirectImage]);
+  }, []);
 
   const handleReplaceFile = useCallback(async (index: number, file: File | null) => {
     if (!file) return;

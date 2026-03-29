@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import DynamicIcon from "@/components/shared/DynamicIcon"
 import { useWineStore } from "@/data/filter/store"
-import { getImageUrl } from "@/lib/utils/article-content"
+import { getImageUrl } from "@/lib/utils/image"
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",

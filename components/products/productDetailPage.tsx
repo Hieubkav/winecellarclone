@@ -18,7 +18,8 @@ import DynamicIcon from "@/components/shared/DynamicIcon";
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
 import { buildProductBreadcrumbs } from "@/lib/products/product-breadcrumbs";
-import { processProductContent, getImageUrl } from "@/lib/utils/article-content";
+import { processProductContent } from "@/lib/utils/article-content";
+import { getImageUrl, getProductImageUrl } from "@/lib/utils/image";
 import { PRODUCT_IMAGE_ASPECT_RATIO } from "@/lib/constants/product-image";
 import RelatedProductsSection from "./RelatedProducts";
 import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
@@ -170,15 +171,18 @@ export default function ProductDetailPage({
 
   const imageItems = useMemo(() => {
     const items: ProductGalleryItem[] = [];
-    const coverSrc = getImageUrl(product.cover_image_url);
+    const coverSrc = product.cover_image_url ? getProductImageUrl(product.cover_image_url) : null;
 
     if (coverSrc) {
       items.push({ src: coverSrc });
     }
 
     (product.gallery ?? []).forEach((image) => {
-      const src = getImageUrl(image.url);
+      if (!image.url) {
+        return;
+      }
 
+      const src = getProductImageUrl(image.url);
       if (!src || src === coverSrc) {
         return;
       }
@@ -191,7 +195,7 @@ export default function ProductDetailPage({
     });
 
     if (items.length === 0) {
-      items.push({ src: "/placeholder/wine-bottle.svg" });
+      items.push({ src: getProductImageUrl(null) });
     }
 
     return items;

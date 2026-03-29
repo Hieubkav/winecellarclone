@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import type { ProductListItem } from "@/lib/api/products";
 import { ProductImage } from "@/components/ui/product-image";
 import { Button } from "@/components/ui/button";
-import { getImageUrl } from "@/lib/utils/article-content";
+import { getProductImageUrl } from "@/lib/utils/image";
 import { PRODUCT_IMAGE_ASPECT_CLASS } from "@/lib/constants/product-image";
 
 interface RelatedProductsSectionProps {
@@ -88,7 +88,7 @@ export default function RelatedProductsSection({
               <div className={`relative ${PRODUCT_IMAGE_ASPECT_CLASS} overflow-hidden bg-[#f5f0e8]`}>
                 <Link href={`/san-pham/${product.slug}`} className="block w-full h-full p-1">
                   <ProductImage 
-                    src={getImageUrl(product.main_image_url)} 
+                    src={getProductImageUrl(product.main_image_url)} 
                     alt={product.name}
                     fill
                     className="object-cover"

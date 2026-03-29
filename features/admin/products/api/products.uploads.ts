@@ -29,10 +29,15 @@ export interface UploadedImagePayload {
   path: string;
 }
 
-export async function uploadProductImage(file: File, folder: string = "products"): Promise<UploadedImagePayload | null> {
+export async function uploadProductImage(
+  file: File,
+  folder: string = "products",
+  semanticType: string = "product"
+): Promise<UploadedImagePayload | null> {
   const formData = new FormData();
   formData.append("image", file);
   formData.append("folder", folder);
+  formData.append("semantic_type", semanticType);
 
   const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
     method: "POST",
@@ -41,7 +46,14 @@ export async function uploadProductImage(file: File, folder: string = "products"
   });
 
   if (!response.ok) {
-    throw new Error("Upload failed");
+    let message = "Upload failed";
+    try {
+      const payload = await response.json();
+      if (payload?.message) {
+        message = payload.message;
+      }
+    } catch {}
+    throw new Error(message);
   }
 
   const result = await response.json();
@@ -55,16 +67,24 @@ export async function uploadProductImage(file: File, folder: string = "products"
 
 export async function uploadProductImageUrl(
   url: string,
-  folder: string = "products"
+  folder: string = "products",
+  semanticType: string = "product"
 ): Promise<UploadedImagePayload | null> {
   const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image-url`, {
     method: "POST",
     headers: buildAuthHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ url, folder }),
+    body: JSON.stringify({ url, folder, semantic_type: semanticType }),
   });
 
   if (!response.ok) {
-    throw new Error("Upload failed");
+    let message = "Upload failed";
+    try {
+      const payload = await response.json();
+      if (payload?.message) {
+        message = payload.message;
+      }
+    } catch {}
+    throw new Error(message);
   }
 
   const result = await response.json();

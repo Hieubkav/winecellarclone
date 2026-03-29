@@ -8,7 +8,7 @@ import type { ProductCardItem } from "@/lib/types/product-card";
 import { ProductImage } from "@/components/ui/product-image";
 import { ProductPortraitFrame } from "@/components/ui/product-portrait-frame";
 import DynamicIcon from "@/components/shared/DynamicIcon";
-import { getImageUrl } from "@/lib/utils/article-content";
+import { getImageUrl } from "@/lib/utils/image";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",

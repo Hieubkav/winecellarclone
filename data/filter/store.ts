@@ -10,7 +10,7 @@ import {
   type ProductFiltersPayload,
   type ProductListResponse,
 } from "@/lib/api/products"
-import { getImageUrl } from "@/lib/utils/article-content"
+import { getProductImageUrl } from "@/lib/utils/image"
 import { matchesSearch } from "@/lib/utils/text-normalization"
 import { createDebounce } from "@/lib/utils/debounce"
 
@@ -156,7 +156,7 @@ const mapProductToWine = (product: ProductListItem): Wine => {
     countrySlug: product.country_term?.slug ?? null,
     alcoholContent: product.alcohol_percent,
     volume: product.volume_ml,
-    image: getImageUrl(product.main_image_url ?? fallbackImage),
+    image: getProductImageUrl(product.main_image_url ?? fallbackImage),
     badges: product.badges,
     wineType: product.type?.name ?? product.category?.name ?? null,
     wineTypeSlug: product.type?.slug ?? null,
