@@ -101,6 +101,7 @@ export default async function ProductDetailRoute({
   }
   const productDetailFontStyle = getScopedFontStyle(settings, "product_detail");
   const sellerName = settings.site_name || "Thiên Kim Wine";
+  const coverImageSource = product.cover_image_canonical_url || product.cover_image_url;
 
   const productUrl = `${SITE_URL}/san-pham/${product.slug}`;
   const breadcrumbItems = buildProductBreadcrumbs(product, { siteUrl: SITE_URL });
