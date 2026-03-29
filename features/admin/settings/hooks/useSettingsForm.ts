@@ -80,6 +80,27 @@ const normalizeFontKey = (value: string | null | undefined): FontKey | null => {
   return isValidFontKey(value) ? value : DEFAULT_FONT_KEY;
 };
 
+const resolveAdminImageUrl = (backendUrl: string, value?: string | null): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith("/")) {
+    return `${backendUrl}${trimmed}`;
+  }
+
+  return `${backendUrl}/${trimmed}`;
+};
+
 export const useSettingsForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -194,11 +215,11 @@ export const useSettingsForm = () => {
       setProductDetailRules(resolvedProductDetailRules);
 
       setLogoImageId(data.logo_image_id || null);
-      setLogoImageUrl(data.logo_image_url ? `${backendUrl}${data.logo_image_url}` : null);
+      setLogoImageUrl(resolveAdminImageUrl(backendUrl, data.logo_image_canonical_url ?? data.logo_image_url));
       setFaviconImageId(data.favicon_image_id || null);
-      setFaviconImageUrl(data.favicon_image_url ? `${backendUrl}${data.favicon_image_url}` : null);
+      setFaviconImageUrl(resolveAdminImageUrl(backendUrl, data.favicon_image_canonical_url ?? data.favicon_image_url));
       setOgImageId(data.og_image_id || null);
-      setOgImageUrl(data.og_image_url ? `${backendUrl}${data.og_image_url}` : null);
+      setOgImageUrl(resolveAdminImageUrl(backendUrl, data.og_image_canonical_url ?? data.og_image_url));
 
       setMetaKeywords(parseKeywordValues(data.meta_default_keywords));
 
@@ -208,7 +229,10 @@ export const useSettingsForm = () => {
       setWatermarkType(resolvedWatermarkType === "text" ? "text" : "image");
       setWatermarkImageId(data.product_watermark_image_id || null);
       setWatermarkImageUrl(
-        data.product_watermark_image_url ? `${backendUrl}${data.product_watermark_image_url}` : null
+        resolveAdminImageUrl(
+          backendUrl,
+          data.product_watermark_image_canonical_url ?? data.product_watermark_image_url
+        )
       );
       setWatermarkPosition(data.product_watermark_position || "none");
       setWatermarkSize(data.product_watermark_size || "128x128");

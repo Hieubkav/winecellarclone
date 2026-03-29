@@ -16,6 +16,9 @@ import type { HomeEditorial } from "@/data/homeCollections";
 import type { ProductCardItem } from "@/lib/types/product-card";
 import { getImageUrl } from "@/lib/utils/article-content";
 
+const resolveApiImageUrl = (image?: { canonical_url?: string | null; url?: string | null } | null) =>
+  image?.canonical_url || image?.url || "";
+
 // Transform API product to HomeShowcaseProduct format
 export function transformApiProduct(product: ApiProduct): ProductCardItem {
   return {
@@ -108,9 +111,9 @@ export function adaptFavouriteProductsProps(config: FavouriteProductsConfig) {
 export function adaptHeroCarouselProps(config: HeroCarouselConfig) {
   return {
     slides: (config.slides || [])
-      .filter((slide) => slide?.image?.url)
+      .filter((slide) => slide?.image?.url || slide?.image?.canonical_url)
       .map((slide) => ({
-        image: getImageUrl(slide.image.url),
+        image: getImageUrl(resolveApiImageUrl(slide.image)),
         alt: slide.alt || slide.image.alt || "",
         href: slide.href,
       })),
@@ -120,9 +123,9 @@ export function adaptHeroCarouselProps(config: HeroCarouselConfig) {
 export function adaptDualBannerProps(config: DualBannerConfig) {
   return {
     banners: (config.banners || [])
-      .filter((banner) => banner?.image?.url)
+      .filter((banner) => banner?.image?.url || banner?.image?.canonical_url)
       .map((banner) => ({
-        image: getImageUrl(banner.image.url),
+        image: getImageUrl(resolveApiImageUrl(banner.image)),
         alt: banner.alt || banner.image.alt || "",
         href: banner.href,
       })),
@@ -133,9 +136,9 @@ export function adaptBrandShowcaseProps(config: BrandShowcaseConfig) {
   return {
     title: config.title,
     brands: (config.brands || [])
-      .filter((brand) => brand?.image?.url)
+      .filter((brand) => brand?.image?.url || brand?.image?.canonical_url)
       .map((brand) => ({
-        image: getImageUrl(brand.image.url),
+        image: getImageUrl(resolveApiImageUrl(brand.image)),
         alt: brand.alt || brand.image.alt || "",
         href: brand.href,
       })),
@@ -149,7 +152,7 @@ export function adaptCategoryGridProps(config: CategoryGridConfig) {
       .map((item) => ({
         title: item.title,
         href: item.href,
-        image: item.image?.url ? getImageUrl(item.image.url) : null, // Allow null image
+        image: resolveApiImageUrl(item.image) ? getImageUrl(resolveApiImageUrl(item.image)) : null, // Allow null image
         alt: item.image?.alt || item.title,
       })),
   };

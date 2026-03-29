@@ -37,10 +37,18 @@ export function getImageUrl(url: string | null | undefined, fallback?: string): 
     }
 
     if (url.startsWith("/media/")) {
+      const segments = url.split("/").filter(Boolean);
+      if (segments.length >= 4) {
+        return `${backendUrl}${url}`;
+      }
       return url;
     }
 
     if (url.startsWith("media/")) {
+      const segments = url.split("/").filter(Boolean);
+      if (segments.length >= 4) {
+        return `${backendUrl}/${url}`;
+      }
       return `/${url}`;
     }
 

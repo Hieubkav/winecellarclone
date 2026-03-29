@@ -31,12 +31,16 @@ export interface AdminSetting {
   indexing_enabled: boolean | null;
   logo_image_id: number | null;
   logo_image_url: string | null;
+  logo_image_canonical_url?: string | null;
   favicon_image_id: number | null;
   favicon_image_url: string | null;
+  favicon_image_canonical_url?: string | null;
   og_image_id: number | null;
   og_image_url: string | null;
+  og_image_canonical_url?: string | null;
   product_watermark_image_id: number | null;
   product_watermark_image_url: string | null;
+  product_watermark_image_canonical_url?: string | null;
   product_watermark_type: string | null;
   product_watermark_position: string | null;
   product_watermark_size: string | null;

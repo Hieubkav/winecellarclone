@@ -6,6 +6,8 @@ import type { ExtraAttr, ProductAttribute } from "@/lib/api/products";
 export interface ApiImage {
   id: number;
   url: string;
+  canonical_url?: string | null;
+  legacy_url?: string | null;
   alt: string | null;
 }
 

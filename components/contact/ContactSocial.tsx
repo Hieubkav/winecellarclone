@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Montserrat } from "next/font/google";
 import type { ContactSocialLinkItem } from "@/lib/types/contact";
 import { getSocialIconSource } from "@/lib/constants/social-icons";
+import { getImageUrl } from "@/lib/utils/image";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -61,13 +62,14 @@ export default function ContactSocial({
       {/* Social Icons */}
       <div className="flex flex-wrap justify-center gap-4">
         {socialLinks.map((link) => {
+          const normalizedIconUrl = link.icon_url ? getImageUrl(link.icon_url) : null;
           // Check if có custom icon từ backend (không phải placeholder)
-          const isPlaceholder = !link.icon_url || 
-            link.icon_url.includes('placehold') || 
-            link.icon_url.includes('placeholder') ||
-            link.icon_url.endsWith('term.svg');
+          const isPlaceholder = !normalizedIconUrl || 
+            normalizedIconUrl.includes('placehold') || 
+            normalizedIconUrl.includes('placeholder') ||
+            normalizedIconUrl.endsWith('term.svg');
           const hasCustomIcon = !isPlaceholder;
-          const customIconUrl = hasCustomIcon && link.icon_url ? link.icon_url : null;
+          const customIconUrl = hasCustomIcon && normalizedIconUrl ? normalizedIconUrl : null;
           
           // Get fallback Lucide icon nếu không có custom icon
           const normalizedPlatform = link.platform?.trim().toLowerCase();
