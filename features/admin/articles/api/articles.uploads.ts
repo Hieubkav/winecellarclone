@@ -29,10 +29,28 @@ export interface UploadedImagePayload {
   path: string;
 }
 
-export async function uploadArticleImage(file: File, folder: string = "articles"): Promise<UploadedImagePayload | null> {
+const parseUploadError = async (response: Response): Promise<string> => {
+  try {
+    const payload = await response.json();
+    if (payload?.message) {
+      return String(payload.message);
+    }
+  } catch {
+    // ignore parse error
+  }
+
+  return "Không thể tải ảnh lên";
+};
+
+export async function uploadArticleImage(
+  file: File,
+  folder: string = "articles",
+  semanticType: string = "article"
+): Promise<UploadedImagePayload | null> {
   const formData = new FormData();
   formData.append("image", file);
   formData.append("folder", folder);
+  formData.append("semantic_type", semanticType);
 
   const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image`, {
     method: "POST",
@@ -41,13 +59,16 @@ export async function uploadArticleImage(file: File, folder: string = "articles"
   });
 
   if (!response.ok) {
-    throw new Error("Upload failed");
+    throw new Error(await parseUploadError(response));
   }
 
   const result = await response.json();
 
   if (result.success && result.data) {
-    return { url: result.data.url as string, path: result.data.path as string };
+    return {
+      url: (result.data.canonical_url || result.data.url) as string,
+      path: result.data.path as string,
+    };
   }
 
   return null;
@@ -55,22 +76,26 @@ export async function uploadArticleImage(file: File, folder: string = "articles"
 
 export async function uploadArticleImageUrl(
   url: string,
-  folder: string = "articles"
+  folder: string = "articles",
+  semanticType: string = "article"
 ): Promise<UploadedImagePayload | null> {
   const response = await fetch(`${API_BASE_URL}/v1/admin/upload/image-url`, {
     method: "POST",
     headers: buildAuthHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ url, folder }),
+    body: JSON.stringify({ url, folder, semantic_type: semanticType }),
   });
 
   if (!response.ok) {
-    throw new Error("Upload failed");
+    throw new Error(await parseUploadError(response));
   }
 
   const result = await response.json();
 
   if (result.success && result.data) {
-    return { url: result.data.url as string, path: result.data.path as string };
+    return {
+      url: (result.data.canonical_url || result.data.url) as string,
+      path: result.data.path as string,
+    };
   }
 
   return null;

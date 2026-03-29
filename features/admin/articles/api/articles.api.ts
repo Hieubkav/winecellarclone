@@ -29,6 +29,7 @@ export interface AdminArticle {
     path: string;
     image_url?: string;
     image_path?: string;
+    file_path?: string;
     canonical_url?: string;
   }>;
 }

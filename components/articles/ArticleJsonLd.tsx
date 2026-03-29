@@ -12,9 +12,17 @@ export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn").replace(/\/$/, "");
   const publisherName = settings?.site_name || FALLBACK_SETTINGS.site_name;
   const publisherLogo = settings?.logo_url || settings?.og_image_url || FALLBACK_SETTINGS.logo_url;
-  const publisherLogoUrl = publisherLogo ? getImageUrl(publisherLogo) : null;
-  const coverImageUrl = article.cover_image_canonical_url || article.cover_image_url;
-  const resolvedCoverImage = coverImageUrl ? getImageUrl(coverImageUrl) : null;
+  const toAbsoluteUrl = (value: string | null | undefined) => {
+    if (!value) return null;
+    const resolved = getImageUrl(value);
+    if (resolved.startsWith("/")) {
+      return `${siteUrl}${resolved}`;
+    }
+    return resolved;
+  };
+  const publisherLogoUrl = toAbsoluteUrl(publisherLogo);
+  const coverImageUrl = article.cover_image_canonical_url || article.cover_image_url || "/placeholder/article.svg";
+  const resolvedCoverImage = toAbsoluteUrl(coverImageUrl);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",

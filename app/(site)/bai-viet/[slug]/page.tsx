@@ -40,10 +40,11 @@ export async function generateMetadata({
   const canonicalUrl = `${SITE_URL}/bai-viet/${article.slug}`;
   const ogImageSource = article.cover_image_canonical_url
     || article.cover_image_url
-    || settings.og_image_url
-    || settings.logo_url
-    || FALLBACK_SETTINGS.logo_url;
-  const ogImageUrl = ogImageSource ? getImageUrl(ogImageSource) : null;
+    || "/placeholder/article.svg";
+  const ogImageResolved = getImageUrl(ogImageSource);
+  const ogImageUrl = ogImageResolved.startsWith("/")
+    ? `${SITE_URL}${ogImageResolved}`
+    : ogImageResolved;
 
   return {
     title: article.meta.title || article.title,
@@ -89,7 +90,15 @@ export default async function ArticleDetailRoute({
 
   const articleUrl = `${SITE_URL}/bai-viet/${article.slug}`;
   const publisherLogo = settings.logo_url || settings.og_image_url || FALLBACK_SETTINGS.logo_url;
-  const articleImage = article.cover_image_canonical_url || article.cover_image_url || undefined;
+  const resolveSeoImage = (value?: string | null): string | undefined => {
+    if (!value) {
+      return `${SITE_URL}/placeholder/article.svg`;
+    }
+    const resolved = getImageUrl(value);
+    return resolved.startsWith("/") ? `${SITE_URL}${resolved}` : resolved;
+  };
+  const articleImage = resolveSeoImage(article.cover_image_canonical_url || article.cover_image_url);
+  const publisherLogoUrl = publisherLogo ? resolveSeoImage(publisherLogo) : undefined;
 
   return (
     <>
@@ -103,7 +112,7 @@ export default async function ArticleDetailRoute({
         author={article.author?.name}
         publisher={{
           name: settings.site_name || "Thiên Kim Wine",
-          logo: publisherLogo || undefined,
+          logo: publisherLogoUrl,
         }}
         url={articleUrl}
       />

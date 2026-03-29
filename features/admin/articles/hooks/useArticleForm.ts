@@ -132,7 +132,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("Không thể tải ảnh lên");
+        const message = error instanceof Error && error.message ? error.message : "Không thể tải ảnh lên";
+        toast.error(message);
       } finally {
         setIsUploadingImage(false);
       }
@@ -154,7 +155,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Không thể tải ảnh từ URL");
+      const message = error instanceof Error && error.message ? error.message : "Không thể tải ảnh từ URL";
+      toast.error(message);
     } finally {
       setIsUploadingImage(false);
     }
@@ -172,7 +174,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("Không thể tải ảnh từ URL");
+      const message = error instanceof Error && error.message ? error.message : "Không thể tải ảnh từ URL";
+      toast.error(message);
     } finally {
       setIsUploadingImage(false);
     }
@@ -190,7 +193,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
         }
       } catch (error) {
         console.error("Upload error:", error);
-        toast.error("Không thể tải ảnh lên");
+        const message = error instanceof Error && error.message ? error.message : "Không thể tải ảnh lên";
+        toast.error(message);
       } finally {
         setIsUploadingImage(false);
       }
