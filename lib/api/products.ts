@@ -10,6 +10,7 @@ export interface ApiTerm {
 export interface ApiImage {
   id: number;
   url: string | null;
+  canonical_url?: string | null;
   alt: string | null;
   width: number | null;
   height: number | null;
@@ -41,6 +42,7 @@ export interface ProductListItem {
   discount_percent: number | null;
   show_contact_cta: boolean;
   main_image_url: string | null;
+  main_image_canonical_url?: string | null;
   gallery: ApiImage[];
   brand_term: ApiTerm | null;
   country_term: ApiTerm | null;
@@ -75,6 +77,7 @@ export interface ProductSuggestion {
   discount_percent: number | null;
   show_contact_cta: boolean;
   main_image_url: string | null;
+  main_image_canonical_url?: string | null;
   brand_term: ApiTerm | null;
   country_term: ApiTerm | null;
   category: ApiTerm | null;
@@ -102,6 +105,9 @@ export interface ProductDetail {
   discount_percent: number | null;
   show_contact_cta: boolean;
   cover_image_url: string | null;
+  cover_image_canonical_url?: string | null;
+  main_image_url: string | null;
+  main_image_canonical_url?: string | null;
   gallery: ApiImage[];
   brand_term: ApiTerm | null;
   country_term: ApiTerm | null;
@@ -188,12 +194,14 @@ const normalizeAttributes = (attributes?: ProductAttribute[]): ProductAttribute[
   }));
 };
 
+const resolveCanonicalImage = (url?: string | null, canonical?: string | null) => canonical ?? url ?? null;
+
 const normalizeProductListItem = (item: ProductListItem): ProductListItem => ({
   ...item,
-  main_image_url: normalizeIconUrl(item.main_image_url),
+  main_image_url: normalizeIconUrl(resolveCanonicalImage(item.main_image_url, item.main_image_canonical_url)),
   gallery: item.gallery.map((image) => ({
     ...image,
-    url: normalizeIconUrl(image.url),
+    url: normalizeIconUrl(resolveCanonicalImage(image.url, image.canonical_url)),
   })),
   extra_attrs: normalizeExtraAttrs(item.extra_attrs),
   attributes: normalizeAttributes(item.attributes),
@@ -201,10 +209,11 @@ const normalizeProductListItem = (item: ProductListItem): ProductListItem => ({
 
 const normalizeProductDetail = (detail: ProductDetail): ProductDetail => ({
   ...detail,
-  cover_image_url: normalizeIconUrl(detail.cover_image_url),
+  cover_image_url: normalizeIconUrl(resolveCanonicalImage(detail.cover_image_url, detail.cover_image_canonical_url)),
+  main_image_url: normalizeIconUrl(resolveCanonicalImage(detail.main_image_url, detail.main_image_canonical_url)),
   gallery: detail.gallery.map((image) => ({
     ...image,
-    url: normalizeIconUrl(image.url),
+    url: normalizeIconUrl(resolveCanonicalImage(image.url, image.canonical_url)),
   })),
   extra_attrs: normalizeExtraAttrs(detail.extra_attrs),
   attributes: normalizeAttributes(detail.attributes) ?? [],

@@ -26,6 +26,7 @@ export interface ApiProduct {
   discount_percent: number | null;
   show_contact_cta: boolean;
   cover_image_url: string | null;
+  cover_image_canonical_url?: string | null;
   brand_term: ApiTerm | null;
   country_term: ApiTerm | null;
   category: ApiTerm | null;
@@ -43,6 +44,7 @@ export interface ApiArticle {
   slug: string;
   excerpt: string | null;
   cover_image_url: string | null;
+  cover_image_canonical_url?: string | null;
   published_at: string | null;
   reading_time: number | null;
   category_term: ApiTerm | null;

@@ -171,7 +171,8 @@ export default function ProductDetailPage({
 
   const imageItems = useMemo(() => {
     const items: ProductGalleryItem[] = [];
-    const coverSrc = product.cover_image_url ? getProductImageUrl(product.cover_image_url) : null;
+    const coverImageSource = product.cover_image_canonical_url || product.cover_image_url;
+    const coverSrc = coverImageSource ? getProductImageUrl(coverImageSource) : null;
 
     if (coverSrc) {
       items.push({ src: coverSrc });

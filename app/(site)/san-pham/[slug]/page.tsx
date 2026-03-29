@@ -43,7 +43,8 @@ export async function generateMetadata({
     || product.description?.substring(0, 160)
     || `Mua ${product.name} chính hãng tại ${siteName}. Giá tốt, tư vấn nhanh và giao hàng tận nơi.`;
   const url = `${SITE_URL}/san-pham/${product.slug}`;
-  const ogImageUrl = product.cover_image_url
+  const coverImageSource = product.cover_image_canonical_url || product.cover_image_url;
+  const ogImageUrl = coverImageSource
     || settings.og_image_url
     || settings.logo_url
     || FALLBACK_SETTINGS.logo_url;
@@ -64,8 +65,8 @@ export async function generateMetadata({
       images: ogImageUrl ? [
         {
           url: ogImageUrl,
-          width: product.cover_image_url ? 800 : 1200,
-          height: product.cover_image_url ? 800 : 630,
+          width: coverImageSource ? 800 : 1200,
+          height: coverImageSource ? 800 : 630,
           alt: product.name,
         }
       ] : [],
@@ -110,7 +111,7 @@ export default async function ProductDetailRoute({
       <ProductSchema
         name={product.name}
         description={product.description || undefined}
-        image={product.cover_image_url || undefined}
+        image={coverImageSource || undefined}
         brand={product.brand_term?.name || undefined}
         price={product.price || undefined}
         availability='in stock'

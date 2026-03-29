@@ -74,8 +74,8 @@ export default async function Home() {
     .map((entry) => ({
       name: entry.product.name,
       url: `${normalizedSiteUrl}/san-pham/${entry.product.slug}`,
-      image: entry.product.cover_image_url
-        ? getProductImageUrl(entry.product.cover_image_url)
+      image: (entry.product.cover_image_canonical_url || entry.product.cover_image_url)
+        ? getProductImageUrl(entry.product.cover_image_canonical_url || entry.product.cover_image_url)
         : undefined,
       price: entry.product.price ?? undefined,
       currency: "VND",

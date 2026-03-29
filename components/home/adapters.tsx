@@ -19,13 +19,16 @@ import { getImageUrl } from "@/lib/utils/article-content";
 const resolveApiImageUrl = (image?: { canonical_url?: string | null; url?: string | null } | null) =>
   image?.canonical_url || image?.url || "";
 
+const resolveCoverImageUrl = (url?: string | null, canonical?: string | null) =>
+  canonical || url || "";
+
 // Transform API product to HomeShowcaseProduct format
 export function transformApiProduct(product: ApiProduct): ProductCardItem {
   return {
     id: product.id,
     name: product.name,
     slug: product.slug,
-    image: getImageUrl(product.cover_image_url),
+    image: getImageUrl(resolveCoverImageUrl(product.cover_image_url, product.cover_image_canonical_url)),
     price: product.price,
     originalPrice: product.original_price,
     discountPercent: product.discount_percent,
@@ -58,7 +61,7 @@ export function transformApiArticle(article: ApiArticle): HomeEditorial {
     title: article.title,
     summary: article.excerpt || "",
     href: `/bai-viet/${article.slug}`,
-    image: getImageUrl(article.cover_image_url),
+    image: getImageUrl(resolveCoverImageUrl(article.cover_image_url, article.cover_image_canonical_url)),
     readingTime: article.reading_time ? `${article.reading_time} phút đọc` : "",
     highlight: "",
     category: article.category_term?.name || "",
