@@ -242,6 +242,7 @@ function SocialLinkIcon({ link }: { link: ContactSocialLinkItem }) {
     link.icon_url.includes('placeholder') ||
     link.icon_url.endsWith('term.svg');
   const hasCustomIcon = !isPlaceholder;
+  const customIconUrl = hasCustomIcon && link.icon_url ? link.icon_url : null;
   const iconSource = getSocialIconSource(link.platform);
 
   return (
@@ -252,9 +253,9 @@ function SocialLinkIcon({ link }: { link: ContactSocialLinkItem }) {
       aria-label={link.platform}
       className="flex items-center justify-center transition hover:-translate-y-0.5 hover:opacity-90"
     >
-      {hasCustomIcon ? (
+      {customIconUrl ? (
         <Image
-          src={link.icon_url}
+          src={customIconUrl}
           alt={`${link.platform} icon`}
           width={24}
           height={24}

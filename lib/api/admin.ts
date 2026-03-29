@@ -1,4 +1,3 @@
-import { getImageUrl } from "@/lib/utils/image";
 import { apiFetch } from "./client";
  
  // Dashboard Stats

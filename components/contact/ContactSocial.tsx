@@ -67,6 +67,7 @@ export default function ContactSocial({
             link.icon_url.includes('placeholder') ||
             link.icon_url.endsWith('term.svg');
           const hasCustomIcon = !isPlaceholder;
+          const customIconUrl = hasCustomIcon && link.icon_url ? link.icon_url : null;
           
           // Get fallback Lucide icon nếu không có custom icon
           const normalizedPlatform = link.platform?.trim().toLowerCase();
@@ -81,10 +82,10 @@ export default function ContactSocial({
               className="group flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ECAA4D] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#9B2C3B] focus:ring-offset-2 sm:h-14 sm:w-14"
               aria-label={`Theo dõi chúng tôi trên ${link.platform}`}
             >
-              {hasCustomIcon ? (
+              {customIconUrl ? (
                 // Custom icon từ backend
                 <Image
-                  src={link.icon_url}
+                  src={customIconUrl}
                   alt={`${link.platform} icon`}
                   width={34}
                   height={34}
