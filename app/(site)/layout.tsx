@@ -1,7 +1,7 @@
 import Header from "@/components/layouts/Header";
 import Footer from "@/components/layouts/Footer";
 import Speedial from "@/components/layouts/Speedial";
-import AgeGateClient from "@/components/layouts/AgeGateClient";
+import AgeGate from "@/components/layouts/AgeGate";
 import { fetchSpeedDialComponentSafe, type SpeedDialConfig } from "@/lib/api/home";
 import { adaptSpeedDialProps } from "@/components/home/adapters";
 import { fetchMenusSafe } from "@/lib/api/menus";
@@ -45,7 +45,7 @@ export default async function SiteLayout({
           name={settings.site_name}
           description={settings.meta_defaults.description}
         />
-        <AgeGateClient />
+        <AgeGate />
         <Header menuItems={menuItems} />
         <Speedial {...speedialProps} />
         {children}
