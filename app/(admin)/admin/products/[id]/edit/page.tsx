@@ -516,7 +516,7 @@ const generateSlug = (text: string): string => {
     const resolvedMetaTitleSource = metaTitle.trim()
       ? metaTitle.trim()
       : buildMetaTitle(name.trim(), siteName);
-    const resolvedMetaTitle = truncateText(resolvedMetaTitleSource, 60);
+    const resolvedMetaTitle = resolvedMetaTitleSource.trim();
     const resolvedMetaDescription = truncateText(
       metaDescription.trim() || stripHtmlTags(description || ''),
       160
