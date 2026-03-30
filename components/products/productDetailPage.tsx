@@ -456,7 +456,7 @@ export default function ProductDetailPage({
   const breadcrumbs = useMemo(() => buildProductBreadcrumbs(product), [product]);
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9]" style={fontFamily ? { fontFamily } : undefined}>
+    <div className="min-h-screen bg-white" style={fontFamily ? { fontFamily } : undefined}>
       {/* Breadcrumb */}
       <div className="bg-[#f5f0e8] py-1.5 md:py-3 border-b border-[#e5ddd0]">
         <div className="container mx-auto px-3 md:px-4 text-[10px] md:text-sm text-slate-600 flex gap-1 md:gap-2">
