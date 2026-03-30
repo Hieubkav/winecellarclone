@@ -12,7 +12,7 @@ import { ProductImageCropModal } from '../../../components/ProductImageCropModal
 import { AttributeCombobox } from '../../../components/AttributeCombobox';
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
-import { fetchAdminSettingsLite } from '@/features/admin/settings/api/settings.api';
+import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
@@ -169,7 +169,7 @@ const generateSlug = (text: string): string => {
        try {
        const [productRes, settingsRes, baseFilters] = await Promise.all([
            fetchAdminProduct(Number(id)),
-           fetchAdminSettingsLite().catch(() => null),
+           fetchAdminSettings().catch(() => null),
            fetchProductFilters().catch(() => null),
          ]);
 
@@ -199,8 +199,7 @@ const generateSlug = (text: string): string => {
         setCategories(baseFilters?.categories ?? []);
         setAttributeFilters([]);
         setProductShopeeLinkEnabled(Boolean(settingsRes?.data.product_shopee_link_enabled));
-        const resolvedSiteName = (settingsRes?.data as { site_name?: string } | null)?.site_name?.trim();
-        setSiteName(resolvedSiteName || 'Thiên Kim Wine');
+        setSiteName(settingsRes?.data.site_name?.trim() || 'Thiên Kim Wine');
         currentFiltersTypeRef.current = null;
         productDataRef.current = product;
         didSyncTypeRef.current = false;

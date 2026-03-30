@@ -14,7 +14,7 @@ import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { AttributeCombobox } from '../../components/AttributeCombobox';
 import { createProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
-import { fetchAdminSettingsLite } from '@/features/admin/settings/api/settings.api';
+import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
@@ -114,13 +114,12 @@ const LexicalEditor = dynamic(
        try {
          const [filters, settingsResult] = await Promise.all([
            fetchProductFilters(),
-           fetchAdminSettingsLite().catch(() => null),
+          fetchAdminSettings().catch(() => null),
          ]);
          setTypes(filters.types);
          setCategories(filters.categories);
         setProductShopeeLinkEnabled(Boolean(settingsResult?.data.product_shopee_link_enabled));
-        const resolvedSiteName = (settingsResult?.data as { site_name?: string } | null)?.site_name?.trim();
-        setSiteName(resolvedSiteName || 'Thiên Kim Wine');
+        setSiteName(settingsResult?.data.site_name?.trim() || 'Thiên Kim Wine');
         currentFiltersTypeRef.current = null;
        } catch (error) {
          console.error('Failed to load filters:', error);
