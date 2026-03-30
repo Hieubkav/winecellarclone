@@ -839,22 +839,12 @@ export default function ProductDetailPage({
                 <>
                   <div 
                     ref={descriptionRef}
-                    className={`prose prose-slate max-w-none text-slate-600 text-left overflow-hidden transition-all duration-500 ease-in-out text-base
-                      prose-headings:text-slate-900
-                      prose-h1:text-2xl md:prose-h1:text-3xl
-                      prose-h2:text-xl md:prose-h2:text-2xl
-                      prose-h3:text-lg md:prose-h3:text-xl
-                      prose-p:leading-relaxed prose-p:mb-4
-                      prose-strong:text-slate-900 prose-strong:font-semibold
-                      prose-ul:list-disc prose-ol:list-decimal
-                      prose-li:marker:text-slate-400
-                      prose-blockquote:border-l-[#e5ddd0] prose-blockquote:text-slate-500
-                      prose-a:text-[#9B2C3B] prose-a:no-underline hover:prose-a:underline
-                      prose-img:rounded-xl
+                    className={`product-rich-content text-slate-600 text-left overflow-hidden transition-all duration-500 ease-in-out text-base
                       ${!isDescExpanded ? 'max-h-[200px]' : 'max-h-[2000px]'}
                     `}
                     dangerouslySetInnerHTML={{ __html: processedDescription }}
                   />
+                  <style jsx>{productRichContentStyles}</style>
                   
                      {!isDescExpanded && showExpandButton && (
                     <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
@@ -916,3 +906,87 @@ export default function ProductDetailPage({
     </div>
   );
 }
+
+const productRichContentStyles = `
+  .product-rich-content h1,
+  .product-rich-content .editor-heading-h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    color: #0f172a;
+  }
+
+  .product-rich-content h2,
+  .product-rich-content .editor-heading-h2 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 20px 0 12px 0;
+    color: #0f172a;
+  }
+
+  .product-rich-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 16px 0 10px 0;
+    color: #0f172a;
+  }
+
+  .product-rich-content p,
+  .product-rich-content .editor-paragraph {
+    margin: 0 0 12px 0;
+    line-height: 1.7;
+  }
+
+  .product-rich-content strong {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .product-rich-content em {
+    font-style: italic;
+  }
+
+  .product-rich-content u {
+    text-decoration: underline;
+  }
+
+  .product-rich-content a {
+    color: #9b2c3b;
+    text-decoration: none;
+  }
+
+  .product-rich-content a:hover {
+    text-decoration: underline;
+  }
+
+  .product-rich-content blockquote {
+    border-left: 4px solid #e5ddd0;
+    padding-left: 16px;
+    color: #64748b;
+    font-style: italic;
+    margin: 12px 0;
+  }
+
+  .product-rich-content ul,
+  .product-rich-content .editor-list-ul {
+    list-style-type: disc;
+    padding-left: 24px;
+    margin: 12px 0;
+  }
+
+  .product-rich-content ol,
+  .product-rich-content .editor-list-ol {
+    list-style-type: decimal;
+    padding-left: 24px;
+    margin: 12px 0;
+  }
+
+  .product-rich-content li,
+  .product-rich-content .editor-listitem {
+    margin: 6px 0;
+  }
+
+  .product-rich-content img {
+    border-radius: 16px;
+  }
+`;
