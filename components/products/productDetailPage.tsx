@@ -838,8 +838,19 @@ export default function ProductDetailPage({
               {processedDescription ? (
                 <>
                   <div 
-                       ref={descriptionRef}
-                    className={`text-slate-600 leading-relaxed text-left md:text-center space-y-4 overflow-hidden transition-all duration-500 ease-in-out text-base
+                    ref={descriptionRef}
+                    className={`prose prose-slate max-w-none text-slate-600 text-left overflow-hidden transition-all duration-500 ease-in-out text-base
+                      prose-headings:text-slate-900
+                      prose-h1:text-2xl md:prose-h1:text-3xl
+                      prose-h2:text-xl md:prose-h2:text-2xl
+                      prose-h3:text-lg md:prose-h3:text-xl
+                      prose-p:leading-relaxed prose-p:mb-4
+                      prose-strong:text-slate-900 prose-strong:font-semibold
+                      prose-ul:list-disc prose-ol:list-decimal
+                      prose-li:marker:text-slate-400
+                      prose-blockquote:border-l-[#e5ddd0] prose-blockquote:text-slate-500
+                      prose-a:text-[#9B2C3B] prose-a:no-underline hover:prose-a:underline
+                      prose-img:rounded-xl
                       ${!isDescExpanded ? 'max-h-[200px]' : 'max-h-[2000px]'}
                     `}
                     dangerouslySetInnerHTML={{ __html: processedDescription }}

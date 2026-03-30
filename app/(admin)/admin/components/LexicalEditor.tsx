@@ -10,7 +10,7 @@
  import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
  import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
  import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
- import { HeadingNode, QuoteNode, $createHeadingNode, $createQuoteNode } from '@lexical/rich-text';
+ import { HeadingNode, QuoteNode, $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
  import { ListNode, ListItemNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
  import { AutoLinkNode, LinkNode } from '@lexical/link';
  import { 
@@ -235,11 +235,13 @@ const FONT_SIZE_OPTIONS = [
         .find(s => s.includes('color') && !s.includes('background'))
         ?.split(':')[1]?.trim() || '#000000';
  
+       const resolvedBlockType = $isHeadingNode(element) ? element.getTag() : element.getType();
+
        setActiveState({
          bold: selection.hasFormat('bold'),
          italic: selection.hasFormat('italic'),
          underline: selection.hasFormat('underline'),
-         blockType: element.getType(),
+         blockType: resolvedBlockType,
         fontSize,
         fontFamily,
         fontColor,
@@ -425,7 +427,7 @@ const FONT_SIZE_OPTIONS = [
          <ToolbarBtn onClick={() => formatBlock('paragraph')} active={activeState.blockType === 'paragraph'} title="Văn bản thường">
            <Type size={16} />
          </ToolbarBtn>
-         <ToolbarBtn onClick={() => formatBlock('h1')} active={activeState.blockType === 'heading' || activeState.blockType === 'h1'} title="Tiêu đề 1">
+         <ToolbarBtn onClick={() => formatBlock('h1')} active={activeState.blockType === 'h1'} title="Tiêu đề 1">
            <Heading1 size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('h2')} active={activeState.blockType === 'h2'} title="Tiêu đề 2">
