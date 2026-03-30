@@ -501,15 +501,6 @@ export default function ProductDetailPage({
                             -{discountPercentage}%
                           </span>
                         )}
-                        {/* Blur background layer */}
-                        <div
-                          className="absolute inset-0 scale-150 blur-3xl opacity-40"
-                          style={{
-                            backgroundImage: `url(${img.src})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                          }}
-                        />
                         {/* Main image container */}
                         <button
                           type="button"
