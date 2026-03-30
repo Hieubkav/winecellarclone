@@ -18,6 +18,7 @@ import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
 import { fetchProductFilters, type ProductFilterOption, type AttributeFilter } from '@/lib/api/products';
+import { buildProductAdminSeo } from '@/lib/seo/product-admin-seo';
 import {
   PRODUCT_IMAGE_OUTPUT_LABEL,
   PRODUCT_IMAGE_PREVIEW_SIZE,
@@ -371,6 +372,20 @@ const LexicalEditor = dynamic(
 
   const buildMetaTitle = (productName: string, resolvedSiteName: string) =>
     `${productName} | Giá tốt chính hãng | ${resolvedSiteName}`;
+
+  const handleGenerateSeo = () => {
+    if (!name.trim()) {
+      toast.error('Vui lòng nhập tên sản phẩm trước khi tạo SEO');
+      return;
+    }
+    const seo = buildProductAdminSeo({
+      name: name.trim(),
+      siteName,
+    });
+    setMetaTitle(seo.title);
+    setMetaDescription(seo.description);
+    toast.success('Đã tạo SEO title/description theo công thức');
+  };
 
   const handleManualAttributeChange = (groupCode: string, value: string) => {
     setManualAttributes(prev => ({ ...prev, [groupCode]: value }));
@@ -799,7 +814,12 @@ const LexicalEditor = dynamic(
 
         <Card>
           <CardContent className="p-6 space-y-4">
-            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">SEO</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">SEO</h2>
+              <Button type="button" variant="outline" size="sm" onClick={handleGenerateSeo}>
+                Gen SEO
+              </Button>
+            </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Meta Title</Label>
