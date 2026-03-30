@@ -76,8 +76,9 @@ const LexicalEditor = dynamic(
    const [isLoading, setIsLoading] = useState(true);
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [isEditorReady, setIsEditorReady] = useState(false);
-   const [types, setTypes] = useState<ProductFilterOption[]>([]);
+  const [types, setTypes] = useState<ProductFilterOption[]>([]);
    const [categories, setCategories] = useState<ProductFilterOption[]>([]);
+  const [siteName, setSiteName] = useState('Thiên Kim Wine');
  
   const [attributeFilters, setAttributeFilters] = useState<AttributeFilter[]>([]);
    const [name, setName] = useState('');
@@ -117,7 +118,9 @@ const LexicalEditor = dynamic(
          ]);
          setTypes(filters.types);
          setCategories(filters.categories);
-         setProductShopeeLinkEnabled(Boolean(settingsResult?.data.product_shopee_link_enabled));
+        setProductShopeeLinkEnabled(Boolean(settingsResult?.data.product_shopee_link_enabled));
+        const resolvedSiteName = (settingsResult?.data as { site_name?: string } | null)?.site_name?.trim();
+        setSiteName(resolvedSiteName || 'Thiên Kim Wine');
         currentFiltersTypeRef.current = null;
        } catch (error) {
          console.error('Failed to load filters:', error);
@@ -367,6 +370,9 @@ const LexicalEditor = dynamic(
     setDragIndex(null);
   }, [dragIndex]);
 
+  const buildMetaTitle = (productName: string, resolvedSiteName: string) =>
+    `${productName} | Giá tốt chính hãng | ${resolvedSiteName}`;
+
   const handleManualAttributeChange = (groupCode: string, value: string) => {
     setManualAttributes(prev => ({ ...prev, [groupCode]: value }));
   };
@@ -397,7 +403,10 @@ const LexicalEditor = dynamic(
        return;
      }
 
-    const resolvedMetaTitle = truncateText(metaTitle.trim() || name.trim(), 60);
+    const resolvedMetaTitleSource = metaTitle.trim()
+      ? metaTitle.trim()
+      : buildMetaTitle(name.trim(), siteName);
+    const resolvedMetaTitle = truncateText(resolvedMetaTitleSource, 60);
     const resolvedMetaDescription = truncateText(
       metaDescription.trim() || stripHtmlTags(description || ''),
       160
@@ -802,7 +811,7 @@ const LexicalEditor = dynamic(
               <Input
                 value={metaTitle}
                 onChange={(e) => setMetaTitle(e.target.value)}
-                placeholder="Lấy theo tên sản phẩm nếu để trống"
+                placeholder="Để trống sẽ tự điền: {Tên sản phẩm} | Giá tốt chính hãng | {Tên website}"
               />
             </div>
             <div className="space-y-2">
