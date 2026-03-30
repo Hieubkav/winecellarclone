@@ -166,7 +166,7 @@ function MobileBottomNav({ actions }: { actions: SpeedDialAction[] }) {
   return (
     <nav
       aria-label="Thanh điều hướng nhanh trên di động"
-      className={`${montserrat.className} fixed inset-x-0 bottom-0 z-30 rounded-t-2xl bg-[#9B2C3B] shadow-[0_-4px_20px_rgba(0,0,0,0.1)] lg:hidden`}
+      className={`${montserrat.className} fixed inset-x-0 bottom-0 z-30 rounded-none bg-[#9B2C3B] shadow-[0_-4px_20px_rgba(0,0,0,0.1)] lg:hidden`}
       style={{ color: base }}
     >
       <ul className={`grid ${gridCols} divide-x divide-[#ECAA4D]/50 text-center text-xs font-medium`}>
