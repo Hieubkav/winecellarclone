@@ -395,7 +395,7 @@ export const useSettingsForm = () => {
         return;
       }
       setHomeFaqConfig(config);
-    } catch (error) {
+    } catch {
       setHomeFaqConfig(null);
     }
   }, []);

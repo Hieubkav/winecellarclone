@@ -38,7 +38,12 @@ export async function generateMetadata({
   }
 
   const siteName = settings.site_name || "Thiên Kim Wine";
-  const title = product.meta?.title || `Mua ${product.name} chính hãng | ${siteName}`;
+  const normalizeTitle = (value?: string | null) => value?.trim().toLowerCase() ?? "";
+  const metaTitle = product.meta?.title?.trim() || "";
+  const isMetaTitleDefault = !metaTitle || normalizeTitle(metaTitle) === normalizeTitle(product.name);
+  const title = isMetaTitleDefault
+    ? `${product.name} | Giá tốt chính hãng | ${siteName}`
+    : metaTitle;
   const description = product.meta?.description
     || product.description?.substring(0, 160)
     || `Mua ${product.name} chính hãng tại ${siteName}. Giá tốt, tư vấn nhanh và giao hàng tận nơi.`;

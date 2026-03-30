@@ -496,19 +496,6 @@ const generateSlug = (text: string): string => {
     setDragIndex(null);
   }, [dragIndex]);
 
-  const handleTermChange = (groupCode: string, termId: number, filterType: string) => {
-    setSelectedTermIds(prev => {
-      const current = prev[groupCode] || [];
-      if (filterType === 'chon_don') {
-        return { ...prev, [groupCode]: current.includes(termId) ? [] : [termId] };
-      }
-      if (current.includes(termId)) {
-        return { ...prev, [groupCode]: current.filter(id => id !== termId) };
-      }
-      return { ...prev, [groupCode]: [...current, termId] };
-    });
-  };
-
   const handleManualAttributeChange = (groupCode: string, value: string) => {
     setManualAttributes(prev => ({ ...prev, [groupCode]: value }));
   };
