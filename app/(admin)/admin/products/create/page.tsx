@@ -11,6 +11,7 @@ import { Button, Card, CardContent, Input, Label, Skeleton } from '../../compone
 import { AdminStickyActionBar } from '../../components/AdminStickyActionBar';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
+import { AttributeCombobox } from '../../components/AttributeCombobox';
 import { createProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
 import { fetchAdminSettingsLite } from '@/features/admin/settings/api/settings.api';
@@ -365,19 +366,6 @@ const LexicalEditor = dynamic(
     });
     setDragIndex(null);
   }, [dragIndex]);
-
-  const handleTermChange = (groupCode: string, termId: number, filterType: string) => {
-    setSelectedTermIds(prev => {
-      const current = prev[groupCode] || [];
-      if (filterType === 'chon_don') {
-        return { ...prev, [groupCode]: current.includes(termId) ? [] : [termId] };
-      }
-      if (current.includes(termId)) {
-        return { ...prev, [groupCode]: current.filter(id => id !== termId) };
-      }
-      return { ...prev, [groupCode]: [...current, termId] };
-    });
-  };
 
   const handleManualAttributeChange = (groupCode: string, value: string) => {
     setManualAttributes(prev => ({ ...prev, [groupCode]: value }));
@@ -755,33 +743,28 @@ const LexicalEditor = dynamic(
                           <span className="text-xs text-slate-400">(chọn 1)</span>
                         )}
                       </Label>
-                      {group.filter_type === 'nhap_tay' ? (
+                      {(group.filter_type === 'nhap_tay' || group.filter_type === 'range') && group.input_type ? (
                         <Input
                           type={group.input_type === 'number' ? 'number' : 'text'}
                           placeholder={group.input_type === 'number' ? '0' : 'Nhập giá trị'}
+                          min={group.input_type === 'number' ? 0 : undefined}
+                          step={group.input_type === 'number' ? 'any' : undefined}
                           value={manualAttributes[group.code] || ''}
                           onChange={(e) => handleManualAttributeChange(group.code, e.target.value)}
                         />
                       ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {group.options.map(option => {
-                            const isSelected = (selectedTermIds[group.code] || []).includes(option.id);
-                            return (
-                              <button
-                                key={option.id}
-                                type="button"
-                                onClick={() => handleTermChange(group.code, option.id, group.filter_type)}
-                                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                                  isSelected
-                                    ? 'bg-blue-500 text-white border-blue-500'
-                                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
-                                }`}
-                              >
-                                {option.name}
-                              </button>
-                            );
-                          })}
-                        </div>
+                        <AttributeCombobox
+                          options={group.options}
+                          selectedIds={selectedTermIds[group.code] || []}
+                          single={group.filter_type === 'chon_don'}
+                          placeholder="Gõ để tìm..."
+                          onChange={(nextIds) =>
+                            setSelectedTermIds(prev => ({
+                              ...prev,
+                              [group.code]: nextIds,
+                            }))
+                          }
+                        />
                       )}
                     </div>
                   ))}
