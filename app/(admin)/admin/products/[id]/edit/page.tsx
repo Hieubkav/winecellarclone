@@ -9,6 +9,7 @@ import DynamicIcon from '@/components/shared/DynamicIcon';
 import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../components/ui';
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
+import { AttributeCombobox } from '../../../components/AttributeCombobox';
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
 import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
 import { fetchAdminSettingsLite } from '@/features/admin/settings/api/settings.api';
@@ -918,25 +919,18 @@ const generateSlug = (text: string): string => {
                             onChange={(e) => handleManualAttributeChange(group.code, e.target.value)}
                           />
                         ) : (
-                          <div className="flex flex-wrap gap-2">
-                            {group.options.map(option => {
-                              const isSelected = (selectedTermIds[group.code] || []).includes(option.id);
-                              return (
-                                <button
-                                  key={option.id}
-                                  type="button"
-                                  onClick={() => handleTermChange(group.code, option.id, group.filter_type)}
-                                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
-                                    isSelected
-                                      ? 'bg-blue-500 text-white border-blue-500'
-                                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:border-blue-400'
-                                  }`}
-                                >
-                                  {option.name}
-                                </button>
-                              );
-                            })}
-                          </div>
+                          <AttributeCombobox
+                            options={group.options}
+                            selectedIds={selectedTermIds[group.code] || []}
+                            single={group.filter_type === 'chon_don'}
+                            placeholder="Gõ để tìm..."
+                            onChange={(nextIds) =>
+                              setSelectedTermIds(prev => ({
+                                ...prev,
+                                [group.code]: nextIds,
+                              }))
+                            }
+                          />
                         )}
                       </div>
                     ))}
