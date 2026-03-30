@@ -46,6 +46,12 @@ export const SettingsScreen = () => {
     productShopeeLinkEnabled,
     productMobileMainImageHeight,
     productDetailRules,
+    productDetailFaqEnabled,
+    productDetailFaqTitle,
+    productDetailFaqEyebrow,
+    productDetailFaqItems,
+    productDetailFaqPosition,
+    homeFaqConfig,
     logoImageId,
     logoImageUrl,
     faviconImageId,
@@ -101,6 +107,14 @@ export const SettingsScreen = () => {
     addProductDetailRule,
     updateProductDetailRule,
     removeProductDetailRule,
+    setProductDetailFaqEnabled,
+    setProductDetailFaqTitle,
+    setProductDetailFaqEyebrow,
+    setProductDetailFaqPosition,
+    addProductDetailFaqItem,
+    updateProductDetailFaqItem,
+    removeProductDetailFaqItem,
+    syncProductDetailFaqFromHome,
     setLogoImageId,
     setLogoImageUrl,
     setFaviconImageId,
@@ -421,6 +435,124 @@ export const SettingsScreen = () => {
                   )}
                   <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={addProductDetailRule}>
                     Thêm dòng
+                  </Button>
+                </div>
+              </Card>
+
+              <Card>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="font-semibold text-slate-900 dark:text-slate-100">FAQ trang chi tiết sản phẩm</h2>
+                      <p className="text-sm text-slate-500">Hiển thị FAQ dùng chung cho mọi sản phẩm.</p>
+                    </div>
+                    {homeFaqConfig ? (
+                      <Button type="button" variant="outline" onClick={syncProductDetailFaqFromHome}>
+                        Sync từ FAQ trang chủ
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                    <Checkbox
+                      checked={productDetailFaqEnabled}
+                      onCheckedChange={(value) => setProductDetailFaqEnabled(Boolean(value))}
+                    />
+                    <span>Hiển thị FAQ ở trang chi tiết sản phẩm</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="productDetailFaqTitle">Tiêu đề</Label>
+                      <Input
+                        id="productDetailFaqTitle"
+                        value={productDetailFaqTitle}
+                        onChange={(event) => setProductDetailFaqTitle(event.target.value)}
+                        placeholder="Những câu hỏi thường gặp"
+                        disabled={!productDetailFaqEnabled}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="productDetailFaqEyebrow">Nhãn phụ</Label>
+                      <Input
+                        id="productDetailFaqEyebrow"
+                        value={productDetailFaqEyebrow}
+                        onChange={(event) => setProductDetailFaqEyebrow(event.target.value)}
+                        placeholder="Có thể để trống"
+                        disabled={!productDetailFaqEnabled}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="productDetailFaqPosition">Vị trí hiển thị</Label>
+                    <select
+                      id="productDetailFaqPosition"
+                      value={productDetailFaqPosition}
+                      onChange={(event) => setProductDetailFaqPosition(event.target.value as typeof productDetailFaqPosition)}
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      disabled={!productDetailFaqEnabled}
+                    >
+                      <option value="after_description">Sau phần mô tả</option>
+                      <option value="after_same_type">Sau sản phẩm cùng loại</option>
+                      <option value="after_related_products">Sau sản phẩm liên quan</option>
+                    </select>
+                  </div>
+
+                  {productDetailFaqItems.length === 0 ? (
+                    <p className="text-sm text-slate-500">Chưa có câu hỏi nào.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {productDetailFaqItems.map((item, index) => (
+                        <div key={item.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Câu hỏi {index + 1}</p>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="h-9 w-9 shrink-0"
+                              onClick={() => removeProductDetailFaqItem(item.id)}
+                              disabled={!productDetailFaqEnabled}
+                              aria-label={`Xóa câu hỏi ${index + 1}`}
+                            >
+                              <X size={16} />
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`productDetailFaqQuestion-${item.id}`}>Câu hỏi</Label>
+                            <Input
+                              id={`productDetailFaqQuestion-${item.id}`}
+                              value={item.question}
+                              onChange={(event) => updateProductDetailFaqItem(item.id, "question", event.target.value)}
+                              placeholder="Nhập câu hỏi"
+                              disabled={!productDetailFaqEnabled}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`productDetailFaqAnswer-${item.id}`}>Câu trả lời</Label>
+                            <textarea
+                              id={`productDetailFaqAnswer-${item.id}`}
+                              value={item.answer}
+                              onChange={(event) => updateProductDetailFaqItem(item.id, "answer", event.target.value)}
+                              placeholder="Nhập câu trả lời"
+                              className="w-full min-h-[140px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm resize-y"
+                              disabled={!productDetailFaqEnabled}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    onClick={addProductDetailFaqItem}
+                    disabled={!productDetailFaqEnabled}
+                  >
+                    Thêm câu hỏi
                   </Button>
                 </div>
               </Card>

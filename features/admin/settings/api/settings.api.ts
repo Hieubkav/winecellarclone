@@ -15,6 +15,11 @@ export interface AdminSetting {
   product_shopee_link_enabled: boolean | null;
   product_mobile_main_image_height: number | null;
   product_detail_rules: string[] | null;
+  product_detail_faq_enabled: boolean | null;
+  product_detail_faq_title: string | null;
+  product_detail_faq_eyebrow: string | null;
+  product_detail_faq_items: Array<{ question: string; answer: string }> | null;
+  product_detail_faq_position: string | null;
   meta_default_title: string | null;
   meta_default_description: string | null;
   meta_default_keywords: string | string[] | null;

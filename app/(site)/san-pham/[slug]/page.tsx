@@ -135,6 +135,13 @@ export default async function ProductDetailRoute({
         shopeeLinkEnabled={Boolean(settings.product_shopee_link_enabled)}
         mobileMainImageHeight={settings.product_mobile_main_image_height}
         productDetailRules={settings.product_detail_rules}
+        productDetailFaq={{
+          enabled: settings.product_detail_faq_enabled,
+          title: settings.product_detail_faq_title,
+          eyebrow: settings.product_detail_faq_eyebrow,
+          items: settings.product_detail_faq_items,
+          position: settings.product_detail_faq_position,
+        }}
       />
     </>
   );

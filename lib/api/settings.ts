@@ -9,6 +9,12 @@ export type WatermarkSize = '64x64' | '96x96' | '128x128' | '160x160' | '192x192
 export type WatermarkType = 'image' | 'text';
 export type WatermarkTextSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge' | 'xxlarge';
 export type WatermarkTextPosition = 'top' | 'center' | 'bottom';
+export type ProductDetailFaqPosition = 'after_description' | 'after_same_type' | 'after_related_products';
+
+export interface ProductDetailFaqItem {
+  question: string;
+  answer: string;
+}
 
 export interface SettingsAuditMeta {
   cache_driver: string;
@@ -40,6 +46,11 @@ export interface SettingsResponse {
     product_shopee_link_enabled: boolean | null;
     product_mobile_main_image_height: number | null;
     product_detail_rules: string[] | null;
+    product_detail_faq_enabled: boolean | null;
+    product_detail_faq_title: string | null;
+    product_detail_faq_eyebrow: string | null;
+    product_detail_faq_items: ProductDetailFaqItem[] | null;
+    product_detail_faq_position: ProductDetailFaqPosition | null;
     product_watermark_url: string | null;
     product_watermark_canonical_url?: string | null;
     product_watermark_position: WatermarkPosition | null;
@@ -101,6 +112,11 @@ export interface Settings {
   product_shopee_link_enabled: boolean | null;
   product_mobile_main_image_height: number | null;
   product_detail_rules: string[] | null;
+  product_detail_faq_enabled: boolean | null;
+  product_detail_faq_title: string | null;
+  product_detail_faq_eyebrow: string | null;
+  product_detail_faq_items: ProductDetailFaqItem[] | null;
+  product_detail_faq_position: ProductDetailFaqPosition | null;
   product_watermark_url: string | null;
   product_watermark_canonical_url?: string | null;
   product_watermark_position: WatermarkPosition | null;
@@ -209,6 +225,11 @@ export const FALLBACK_SETTINGS: Settings = {
   product_shopee_link_enabled: false,
   product_mobile_main_image_height: null,
   product_detail_rules: null,
+  product_detail_faq_enabled: true,
+  product_detail_faq_title: null,
+  product_detail_faq_eyebrow: null,
+  product_detail_faq_items: null,
+  product_detail_faq_position: 'after_description',
   product_watermark_url: null,
   product_watermark_canonical_url: null,
   product_watermark_position: 'none',

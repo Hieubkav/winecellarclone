@@ -23,6 +23,7 @@ import { getImageUrl, getProductImageUrl } from "@/lib/utils/image";
 import { PRODUCT_IMAGE_ASPECT_RATIO } from "@/lib/constants/product-image";
 import RelatedProductsSection from "./RelatedProducts";
 import type { ProductContactCtaConfig } from "@/lib/types/product-contact-cta";
+import FaqSection from "@/components/home/FaqSection";
 
 interface AttributeDisplayItem {
   iconName?: string | null;
@@ -40,6 +41,13 @@ interface ProductDetailPageProps {
   shopeeLinkEnabled?: boolean;
   mobileMainImageHeight?: number | null;
   productDetailRules?: string[] | null;
+  productDetailFaq?: {
+    enabled?: boolean | null;
+    title?: string | null;
+    eyebrow?: string | null;
+    items?: Array<{ question: string; answer: string }> | null;
+    position?: "after_description" | "after_same_type" | "after_related_products" | null;
+  } | null;
 }
 
 interface ProductGalleryItem {
@@ -114,6 +122,7 @@ export default function ProductDetailPage({
   shopeeLinkEnabled,
   mobileMainImageHeight,
   productDetailRules,
+  productDetailFaq,
 }: ProductDetailPageProps) {
   const { trackProductView, trackCTAContact } = useTracking();
   const contactCtaMode = productContactCtaConfig?.mode || "contact_page";
@@ -168,6 +177,35 @@ export default function ProductDetailPage({
       });
     }
   }, [product?.id, product.name, product.category, product.type, product.price, trackProductView]);
+
+  const resolvedFaqItems = useMemo(
+    () =>
+      (productDetailFaq?.items || []).filter(
+        (item) => item.question?.trim() && item.answer?.trim()
+      ),
+    [productDetailFaq?.items]
+  );
+  const shouldRenderFaq = productDetailFaq?.enabled !== false && resolvedFaqItems.length > 0;
+  const hasSameTypeSection =
+    Boolean(product.same_type_products && product.same_type_products.products.length > 0);
+  const hasRelatedSection =
+    Boolean(product.related_by_attributes && product.related_by_attributes.products.length > 0);
+
+  let faqRenderPosition = productDetailFaq?.position || "after_description";
+  if (faqRenderPosition === "after_same_type" && !hasSameTypeSection) {
+    faqRenderPosition = "after_description";
+  }
+  if (faqRenderPosition === "after_related_products" && !hasRelatedSection) {
+    faqRenderPosition = hasSameTypeSection ? "after_same_type" : "after_description";
+  }
+
+  const faqSection = shouldRenderFaq ? (
+    <FaqSection
+      title={productDetailFaq?.title || undefined}
+      eyebrow={productDetailFaq?.eyebrow || undefined}
+      items={resolvedFaqItems}
+    />
+  ) : null;
 
   const imageItems = useMemo(() => {
     const items: ProductGalleryItem[] = [];
@@ -832,6 +870,8 @@ export default function ProductDetailPage({
         </div>
       </section>
 
+      {faqRenderPosition === "after_description" ? faqSection : null}
+
       {/* Related Products Sections */}
       <div className="bg-white py-12 border-t border-[#e5ddd0]">
         <div className="container mx-auto px-4">
@@ -846,6 +886,8 @@ export default function ProductDetailPage({
             </div>
           )}
 
+          {faqRenderPosition === "after_same_type" ? faqSection : null}
+
           {product.related_by_attributes && product.related_by_attributes.products.length > 0 && (
             <div>
               <RelatedProductsSection
@@ -858,6 +900,8 @@ export default function ProductDetailPage({
           )}
         </div>
       </div>
+
+      {faqRenderPosition === "after_related_products" ? faqSection : null}
     </div>
   );
 }

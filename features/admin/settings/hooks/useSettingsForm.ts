@@ -2,11 +2,20 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { fetchAdminSettings, updateSettings } from "../api/settings.api";
+import { fetchHomeComponentsWithMeta, type FaqConfig } from "@/lib/api/home";
 import { DEFAULT_FONT_KEY, isValidFontKey, type FontKey } from "@/lib/fonts/registry";
 import type { ProductContactCtaMode } from "@/lib/types/product-contact-cta";
 
 const VALID_TABS = ["info", "map", "watermark", "seo", "fonts"] as const;
 const DEFAULT_WATERMARK_TEXT_POSITION_Y = 50;
+const PRODUCT_DETAIL_FAQ_POSITIONS = ["after_description", "after_same_type", "after_related_products"] as const;
+
+type ProductDetailFaqPosition = (typeof PRODUCT_DETAIL_FAQ_POSITIONS)[number];
+type ProductDetailFaqItem = {
+  id: number;
+  question: string;
+  answer: string;
+};
 
 const clampWatermarkPositionY = (value: number) => Math.max(0, Math.min(100, value));
 
@@ -101,6 +110,8 @@ const resolveAdminImageUrl = (backendUrl: string, value?: string | null): string
   return `${backendUrl}/${trimmed}`;
 };
 
+const buildFaqItemId = () => Date.now() + Math.floor(Math.random() * 1000);
+
 export const useSettingsForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -141,6 +152,12 @@ export const useSettingsForm = () => {
   const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
   const [productMobileMainImageHeight, setProductMobileMainImageHeight] = useState<number | null>(null);
   const [productDetailRules, setProductDetailRules] = useState<string[]>([]);
+  const [productDetailFaqEnabled, setProductDetailFaqEnabled] = useState(true);
+  const [productDetailFaqTitle, setProductDetailFaqTitle] = useState("");
+  const [productDetailFaqEyebrow, setProductDetailFaqEyebrow] = useState("");
+  const [productDetailFaqItems, setProductDetailFaqItems] = useState<ProductDetailFaqItem[]>([]);
+  const [productDetailFaqPosition, setProductDetailFaqPosition] = useState<ProductDetailFaqPosition>("after_description");
+  const [homeFaqConfig, setHomeFaqConfig] = useState<FaqConfig | null>(null);
 
   const [logoImageId, setLogoImageId] = useState<number | null>(null);
   const [logoImageUrl, setLogoImageUrl] = useState<string | null>(null);
@@ -213,6 +230,23 @@ export const useSettingsForm = () => {
             .filter((value) => value.trim() !== "")
         : [];
       setProductDetailRules(resolvedProductDetailRules);
+      setProductDetailFaqEnabled(data.product_detail_faq_enabled !== false);
+      setProductDetailFaqTitle(data.product_detail_faq_title || "");
+      setProductDetailFaqEyebrow(data.product_detail_faq_eyebrow || "");
+      const resolvedFaqItems = Array.isArray(data.product_detail_faq_items)
+        ? data.product_detail_faq_items
+            .map((item) => ({
+              id: buildFaqItemId(),
+              question: typeof item?.question === "string" ? item.question : "",
+              answer: typeof item?.answer === "string" ? item.answer : "",
+            }))
+            .filter((item) => item.question.trim() && item.answer.trim())
+        : [];
+      setProductDetailFaqItems(resolvedFaqItems);
+      const nextFaqPosition = String(data.product_detail_faq_position || "after_description") as ProductDetailFaqPosition;
+      setProductDetailFaqPosition(
+        PRODUCT_DETAIL_FAQ_POSITIONS.includes(nextFaqPosition) ? nextFaqPosition : "after_description"
+      );
 
       setLogoImageId(data.logo_image_id || null);
       setLogoImageUrl(resolveAdminImageUrl(backendUrl, data.logo_image_canonical_url ?? data.logo_image_url));
@@ -332,6 +366,56 @@ export const useSettingsForm = () => {
     setProductDetailRules((prev) => prev.filter((_, idx) => idx !== index));
   };
 
+  const addProductDetailFaqItem = () => {
+    setProductDetailFaqItems((prev) => [
+      ...prev,
+      {
+        id: buildFaqItemId(),
+        question: "",
+        answer: "",
+      },
+    ]);
+  };
+
+  const updateProductDetailFaqItem = (id: number, field: "question" | "answer", value: string) => {
+    setProductDetailFaqItems((prev) => prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+  };
+
+  const removeProductDetailFaqItem = (id: number) => {
+    setProductDetailFaqItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const loadHomeFaqConfig = useCallback(async () => {
+    try {
+      const response = await fetchHomeComponentsWithMeta();
+      const faqComponent = response.data.find((component) => component.type === "faq");
+      const config = faqComponent?.config as FaqConfig | undefined;
+      if (!config || !Array.isArray(config.items) || config.items.length === 0) {
+        setHomeFaqConfig(null);
+        return;
+      }
+      setHomeFaqConfig(config);
+    } catch (error) {
+      setHomeFaqConfig(null);
+    }
+  }, []);
+
+  const syncProductDetailFaqFromHome = () => {
+    if (!homeFaqConfig) {
+      return;
+    }
+
+    setProductDetailFaqTitle(homeFaqConfig.title || "");
+    setProductDetailFaqEyebrow(homeFaqConfig.eyebrow || "");
+    setProductDetailFaqItems(
+      homeFaqConfig.items.map((item) => ({
+        id: buildFaqItemId(),
+        question: item.question,
+        answer: item.answer,
+      }))
+    );
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -399,6 +483,16 @@ export const useSettingsForm = () => {
         product_shopee_link_enabled: productShopeeLinkEnabled,
         product_mobile_main_image_height: productMobileMainImageHeight,
         product_detail_rules: productDetailRules,
+        product_detail_faq_enabled: productDetailFaqEnabled,
+        product_detail_faq_title: productDetailFaqTitle || null,
+        product_detail_faq_eyebrow: productDetailFaqEyebrow || null,
+        product_detail_faq_position: productDetailFaqPosition,
+        product_detail_faq_items: productDetailFaqItems
+          .map((item) => ({
+            question: item.question.trim(),
+            answer: item.answer.trim(),
+          }))
+          .filter((item) => item.question && item.answer),
         logo_image_id: logoImageId,
         favicon_image_id: faviconImageId,
         og_image_id: ogImageId,
@@ -431,6 +525,10 @@ export const useSettingsForm = () => {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    void loadHomeFaqConfig();
+  }, [loadHomeFaqConfig]);
 
   return {
     state: {
@@ -466,6 +564,12 @@ export const useSettingsForm = () => {
       productShopeeLinkEnabled,
       productMobileMainImageHeight,
       productDetailRules,
+      productDetailFaqEnabled,
+      productDetailFaqTitle,
+      productDetailFaqEyebrow,
+      productDetailFaqItems,
+      productDetailFaqPosition,
+      homeFaqConfig,
       logoImageId,
       logoImageUrl,
       faviconImageId,
@@ -522,6 +626,14 @@ export const useSettingsForm = () => {
       addProductDetailRule,
       updateProductDetailRule,
       removeProductDetailRule,
+      setProductDetailFaqEnabled,
+      setProductDetailFaqTitle,
+      setProductDetailFaqEyebrow,
+      setProductDetailFaqPosition,
+      addProductDetailFaqItem,
+      updateProductDetailFaqItem,
+      removeProductDetailFaqItem,
+      syncProductDetailFaqFromHome,
       setLogoImageId,
       setLogoImageUrl,
       setFaviconImageId,
