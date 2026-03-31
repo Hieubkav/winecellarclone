@@ -37,11 +37,7 @@ import { $patchStyleText } from '@lexical/selection';
 import { $getNearestNodeOfType } from '@lexical/utils';
  import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
  import { $setBlocksType } from '@lexical/selection';
- import { 
-   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-   Type, Heading1, Heading2, Quote, List as ListIcon, ListOrdered, Image as ImageIcon,
-   Loader2 
- } from 'lucide-react';
+ import * as LucideIcons from 'lucide-react';
  import { cn } from '@/lib/utils';
  import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
 import { toast } from 'sonner';
@@ -452,13 +448,13 @@ const FONT_SIZE_OPTIONS = [
 
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} active={activeState.bold} title="In đậm (Ctrl+B)">
-           <Bold size={16} />
+           <LucideIcons.Bold size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')} active={activeState.italic} title="In nghiêng (Ctrl+I)">
-           <Italic size={16} />
+           <LucideIcons.Italic size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')} active={activeState.underline} title="Gạch chân (Ctrl+U)">
-           <Underline size={16} />
+           <LucideIcons.Underline size={16} />
          </ToolbarBtn>
        </div>
  
@@ -466,13 +462,13 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left')} title="Căn trái">
-           <AlignLeft size={16} />
+           <LucideIcons.AlignLeft size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center')} title="Căn giữa">
-           <AlignCenter size={16} />
+           <LucideIcons.AlignCenter size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right')} title="Căn phải">
-           <AlignRight size={16} />
+           <LucideIcons.AlignRight size={16} />
          </ToolbarBtn>
        </div>
  
@@ -480,16 +476,16 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => formatBlock('paragraph')} active={activeState.blockType === 'paragraph'} title="Văn bản thường">
-           <Type size={16} />
+           <LucideIcons.Type size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('h1')} active={activeState.blockType === 'h1'} title="Tiêu đề 1">
-           <Heading1 size={16} />
+           <LucideIcons.Heading1 size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('h2')} active={activeState.blockType === 'h2'} title="Tiêu đề 2">
-           <Heading2 size={16} />
+           <LucideIcons.Heading2 size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('quote')} active={activeState.blockType === 'quote'} title="Trích dẫn">
-           <Quote size={16} />
+           <LucideIcons.Quote size={16} />
          </ToolbarBtn>
        </div>
  
@@ -497,10 +493,10 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => formatBlock('ul')} title="Danh sách chấm">
-           <ListIcon size={16} />
+           <LucideIcons.List size={16} />
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('ol')} title="Danh sách số">
-           <ListOrdered size={16} />
+           <LucideIcons.ListOrdered size={16} />
          </ToolbarBtn>
        </div>
  
@@ -534,7 +530,7 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={handleImageUpload} title="Tải ảnh lên">
-           {isUploading ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} />}
+           {isUploading ? <LucideIcons.Loader2 size={16} className="animate-spin" /> : <LucideIcons.Image size={16} />}
          </ToolbarBtn>
        </div>
      </div>
