@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type DragEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   createArticle,
@@ -8,6 +9,7 @@ import {
   type AdminArticle,
 } from "../api/articles.api";
 import { uploadArticleImage, uploadArticleImageUrl } from "../api/articles.uploads";
+import { articleQueryKeys } from "../api/articles.query-keys";
 import { stripHtmlTags } from "@/lib/utils/article-content";
 import { ApiError } from "@/lib/api/client";
 
@@ -40,10 +42,9 @@ const truncateText = (value: string, maxLength: number) => {
 
 export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isEditMode = useMemo(() => Boolean(articleId), [articleId]);
 
-  const [isLoading, setIsLoading] = useState(isEditMode);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
@@ -63,46 +64,66 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     }
   };
 
-  const loadArticle = useCallback(async () => {
-    if (!articleId) return;
-    setIsLoading(true);
-    try {
-      const result = await fetchAdminArticle(articleId);
-      const article = result.data as AdminArticle & { content?: string | null };
-
-      setTitle(article.title);
-      setSlug(article.slug);
-      setContent(article.content || "");
-      setMetaTitle(article.meta_title || "");
-      setMetaDescription(article.meta_description || "");
-      setActive(article.active);
-
-      if (article.images && Array.isArray(article.images) && article.images.length > 0) {
-        type AdminArticleImage = NonNullable<AdminArticle["images"]>[number];
-        const mappedImages = (article.images as AdminArticleImage[])
-          .map((img) => {
-            const url = img.canonical_url || img.url || img.image_url;
-            const path = img.path || img.image_path || img.file_path;
-            return { url, path } as ArticleImageItem;
-          })
-          .filter((image) => Boolean(image.url) && Boolean(image.path));
-
-        setGalleryImages(mappedImages);
+  const articleQuery = useQuery({
+    queryKey: articleId ? articleQueryKeys.detail(articleId) : articleQueryKeys.details(),
+    queryFn: async () => {
+      if (!articleId) {
+        return null;
       }
-    } catch (error) {
-      console.error("Failed to load article:", error);
-      toast.error("Không thể tải bài viết");
-      router.push("/admin/articles");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [articleId, router]);
+
+      const result = await fetchAdminArticle(articleId);
+      return result.data as AdminArticle & { content?: string | null };
+    },
+    enabled: isEditMode && Boolean(articleId),
+    staleTime: 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
   useEffect(() => {
-    if (isEditMode) {
-      void loadArticle();
+    if (!articleQuery.error) {
+      return;
     }
-  }, [isEditMode, loadArticle]);
+
+    console.error("Failed to load article:", articleQuery.error);
+    toast.error("Không thể tải bài viết");
+    router.push("/admin/articles");
+  }, [articleQuery.error, router]);
+
+  useEffect(() => {
+    const article = articleQuery.data;
+    if (!article) {
+      return;
+    }
+
+    setTitle(article.title);
+    setSlug(article.slug);
+    setContent(article.content || "");
+    setMetaTitle(article.meta_title || "");
+    setMetaDescription(article.meta_description || "");
+    setActive(article.active);
+
+    if (article.images && Array.isArray(article.images) && article.images.length > 0) {
+      type AdminArticleImage = NonNullable<AdminArticle["images"]>[number];
+      const mappedImages = (article.images as AdminArticleImage[])
+        .map((img) => {
+          const url = img.canonical_url || img.url || img.image_url;
+          const path = img.path || img.image_path || img.file_path;
+          return { url, path } as ArticleImageItem;
+        })
+        .filter((image) => Boolean(image.url) && Boolean(image.path));
+
+      setGalleryImages(mappedImages);
+      return;
+    }
+
+    setGalleryImages([]);
+  }, [articleQuery.data]);
+
+  const loadArticle = useCallback(async () => {
+    if (!articleId) return;
+    await queryClient.invalidateQueries({ queryKey: articleQueryKeys.detail(articleId) });
+    await articleQuery.refetch();
+  }, [articleId, articleQuery, queryClient]);
 
   const uploadSingleImage = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -230,6 +251,45 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     [dragIndex]
   );
 
+  const articleMutation = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      if (isEditMode && articleId) {
+        return updateArticle(articleId, data);
+      }
+
+      return createArticle(data);
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: articleQueryKeys.lists() });
+
+      if (isEditMode && articleId) {
+        await loadArticle();
+        toast.success(("message" in result && result.message) ? result.message : "Cập nhật bài viết thành công");
+        return;
+      }
+
+      toast.success(("message" in result && result.message) ? result.message : "Tạo bài viết thành công");
+      router.push("/admin/articles");
+    },
+    onError: (error) => {
+      console.error("Failed to submit article:", error);
+      if (error instanceof ApiError && error.status === 422 && typeof error.payload === "object" && error.payload) {
+        const payload = error.payload as { errors?: Record<string, string[]> };
+        const errors = payload.errors;
+        if (!errors) {
+          toast.error("Lỗi validation. Vui lòng kiểm tra lại dữ liệu.");
+          return;
+        }
+        const errorMessages = Object.entries(errors)
+          .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
+          .join("\n");
+        toast.error(`Lỗi validation:\n${errorMessages}`);
+      } else {
+        toast.error(isEditMode ? "Không thể cập nhật bài viết. Vui lòng thử lại." : "Không thể tạo bài viết. Vui lòng thử lại.");
+      }
+    },
+  });
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
@@ -246,57 +306,24 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
 
     if (isEditMode && !articleId) return;
 
-    setIsSubmitting(true);
-    try {
-      const imagePaths = galleryImages.map((image) => image.path).filter((path) => path && path.trim().length > 0);
-      const data: Record<string, unknown> = {
-        title: title.trim(),
-        slug: slug.trim() || generateSlug(title),
-        content: content?.trim() || null,
-        meta_title: resolvedMetaTitle || null,
-        meta_description: resolvedMetaDescription || null,
-        active: Boolean(active),
-        image_paths: imagePaths,
-      };
+    const imagePaths = galleryImages.map((image) => image.path).filter((path) => path && path.trim().length > 0);
+    const data: Record<string, unknown> = {
+      title: title.trim(),
+      slug: slug.trim() || generateSlug(title),
+      content: content?.trim() || null,
+      meta_title: resolvedMetaTitle || null,
+      meta_description: resolvedMetaDescription || null,
+      active: Boolean(active),
+      image_paths: imagePaths,
+    };
 
-      if (isEditMode && articleId) {
-        const result = await updateArticle(articleId, data);
-        if (result.success) {
-          toast.success(result.message || "Cập nhật bài viết thành công");
-          await loadArticle();
-        }
-      } else {
-        const result = await createArticle(data);
-        if (result.success) {
-          toast.success(result.message || "Tạo bài viết thành công");
-          router.push("/admin/articles");
-        }
-      }
-    } catch (error) {
-      console.error("Failed to submit article:", error);
-      if (error instanceof ApiError && error.status === 422 && typeof error.payload === "object" && error.payload) {
-        const payload = error.payload as { errors?: Record<string, string[]> };
-        const errors = payload.errors;
-        if (!errors) {
-          toast.error("Lỗi validation. Vui lòng kiểm tra lại dữ liệu.");
-          return;
-        }
-        const errorMessages = Object.entries(errors)
-          .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
-          .join("\n");
-        toast.error(`Lỗi validation:\n${errorMessages}`);
-      } else {
-        toast.error(isEditMode ? "Không thể cập nhật bài viết. Vui lòng thử lại." : "Không thể tạo bài viết. Vui lòng thử lại.");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    await articleMutation.mutateAsync(data);
   };
 
   return {
     state: {
-      isLoading,
-      isSubmitting,
+      isLoading: isEditMode ? articleQuery.isLoading : false,
+      isSubmitting: articleMutation.isPending,
       title,
       slug,
       content,

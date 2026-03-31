@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   bulkDeleteArticles,
@@ -7,6 +8,7 @@ import {
   updateArticle,
   type AdminArticle,
 } from "../api/articles.api";
+import { articleQueryKeys } from "../api/articles.query-keys";
 
 const DEFAULT_COLUMNS = [
   { key: "title", label: "Tiêu đề", required: true },
@@ -20,10 +22,7 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 export type ArticleDeleteConfirm = { type: "single" | "bulk"; id?: number } | null;
 
 export const useArticlesList = () => {
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
-  const [articles, setArticles] = useState<AdminArticle[]>([]);
-  const [totalArticles, setTotalArticles] = useState(0);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -32,7 +31,6 @@ export const useArticlesList = () => {
     direction: "desc",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [perPage, setPerPage] = useState<number>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("admin_articles_perPage");
@@ -42,8 +40,6 @@ export const useArticlesList = () => {
   });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<ArticleDeleteConfirm>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("admin_articles_columns");
@@ -51,7 +47,6 @@ export const useArticlesList = () => {
     }
     return ["title", "published_at", "active"];
   });
-  const didInitialLoad = useRef(false);
 
   useEffect(() => {
     localStorage.setItem("admin_articles_columns", JSON.stringify(visibleColumns));
@@ -68,51 +63,37 @@ export const useArticlesList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const loadArticles = useCallback(
-    async (isInitial = false) => {
-      if (isInitial) {
-        setIsInitialLoading(true);
-      } else {
-        setIsSearching(true);
-      }
+  const queryParams = useMemo<Record<string, string | number>>(() => {
+    const params: Record<string, string | number> = {
+      per_page: perPage,
+      page: currentPage,
+    };
 
-      try {
-        setError(null);
-        const params: Record<string, string | number> = {
-          per_page: perPage,
-          page: currentPage,
-        };
+    if (debouncedSearchTerm) params.q = debouncedSearchTerm;
+    if (sortConfig.key) {
+      params.sort_by = sortConfig.key;
+      params.sort_dir = sortConfig.direction;
+    }
 
-        if (debouncedSearchTerm) params.q = debouncedSearchTerm;
-        if (sortConfig.key) {
-          params.sort_by = sortConfig.key;
-          params.sort_dir = sortConfig.direction;
-        }
+    return params;
+  }, [currentPage, debouncedSearchTerm, perPage, sortConfig]);
 
-        const articlesRes = await fetchAdminArticles(params);
-        setArticles(articlesRes.data);
-        setTotalArticles(articlesRes.meta.total);
-        setTotalPages(articlesRes.meta.last_page);
-      } catch (error) {
-        console.error("Failed to fetch articles:", error);
-        setError("Không tải được danh sách bài viết. Vui lòng thử lại.");
-      } finally {
-        setIsInitialLoading(false);
-        setIsSearching(false);
-      }
-    },
-    [currentPage, debouncedSearchTerm, perPage, sortConfig]
-  );
+  const articlesQuery = useQuery({
+    queryKey: articleQueryKeys.list(queryParams),
+    queryFn: () => fetchAdminArticles(queryParams),
+    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
+  });
 
   useEffect(() => {
-    if (!didInitialLoad.current) {
-      didInitialLoad.current = true;
-      void loadArticles(true);
+    if (!articlesQuery.error) {
+      setError(null);
       return;
     }
 
-    void loadArticles(false);
-  }, [currentPage, debouncedSearchTerm, perPage, sortConfig, loadArticles]);
+    console.error("Failed to fetch articles:", articlesQuery.error);
+    setError("Không tải được danh sách bài viết. Vui lòng thử lại.");
+  }, [articlesQuery.error]);
 
   const handleSort = (key: string) => {
     setCurrentPage(1);
@@ -126,7 +107,11 @@ export const useArticlesList = () => {
     setVisibleColumns((prev) => (prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key]));
   };
 
-  const sortedData = articles;
+  const sortedData = articlesQuery.data?.data ?? [];
+  const totalArticles = articlesQuery.data?.meta.total ?? 0;
+  const totalPages = articlesQuery.data?.meta.last_page ?? 1;
+  const isInitialLoading = articlesQuery.isLoading;
+  const isSearching = articlesQuery.isFetching && !articlesQuery.isLoading;
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map((article) => article.id));
@@ -136,41 +121,67 @@ export const useArticlesList = () => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
-  const handleDelete = async () => {
-    if (!deleteConfirm) return;
-
-    setIsDeleting(true);
-    try {
-      if (deleteConfirm.type === "single" && deleteConfirm.id) {
-        await deleteArticle(deleteConfirm.id);
-        toast.success("Xóa bài viết thành công");
-      } else if (deleteConfirm.type === "bulk") {
-        await bulkDeleteArticles(selectedIds);
-        toast.success(`Đã xóa ${selectedIds.length} bài viết`);
-        setSelectedIds([]);
+  const deleteMutation = useMutation({
+    mutationFn: async (target: ArticleDeleteConfirm) => {
+      if (!target) {
+        return { type: 'none' as const };
       }
+
+      if (target.type === "single" && target.id) {
+        await deleteArticle(target.id);
+        return { type: "single" as const };
+      }
+
+      if (target.type === "bulk") {
+        const count = selectedIds.length;
+        await bulkDeleteArticles(selectedIds);
+        return { type: "bulk" as const, count };
+      }
+
+      return { type: 'none' as const };
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: articleQueryKeys.lists() });
       setDeleteConfirm(null);
-      void loadArticles(false);
-    } catch (error) {
+
+      if (result.type === "single") {
+        toast.success("Xóa bài viết thành công");
+        return;
+      }
+
+      if (result.type === "bulk") {
+        setSelectedIds([]);
+        toast.success(`Đã xóa ${result.count} bài viết`);
+      }
+    },
+    onError: (error) => {
       console.error("Failed to delete:", error);
       toast.error("Xóa bài viết thất bại. Vui lòng thử lại.");
-    } finally {
-      setIsDeleting(false);
-    }
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, currentStatus }: { id: number; currentStatus: boolean }) => {
+      await updateArticle(id, { active: !currentStatus });
+      return { id, nextStatus: !currentStatus };
+    },
+    onSuccess: async ({ nextStatus }) => {
+      await queryClient.invalidateQueries({ queryKey: articleQueryKeys.lists() });
+      toast.success(nextStatus ? "Đã bật hiển thị bài viết" : "Đã tắt hiển thị bài viết", { duration: 2000 });
+    },
+    onError: (error) => {
+      console.error("Failed to toggle status:", error);
+      toast.error("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
+    },
+  });
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    await deleteMutation.mutateAsync(deleteConfirm);
   };
 
   const handleToggleStatus = async (id: number, currentStatus: boolean) => {
-    setTogglingStatus(id);
-    try {
-      await updateArticle(id, { active: !currentStatus });
-      setArticles((prev) => prev.map((article) => (article.id === id ? { ...article, active: !currentStatus } : article)));
-      toast.success(!currentStatus ? "Đã bật hiển thị bài viết" : "Đã tắt hiển thị bài viết", { duration: 2000 });
-    } catch (error) {
-      console.error("Failed to toggle status:", error);
-      toast.error("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
-    } finally {
-      setTogglingStatus(null);
-    }
+    await statusMutation.mutateAsync({ id, currentStatus });
   };
 
   const formatDate = (dateStr: string) =>
@@ -196,8 +207,8 @@ export const useArticlesList = () => {
       perPage,
       selectedIds,
       deleteConfirm,
-      isDeleting,
-      togglingStatus,
+      isDeleting: deleteMutation.isPending,
+      togglingStatus: statusMutation.isPending ? statusMutation.variables?.id ?? null : null,
       visibleColumns,
     },
     actions: {
