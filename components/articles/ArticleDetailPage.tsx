@@ -186,7 +186,7 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
         className="min-h-screen bg-white selection:bg-[#C9A050]/30 selection:text-[#8B1832]"
         style={fontFamily ? { fontFamily } : undefined}
       >
-        <article className="min-h-screen">
+        <article>
           {/* Breadcrumb & Meta - Compact */}
           <div className="border-b border-gray-200/40 pt-6 pb-6 mb-6">
             <div className="container mx-auto px-4 max-w-5xl">

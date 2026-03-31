@@ -40,8 +40,8 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
           href={`/bai-viet/${article.slug}`}
           className="group block h-full flex flex-col p-4 -mx-4 rounded-xl hover:bg-gray-50/50 transition-all duration-300 border border-transparent hover:border-[#C9A050]/30"
         >
-          {hasCoverImage && (
-            <div className="relative overflow-hidden rounded-lg aspect-[4/3] mb-4 bg-gray-100 shadow-sm">
+          <div className="relative overflow-hidden rounded-lg aspect-[4/3] mb-4 bg-gray-100 shadow-sm">
+            {hasCoverImage ? (
               <Image
                 src={getArticleImageUrl(coverImageSource)}
                 alt={article.title}
@@ -50,8 +50,12 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 loading="lazy"
               />
-            </div>
-          )}
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#f8f4ea] to-[#f2ece0] text-[#8B1832]/70 text-sm font-medium">
+                Thiên Kim Wine
+              </div>
+            )}
+          </div>
           <h3 className="text-xl font-bold mb-3 group-hover:text-[#8B1832] transition-colors line-clamp-2">
             {article.title}
           </h3>
