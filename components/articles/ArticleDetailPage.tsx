@@ -10,6 +10,7 @@ import type { ArticleDetail } from "@/lib/api/articles";
 import { processArticleContent, calculateReadingTime } from "@/lib/utils/article-content";
 import { getArticleImageUrl, getImageUrl } from "@/lib/utils/image";
 import { useTracking } from "@/hooks/use-tracking";
+import RichContent from "@/components/shared/RichContent";
 
 interface ArticleDetailPageProps {
   article: ArticleDetail;
@@ -253,13 +254,20 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
 
               {/* Content */}
               {processedContent && (
-                <>
-                  <div
-                    className="article-rich-content"
-                    dangerouslySetInnerHTML={{ __html: processedContent }}
-                  />
-                  <style jsx>{articleRichContentStyles}</style>
-                </>
+                <RichContent
+                  html={processedContent}
+                  rootClassName="article-rich-content"
+                  theme={{
+                    headingColor: '#8b1832',
+                    strongColor: '#1f2937',
+                    linkColor: '#c9a050',
+                    blockquoteBorderColor: '#c9a050',
+                    blockquoteTextColor: '#64748b',
+                    blockquoteBackground: 'rgb(249 250 251 / 50%)',
+                    imageBorderRadius: '0.75rem',
+                    imageShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                  }}
+                />
               )}
 
               {/* Gallery - Show if more than 1 image */}
@@ -330,105 +338,3 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
   );
 }
 
-const articleRichContentStyles = `
-  .article-rich-content h1,
-  .article-rich-content .editor-heading-h1 {
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    margin: 0 0 16px 0;
-    color: #8b1832;
-  }
-
-  @media (max-width: 767px) {
-    .article-rich-content h1,
-    .article-rich-content .editor-heading-h1 {
-      font-size: 24px;
-      line-height: 1.35;
-      margin-bottom: 14px;
-    }
-  }
-
-  .article-rich-content h2,
-  .article-rich-content .editor-heading-h2 {
-    font-size: 22px;
-    font-weight: 600;
-    margin: 20px 0 12px 0;
-    color: #8b1832;
-  }
-
-  .article-rich-content h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 16px 0 10px 0;
-    color: #8b1832;
-  }
-
-  .article-rich-content p,
-  .article-rich-content .editor-paragraph {
-    margin: 0 0 12px 0;
-    line-height: 1.7;
-  }
-
-  .article-rich-content strong {
-    color: #1f2937;
-    font-weight: 600;
-  }
-
-  .article-rich-content em {
-    font-style: italic;
-  }
-
-  .article-rich-content u {
-    text-decoration: underline;
-  }
-
-  .article-rich-content a {
-    color: #c9a050;
-    text-decoration: none;
-  }
-
-  .article-rich-content a:hover {
-    text-decoration: underline;
-  }
-
-  .article-rich-content blockquote {
-    border-left: 4px solid #c9a050;
-    padding: 8px 16px;
-    color: #64748b;
-    font-style: italic;
-    margin: 12px 0;
-    background: rgb(249 250 251 / 50%);
-  }
-
-  .article-rich-content ul,
-  .article-rich-content .editor-list-ul {
-    list-style-type: disc;
-    padding-left: 24px;
-    margin: 12px 0;
-  }
-
-  .article-rich-content ol,
-  .article-rich-content .editor-list-ol {
-    list-style-type: decimal;
-    padding-left: 24px;
-    margin: 12px 0;
-  }
-
-  .article-rich-content li,
-  .article-rich-content .editor-listitem {
-    margin: 6px 0;
-  }
-
-  .article-rich-content li::marker {
-    color: #c9a050;
-  }
-
-  .article-rich-content img {
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  }
-`;

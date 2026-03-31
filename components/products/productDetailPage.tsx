@@ -14,6 +14,7 @@ import { ProductImage } from "@/components/ui/product-image";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import DynamicIcon from "@/components/shared/DynamicIcon";
+import RichContent from "@/components/shared/RichContent";
 
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/lib/api/products";
@@ -834,14 +835,23 @@ export default function ProductDetailPage({
             <div className="relative w-full">
               {processedDescription ? (
                 <>
-                  <div 
+                  <RichContent
                     ref={descriptionRef}
-                    className={`product-rich-content text-slate-600 text-left overflow-hidden transition-all duration-500 ease-in-out text-base
-                      ${!isDescExpanded ? 'max-h-[200px]' : 'max-h-[2000px]'}
-                    `}
-                    dangerouslySetInnerHTML={{ __html: processedDescription }}
+                    html={processedDescription}
+                    rootClassName="product-rich-content"
+                    className={`text-slate-600 text-left overflow-hidden transition-all duration-500 ease-in-out text-base ${
+                      !isDescExpanded ? 'max-h-[200px]' : 'max-h-[2000px]'
+                    }`}
+                    theme={{
+                      headingColor: '#0f172a',
+                      strongColor: '#0f172a',
+                      linkColor: '#9b2c3b',
+                      blockquoteBorderColor: '#e5ddd0',
+                      blockquoteTextColor: '#64748b',
+                      blockquoteBackground: 'transparent',
+                      imageBorderRadius: '16px',
+                    }}
                   />
-                  <style jsx>{productRichContentStyles}</style>
                   
                      {!isDescExpanded && showExpandButton && (
                     <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
@@ -904,99 +914,3 @@ export default function ProductDetailPage({
   );
 }
 
-const productRichContentStyles = `
-  .product-rich-content h1,
-  .product-rich-content .editor-heading-h1 {
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1.25;
-    letter-spacing: -0.01em;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-    margin: 0 0 16px 0;
-    color: #0f172a;
-  }
-
-  @media (max-width: 767px) {
-    .product-rich-content h1,
-    .product-rich-content .editor-heading-h1 {
-      font-size: 24px;
-      line-height: 1.35;
-      margin-bottom: 14px;
-    }
-  }
-
-  .product-rich-content h2,
-  .product-rich-content .editor-heading-h2 {
-    font-size: 22px;
-    font-weight: 600;
-    margin: 20px 0 12px 0;
-    color: #0f172a;
-  }
-
-  .product-rich-content h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 16px 0 10px 0;
-    color: #0f172a;
-  }
-
-  .product-rich-content p,
-  .product-rich-content .editor-paragraph {
-    margin: 0 0 12px 0;
-    line-height: 1.7;
-  }
-
-  .product-rich-content strong {
-    color: #0f172a;
-    font-weight: 600;
-  }
-
-  .product-rich-content em {
-    font-style: italic;
-  }
-
-  .product-rich-content u {
-    text-decoration: underline;
-  }
-
-  .product-rich-content a {
-    color: #9b2c3b;
-    text-decoration: none;
-  }
-
-  .product-rich-content a:hover {
-    text-decoration: underline;
-  }
-
-  .product-rich-content blockquote {
-    border-left: 4px solid #e5ddd0;
-    padding-left: 16px;
-    color: #64748b;
-    font-style: italic;
-    margin: 12px 0;
-  }
-
-  .product-rich-content ul,
-  .product-rich-content .editor-list-ul {
-    list-style-type: disc;
-    padding-left: 24px;
-    margin: 12px 0;
-  }
-
-  .product-rich-content ol,
-  .product-rich-content .editor-list-ol {
-    list-style-type: decimal;
-    padding-left: 24px;
-    margin: 12px 0;
-  }
-
-  .product-rich-content li,
-  .product-rich-content .editor-listitem {
-    margin: 6px 0;
-  }
-
-  .product-rich-content img {
-    border-radius: 16px;
-  }
-`;
