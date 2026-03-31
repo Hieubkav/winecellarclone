@@ -120,11 +120,7 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
           },
-          // SEO: Control caching for HTML pages
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, s-maxage=86400, stale-while-revalidate=86400',
-          },
+          // HTML pages dùng cache/revalidation của App Router, tránh ép cache-control global gây stale sau khi CMS update
         ],
       },
       // Aggressive caching for static assets
