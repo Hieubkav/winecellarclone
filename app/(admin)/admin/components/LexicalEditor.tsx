@@ -12,7 +12,7 @@
  import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
  import { HeadingNode, QuoteNode, $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
  import { ListNode, ListItemNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
- import { AutoLinkNode, LinkNode } from '@lexical/link';
+ import { $isLinkNode, AutoLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
  import { 
    $getSelection, 
    $isRangeSelection, 
@@ -34,12 +34,13 @@
   type SerializedTextNode,
  } from 'lexical';
 import { $patchStyleText } from '@lexical/selection';
+import { $getNearestNodeOfType } from '@lexical/utils';
  import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
  import { $setBlocksType } from '@lexical/selection';
  import { 
    Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-   Type, Heading1, Heading2, Quote, List as ListIcon, ListOrdered, Image as ImageIcon, 
-   Loader2 
+   Type, Heading1, Heading2, Quote, List as ListIcon, ListOrdered, Image as ImageIcon,
+   Link as LinkIcon, Link2Off, Loader2 
  } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
@@ -211,6 +212,7 @@ const FONT_SIZE_OPTIONS = [
      bold: false,
      italic: false,
      underline: false,
+     isLink: false,
      blockType: 'paragraph',
     fontSize: '14px',
     fontFamily: 'Inter',
@@ -234,6 +236,12 @@ const FONT_SIZE_OPTIONS = [
       const fontColor = selection.style.split(';')
         .find(s => s.includes('color') && !s.includes('background'))
         ?.split(':')[1]?.trim() || '#000000';
+
+      const selectedNode = selection.anchor.getNode();
+      const parentNode = selectedNode.getParent();
+      const isLink = $isLinkNode(selectedNode)
+        || (parentNode !== null && $isLinkNode(parentNode))
+        || $getNearestNodeOfType(selectedNode, LinkNode) !== null;
  
        const resolvedBlockType = $isHeadingNode(element) ? element.getTag() : element.getType();
 
@@ -241,6 +249,7 @@ const FONT_SIZE_OPTIONS = [
          bold: selection.hasFormat('bold'),
          italic: selection.hasFormat('italic'),
          underline: selection.hasFormat('underline'),
+         isLink,
          blockType: resolvedBlockType,
         fontSize,
         fontFamily,
@@ -320,6 +329,37 @@ const FONT_SIZE_OPTIONS = [
      };
      input.click();
    };
+
+  const handleAddLink = () => {
+    let hasValidSelection = false;
+
+    editor.getEditorState().read(() => {
+      const selection = $getSelection();
+      hasValidSelection = $isRangeSelection(selection) && !selection.isCollapsed();
+    });
+
+    if (!hasValidSelection) {
+      toast.error('Vui lòng bôi đen nội dung cần gắn link');
+      return;
+    }
+
+    const url = window.prompt('Nhập URL (https://...)');
+    if (!url) {
+      return;
+    }
+
+    const trimmedUrl = url.trim();
+    if (!trimmedUrl) {
+      toast.error('URL không hợp lệ');
+      return;
+    }
+
+    editor.dispatchCommand(TOGGLE_LINK_COMMAND, trimmedUrl);
+  };
+
+  const handleRemoveLink = () => {
+    editor.dispatchCommand(TOGGLE_LINK_COMMAND, null);
+  };
 
   const applyStyleText = (styles: Record<string, string>) => {
     editor.update(() => {
@@ -446,6 +486,17 @@ const FONT_SIZE_OPTIONS = [
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('ol')} title="Danh sách số">
            <ListOrdered size={16} />
+         </ToolbarBtn>
+       </div>
+ 
+       <Divider />
+
+       <div className="flex items-center gap-0.5">
+         <ToolbarBtn onClick={handleAddLink} active={activeState.isLink} title="Gắn link">
+           <LinkIcon size={16} />
+         </ToolbarBtn>
+         <ToolbarBtn onClick={handleRemoveLink} title="Gỡ link">
+           <Link2Off size={16} />
          </ToolbarBtn>
        </div>
  
