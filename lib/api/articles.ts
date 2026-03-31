@@ -1,4 +1,5 @@
 import { apiFetch, ApiError, isBackendUnavailableError, shouldSkipApiFetchDuringBuild } from "./client";
+import { getImageUrl } from "@/lib/utils/image";
 
 export interface ApiImage {
   id: number;
@@ -105,6 +106,51 @@ interface ArticleDetailResponse {
 type QueryValue = string | number | Array<string | number> | undefined;
 type QueryParams = Record<string, QueryValue>;
 
+const normalizeCoverCandidate = (url?: string | null): string | null => {
+  if (!url) return null;
+
+  const trimmed = url.trim();
+  if (!trimmed || trimmed === "null" || trimmed === "undefined") {
+    return null;
+  }
+
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.includes("/storage/placeholders/article.svg")
+    || lower.includes("/placeholder/article.svg")
+  ) {
+    return null;
+  }
+
+  return getImageUrl(trimmed);
+};
+
+const normalizeArticleCoverImage = (
+  url?: string | null,
+  canonical?: string | null,
+): string | null => {
+  return normalizeCoverCandidate(canonical) || normalizeCoverCandidate(url);
+};
+
+const normalizeRelatedArticle = (article: RelatedArticle): RelatedArticle => ({
+  ...article,
+  cover_image_url: normalizeArticleCoverImage(article.cover_image_url, article.cover_image_canonical_url),
+  cover_image_canonical_url: null,
+});
+
+const normalizeArticleListItem = (article: ArticleListItem): ArticleListItem => ({
+  ...article,
+  cover_image_url: normalizeArticleCoverImage(article.cover_image_url, article.cover_image_canonical_url),
+  cover_image_canonical_url: null,
+});
+
+const normalizeArticleDetail = (article: ArticleDetail): ArticleDetail => ({
+  ...article,
+  cover_image_url: normalizeArticleCoverImage(article.cover_image_url, article.cover_image_canonical_url),
+  cover_image_canonical_url: null,
+  related_articles: article.related_articles?.map(normalizeRelatedArticle),
+});
+
 const buildQueryString = (params?: QueryParams): string => {
   if (!params) {
     return "";
@@ -134,8 +180,12 @@ const buildQueryString = (params?: QueryParams): string => {
 
 export async function fetchArticleList(params?: QueryParams): Promise<ArticleListResponse> {
   const query = buildQueryString(params);
+  const response = await apiFetch<ArticleListResponse>(`v1/bai-viet${query}`);
 
-  return apiFetch<ArticleListResponse>(`v1/bai-viet${query}`);
+  return {
+    ...response,
+    data: response.data.map(normalizeArticleListItem),
+  };
 }
 
 let didWarnArticleList = false;
@@ -167,7 +217,7 @@ export async function fetchArticleDetail(slug: string): Promise<ArticleDetail | 
     const response = await apiFetch<ArticleDetailResponse>(
       `v1/bai-viet/${encodeURIComponent(slug)}`
     );
-    return response.data;
+    return normalizeArticleDetail(response.data);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       return null;
