@@ -3,6 +3,7 @@
 import React, { useState, useEffect, use, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import Image from 'next/image';
 import DynamicIcon from '@/components/shared/DynamicIcon';
@@ -11,6 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
 import { AttributeCombobox } from '../../../components/AttributeCombobox';
 import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
+import { productQueryKeys } from '@/features/admin/products/api/products.query-keys';
 import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
 import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
@@ -85,8 +87,8 @@ const generateSlug = (text: string): string => {
  
  export default function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
    const { id } = use(params);
+   const queryClient = useQueryClient();
    const [isLoading, setIsLoading] = useState(true);
-   const [isSubmitting, setIsSubmitting] = useState(false);
    const [types, setTypes] = useState<ProductFilterOption[]>([]);
   const [categories, setCategories] = useState<ProductFilterOption[]>([]);
   const [siteName, setSiteName] = useState('Thiên Kim Wine');
@@ -519,6 +521,24 @@ const generateSlug = (text: string): string => {
   const handleManualAttributeChange = (groupCode: string, value: string) => {
     setManualAttributes(prev => ({ ...prev, [groupCode]: value }));
   };
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => updateProduct(Number(id), data),
+    onSuccess: async (result) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: productQueryKeys.detail(Number(id)) }),
+      ]);
+
+      if (result.success) {
+        toast.success('Đã lưu thay đổi thành công');
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to update product:', error);
+      toast.error('Cập nhật sản phẩm thất bại. Vui lòng thử lại.');
+    },
+  });
  
    const handleSubmit = async (e: React.FormEvent) => {
      e.preventDefault();
@@ -536,51 +556,40 @@ const generateSlug = (text: string): string => {
       160
     );
  
-     setIsSubmitting(true);
-     try {
-      const extraAttrs = attributeFilters
-        .filter(group => group.filter_type === 'nhap_tay' || group.filter_type === 'range')
-        .reduce<Record<string, { label: string; value: string | number; type: string }>>((acc, group) => {
-          const value = manualAttributes[group.code];
-          if (value === undefined || value === '') {
-            return acc;
-          }
-          const type = group.input_type || 'text';
-          acc[group.code] = {
-            label: group.name,
-            value: type === 'number' ? Number(value) : value,
-            type,
-          };
+    const extraAttrs = attributeFilters
+      .filter(group => group.filter_type === 'nhap_tay' || group.filter_type === 'range')
+      .reduce<Record<string, { label: string; value: string | number; type: string }>>((acc, group) => {
+        const value = manualAttributes[group.code];
+        if (value === undefined || value === '') {
           return acc;
-        }, {});
+        }
+        const type = group.input_type || 'text';
+        acc[group.code] = {
+          label: group.name,
+          value: type === 'number' ? Number(value) : value,
+          type,
+        };
+        return acc;
+      }, {});
 
-       const data = {
-         name: name.trim(),
-         slug: slug.trim(),
-        price: parseNumberValue(price),
-        original_price: parseNumberValue(originalPrice),
-         type_id: typeId ? Number(typeId) : null,
-         category_ids: categoryIds,
-         description: description.trim(),
-        meta_title: resolvedMetaTitle || null,
-        meta_description: resolvedMetaDescription || null,
-       shopee_url: shopeeUrl.trim() || null,
-         active,
-        image_paths: galleryImages.map(image => image.path),
-        extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
-        term_ids: Object.values(selectedTermIds).flat(),
-       };
- 
-       const result = await updateProduct(Number(id), data);
-       if (result.success) {
-         toast.success('Đã lưu thay đổi thành công');
-       }
-     } catch (error) {
-       console.error('Failed to update product:', error);
-       toast.error('Cập nhật sản phẩm thất bại. Vui lòng thử lại.');
-     } finally {
-       setIsSubmitting(false);
-     }
+    const data = {
+      name: name.trim(),
+      slug: slug.trim(),
+      price: parseNumberValue(price),
+      original_price: parseNumberValue(originalPrice),
+      type_id: typeId ? Number(typeId) : null,
+      category_ids: categoryIds,
+      description: description.trim(),
+      meta_title: resolvedMetaTitle || null,
+      meta_description: resolvedMetaDescription || null,
+      shopee_url: shopeeUrl.trim() || null,
+      active,
+      image_paths: galleryImages.map(image => image.path),
+      extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
+      term_ids: Object.values(selectedTermIds).flat(),
+    };
+
+    await updateMutation.mutateAsync(data);
    };
  
    if (isLoading) {
@@ -1048,8 +1057,8 @@ const generateSlug = (text: string): string => {
                   />
                   <Label htmlFor="active">Hiển thị</Label>
                 </div>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+                <Button type="submit" disabled={updateMutation.isPending}>
+                  {updateMutation.isPending && <Loader2 size={16} className="animate-spin mr-2" />}
                   Lưu thay đổi
                 </Button>
               </div>

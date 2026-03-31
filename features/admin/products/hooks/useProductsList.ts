@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api/client";
 import { type ProductFilterOption } from "@/lib/api/products";
@@ -10,8 +11,8 @@ import {
   fetchAdminProductFilters,
   fetchAdminProducts,
   updateProduct,
-  type AdminProduct,
 } from "../api/products.api";
+import { productQueryKeys } from "../api/products.query-keys";
 
 const DEFAULT_COLUMNS = [
   { key: "select", label: "Chọn" },
@@ -29,16 +30,9 @@ const PER_PAGE_OPTIONS = [10, 25, 50, 100];
 export type ProductDeleteConfirm = { type: "single" | "bulk"; id?: number } | null;
 
 export const useProductsList = () => {
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
-  const [products, setProducts] = useState<AdminProduct[]>([]);
-  const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
+  const queryClient = useQueryClient();
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [categories, setCategories] = useState<ProductFilterOption[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [types, setTypes] = useState<ProductFilterOption[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
@@ -57,9 +51,7 @@ export const useProductsList = () => {
     return 25;
   });
   const [deleteConfirm, setDeleteConfirm] = useState<ProductDeleteConfirm>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(DEFAULT_COLUMNS.map((column) => column.key));
-  const hasLoadedFiltersRef = useRef(false);
 
   const { isExporting, exportProducts, exportTemplate } = useProductExcel();
 
@@ -74,83 +66,46 @@ export const useProductsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const loadProducts = useCallback(
-    async (isInitial = false) => {
-      if (isInitial) {
-        setIsInitialLoading(true);
-      } else {
-        setIsSearching(true);
-      }
+  const queryParams = useMemo<Record<string, string | number>>(() => {
+    const params: Record<string, string | number> = {
+      per_page: perPage,
+      page: currentPage,
+    };
 
-      try {
-        const params: Record<string, string | number> = {
-          per_page: perPage,
-          page: currentPage,
-        };
-
-        if (debouncedSearchTerm) params.q = debouncedSearchTerm;
-        if (filterCategory) params.category_id = filterCategory;
-        if (filterType) params.type_id = filterType;
-        if (sortConfig.key) {
-          params.sort_by = sortConfig.key;
-          params.sort_dir = sortConfig.direction;
-        }
-
-        const productsRes = await fetchAdminProducts(params);
-
-        setProducts(productsRes.data);
-        setTotalProducts(productsRes.meta.total);
-        setTotalPages(productsRes.meta.last_page);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-        if (error instanceof ApiError) {
-          console.error("Admin products API payload:", error.payload);
-        }
-      } finally {
-        setIsInitialLoading(false);
-        setIsSearching(false);
-      }
-    },
-    [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage, sortConfig]
-  );
-
-  const loadFilters = useCallback(async () => {
-    try {
-      const filtersRes = await fetchAdminProductFilters(filterType ? Number(filterType) : undefined);
-      setCategories(filtersRes.categories);
-      setTypes(filtersRes.types);
-    } catch (error) {
-      console.error("Failed to fetch product filters:", error);
-    }
-  }, [filterType]);
-
-  useEffect(() => {
-    void loadProducts(true);
-  }, []);
-
-  useEffect(() => {
-    if (isInitialLoading) {
-      return;
+    if (debouncedSearchTerm) params.q = debouncedSearchTerm;
+    if (filterCategory) params.category_id = filterCategory;
+    if (filterType) params.type_id = filterType;
+    if (sortConfig.key) {
+      params.sort_by = sortConfig.key;
+      params.sort_dir = sortConfig.direction;
     }
 
-    if (!hasLoadedFiltersRef.current) {
-      hasLoadedFiltersRef.current = true;
-      void loadFilters();
-    }
-  }, [isInitialLoading, loadFilters]);
-
-  useEffect(() => {
-    if (!hasLoadedFiltersRef.current) {
-      return;
-    }
-    void loadFilters();
-  }, [filterType, loadFilters]);
-
-  useEffect(() => {
-    if (!isInitialLoading) {
-      void loadProducts(false);
-    }
+    return params;
   }, [currentPage, filterCategory, filterType, debouncedSearchTerm, perPage, sortConfig]);
+
+  const productsQuery = useQuery({
+    queryKey: productQueryKeys.list(queryParams),
+    queryFn: () => fetchAdminProducts(queryParams),
+    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
+  });
+
+  useEffect(() => {
+    if (!productsQuery.error) {
+      return;
+    }
+
+    console.error("Failed to fetch products:", productsQuery.error);
+    if (productsQuery.error instanceof ApiError) {
+      console.error("Admin products API payload:", productsQuery.error.payload);
+    }
+  }, [productsQuery.error]);
+
+  const filtersQuery = useQuery({
+    queryKey: productQueryKeys.filters(filterType ? Number(filterType) : null),
+    queryFn: () => fetchAdminProductFilters(filterType ? Number(filterType) : undefined),
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -175,7 +130,13 @@ export const useProductsList = () => {
     setVisibleColumns((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
   };
 
-  const sortedData = products;
+  const sortedData = productsQuery.data?.data ?? [];
+  const totalProducts = productsQuery.data?.meta.total ?? 0;
+  const totalPages = productsQuery.data?.meta.last_page ?? 1;
+  const isInitialLoading = productsQuery.isLoading;
+  const isSearching = productsQuery.isFetching && !productsQuery.isLoading;
+  const categories = filtersQuery.data?.categories ?? [];
+  const types = filtersQuery.data?.types ?? [];
 
   const toggleSelectAll = () => {
     setSelectedIds(selectedIds.length === sortedData.length ? [] : sortedData.map((product) => product.id));
@@ -185,41 +146,67 @@ export const useProductsList = () => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
-  const handleDelete = async () => {
-    if (!deleteConfirm) return;
-
-    setIsDeleting(true);
-    try {
-      if (deleteConfirm.type === "single" && deleteConfirm.id) {
-        await deleteProduct(deleteConfirm.id);
-        toast.success("Xóa sản phẩm thành công");
-      } else if (deleteConfirm.type === "bulk") {
-        await bulkDeleteProducts(selectedIds);
-        toast.success(`Đã xóa ${selectedIds.length} sản phẩm`);
-        setSelectedIds([]);
+  const deleteMutation = useMutation({
+    mutationFn: async (target: ProductDeleteConfirm) => {
+      if (!target) {
+        return { type: 'none' as const };
       }
+
+      if (target.type === "single" && target.id) {
+        await deleteProduct(target.id);
+        return { type: "single" as const };
+      }
+
+      if (target.type === "bulk") {
+        const count = selectedIds.length;
+        await bulkDeleteProducts(selectedIds);
+        return { type: "bulk" as const, count };
+      }
+
+      return { type: 'none' as const };
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
       setDeleteConfirm(null);
-      void loadProducts();
-    } catch (error) {
+
+      if (result.type === "single") {
+        toast.success("Xóa sản phẩm thành công");
+        return;
+      }
+
+      if (result.type === "bulk") {
+        setSelectedIds([]);
+        toast.success(`Đã xóa ${result.count} sản phẩm`);
+      }
+    },
+    onError: (error) => {
       console.error("Failed to delete:", error);
       toast.error("Xóa sản phẩm thất bại. Vui lòng thử lại.");
-    } finally {
-      setIsDeleting(false);
-    }
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ id, currentStatus }: { id: number; currentStatus: boolean }) => {
+      await updateProduct(id, { active: !currentStatus });
+      return { id, nextStatus: !currentStatus };
+    },
+    onSuccess: async ({ nextStatus }) => {
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
+      toast.success(nextStatus ? "Đã bật hiển thị sản phẩm" : "Đã tắt hiển thị sản phẩm", { duration: 2000 });
+    },
+    onError: (error) => {
+      console.error("Failed to toggle status:", error);
+      toast.error("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
+    },
+  });
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    await deleteMutation.mutateAsync(deleteConfirm);
   };
 
   const handleToggleStatus = async (id: number, currentStatus: boolean) => {
-    setTogglingStatus(id);
-    try {
-      await updateProduct(id, { active: !currentStatus });
-      setProducts((prev) => prev.map((product) => (product.id === id ? { ...product, active: !currentStatus } : product)));
-      toast.success(!currentStatus ? "Đã bật hiển thị sản phẩm" : "Đã tắt hiển thị sản phẩm", { duration: 2000 });
-    } catch (error) {
-      console.error("Failed to toggle status:", error);
-      toast.error("Cập nhật trạng thái thất bại. Vui lòng thử lại.");
-    } finally {
-      setTogglingStatus(null);
-    }
+    await statusMutation.mutateAsync({ id, currentStatus });
   };
 
   const formatPrice = (price: number | null) => {
@@ -260,8 +247,8 @@ export const useProductsList = () => {
     await exportTemplate(types, categories);
   };
 
-  const handleImportSuccess = () => {
-    void loadProducts(false);
+  const handleImportSuccess = async () => {
+    await queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
   };
 
   return {
@@ -272,8 +259,7 @@ export const useProductsList = () => {
     state: {
       isInitialLoading,
       isSearching,
-      products,
-      togglingStatus,
+      togglingStatus: statusMutation.isPending ? statusMutation.variables?.id ?? null : null,
       showImportDialog,
       showExportMenu,
       totalProducts,
@@ -288,7 +274,7 @@ export const useProductsList = () => {
       currentPage,
       perPage,
       deleteConfirm,
-      isDeleting,
+      isDeleting: deleteMutation.isPending,
       visibleColumns,
     },
     actions: {

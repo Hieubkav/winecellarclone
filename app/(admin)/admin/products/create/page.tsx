@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
- import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import DynamicIcon from '@/components/shared/DynamicIcon';
 import { Button, Card, CardContent, Input, Label, Skeleton } from '../../components/ui';
@@ -13,6 +14,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { ProductImageCropModal } from '../../components/ProductImageCropModal';
 import { AttributeCombobox } from '../../components/AttributeCombobox';
 import { createProduct } from '@/features/admin/products/api/products.api';
+import { productQueryKeys } from '@/features/admin/products/api/products.query-keys';
 import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
 import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
 import { getImageUrl } from '@/lib/utils/image';
@@ -74,8 +76,8 @@ const LexicalEditor = dynamic(
 
  export default function ProductCreatePage() {
    const router = useRouter();
+   const queryClient = useQueryClient();
    const [isLoading, setIsLoading] = useState(true);
-   const [isSubmitting, setIsSubmitting] = useState(false);
    const [isEditorReady, setIsEditorReady] = useState(false);
   const [types, setTypes] = useState<ProductFilterOption[]>([]);
    const [categories, setCategories] = useState<ProductFilterOption[]>([]);
@@ -410,6 +412,22 @@ const LexicalEditor = dynamic(
      }
    };
  
+  const createMutation = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => createProduct(data),
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
+
+      if (result.success) {
+        toast.success('Đã tạo sản phẩm thành công');
+        router.push('/admin/products');
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to create product:', error);
+      toast.error('Tạo sản phẩm thất bại. Vui lòng thử lại.');
+    },
+  });
+
    const handleSubmit = async (e: React.FormEvent) => {
      e.preventDefault();
      if (!name.trim()) {
@@ -425,53 +443,41 @@ const LexicalEditor = dynamic(
       metaDescription.trim() || stripHtmlTags(description || ''),
       160
     );
- 
-     setIsSubmitting(true);
-     try {
-       const extraAttrs = attributeFilters
-         .filter(group => group.filter_type === 'nhap_tay')
-         .reduce<Record<string, { label: string; value: string | number; type: string }>>((acc, group) => {
-           const value = manualAttributes[group.code];
-           if (value === undefined || value === '') {
-             return acc;
-           }
-           const type = group.input_type || 'text';
-           acc[group.code] = {
-             label: group.name,
-             value: type === 'number' ? Number(value) : value,
-             type,
-           };
-           return acc;
-         }, {});
 
-       const data = {
-         name: name.trim(),
-         slug: slug.trim() || generateSlug(name),
-        price: parseNumberValue(price),
-        original_price: parseNumberValue(originalPrice),
-         type_id: typeId ? Number(typeId) : null,
-         category_ids: categoryIds,
-         description: description.trim(),
-        meta_title: resolvedMetaTitle || null,
-        meta_description: resolvedMetaDescription || null,
-        shopee_url: shopeeUrl.trim() || null,
-         active,
-        image_paths: galleryImages.map(image => image.path),
-        extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
-        term_ids: Object.values(selectedTermIds).flat(),
-       };
- 
-       const result = await createProduct(data);
-       if (result.success) {
-         toast.success('Đã tạo sản phẩm thành công');
-         router.push('/admin/products');
-       }
-     } catch (error) {
-       console.error('Failed to create product:', error);
-       toast.error('Tạo sản phẩm thất bại. Vui lòng thử lại.');
-     } finally {
-       setIsSubmitting(false);
-     }
+    const extraAttrs = attributeFilters
+      .filter(group => group.filter_type === 'nhap_tay')
+      .reduce<Record<string, { label: string; value: string | number; type: string }>>((acc, group) => {
+        const value = manualAttributes[group.code];
+        if (value === undefined || value === '') {
+          return acc;
+        }
+        const type = group.input_type || 'text';
+        acc[group.code] = {
+          label: group.name,
+          value: type === 'number' ? Number(value) : value,
+          type,
+        };
+        return acc;
+      }, {});
+
+    const data = {
+      name: name.trim(),
+      slug: slug.trim() || generateSlug(name),
+      price: parseNumberValue(price),
+      original_price: parseNumberValue(originalPrice),
+      type_id: typeId ? Number(typeId) : null,
+      category_ids: categoryIds,
+      description: description.trim(),
+      meta_title: resolvedMetaTitle || null,
+      meta_description: resolvedMetaDescription || null,
+      shopee_url: shopeeUrl.trim() || null,
+      active,
+      image_paths: galleryImages.map(image => image.path),
+      extra_attrs: Object.keys(extraAttrs).length > 0 ? extraAttrs : null,
+      term_ids: Object.values(selectedTermIds).flat(),
+    };
+
+    await createMutation.mutateAsync(data);
    };
  
    if (isLoading) {
@@ -881,8 +887,8 @@ const LexicalEditor = dynamic(
                 />
                 <Label htmlFor="active">Hiển thị</Label>
               </div>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 size={16} className="animate-spin mr-2" />}
+              <Button type="submit" disabled={createMutation.isPending}>
+                {createMutation.isPending && <Loader2 size={16} className="animate-spin mr-2" />}
                 Tạo sản phẩm
               </Button>
             </>
