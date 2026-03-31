@@ -37,7 +37,6 @@ import { $patchStyleText } from '@lexical/selection';
 import { $getNearestNodeOfType } from '@lexical/utils';
  import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
  import { $setBlocksType } from '@lexical/selection';
- import * as LucideIcons from 'lucide-react';
  import { cn } from '@/lib/utils';
  import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
 import { toast } from 'sonner';
@@ -448,13 +447,13 @@ const FONT_SIZE_OPTIONS = [
 
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')} active={activeState.bold} title="In đậm (Ctrl+B)">
-           <LucideIcons.Bold size={16} />
+           <span className="text-[11px] font-bold leading-none">B</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')} active={activeState.italic} title="In nghiêng (Ctrl+I)">
-           <LucideIcons.Italic size={16} />
+           <span className="text-[11px] italic leading-none">I</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')} active={activeState.underline} title="Gạch chân (Ctrl+U)">
-           <LucideIcons.Underline size={16} />
+           <span className="text-[11px] underline leading-none">U</span>
          </ToolbarBtn>
        </div>
  
@@ -462,13 +461,13 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left')} title="Căn trái">
-           <LucideIcons.AlignLeft size={16} />
+           <span className="text-[10px] font-medium leading-none">T</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center')} title="Căn giữa">
-           <LucideIcons.AlignCenter size={16} />
+           <span className="text-[10px] font-medium leading-none">G</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right')} title="Căn phải">
-           <LucideIcons.AlignRight size={16} />
+           <span className="text-[10px] font-medium leading-none">P</span>
          </ToolbarBtn>
        </div>
  
@@ -476,16 +475,16 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => formatBlock('paragraph')} active={activeState.blockType === 'paragraph'} title="Văn bản thường">
-           <LucideIcons.Type size={16} />
+           <span className="text-[10px] font-medium leading-none">P</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('h1')} active={activeState.blockType === 'h1'} title="Tiêu đề 1">
-           <LucideIcons.Heading1 size={16} />
+           <span className="text-[10px] font-medium leading-none">H1</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('h2')} active={activeState.blockType === 'h2'} title="Tiêu đề 2">
-           <LucideIcons.Heading2 size={16} />
+           <span className="text-[10px] font-medium leading-none">H2</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('quote')} active={activeState.blockType === 'quote'} title="Trích dẫn">
-           <LucideIcons.Quote size={16} />
+           <span className="text-[10px] font-medium leading-none">Q</span>
          </ToolbarBtn>
        </div>
  
@@ -493,10 +492,10 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => formatBlock('ul')} title="Danh sách chấm">
-           <LucideIcons.List size={16} />
+           <span className="text-[10px] font-medium leading-none">UL</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('ol')} title="Danh sách số">
-           <LucideIcons.ListOrdered size={16} />
+           <span className="text-[10px] font-medium leading-none">OL</span>
          </ToolbarBtn>
        </div>
  
@@ -530,7 +529,7 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={handleImageUpload} title="Tải ảnh lên">
-           {isUploading ? <LucideIcons.Loader2 size={16} className="animate-spin" /> : <LucideIcons.Image size={16} />}
+           <span className={cn("text-[10px] font-medium leading-none", isUploading ? "animate-pulse" : "")}>{isUploading ? '...' : 'IMG'}</span>
          </ToolbarBtn>
        </div>
      </div>
