@@ -180,7 +180,9 @@ const buildQueryString = (params?: QueryParams): string => {
 
 export async function fetchArticleList(params?: QueryParams): Promise<ArticleListResponse> {
   const query = buildQueryString(params);
-  const response = await apiFetch<ArticleListResponse>(`v1/bai-viet${query}`);
+  const response = await apiFetch<ArticleListResponse>(`v1/bai-viet${query}`, {
+    next: { tags: ["articles"] },
+  });
 
   return {
     ...response,
@@ -215,7 +217,10 @@ export async function fetchArticleListSafe(
 export async function fetchArticleDetail(slug: string): Promise<ArticleDetail | null> {
   try {
     const response = await apiFetch<ArticleDetailResponse>(
-      `v1/bai-viet/${encodeURIComponent(slug)}`
+      `v1/bai-viet/${encodeURIComponent(slug)}`,
+      {
+        next: { tags: ["articles", `article:${slug}`] },
+      }
     );
     return normalizeArticleDetail(response.data);
   } catch (error) {

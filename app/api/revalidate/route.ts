@@ -1,6 +1,11 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
+const revalidateTagCompat = revalidateTag as unknown as (
+  tag: string,
+  profile?: { expire?: number },
+) => void;
+
 /**
  * On-Demand Revalidation API
  * Backend sẽ gọi API này khi có data mới
@@ -35,7 +40,9 @@ export async function POST(request: NextRequest) {
     // Revalidate tags nếu được cung cấp
     if (tags && Array.isArray(tags)) {
       for (const tag of tags) {
-        revalidateTag(tag);
+        if (typeof tag === 'string' && tag.trim() !== '') {
+          revalidateTagCompat(tag, { expire: 0 });
+        }
       }
     }
 
