@@ -909,8 +909,21 @@ const productRichContentStyles = `
   .product-rich-content .editor-heading-h1 {
     font-size: 28px;
     font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     margin: 0 0 16px 0;
     color: #0f172a;
+  }
+
+  @media (max-width: 767px) {
+    .product-rich-content h1,
+    .product-rich-content .editor-heading-h1 {
+      font-size: 24px;
+      line-height: 1.35;
+      margin-bottom: 14px;
+    }
   }
 
   .product-rich-content h2,
