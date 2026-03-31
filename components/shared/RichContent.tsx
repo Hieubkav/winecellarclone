@@ -136,6 +136,8 @@ const RichContent = forwardRef<HTMLDivElement, RichContentProps>(function RichCo
   { html, rootClassName, className, theme },
   ref,
 ) {
+  const styles = buildRichContentStyles(rootClassName, theme);
+
   return (
     <>
       <div
@@ -143,7 +145,7 @@ const RichContent = forwardRef<HTMLDivElement, RichContentProps>(function RichCo
         className={cn(rootClassName, className)}
         dangerouslySetInnerHTML={{ __html: html }}
       />
-      <style jsx global>{buildRichContentStyles(rootClassName, theme)}</style>
+      <style jsx global>{styles}</style>
     </>
   );
 });
