@@ -46,7 +46,6 @@ import { $getNearestNodeOfType } from '@lexical/utils';
  import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
 import { toast } from 'sonner';
  
-const ADMIN_TOKEN_KEY = 'admin_access_token';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
 const API_ORIGIN = (() => {
   try {
@@ -71,26 +70,6 @@ const normalizeImageUrl = (url: string): string => {
   return url;
 };
 
-const getAdminToken = (): string | null => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  return window.localStorage.getItem(ADMIN_TOKEN_KEY);
-};
-
-const parseUploadError = async (response: Response): Promise<string> => {
-  try {
-    const payload = await response.json();
-    if (payload?.message) {
-      return String(payload.message);
-    }
-  } catch {
-    // ignore parse error
-  }
-
-  return 'Không thể tải ảnh lên';
-};
  
  const theme = {
    paragraph: 'editor-paragraph',
@@ -687,7 +666,7 @@ const FONT_SIZE_OPTIONS = [
      }
      
      try {
-       const token = getAdminToken();
+       const token = typeof window !== 'undefined' ? window.localStorage.getItem('admin_access_token') : null;
        const formData = new FormData();
        formData.append('image', file);
        formData.append('folder', folder);
@@ -700,7 +679,16 @@ const FONT_SIZE_OPTIONS = [
        });
        
        if (!response.ok) {
-         throw new Error(await parseUploadError(response));
+         let message = 'Không thể tải ảnh lên';
+         try {
+           const payload = await response.json();
+           if (payload?.message) {
+             message = String(payload.message);
+           }
+         } catch {
+           // ignore parse error
+         }
+         throw new Error(message);
        }
        
        const result = await response.json();
