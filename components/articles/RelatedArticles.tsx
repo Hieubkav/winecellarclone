@@ -28,22 +28,28 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {articles.map((article) => (
+      {articles.map((article) => {
+        const coverImageSource = article.cover_image_canonical_url || article.cover_image_url;
+        const hasCoverImage = Boolean(coverImageSource && coverImageSource.trim());
+
+        return (
         <Link
           key={article.id}
           href={`/bai-viet/${article.slug}`}
           className="group block h-full flex flex-col p-4 -mx-4 rounded-xl hover:bg-gray-50/50 transition-all duration-300 border border-transparent hover:border-[#C9A050]/30"
         >
-          <div className="relative overflow-hidden rounded-lg aspect-[4/3] mb-4 bg-gray-100 shadow-sm">
-            <Image
-              src={getArticleImageUrl(article.cover_image_canonical_url || article.cover_image_url)}
-              alt={article.title}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              loading="lazy"
-            />
-          </div>
+          {hasCoverImage && (
+            <div className="relative overflow-hidden rounded-lg aspect-[4/3] mb-4 bg-gray-100 shadow-sm">
+              <Image
+                src={getArticleImageUrl(coverImageSource)}
+                alt={article.title}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                loading="lazy"
+              />
+            </div>
+          )}
           <h3 className="text-xl font-bold mb-3 group-hover:text-[#8B1832] transition-colors line-clamp-2">
             {article.title}
           </h3>
@@ -62,7 +68,8 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
             </span>
           </div>
         </Link>
-      ))}
+      );
+      })}
     </div>
   );
 }
