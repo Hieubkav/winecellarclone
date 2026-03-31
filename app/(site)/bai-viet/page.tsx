@@ -1,5 +1,6 @@
-// ISR: Revalidate every 5 minutes (300 seconds)
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 export const runtime = "nodejs";
 
 import { Metadata } from "next";
