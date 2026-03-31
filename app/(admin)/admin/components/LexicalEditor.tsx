@@ -505,10 +505,17 @@ const FONT_SIZE_OPTIONS = [
  
        <Divider />
 
-       <div className="flex items-center gap-1">
+       <div className="flex items-center gap-1" data-testid="lexical-link-controls">
+         <span
+           className="h-7 px-2 inline-flex items-center rounded-md border border-dashed border-blue-400 text-[10px] font-semibold text-blue-700 dark:border-blue-300 dark:text-blue-200"
+           data-testid="lexical-link-controls-marker"
+         >
+           LINK TOOLS
+         </span>
          <button
            type="button"
            onClick={handleAddLink}
+           data-testid="lexical-link-button"
            className={cn(
              "h-7 px-2 rounded-md border text-xs font-medium transition-colors",
              activeState.isLink
@@ -522,6 +529,7 @@ const FONT_SIZE_OPTIONS = [
          <button
            type="button"
            onClick={handleRemoveLink}
+           data-testid="lexical-unlink-button"
            className="h-7 px-2 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-200 transition-colors dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
            title="Gỡ link"
          >
