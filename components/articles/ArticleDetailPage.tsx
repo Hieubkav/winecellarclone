@@ -144,9 +144,11 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
 
   const processedContent = processArticleContent(article.content);
   const readingTime = article.content ? calculateReadingTime(article.content) : 5;
-  const coverImage = getArticleImageUrl(
-    article.cover_image_canonical_url || article.cover_image_url
+  const coverImageSource = article.cover_image_canonical_url || article.cover_image_url;
+  const hasCoverImage = Boolean(
+    coverImageSource?.trim() && coverImageSource !== "/placeholder/article.svg"
   );
+  const coverImage = hasCoverImage ? getArticleImageUrl(coverImageSource) : null;
 
   // Prepare gallery images
   const galleryImages = article.gallery && article.gallery.length > 0
@@ -247,10 +249,12 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
               )}
 
               {/* Cover Image */}
-              <ImageGallery
-                images={[{ url: coverImage, alt: article.title }]}
-                caption={article.title}
-              />
+              {coverImage && (
+                <ImageGallery
+                  images={[{ url: coverImage, alt: article.title }]}
+                  caption={article.title}
+                />
+              )}
 
               {/* Content */}
               {processedContent && (

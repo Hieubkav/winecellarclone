@@ -30,7 +30,9 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {articles.map((article) => {
         const coverImageSource = article.cover_image_canonical_url || article.cover_image_url;
-        const hasCoverImage = Boolean(coverImageSource && coverImageSource.trim());
+        const hasCoverImage = Boolean(
+          coverImageSource?.trim() && coverImageSource !== "/placeholder/article.svg"
+        );
 
         return (
         <Link
