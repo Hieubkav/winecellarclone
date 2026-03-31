@@ -1,6 +1,7 @@
  'use client';
  
  import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
  import { Plus, Edit, Trash2, GripVertical, X } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label } from '../../../components/ui';
  import {
@@ -13,20 +14,34 @@
  import { ApiError } from '@/lib/api/client';
  import { toast } from 'sonner';
  
- interface TermsManagerProps {
+ const LexicalEditor = dynamic(
+  () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+    ),
+  }
+);
+
+interface TermsManagerProps {
    groupId: number;
+   groupCode?: string;
    terms: AdminCatalogTerm[];
    onTermsChange: () => void;
  }
  
- export function TermsManager({ groupId, terms, onTermsChange }: TermsManagerProps) {
+ export function TermsManager({ groupId, groupCode, terms, onTermsChange }: TermsManagerProps) {
    const [isDialogOpen, setIsDialogOpen] = useState(false);
    const [editingTerm, setEditingTerm] = useState<AdminCatalogTerm | null>(null);
    const [termName, setTermName] = useState('');
    const [termSlug, setTermSlug] = useState('');
+   const [termDescription, setTermDescription] = useState('');
+   const [initialTermDescription, setInitialTermDescription] = useState('');
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
    const [localTerms, setLocalTerms] = useState(terms);
+   const isBrandAttribute = groupCode === 'thuong_hieu';
  
    React.useEffect(() => {
      setLocalTerms(terms);
@@ -36,6 +51,8 @@
      setEditingTerm(null);
      setTermName('');
      setTermSlug('');
+     setTermDescription('');
+     setInitialTermDescription('');
      setIsDialogOpen(true);
    };
  
@@ -43,6 +60,9 @@
      setEditingTerm(term);
      setTermName(term.name);
      setTermSlug(term.slug);
+     const desc = term.description || '';
+     setTermDescription(desc);
+     setInitialTermDescription(desc);
      setIsDialogOpen(true);
    };
  
@@ -59,6 +79,7 @@
          await updateCatalogTerm(editingTerm.id, {
            name: termName.trim(),
            slug: termSlug.trim() || undefined,
+           description: isBrandAttribute ? termDescription.trim() || null : undefined,
          });
          toast.success('Cập nhật giá trị thành công');
        } else {
@@ -66,6 +87,7 @@
            group_id: groupId,
            name: termName.trim(),
            slug: termSlug.trim() || undefined,
+           description: isBrandAttribute ? termDescription.trim() || null : undefined,
          });
          toast.success('Tạo giá trị thành công');
        }
@@ -208,7 +230,7 @@
        {/* Simple Modal */}
        {isDialogOpen && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsDialogOpen(false)}>
-           <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+           <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
              <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                  {editingTerm ? 'Cập nhật giá trị' : 'Thêm giá trị mới'}
@@ -241,6 +263,19 @@
                    placeholder="Tự động tạo nếu để trống"
                  />
                </div>
+
+               {isBrandAttribute && (
+                 <div className="space-y-2">
+                   <Label>Mô tả thương hiệu (Lexical)</Label>
+                   <LexicalEditor
+                     onChange={setTermDescription}
+                     initialContent={initialTermDescription}
+                     folder="products"
+                     placeholder="Nhập mô tả thương hiệu..."
+                   />
+                   <p className="text-xs text-slate-500">Nội dung này sẽ được ghép vào cuối mô tả chi tiết sản phẩm.</p>
+                 </div>
+               )}
  
                <div className="flex justify-end gap-3 pt-4">
                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>

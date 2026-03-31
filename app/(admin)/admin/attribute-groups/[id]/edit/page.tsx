@@ -63,6 +63,8 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
   const [terms, setTerms] = useState<any[]>([]);
   const [productTypes, setProductTypes] = useState<Array<{ id: number; name: string }>>([]);
   const isOriginAttribute = code === 'xuat_xu';
+  const isBrandAttribute = code === 'thuong_hieu';
+  const isSpecialAttribute = isOriginAttribute || isBrandAttribute;
 
   useEffect(() => {
     async function loadData() {
@@ -194,7 +196,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cập nhật nhóm thuộc tính</h1>
-            {isOriginAttribute && (
+            {isSpecialAttribute && (
               <Badge className="bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/40 dark:text-red-200 dark:border-red-900/40">
                 Đặc thù
               </Badge>
@@ -226,6 +228,19 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
                   </p>
                   <p className="mt-1">
                     Khi click breadcrumb sẽ mở đúng trang <strong>/filter</strong> theo danh mục và giá trị xuất xứ.
+                  </p>
+                </div>
+              )}
+              {isBrandAttribute && (
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200">
+                  <p className="font-semibold">Thuộc tính đặc thù (hardcode)</p>
+                  <p className="mt-1">
+                    Thuộc tính này đang được dùng để lấy <strong>mô tả thương hiệu</strong> và ghép vào cuối phần mô tả
+                    trên trang chi tiết sản phẩm.
+                  </p>
+                  <p className="mt-1">
+                    Mỗi giá trị thương hiệu nên có nội dung riêng bằng <strong>Lexical editor</strong> để admin nhập mô tả
+                    giàu định dạng và hiển thị trực tiếp ở cuối nội dung sản phẩm.
                   </p>
                 </div>
               )}
@@ -338,7 +353,12 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      <TermsManager groupId={Number(id)} terms={terms} onTermsChange={reloadTerms} />
+      <TermsManager
+        groupId={Number(id)}
+        groupCode={code}
+        terms={terms}
+        onTermsChange={reloadTerms}
+      />
     </div>
   );
 }

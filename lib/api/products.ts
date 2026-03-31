@@ -5,6 +5,7 @@ export interface ApiTerm {
   id: number;
   name: string;
   slug: string;
+  description?: string | null;
 }
 
 export interface ApiImage {

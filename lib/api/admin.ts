@@ -226,7 +226,7 @@ export async function fetchAdminCatalogAttributeGroups(params?: Record<string, s
   return apiFetch<AdminCatalogAttributeGroupsResponse>(`v1/admin/catalog-attribute-groups${query}`);
 }
 
-export async function fetchAdminCatalogAttributeGroup(id: number): Promise<{ data: AdminCatalogAttributeGroup & { terms: Array<{ id: number; name: string; slug: string; position: number }> } }> {
+export async function fetchAdminCatalogAttributeGroup(id: number): Promise<{ data: AdminCatalogAttributeGroup & { terms: Array<{ id: number; name: string; slug: string; description?: string | null; position: number }> } }> {
   return apiFetch(`v1/admin/catalog-attribute-groups/${id}`);
 }
 

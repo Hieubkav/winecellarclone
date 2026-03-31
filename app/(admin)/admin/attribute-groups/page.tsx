@@ -228,7 +228,7 @@ export default function AttributeGroupsPage() {
           </TableHeader>
           <TableBody>
             {attributes.map(attr => {
-              const isOriginAttribute = attr.code === 'xuat_xu';
+              const isSpecialAttribute = attr.code === 'xuat_xu' || attr.code === 'thuong_hieu';
               const resolvedIcon = resolveIconInput(attr.icon_path);
               const iconUrl = resolvedIcon.iconUrl ? getImageUrl(resolvedIcon.iconUrl) : null;
               
@@ -248,7 +248,7 @@ export default function AttributeGroupsPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{attr.name}</span>
-                          {isOriginAttribute && (
+                          {isSpecialAttribute && (
                             <Badge className="bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/40 dark:text-red-200 dark:border-red-900/40">
                               Đặc thù
                             </Badge>
@@ -261,7 +261,7 @@ export default function AttributeGroupsPage() {
                     <TableCell>
                       <code
                         className={
-                          isOriginAttribute
+                          isSpecialAttribute
                             ? "text-xs bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded dark:bg-red-900/40 dark:text-red-200 dark:border-red-900/40"
                             : "text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded"
                         }

@@ -370,10 +370,16 @@ export default function ProductDetailPage({
   const canScrollUp = thumbnailStartIndex > 0;
   const canScrollDown = thumbnailStartIndex < maxThumbnailStart;
 
-  const processedDescription = useMemo(
-    () => processProductContent(product.description),
-    [product.description]
-  );
+  const processedDescription = useMemo(() => {
+    const mainDescription = processProductContent(product.description);
+    const brandDescription = processProductContent(product.brand_term?.description ?? null);
+
+    if (mainDescription && brandDescription) {
+      return `${mainDescription}<div class="mt-8 pt-6 border-t border-[#e5ddd0]"></div>${brandDescription}`;
+    }
+
+    return mainDescription || brandDescription;
+  }, [product.description, product.brand_term?.description]);
   const normalizedDetailRules = useMemo(
     () =>
       (productDetailRules ?? [])
