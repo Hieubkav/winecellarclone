@@ -82,6 +82,7 @@ const normalizeImageUrl = (url: string): string => {
      listitem: 'editor-listitem',
    },
    quote: 'editor-quote',
+   link: 'editor-link',
    text: {
      bold: 'editor-text-bold',
      italic: 'editor-text-italic',
@@ -722,6 +723,22 @@ const FONT_SIZE_OPTIONS = [
          .editor-list-ul { list-style-type: disc; padding-left: 24px; margin: 8px 0; }
          .editor-list-ol { list-style-type: decimal; padding-left: 24px; margin: 8px 0; }
          .editor-listitem { margin: 4px 0; }
+         .editor-link {
+           color: #2563eb;
+           text-decoration: underline;
+           text-decoration-thickness: 2px;
+           text-underline-offset: 2px;
+           cursor: pointer;
+         }
+         .editor-link:hover {
+           color: #1d4ed8;
+         }
+         .dark .editor-link {
+           color: #60a5fa;
+         }
+         .dark .editor-link:hover {
+           color: #93c5fd;
+         }
          .editor-text-bold { font-weight: bold; }
          .editor-text-italic { font-style: italic; }
          .editor-text-underline { text-decoration: underline; }
