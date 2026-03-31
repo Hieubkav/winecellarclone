@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, use, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import Image from 'next/image';
@@ -27,6 +26,7 @@ import {
 } from '@/lib/constants/product-image';
 import { toast } from 'sonner';
 import { useAdminLayout } from '../../../AdminLayoutContext';
+import { LexicalEditor } from '../../../components/LexicalEditor';
 
 const IMAGE_RATIO_TOLERANCE = 0.01;
 
@@ -47,16 +47,6 @@ const getImageSizeFromFile = (file: File): Promise<{ width: number; height: numb
 
     image.src = objectUrl;
   });
-
-const LexicalEditor = dynamic(
-  () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-    ),
-  }
-);
 
 const formatNumberInput = (value: string) => {
   const digits = value.replace(/[^0-9]/g, '');
