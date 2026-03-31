@@ -40,7 +40,7 @@ import { $getNearestNodeOfType } from '@lexical/utils';
  import { 
    Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
    Type, Heading1, Heading2, Quote, List as ListIcon, ListOrdered, Image as ImageIcon,
-   Link as LinkIcon, Link2Off, Loader2 
+   Loader2 
  } from 'lucide-react';
  import { cn } from '@/lib/utils';
  import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
@@ -332,10 +332,23 @@ const FONT_SIZE_OPTIONS = [
 
   const handleAddLink = () => {
     let hasValidSelection = false;
+    let currentLinkUrl = '';
 
     editor.getEditorState().read(() => {
       const selection = $getSelection();
       hasValidSelection = $isRangeSelection(selection) && !selection.isCollapsed();
+
+      if ($isRangeSelection(selection)) {
+        const selectedNode = selection.anchor.getNode();
+        const parentNode = selectedNode.getParent();
+        const linkNode = $isLinkNode(selectedNode)
+          ? selectedNode
+          : ($isLinkNode(parentNode) ? parentNode : $getNearestNodeOfType(selectedNode, LinkNode));
+
+        if (linkNode) {
+          currentLinkUrl = linkNode.getURL();
+        }
+      }
     });
 
     if (!hasValidSelection) {
@@ -343,7 +356,7 @@ const FONT_SIZE_OPTIONS = [
       return;
     }
 
-    const url = window.prompt('Nhập URL (https://...)');
+    const url = window.prompt('Nhập URL (https://...)', currentLinkUrl);
     if (!url) {
       return;
     }
@@ -491,13 +504,28 @@ const FONT_SIZE_OPTIONS = [
  
        <Divider />
 
-       <div className="flex items-center gap-0.5">
-         <ToolbarBtn onClick={handleAddLink} active={activeState.isLink} title="Gắn link">
-           <LinkIcon size={16} />
-         </ToolbarBtn>
-         <ToolbarBtn onClick={handleRemoveLink} title="Gỡ link">
-           <Link2Off size={16} />
-         </ToolbarBtn>
+       <div className="flex items-center gap-1">
+         <button
+           type="button"
+           onClick={handleAddLink}
+           className={cn(
+             "h-7 px-2 rounded-md border text-xs font-medium transition-colors",
+             activeState.isLink
+               ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-900/30 dark:text-blue-200"
+               : "border-slate-300 text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
+           )}
+           title="Gắn link"
+         >
+           Link
+         </button>
+         <button
+           type="button"
+           onClick={handleRemoveLink}
+           className="h-7 px-2 rounded-md border border-slate-300 text-xs font-medium text-slate-700 hover:bg-slate-200 transition-colors dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
+           title="Gỡ link"
+         >
+           Unlink
+         </button>
        </div>
  
        <Divider />
