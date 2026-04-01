@@ -51,19 +51,11 @@ const API_ORIGIN = (() => {
   }
 })();
 
-const normalizeImageUrl = (url: string): string => {
-  if (!url || !API_ORIGIN) return url;
-
-  try {
-    const parsed = new URL(url, API_ORIGIN);
-    if (parsed.origin === API_ORIGIN) {
-      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
-    }
-  } catch {
-    return url;
-  }
-
-  return url;
+const resolveUploadImageUrl = (url: string): string => {
+  if (!url) return url;
+  if (/^https?:\/\//i.test(url)) return url;
+  if (!API_ORIGIN) return url;
+  return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
  
@@ -749,7 +741,8 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
        const result = await response.json();
        
        if (result.success && result.data) {
-         return normalizeImageUrl(result.data.canonical_url || result.data.url);
+         const uploadUrl = result.data.url || result.data.canonical_url || '';
+         return resolveUploadImageUrl(uploadUrl);
        }
        
        throw new Error(result.message || 'Không thể tải ảnh lên');
