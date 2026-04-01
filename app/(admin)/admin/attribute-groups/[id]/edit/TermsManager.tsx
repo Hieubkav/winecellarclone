@@ -1,6 +1,6 @@
  'use client';
  
- import React, { useState } from 'react';
+ import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
  import { Plus, Edit, Trash2, GripVertical, X } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label } from '../../../components/ui';
@@ -39,13 +39,23 @@ interface TermsManagerProps {
    const [termDescription, setTermDescription] = useState('');
    const [initialTermDescription, setInitialTermDescription] = useState('');
    const [isSubmitting, setIsSubmitting] = useState(false);
-   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
    const [localTerms, setLocalTerms] = useState(terms);
+  const [isEditorReady, setIsEditorReady] = useState(false);
    const isBrandAttribute = groupCode === 'thuong_hieu';
  
-   React.useEffect(() => {
+  React.useEffect(() => {
      setLocalTerms(terms);
    }, [terms]);
+
+  useEffect(() => {
+    if (!isDialogOpen || !isBrandAttribute) {
+      setIsEditorReady(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setIsEditorReady(true), 300);
+    return () => window.clearTimeout(timer);
+  }, [isDialogOpen, isBrandAttribute]);
  
    const openCreateDialog = () => {
      setEditingTerm(null);
@@ -267,13 +277,17 @@ interface TermsManagerProps {
                {isBrandAttribute && (
                  <div className="space-y-2">
                    <Label>Mô tả thương hiệu (Lexical)</Label>
-                   <LexicalEditor
-                     onChange={setTermDescription}
-                     initialContent={initialTermDescription}
-                     resetKey={editingTerm?.id ?? `create-${isDialogOpen ? 'open' : 'closed'}`}
-                     folder="products"
-                     placeholder="Nhập mô tả thương hiệu..."
-                   />
+                   {isEditorReady ? (
+                     <LexicalEditor
+                       onChange={setTermDescription}
+                       initialContent={initialTermDescription}
+                       resetKey={editingTerm?.id ?? `create-${isDialogOpen ? 'open' : 'closed'}`}
+                       folder="products"
+                       placeholder="Nhập mô tả thương hiệu..."
+                     />
+                   ) : (
+                     <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+                   )}
                    <p className="text-xs text-slate-500">Nội dung này sẽ được ghép vào cuối mô tả chi tiết sản phẩm.</p>
                  </div>
                )}
