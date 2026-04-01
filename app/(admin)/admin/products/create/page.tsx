@@ -65,7 +65,7 @@ const truncateText = (value: string, maxLength: number) => {
 };
 
 const LexicalEditor = dynamic(
-  () => import('../../components/LexicalEditorStable').then((mod) => mod.LexicalEditor),
+  () => import('../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
   {
     ssr: false,
     loading: () => (

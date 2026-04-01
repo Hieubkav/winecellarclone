@@ -1,6 +1,6 @@
  'use client';
  
- import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
  import { LexicalComposer } from '@lexical/react/LexicalComposer';
  import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
  import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -528,7 +528,7 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={handleImageUpload} title="Tải ảnh lên">
-           <span className={cn("text-[10px] font-medium leading-none", isUploading ? "animate-pulse" : "")}>{isUploading ? '...' : 'IMG'}</span>
+          <span className={cn("text-[10px] font-semibold leading-none", isUploading ? "animate-pulse" : "")}>{isUploading ? '...' : 'Ảnh'}</span>
          </ToolbarBtn>
        </div>
      </div>
@@ -540,6 +540,7 @@ const FONT_SIZE_OPTIONS = [
    initialContent?: string;
    folder?: string;
    placeholder?: string;
+  resetKey?: number | string;
  }
  
  const PasteImagePlugin: React.FC<{ onImageUpload: (file: File) => Promise<string | null> }> = ({ onImageUpload }) => {
@@ -581,46 +582,60 @@ const FONT_SIZE_OPTIONS = [
    return null;
  };
  
- const InitialContentPlugin: React.FC<{ initialContent?: string }> = ({ initialContent }) => {
-   const [editor] = useLexicalComposerContext();
-   const [isInitialized, setIsInitialized] = useState(false);
- 
-   useEffect(() => {
-     if (initialContent && !isInitialized) {
-       editor.update(() => {
-         const parser = new DOMParser();
-         const dom = parser.parseFromString(initialContent, 'text/html');
-         const nodes = $generateNodesFromDOM(editor, dom);
-         const root = $getRoot();
-         root.clear();
-         
-         const validNodes: LexicalNode[] = [];
-         for (const node of nodes) {
-           if ($isElementNode(node) || $isDecoratorNode(node)) {
-             validNodes.push(node);
-           } else if ($isTextNode(node)) {
-             const text = node.getTextContent().trim();
-             if (text) {
-               const paragraph = $createParagraphNode();
-               paragraph.append(node);
-               validNodes.push(paragraph);
-             }
-           }
-         }
-         
-         if (validNodes.length > 0) {
-           root.append(...validNodes);
-         }
-       });
-       setIsInitialized(true);
-     }
-   }, [editor, initialContent, isInitialized]);
- 
-   return null;
- };
+const InitialContentPlugin: React.FC<{ initialContent?: string; resetKey?: number | string }> = ({ initialContent, resetKey }) => {
+  const [editor] = useLexicalComposerContext();
+  const isInitializedRef = useRef(false);
+  const lastResetKeyRef = useRef<number | string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!initialContent) {
+      return;
+    }
+
+    const shouldReset = resetKey !== undefined
+      ? lastResetKeyRef.current !== resetKey
+      : !isInitializedRef.current;
+
+    if (!shouldReset) {
+      return;
+    }
+
+    editor.update(() => {
+      const parser = new DOMParser();
+      const dom = parser.parseFromString(initialContent, 'text/html');
+      const nodes = $generateNodesFromDOM(editor, dom);
+      const root = $getRoot();
+      root.clear();
+      
+      const validNodes: LexicalNode[] = [];
+      for (const node of nodes) {
+        if ($isElementNode(node) || $isDecoratorNode(node)) {
+          validNodes.push(node);
+        } else if ($isTextNode(node)) {
+          const text = node.getTextContent().trim();
+          if (text) {
+            const paragraph = $createParagraphNode();
+            paragraph.append(node);
+            validNodes.push(paragraph);
+          }
+        }
+      }
+      
+      if (validNodes.length > 0) {
+        root.append(...validNodes);
+      }
+    });
+
+    isInitializedRef.current = true;
+    lastResetKeyRef.current = resetKey;
+  }, [editor, initialContent, resetKey]);
+
+  return null;
+};
 
 const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ onChange }) => {
   const [editor] = useLexicalComposerContext();
+  const isFirstUpdateRef = useRef(true);
 
   useEffect(() => {
     if (!onChange) {
@@ -629,6 +644,10 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
 
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
+        if (isFirstUpdateRef.current) {
+          isFirstUpdateRef.current = false;
+          return;
+        }
         onChange($generateHtmlFromNodes(editor, null));
       });
     });
@@ -641,7 +660,8 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
    onChange, 
    initialContent, 
    folder = 'products',
-   placeholder = 'Bắt đầu viết nội dung...'
+  placeholder = 'Bắt đầu viết nội dung...',
+  resetKey,
  }) => {
    const initialConfig = {
      namespace: 'ProductEditor',
@@ -731,7 +751,7 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
            <LinkPlugin />
            <ImagesPlugin />
            <PasteImagePlugin onImageUpload={handleImageUpload} />
-           <InitialContentPlugin initialContent={initialContent} />
+          <InitialContentPlugin initialContent={initialContent} resetKey={resetKey} />
            <EditorChangePlugin onChange={onChange} />
          </div>
        </LexicalComposer>

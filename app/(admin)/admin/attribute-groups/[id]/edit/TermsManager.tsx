@@ -14,8 +14,8 @@ import dynamic from 'next/dynamic';
  import { ApiError } from '@/lib/api/client';
  import { toast } from 'sonner';
  
- const LexicalEditor = dynamic(
-  () => import('../../../components/LexicalEditorStable').then((mod) => mod.LexicalEditor),
+const LexicalEditor = dynamic(
+  () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
   {
     ssr: false,
     loading: () => (
