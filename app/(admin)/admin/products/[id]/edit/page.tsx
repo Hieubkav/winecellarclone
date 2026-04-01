@@ -26,7 +26,7 @@ import {
 } from '@/lib/constants/product-image';
 import { toast } from 'sonner';
 import { useAdminLayout } from '../../../AdminLayoutContext';
-import { LexicalEditor } from '../../../components/LexicalEditor';
+import { LexicalEditor } from '../../../components/LexicalEditorStable';
 
 const IMAGE_RATIO_TOLERANCE = 0.01;
 

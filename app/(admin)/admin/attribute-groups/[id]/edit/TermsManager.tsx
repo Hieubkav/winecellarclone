@@ -15,7 +15,7 @@ import dynamic from 'next/dynamic';
  import { toast } from 'sonner';
  
  const LexicalEditor = dynamic(
-  () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
+  () => import('../../../components/LexicalEditorStable').then((mod) => mod.LexicalEditor),
   {
     ssr: false,
     loading: () => (
