@@ -1,14 +1,14 @@
  'use client';
  
 import React, { useEffect, useState, useCallback, useRef } from 'react';
- import { LexicalComposer } from '@lexical/react/LexicalComposer';
- import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
- import { ContentEditable } from '@lexical/react/LexicalContentEditable';
- import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
- import { ListPlugin } from '@lexical/react/LexicalListPlugin';
- import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
- import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
- import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { LexicalComposer } from '@lexical/react/LexicalComposer.js';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin.js';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable.js';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin.js';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin.js';
+import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin.js';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary.js';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
  import { HeadingNode, QuoteNode, $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
  import { ListNode, ListItemNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
  import { $isLinkNode, AutoLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
