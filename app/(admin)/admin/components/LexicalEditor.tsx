@@ -5,7 +5,6 @@
  import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
  import { ContentEditable } from '@lexical/react/LexicalContentEditable';
  import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
- import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
  import { ListPlugin } from '@lexical/react/LexicalListPlugin';
  import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
  import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
@@ -619,6 +618,24 @@ const FONT_SIZE_OPTIONS = [
  
    return null;
  };
+
+const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ onChange }) => {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (!onChange) {
+      return;
+    }
+
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        onChange($generateHtmlFromNodes(editor, null));
+      });
+    });
+  }, [editor, onChange]);
+
+  return null;
+};
  
  export const LexicalEditor: React.FC<LexicalEditorProps> = ({ 
    onChange, 
@@ -715,12 +732,7 @@ const FONT_SIZE_OPTIONS = [
            <ImagesPlugin />
            <PasteImagePlugin onImageUpload={handleImageUpload} />
            <InitialContentPlugin initialContent={initialContent} />
-           <OnChangePlugin onChange={(editorState, editor) => {
-              editorState.read(() => {
-                 const html = $generateHtmlFromNodes(editor, null);
-                 if (onChange) onChange(html);
-              });
-           }}/>
+           <EditorChangePlugin onChange={onChange} />
          </div>
        </LexicalComposer>
        <style jsx global>{`
