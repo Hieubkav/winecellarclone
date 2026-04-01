@@ -342,6 +342,7 @@ const resolveImageSrc = (src: string): string => {
    const editorRoot = editor.getRootElement();
    const maxWidth = editorRoot ? editorRoot.getBoundingClientRect().width - 40 : 800;
    const minWidth = 50;
+   const minHeight = 50;
  
    const handlePointerDown = (event: React.PointerEvent, corner: string) => {
      if (!editor.isEditable()) return;
@@ -368,13 +369,23 @@ const resolveImageSrc = (src: string): string => {
        if (!pos.isResizing || !image) return;
        
        const diffX = moveEvent.clientX - pos.startX;
+       const diffY = moveEvent.clientY - pos.startY;
        let newWidth = pos.startWidth;
+       let newHeight = pos.startHeight;
  
        if (corner.includes('e')) newWidth = pos.startWidth + diffX;
        if (corner.includes('w')) newWidth = pos.startWidth - diffX;
+       if (corner.includes('s')) newHeight = pos.startHeight + diffY;
+       if (corner.includes('n')) newHeight = pos.startHeight - diffY;
+ 
+       if (corner.length === 2) {
+         newHeight = newWidth / pos.ratio;
+       } else {
+         newWidth = newHeight * pos.ratio;
+       }
  
        newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-       const newHeight = newWidth / pos.ratio;
+       newHeight = Math.max(minHeight, newWidth / pos.ratio);
  
        pos.currentWidth = newWidth;
        pos.currentHeight = newHeight;
@@ -410,12 +421,36 @@ const resolveImageSrc = (src: string): string => {
    return (
      <>
        <div
+         style={{ ...handleStyle, top: -5, left: -5, cursor: 'nw-resize' }}
+         onPointerDown={(e) => handlePointerDown(e, 'nw')}
+       />
+       <div
          style={{ ...handleStyle, top: -5, right: -5, cursor: 'ne-resize' }}
          onPointerDown={(e) => handlePointerDown(e, 'ne')}
        />
        <div
+         style={{ ...handleStyle, bottom: -5, left: -5, cursor: 'sw-resize' }}
+         onPointerDown={(e) => handlePointerDown(e, 'sw')}
+       />
+       <div
          style={{ ...handleStyle, bottom: -5, right: -5, cursor: 'se-resize' }}
          onPointerDown={(e) => handlePointerDown(e, 'se')}
+       />
+       <div
+         style={{ ...handleStyle, top: -5, left: '50%', transform: 'translateX(-50%)', cursor: 'n-resize' }}
+         onPointerDown={(e) => handlePointerDown(e, 'n')}
+       />
+       <div
+         style={{ ...handleStyle, bottom: -5, left: '50%', transform: 'translateX(-50%)', cursor: 's-resize' }}
+         onPointerDown={(e) => handlePointerDown(e, 's')}
+       />
+       <div
+         style={{ ...handleStyle, top: '50%', left: -5, transform: 'translateY(-50%)', cursor: 'w-resize' }}
+         onPointerDown={(e) => handlePointerDown(e, 'w')}
+       />
+       <div
+         style={{ ...handleStyle, top: '50%', right: -5, transform: 'translateY(-50%)', cursor: 'e-resize' }}
+         onPointerDown={(e) => handlePointerDown(e, 'e')}
        />
      </>
    );
