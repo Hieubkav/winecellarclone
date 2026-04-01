@@ -6,12 +6,12 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin.js';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable.js';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin.js';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin.js';
-import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin.js';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary.js';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext.js';
  import { HeadingNode, QuoteNode, $createHeadingNode, $createQuoteNode, $isHeadingNode } from '@lexical/rich-text';
  import { ListNode, ListItemNode, INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND } from '@lexical/list';
- import { $isLinkNode, AutoLinkNode, LinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
+import { $isLinkNode, AutoLinkNode, LinkNode, TOGGLE_LINK_COMMAND, registerLink } from '@lexical/link';
+import { namedSignals } from '@lexical/extension';
  import { 
    $getSelection, 
    $isRangeSelection, 
@@ -542,6 +542,27 @@ const FONT_SIZE_OPTIONS = [
    placeholder?: string;
   resetKey?: number | string;
  }
+
+interface CustomLinkPluginProps {
+  validateUrl?: (url: string) => boolean;
+  attributes?: Record<string, string>;
+}
+
+const CustomLinkPlugin: React.FC<CustomLinkPluginProps> = ({ validateUrl, attributes }) => {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (!editor.hasNodes([LinkNode])) {
+      throw new Error('CustomLinkPlugin: LinkNode not registered on editor');
+    }
+  }, [editor]);
+
+  useEffect(() => {
+    return registerLink(editor, namedSignals({ attributes, validateUrl }));
+  }, [editor, attributes, validateUrl]);
+
+  return null;
+};
  
  const PasteImagePlugin: React.FC<{ onImageUpload: (file: File) => Promise<string | null> }> = ({ onImageUpload }) => {
    const [editor] = useLexicalComposerContext();
@@ -748,7 +769,7 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
            />
            <HistoryPlugin />
            <ListPlugin />
-           <LinkPlugin />
+           <CustomLinkPlugin />
            <ImagesPlugin />
            <PasteImagePlugin onImageUpload={handleImageUpload} />
           <InitialContentPlugin initialContent={initialContent} resetKey={resetKey} />
