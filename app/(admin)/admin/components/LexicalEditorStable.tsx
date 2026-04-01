@@ -460,13 +460,13 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left')} title="Căn trái">
-           <span className="text-[10px] font-medium leading-none">T</span>
+           <span className="text-[10px] font-semibold leading-none">L</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center')} title="Căn giữa">
-           <span className="text-[10px] font-medium leading-none">G</span>
+           <span className="text-[10px] font-semibold leading-none">C</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right')} title="Căn phải">
-           <span className="text-[10px] font-medium leading-none">P</span>
+           <span className="text-[10px] font-semibold leading-none">R</span>
          </ToolbarBtn>
        </div>
  
@@ -474,16 +474,16 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => formatBlock('paragraph')} active={activeState.blockType === 'paragraph'} title="Văn bản thường">
-           <span className="text-[10px] font-medium leading-none">P</span>
+           <span className="text-[11px] font-semibold leading-none">¶</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('h1')} active={activeState.blockType === 'h1'} title="Tiêu đề 1">
-           <span className="text-[10px] font-medium leading-none">H1</span>
+           <span className="text-[10px] font-semibold leading-none">H1</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('h2')} active={activeState.blockType === 'h2'} title="Tiêu đề 2">
-           <span className="text-[10px] font-medium leading-none">H2</span>
+           <span className="text-[10px] font-semibold leading-none">H2</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('quote')} active={activeState.blockType === 'quote'} title="Trích dẫn">
-           <span className="text-[10px] font-medium leading-none">Q</span>
+           <span className="text-[11px] font-semibold leading-none">❝</span>
          </ToolbarBtn>
        </div>
  
@@ -491,10 +491,10 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={() => formatBlock('ul')} title="Danh sách chấm">
-           <span className="text-[10px] font-medium leading-none">UL</span>
+           <span className="text-[11px] font-semibold leading-none">•</span>
          </ToolbarBtn>
          <ToolbarBtn onClick={() => formatBlock('ol')} title="Danh sách số">
-           <span className="text-[10px] font-medium leading-none">OL</span>
+           <span className="text-[10px] font-semibold leading-none">1.</span>
          </ToolbarBtn>
        </div>
  
@@ -528,7 +528,7 @@ const FONT_SIZE_OPTIONS = [
  
        <div className="flex items-center gap-0.5">
          <ToolbarBtn onClick={handleImageUpload} title="Tải ảnh lên">
-           <span className={cn("text-[10px] font-medium leading-none", isUploading ? "animate-pulse" : "")}>{isUploading ? '...' : 'IMG'}</span>
+           <span className={cn("text-[10px] font-semibold leading-none", isUploading ? "animate-pulse" : "")}>{isUploading ? '...' : 'Ảnh'}</span>
          </ToolbarBtn>
        </div>
      </div>

@@ -260,6 +260,20 @@ const resolveImageSrc = (src: string): string => {
      },
      [isResizing, isSelected, setSelected, clearSelection],
    );
+
+   const handleImageMouseDown = useCallback(
+     (event: React.MouseEvent<HTMLImageElement>) => {
+       event.preventDefault();
+       event.stopPropagation();
+       if (event.shiftKey) {
+         setSelected(!isSelected);
+       } else {
+         clearSelection();
+         setSelected(true);
+       }
+     },
+     [isSelected, setSelected, clearSelection],
+   );
  
    useEffect(() => {
      return mergeRegister(
@@ -288,19 +302,20 @@ const resolveImageSrc = (src: string): string => {
    return (
      <div 
        className={`image-wrapper ${isFocused ? 'focused' : ''}`}
-       style={{ display: 'inline-block', position: 'relative' }}
+       style={{ display: 'inline-block', position: 'relative', padding: '6px', overflow: 'visible' }}
      >
        <img
          ref={imageRef}
         src={resolveImageSrc(src)}
          alt={altText}
+         onMouseDown={handleImageMouseDown}
          style={{
            width: width ? `${width}px` : 'auto',
            height: height ? `${height}px` : 'auto',
            maxWidth: '100%',
            borderRadius: '4px',
            display: 'block',
-           cursor: 'default',
+           cursor: isFocused ? 'grab' : 'pointer',
            outline: isFocused ? '2px solid #3b82f6' : 'none',
          }}
          draggable={false}
@@ -350,6 +365,7 @@ const resolveImageSrc = (src: string): string => {
      if (!image) return;
  
      event.preventDefault();
+     event.stopPropagation();
      const { width, height } = image.getBoundingClientRect();
      const pos = positioningRef.current;
      pos.startWidth = width;
@@ -411,46 +427,32 @@ const resolveImageSrc = (src: string): string => {
  
    const handleStyle: React.CSSProperties = {
      position: 'absolute',
-     width: '10px',
-     height: '10px',
-     backgroundColor: '#3b82f6',
-     border: '1px solid white',
-     borderRadius: '2px',
+     width: '12px',
+     height: '12px',
+     backgroundColor: '#2563eb',
+     border: '2px solid #fff',
+     borderRadius: '9999px',
+     boxShadow: '0 0 0 1px rgba(37,99,235,0.25)',
+     zIndex: 30,
    };
  
    return (
      <>
        <div
-         style={{ ...handleStyle, top: -5, left: -5, cursor: 'nw-resize' }}
+         style={{ ...handleStyle, top: 0, left: 0, cursor: 'nw-resize' }}
          onPointerDown={(e) => handlePointerDown(e, 'nw')}
        />
        <div
-         style={{ ...handleStyle, top: -5, right: -5, cursor: 'ne-resize' }}
+         style={{ ...handleStyle, top: 0, right: 0, cursor: 'ne-resize' }}
          onPointerDown={(e) => handlePointerDown(e, 'ne')}
        />
        <div
-         style={{ ...handleStyle, bottom: -5, left: -5, cursor: 'sw-resize' }}
+         style={{ ...handleStyle, bottom: 0, left: 0, cursor: 'sw-resize' }}
          onPointerDown={(e) => handlePointerDown(e, 'sw')}
        />
        <div
-         style={{ ...handleStyle, bottom: -5, right: -5, cursor: 'se-resize' }}
+         style={{ ...handleStyle, bottom: 0, right: 0, cursor: 'se-resize' }}
          onPointerDown={(e) => handlePointerDown(e, 'se')}
-       />
-       <div
-         style={{ ...handleStyle, top: -5, left: '50%', transform: 'translateX(-50%)', cursor: 'n-resize' }}
-         onPointerDown={(e) => handlePointerDown(e, 'n')}
-       />
-       <div
-         style={{ ...handleStyle, bottom: -5, left: '50%', transform: 'translateX(-50%)', cursor: 's-resize' }}
-         onPointerDown={(e) => handlePointerDown(e, 's')}
-       />
-       <div
-         style={{ ...handleStyle, top: '50%', left: -5, transform: 'translateY(-50%)', cursor: 'w-resize' }}
-         onPointerDown={(e) => handlePointerDown(e, 'w')}
-       />
-       <div
-         style={{ ...handleStyle, top: '50%', right: -5, transform: 'translateY(-50%)', cursor: 'e-resize' }}
-         onPointerDown={(e) => handlePointerDown(e, 'e')}
        />
      </>
    );
