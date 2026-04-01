@@ -37,7 +37,7 @@ import { $getNearestNodeOfType } from '@lexical/utils';
  import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
  import { $setBlocksType } from '@lexical/selection';
  import { cn } from '@/lib/utils';
- import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNode';
+ import ImagesPlugin, { ImageNode, INSERT_IMAGE_COMMAND } from './nodes/ImageNodeStable';
 import { toast } from 'sonner';
  
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000/api';
