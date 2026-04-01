@@ -26,8 +26,7 @@
    SerializedLexicalNode,
    createCommand,
  } from 'lexical';
- import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
- import { useLexicalNodeSelection } from '@lexical/react/useLexicalNodeSelection';
+import { useLexicalComposerContext, useLexicalNodeSelection } from '@/lib/lexical/react-adapter';
  import { mergeRegister } from '@lexical/utils';
  import { useCallback, useEffect, useRef, useState } from 'react';
  import type { JSX } from 'react';
