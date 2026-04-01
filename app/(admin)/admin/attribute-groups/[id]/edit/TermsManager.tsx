@@ -270,6 +270,7 @@ interface TermsManagerProps {
                    <LexicalEditor
                      onChange={setTermDescription}
                      initialContent={initialTermDescription}
+                     resetKey={editingTerm?.id ?? `create-${isDialogOpen ? 'open' : 'closed'}`}
                      folder="products"
                      placeholder="Nhập mô tả thương hiệu..."
                    />

@@ -540,6 +540,7 @@ const FONT_SIZE_OPTIONS = [
    initialContent?: string;
    folder?: string;
    placeholder?: string;
+   resetKey?: number | string;
  }
  
  const PasteImagePlugin: React.FC<{ onImageUpload: (file: File) => Promise<string | null> }> = ({ onImageUpload }) => {
@@ -581,40 +582,53 @@ const FONT_SIZE_OPTIONS = [
    return null;
  };
  
- const InitialContentPlugin: React.FC<{ initialContent?: string }> = ({ initialContent }) => {
+ const InitialContentPlugin: React.FC<{ initialContent?: string; resetKey?: number | string }> = ({ initialContent, resetKey }) => {
    const [editor] = useLexicalComposerContext();
-   const [isInitialized, setIsInitialized] = useState(false);
+   const isInitializedRef = useRef(false);
+   const lastResetKeyRef = useRef<number | string | undefined>(undefined);
  
    useEffect(() => {
-     if (initialContent && !isInitialized) {
-       editor.update(() => {
-         const parser = new DOMParser();
-         const dom = parser.parseFromString(initialContent, 'text/html');
-         const nodes = $generateNodesFromDOM(editor, dom);
-         const root = $getRoot();
-         root.clear();
-         
-         const validNodes: LexicalNode[] = [];
-         for (const node of nodes) {
-           if ($isElementNode(node) || $isDecoratorNode(node)) {
-             validNodes.push(node);
-           } else if ($isTextNode(node)) {
-             const text = node.getTextContent().trim();
-             if (text) {
-               const paragraph = $createParagraphNode();
-               paragraph.append(node);
-               validNodes.push(paragraph);
-             }
+     if (!initialContent) {
+       return;
+     }
+
+     const shouldReset = resetKey !== undefined
+       ? lastResetKeyRef.current !== resetKey
+       : !isInitializedRef.current;
+
+     if (!shouldReset) {
+       return;
+     }
+
+     editor.update(() => {
+       const parser = new DOMParser();
+       const dom = parser.parseFromString(initialContent, 'text/html');
+       const nodes = $generateNodesFromDOM(editor, dom);
+       const root = $getRoot();
+       root.clear();
+       
+       const validNodes: LexicalNode[] = [];
+       for (const node of nodes) {
+         if ($isElementNode(node) || $isDecoratorNode(node)) {
+           validNodes.push(node);
+         } else if ($isTextNode(node)) {
+           const text = node.getTextContent().trim();
+           if (text) {
+             const paragraph = $createParagraphNode();
+             paragraph.append(node);
+             validNodes.push(paragraph);
            }
          }
-         
-         if (validNodes.length > 0) {
-           root.append(...validNodes);
-         }
-       });
-       setIsInitialized(true);
-     }
-   }, [editor, initialContent, isInitialized]);
+       }
+       
+       if (validNodes.length > 0) {
+         root.append(...validNodes);
+       }
+     });
+
+     isInitializedRef.current = true;
+     lastResetKeyRef.current = resetKey;
+   }, [editor, initialContent, resetKey]);
  
    return null;
  };
@@ -646,7 +660,8 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
    onChange, 
    initialContent, 
    folder = 'products',
-   placeholder = 'Bắt đầu viết nội dung...'
+   placeholder = 'Bắt đầu viết nội dung...',
+   resetKey,
  }) => {
    const initialConfig = {
      namespace: 'ProductEditor',
@@ -736,7 +751,7 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
            <LinkPlugin />
            <ImagesPlugin />
            <PasteImagePlugin onImageUpload={handleImageUpload} />
-           <InitialContentPlugin initialContent={initialContent} />
+           <InitialContentPlugin initialContent={initialContent} resetKey={resetKey} />
            <EditorChangePlugin onChange={onChange} />
          </div>
        </LexicalComposer>
