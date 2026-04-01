@@ -1,6 +1,6 @@
  'use client';
  
- import React, { useEffect, useState, useCallback } from 'react';
+ import React, { useEffect, useState, useCallback, useRef } from 'react';
  import { LexicalComposer } from '@lexical/react/LexicalComposer';
  import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
  import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -621,6 +621,7 @@ const FONT_SIZE_OPTIONS = [
 
 const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ onChange }) => {
   const [editor] = useLexicalComposerContext();
+  const isFirstUpdateRef = useRef(true);
 
   useEffect(() => {
     if (!onChange) {
@@ -629,6 +630,10 @@ const EditorChangePlugin: React.FC<{ onChange?: (html: string) => void }> = ({ o
 
     return editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
+        if (isFirstUpdateRef.current) {
+          isFirstUpdateRef.current = false;
+          return;
+        }
         onChange($generateHtmlFromNodes(editor, null));
       });
     });
