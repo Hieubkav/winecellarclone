@@ -345,8 +345,6 @@ export default function ProductDetailPage({
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
-  const [isDescExpanded, setIsDescExpanded] = useState(false);
-  const [showExpandButton, setShowExpandButton] = useState(false);
   const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
   const preloadedImagesRef = useRef(new Set<string>());
   const imageItemsKey = useMemo(() => imageItems.map((item) => item.src).join("|"), [imageItems]);
@@ -354,7 +352,6 @@ export default function ProductDetailPage({
     () => imageItems.slice(1, 4).map((item) => item.src).filter(Boolean),
     [imageItems]
   );
-  const descriptionRef = useRef<HTMLDivElement>(null);
   const selectedImageItem = imageItems[selectedImage] ?? imageItems[0];
   const selectedImageSrc = selectedImageItem?.src ?? "/placeholder/wine-bottle.svg";
   const selectedImageAspectRatio =
@@ -392,13 +389,6 @@ export default function ProductDetailPage({
     typeof mobileMainImageHeight === "number" && Number.isFinite(mobileMainImageHeight) && mobileMainImageHeight > 0
       ? Math.round(mobileMainImageHeight)
       : null;
-
-  useEffect(() => {
-    if (descriptionRef.current) {
-      const scrollHeight = descriptionRef.current.scrollHeight;
-      setShowExpandButton(scrollHeight > 200);
-    }
-  }, [processedDescription]);
 
   useEffect(() => {
     preloadedImagesRef.current.clear();
@@ -836,12 +826,9 @@ export default function ProductDetailPage({
               {processedDescription ? (
                 <>
                   <RichContent
-                    ref={descriptionRef}
                     html={processedDescription}
                     rootClassName="product-rich-content"
-                    className={`text-slate-600 text-left overflow-hidden transition-all duration-500 ease-in-out text-base ${
-                      !isDescExpanded ? 'max-h-[200px]' : 'max-h-[2000px]'
-                    }`}
+                    className="text-slate-600 text-left text-base"
                     theme={{
                       headingColor: '#0f172a',
                       strongColor: '#0f172a',
@@ -852,21 +839,6 @@ export default function ProductDetailPage({
                       imageBorderRadius: '16px',
                     }}
                   />
-                  
-                     {!isDescExpanded && showExpandButton && (
-                    <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
-                  )}
-
-                     {showExpandButton && (
-                    <Button 
-                      variant="ghost"
-                      onClick={() => setIsDescExpanded(!isDescExpanded)}
-                      className="relative z-10 mt-6 gap-2 text-[#9B2C3B] hover:text-[#9B2C3B] hover:bg-[#9B2C3B]/10 font-semibold text-base px-8 py-3 border-2 border-[#9B2C3B] hover:border-[#9B2C3B]/70 transition-all bg-white"
-                    >
-                      {isDescExpanded ? 'Thu gọn' : 'Xem thêm'}
-                      {isDescExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                    </Button>
-                  )}
                 </>
               ) : (
                 <p className="text-sm text-gray-500 italic">
