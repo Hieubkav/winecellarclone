@@ -1,7 +1,6 @@
  'use client';
  
- import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+ import React, { useState } from 'react';
  import { Plus, Edit, Trash2, GripVertical, X } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label } from '../../../components/ui';
  import {
@@ -14,15 +13,7 @@ import dynamic from 'next/dynamic';
  import { ApiError } from '@/lib/api/client';
  import { toast } from 'sonner';
  
-const LexicalEditor = dynamic(
-  () => import('../../../components/LexicalEditor').then((mod) => mod.LexicalEditor),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-    ),
-  }
-);
+import { LexicalEditor } from '../../../components/LexicalEditor';
 
 interface TermsManagerProps {
    groupId: number;
@@ -41,21 +32,11 @@ interface TermsManagerProps {
    const [isSubmitting, setIsSubmitting] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
    const [localTerms, setLocalTerms] = useState(terms);
-  const [isEditorReady, setIsEditorReady] = useState(false);
    const isBrandAttribute = groupCode === 'thuong_hieu';
  
   React.useEffect(() => {
      setLocalTerms(terms);
    }, [terms]);
-
-  useEffect(() => {
-    if (!isDialogOpen || !isBrandAttribute) {
-      setIsEditorReady(false);
-      return;
-    }
-    const timer = window.setTimeout(() => setIsEditorReady(true), 300);
-    return () => window.clearTimeout(timer);
-  }, [isDialogOpen, isBrandAttribute]);
  
    const openCreateDialog = () => {
      setEditingTerm(null);
@@ -277,17 +258,13 @@ interface TermsManagerProps {
                {isBrandAttribute && (
                  <div className="space-y-2">
                    <Label>Mô tả thương hiệu (Lexical)</Label>
-                   {isEditorReady ? (
-                     <LexicalEditor
-                       onChange={setTermDescription}
-                       initialContent={initialTermDescription}
-                       resetKey={editingTerm?.id ?? `create-${isDialogOpen ? 'open' : 'closed'}`}
-                       folder="products"
-                       placeholder="Nhập mô tả thương hiệu..."
-                     />
-                   ) : (
-                     <div className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-                   )}
+                   <LexicalEditor
+                     onChange={setTermDescription}
+                     initialContent={initialTermDescription}
+                     resetKey={editingTerm?.id ?? `create-${isDialogOpen ? 'open' : 'closed'}`}
+                     folder="products"
+                     placeholder="Nhập mô tả thương hiệu..."
+                   />
                    <p className="text-xs text-slate-500">Nội dung này sẽ được ghép vào cuối mô tả chi tiết sản phẩm.</p>
                  </div>
                )}
