@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Loader2, Save, Settings as SettingsIcon, Globe, MapPin, ShieldCheck, Search, Type, X } from 'lucide-react';
-import { Button, Card, Input, Label, Skeleton } from '@/app/(admin)/admin/components/ui';
+import { Badge, Button, Card, Input, Label, Skeleton } from '@/app/(admin)/admin/components/ui';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -137,6 +137,7 @@ export const SettingsScreen = () => {
     setProductDetailFontKey,
     setArticleListFontKey,
     setArticleDetailFontKey,
+    generateSeoDefaults,
     handleTabChange,
     handleKeywordAdd,
     handleKeywordRemove,
@@ -168,6 +169,14 @@ export const SettingsScreen = () => {
       </g>
     </svg>`
   );
+
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn").replace(/\/$/, "");
+  const seoPreviewTitle = metaTitle.trim() || siteName.trim() || "Thiên Kim Wine";
+  const seoPreviewDescription = metaDescription.trim() || siteTagline.trim() || "Rượu vang chính hãng.";
+  const seoTitleLength = seoPreviewTitle.length;
+  const seoDescriptionLength = seoPreviewDescription.length;
+  const seoTitleWarning = seoTitleLength < 40 || seoTitleLength > 60;
+  const seoDescriptionWarning = seoDescriptionLength < 120 || seoDescriptionLength > 160;
 
   const updatePreviewPosition = (event: ReactPointerEvent<HTMLDivElement>) => {
     const rect = previewRef.current?.getBoundingClientRect();
@@ -863,6 +872,17 @@ export const SettingsScreen = () => {
                 />
 
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4"></div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Sinh SEO tự động</h3>
+                    <p className="text-xs text-slate-500">
+                      Dựa trên dữ liệu thật trong settings để gợi ý title/description.
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" onClick={generateSeoDefaults}>
+                    Sinh SEO tự động
+                  </Button>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="metaTitle">Tiêu đề mặc định</Label>
                   <Input
@@ -882,6 +902,27 @@ export const SettingsScreen = () => {
                     rows={3}
                     className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-md bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Preview Google</h3>
+                      <p className="text-xs text-slate-500">Mô phỏng snippet trên Google</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={seoTitleWarning ? "warning" : "success"}>
+                        Title {seoTitleLength}/60
+                      </Badge>
+                      <Badge variant={seoDescriptionWarning ? "warning" : "success"}>
+                        Description {seoDescriptionLength}/160
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                    <p className="text-blue-700 dark:text-blue-400">{seoPreviewTitle}</p>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400">{siteUrl}</p>
+                    <p className="mt-1 text-slate-600 dark:text-slate-300">{seoPreviewDescription}</p>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="metaKeywords">Từ khóa mặc định</Label>

@@ -82,6 +82,17 @@ const parseSocialLinks = (input: string | string[] | null): string[] => {
   return [];
 };
 
+const normalizeText = (value: string): string => value.replace(/\s+/g, " ").trim();
+
+const truncateText = (value: string, maxLength: number): string => {
+  const normalized = normalizeText(value);
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+  const clipped = normalized.slice(0, maxLength).replace(/\s+\S*$/, "");
+  return `${clipped}…`;
+};
+
 const normalizeFontKey = (value: string | null | undefined): FontKey | null => {
   if (!value) {
     return null;
@@ -184,6 +195,36 @@ export const useSettingsForm = () => {
   const [productDetailFontKey, setProductDetailFontKey] = useState<string | null>(null);
   const [articleListFontKey, setArticleListFontKey] = useState<string | null>(null);
   const [articleDetailFontKey, setArticleDetailFontKey] = useState<string | null>(null);
+
+  const generateSeoDefaults = useCallback(() => {
+    const normalizedSiteName = normalizeText(siteName);
+    const normalizedTagline = normalizeText(siteTagline);
+    const primaryKeyword = metaKeywords[0] ? normalizeText(metaKeywords[0]) : "";
+    const shortAddress = normalizeText(address).split(",")[0] || "";
+
+    const resolvedTitle = normalizedSiteName
+      ? (normalizedTagline
+          ? `${normalizedSiteName} | ${normalizedTagline}`
+          : `${normalizedSiteName} | Rượu vang chính hãng`)
+      : (normalizedTagline || "Rượu vang chính hãng");
+
+    const baseDescription = normalizedTagline
+      ? `${normalizedTagline}.`
+      : `Rượu vang chính hãng tại ${normalizedSiteName || "Thiên Kim Wine"}.`;
+    const highlightDescription = "Tư vấn chuẩn gu, giao nhanh.";
+    const addressDescription = shortAddress ? `Cửa hàng tại ${shortAddress}.` : "";
+    const keywordDescription = primaryKeyword ? `Chuyên ${primaryKeyword.toLowerCase()}.` : "";
+
+    const resolvedDescription = truncateText(
+      [baseDescription, highlightDescription, addressDescription, keywordDescription]
+        .filter(Boolean)
+        .join(" "),
+      160
+    );
+
+    setMetaTitle(truncateText(resolvedTitle, 60));
+    setMetaDescription(resolvedDescription);
+  }, [address, metaKeywords, siteName, siteTagline]);
 
   const loadSettings = useCallback(async () => {
     setIsLoading(true);
@@ -657,6 +698,7 @@ export const useSettingsForm = () => {
       setProductDetailFontKey,
       setArticleListFontKey,
       setArticleDetailFontKey,
+      generateSeoDefaults,
       handleTabChange,
       handleKeywordAdd,
       handleKeywordRemove,
