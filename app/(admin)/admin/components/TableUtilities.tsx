@@ -1,9 +1,9 @@
- 'use client';
- 
- import React, { useMemo } from 'react';
- import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, X, Columns3 } from 'lucide-react';
- import { cn } from '@/lib/utils';
- import { Button, TableHead } from './ui';
+'use client';
+
+import React, { useMemo } from 'react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Trash2, X, Columns3, Pencil } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button, TableHead } from './ui';
  
  interface SortConfig {
    key: string | null;
@@ -62,14 +62,18 @@
    selectedCount: number;
    onDelete: () => void;
    onClearSelection: () => void;
+  onUpdate?: () => void;
    isLoading?: boolean;
+  isUpdating?: boolean;
  }
  
  export const BulkActionBar: React.FC<BulkActionBarProps> = ({ 
    selectedCount, 
    onDelete, 
    onClearSelection,
-   isLoading 
+  onUpdate,
+  isLoading,
+  isUpdating,
  }) => {
    if (selectedCount === 0) return null;
  
@@ -87,16 +91,30 @@
            <X size={16} />
          </button>
        </div>
-       <Button 
-         variant="destructive" 
-         size="sm" 
-         onClick={onDelete}
-         disabled={isLoading}
-         className="gap-2"
-       >
-         <Trash2 size={16} />
-         Xóa đã chọn
-       </Button>
+      <div className="flex items-center gap-2">
+        {onUpdate && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onUpdate}
+            disabled={isUpdating || isLoading}
+            className="gap-2"
+          >
+            <Pencil size={16} />
+            Cập nhật đã chọn
+          </Button>
+        )}
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={onDelete}
+          disabled={isLoading || isUpdating}
+          className="gap-2"
+        >
+          <Trash2 size={16} />
+          Xóa đã chọn
+        </Button>
+      </div>
      </div>
    );
  };

@@ -49,6 +49,12 @@ export const ProductsListScreen = () => {
     deleteConfirm,
     isDeleting,
     duplicatingId,
+    bulkUpdateOpen,
+    bulkUpdateFields,
+    bulkUpdateActive,
+    bulkUpdateTypeId,
+    bulkUpdateCategoryId,
+    isBulkUpdating,
     visibleColumns,
   } = state;
 
@@ -62,6 +68,11 @@ export const ProductsListScreen = () => {
     setPerPage,
     setSelectedIds,
     setDeleteConfirm,
+    setBulkUpdateOpen,
+    setBulkUpdateFields,
+    setBulkUpdateActive,
+    setBulkUpdateTypeId,
+    setBulkUpdateCategoryId,
     handleSort,
     toggleColumn,
     toggleSelectAll,
@@ -69,6 +80,7 @@ export const ProductsListScreen = () => {
     handleDelete,
     handleToggleStatus,
     handleDuplicate,
+    handleBulkUpdateSubmit,
     formatPrice,
     handleExportCurrent,
     handleExportAll,
@@ -99,6 +111,18 @@ export const ProductsListScreen = () => {
       </div>
     );
   }
+
+  const handleCloseBulkUpdate = () => {
+    setBulkUpdateOpen(false);
+    setBulkUpdateFields({
+      active: false,
+      type_id: false,
+      category_ids: false,
+    });
+    setBulkUpdateActive(true);
+    setBulkUpdateTypeId('');
+    setBulkUpdateCategoryId('');
+  };
 
   return (
     <div className="space-y-4">
@@ -168,8 +192,11 @@ export const ProductsListScreen = () => {
       {selectedIds.length > 0 && (
         <BulkActionBar
           selectedCount={selectedIds.length}
+          onUpdate={() => setBulkUpdateOpen(true)}
           onDelete={() => setDeleteConfirm({ type: 'bulk' })}
           onClearSelection={() => setSelectedIds([])}
+          isUpdating={isBulkUpdating}
+          isLoading={isDeleting}
         />
       )}
 
@@ -455,6 +482,110 @@ export const ProductsListScreen = () => {
               </Button>
               <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                 {isDeleting ? 'Đang xóa...' : 'Xóa'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {bulkUpdateOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="p-6 max-w-lg w-full mx-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Cập nhật sản phẩm hàng loạt</h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  Áp dụng cho {selectedIds.length} sản phẩm đã chọn. Chỉ field được tick sẽ bị cập nhật.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={bulkUpdateFields.active}
+                    onChange={(event) =>
+                      setBulkUpdateFields((prev) => ({ ...prev, active: event.target.checked }))
+                    }
+                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Trạng thái hiển thị
+                </label>
+                <select
+                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  value={bulkUpdateActive ? '1' : '0'}
+                  onChange={(event) => setBulkUpdateActive(event.target.value === '1')}
+                  disabled={!bulkUpdateFields.active}
+                >
+                  <option value="1">Hiển thị</option>
+                  <option value="0">Ẩn</option>
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={bulkUpdateFields.type_id}
+                    onChange={(event) =>
+                      setBulkUpdateFields((prev) => ({ ...prev, type_id: event.target.checked }))
+                    }
+                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Phân loại
+                </label>
+                <select
+                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  value={bulkUpdateTypeId}
+                  onChange={(event) => {
+                    setBulkUpdateTypeId(event.target.value);
+                    setBulkUpdateCategoryId('');
+                  }}
+                  disabled={!bulkUpdateFields.type_id}
+                >
+                  <option value="">Chọn phân loại...</option>
+                  {types.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={bulkUpdateFields.category_ids}
+                    onChange={(event) =>
+                      setBulkUpdateFields((prev) => ({ ...prev, category_ids: event.target.checked }))
+                    }
+                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Danh mục
+                </label>
+                <select
+                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
+                  value={bulkUpdateCategoryId}
+                  onChange={(event) => setBulkUpdateCategoryId(event.target.value)}
+                  disabled={!bulkUpdateFields.category_ids}
+                >
+                  <option value="">Chọn danh mục...</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="outline" onClick={handleCloseBulkUpdate} disabled={isBulkUpdating}>
+                Hủy
+              </Button>
+              <Button onClick={handleBulkUpdateSubmit} disabled={isBulkUpdating}>
+                {isBulkUpdating ? 'Đang cập nhật...' : 'Áp dụng'}
               </Button>
             </div>
           </Card>

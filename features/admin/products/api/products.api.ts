@@ -168,6 +168,25 @@ export async function bulkDeleteProducts(ids: number[]): Promise<{ success: bool
   });
 }
 
+export interface BulkUpdateProductsPayload {
+  ids: number[];
+  fields: string[];
+  changes: {
+    active?: boolean;
+    type_id?: number | null;
+    category_ids?: number[];
+  };
+}
+
+export async function bulkUpdateProducts(
+  payload: BulkUpdateProductsPayload
+): Promise<{ success: boolean; message: string; count: number }> {
+  return apiFetch("v1/admin/products/bulk-update", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export interface BulkImportResult {
   success: boolean;
   message: string;

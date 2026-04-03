@@ -6,6 +6,7 @@ import { type ProductFilterOption } from "@/lib/api/products";
 import { useProductExcel } from "@/lib/hooks/useProductExcel";
 import {
   bulkDeleteProducts,
+  bulkUpdateProducts,
   createProduct,
   deleteProduct,
   downloadAdminProductsExport,
@@ -14,6 +15,7 @@ import {
   fetchAdminProducts,
   updateProduct,
 } from "../api/products.api";
+import type { BulkUpdateProductsPayload } from "../api/products.api";
 import { productQueryKeys } from "../api/products.query-keys";
 
 const DEFAULT_COLUMNS = [
@@ -54,6 +56,15 @@ export const useProductsList = () => {
   });
   const [deleteConfirm, setDeleteConfirm] = useState<ProductDeleteConfirm>(null);
   const [visibleColumns, setVisibleColumns] = useState<string[]>(DEFAULT_COLUMNS.map((column) => column.key));
+  const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false);
+  const [bulkUpdateFields, setBulkUpdateFields] = useState({
+    active: false,
+    type_id: false,
+    category_ids: false,
+  });
+  const [bulkUpdateActive, setBulkUpdateActive] = useState(true);
+  const [bulkUpdateTypeId, setBulkUpdateTypeId] = useState("");
+  const [bulkUpdateCategoryId, setBulkUpdateCategoryId] = useState("");
 
   const { isExporting, exportProducts, exportTemplate } = useProductExcel();
 
@@ -255,6 +266,22 @@ export const useProductsList = () => {
     },
   });
 
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async (payload: BulkUpdateProductsPayload) => {
+      return bulkUpdateProducts(payload);
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
+      setSelectedIds([]);
+      setBulkUpdateOpen(false);
+      toast.success(result.message || "Đã cập nhật sản phẩm");
+    },
+    onError: (error) => {
+      console.error("Failed to bulk update products:", error);
+      toast.error("Cập nhật hàng loạt thất bại. Vui lòng thử lại.");
+    },
+  });
+
   const handleDelete = async () => {
     if (!deleteConfirm) return;
     await deleteMutation.mutateAsync(deleteConfirm);
@@ -266,6 +293,39 @@ export const useProductsList = () => {
 
   const handleDuplicate = async (id: number) => {
     await duplicateMutation.mutateAsync(id);
+  };
+
+  const handleBulkUpdateSubmit = async () => {
+    if (selectedIds.length === 0) {
+      toast.error("Vui lòng chọn ít nhất 1 sản phẩm");
+      return;
+    }
+
+    const fields = Object.entries(bulkUpdateFields)
+      .filter(([, enabled]) => enabled)
+      .map(([field]) => field);
+
+    if (fields.length === 0) {
+      toast.error("Vui lòng chọn ít nhất 1 trường để cập nhật");
+      return;
+    }
+
+    const changes: BulkUpdateProductsPayload["changes"] = {};
+    if (bulkUpdateFields.active) {
+      changes.active = bulkUpdateActive;
+    }
+    if (bulkUpdateFields.type_id) {
+      changes.type_id = bulkUpdateTypeId ? Number(bulkUpdateTypeId) : null;
+    }
+    if (bulkUpdateFields.category_ids) {
+      changes.category_ids = bulkUpdateCategoryId ? [Number(bulkUpdateCategoryId)] : [];
+    }
+
+    await bulkUpdateMutation.mutateAsync({
+      ids: selectedIds,
+      fields,
+      changes,
+    });
   };
 
   const formatPrice = (price: number | null) => {
@@ -335,6 +395,12 @@ export const useProductsList = () => {
       deleteConfirm,
       isDeleting: deleteMutation.isPending,
       duplicatingId: duplicateMutation.isPending ? duplicateMutation.variables ?? null : null,
+      bulkUpdateOpen,
+      bulkUpdateFields,
+      bulkUpdateActive,
+      bulkUpdateTypeId,
+      bulkUpdateCategoryId,
+      isBulkUpdating: bulkUpdateMutation.isPending,
       visibleColumns,
     },
     actions: {
@@ -347,6 +413,11 @@ export const useProductsList = () => {
       setPerPage,
       setSelectedIds,
       setDeleteConfirm,
+      setBulkUpdateOpen,
+      setBulkUpdateFields,
+      setBulkUpdateActive,
+      setBulkUpdateTypeId,
+      setBulkUpdateCategoryId,
       handleSort,
       toggleColumn,
       toggleSelectAll,
@@ -354,6 +425,7 @@ export const useProductsList = () => {
       handleDelete,
       handleToggleStatus,
       handleDuplicate,
+      handleBulkUpdateSubmit,
       formatPrice,
       handleExportCurrent,
       handleExportAll,
