@@ -6,8 +6,10 @@ import { type ProductFilterOption } from "@/lib/api/products";
 import { useProductExcel } from "@/lib/hooks/useProductExcel";
 import {
   bulkDeleteProducts,
+  createProduct,
   deleteProduct,
   downloadAdminProductsExport,
+  fetchAdminProduct,
   fetchAdminProductFilters,
   fetchAdminProducts,
   updateProduct,
@@ -200,6 +202,59 @@ export const useProductsList = () => {
     },
   });
 
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await fetchAdminProduct(id);
+      const copyName = `${data.name} (copy)`;
+      const slugBase = generateSlug(copyName);
+      const slug = `${slugBase}-${Date.now()}`;
+      const imagePaths = (data.images ?? [])
+        .map((image) => image.path)
+        .filter((path): path is string => Boolean(path));
+
+      const payload = {
+        name: copyName,
+        slug,
+        description: data.description ?? "",
+        meta_title: data.meta_title ?? null,
+        meta_description: data.meta_description ?? null,
+        shopee_url: data.shopee_url ?? null,
+        price: data.price ?? null,
+        original_price: data.original_price ?? null,
+        type_id: data.type_id ?? null,
+        category_ids: data.category_ids ?? [],
+        active: data.active ?? true,
+        extra_attrs: data.extra_attrs ?? null,
+        term_ids: data.term_ids ?? [],
+        image_paths: imagePaths,
+      };
+
+      return createProduct(payload);
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey: productQueryKeys.lists() });
+      if (result.success) {
+        toast.success("Đã nhân bản sản phẩm");
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to duplicate product:", error);
+      toast.error("Nhân bản sản phẩm thất bại. Vui lòng thử lại.");
+    },
+  });
+
   const handleDelete = async () => {
     if (!deleteConfirm) return;
     await deleteMutation.mutateAsync(deleteConfirm);
@@ -207,6 +262,10 @@ export const useProductsList = () => {
 
   const handleToggleStatus = async (id: number, currentStatus: boolean) => {
     await statusMutation.mutateAsync({ id, currentStatus });
+  };
+
+  const handleDuplicate = async (id: number) => {
+    await duplicateMutation.mutateAsync(id);
   };
 
   const formatPrice = (price: number | null) => {
@@ -275,6 +334,7 @@ export const useProductsList = () => {
       perPage,
       deleteConfirm,
       isDeleting: deleteMutation.isPending,
+      duplicatingId: duplicateMutation.isPending ? duplicateMutation.variables ?? null : null,
       visibleColumns,
     },
     actions: {
@@ -293,6 +353,7 @@ export const useProductsList = () => {
       toggleSelectItem,
       handleDelete,
       handleToggleStatus,
+      handleDuplicate,
       formatPrice,
       handleExportCurrent,
       handleExportAll,

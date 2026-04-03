@@ -13,6 +13,7 @@ import {
   FileUp,
   FileSpreadsheet,
   ChevronDown,
+  Copy,
 } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '@/app/(admin)/admin/components/ui';
 import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox } from '@/app/(admin)/admin/components/TableUtilities';
@@ -47,6 +48,7 @@ export const ProductsListScreen = () => {
     perPage,
     deleteConfirm,
     isDeleting,
+    duplicatingId,
     visibleColumns,
   } = state;
 
@@ -66,6 +68,7 @@ export const ProductsListScreen = () => {
     toggleSelectItem,
     handleDelete,
     handleToggleStatus,
+    handleDuplicate,
     formatPrice,
     handleExportCurrent,
     handleExportAll,
@@ -326,7 +329,7 @@ export const ProductsListScreen = () => {
                   )}
                   {visibleColumns.includes('actions') && (
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1">
                         <Link href={`/san-pham/${product.slug}`} target="_blank">
                           <Button
                             variant="ghost"
@@ -343,6 +346,16 @@ export const ProductsListScreen = () => {
                             <Edit size={16} />
                           </Button>
                         </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDuplicate(product.id)}
+                          disabled={duplicatingId === product.id}
+                          aria-label="Duplicate"
+                          title="Nhân bản sản phẩm"
+                        >
+                          <Copy size={16} />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
