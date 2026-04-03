@@ -54,6 +54,7 @@ export default function AgeGate() {
       <DialogContent className="border-[#9B2C3B]/20 bg-white px-8 py-10 sm:px-10">
         <DialogTitle className="sr-only">Xác nhận độ tuổi</DialogTitle>
         <div
+          data-nosnippet
           className={cn(
             "flex flex-col gap-6 text-center",
             montserrat.variable,
