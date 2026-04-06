@@ -554,6 +554,7 @@ const LexicalEditor = dynamic(
                         width={previewSize}
                         height={previewSize}
                         sizes={`${previewSize}px`}
+                        unoptimized
                         className="object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                         style={{ width: previewSize, height: previewSize }}
                       />
@@ -925,6 +926,7 @@ const LexicalEditor = dynamic(
                 width={960}
                 height={960}
                 sizes="(max-width: 768px) 90vw, 800px"
+                unoptimized
                 className="max-h-[70vh] w-auto rounded-lg object-contain"
               />
             )}

@@ -118,6 +118,7 @@ export default function ImageEditPage({ params }: { params: Promise<{ id: string
                     alt={alt || 'Preview'}
                     width={600}
                     height={400}
+                    unoptimized
                     className="rounded-lg border border-slate-200 dark:border-slate-700 max-w-full h-auto"
                   />
                 </div>

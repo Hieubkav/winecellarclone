@@ -74,9 +74,9 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1536, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 86400,
     // Disable image optimization in development to fix 404 errors with localhost backend
     // In production: Enable if backend domain is in NEXT_PUBLIC_MEDIA_HOSTS and has proper CORS
     // Or set unoptimized: true to disable optimization entirely for simplicity

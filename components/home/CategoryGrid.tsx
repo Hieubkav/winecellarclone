@@ -37,7 +37,8 @@ export default function CategoryGrid({ categories = [] }: CategoryGridProps) {
                         src={category.image}
                         alt={category.alt}
                         fill
-                        priority={index < 3}
+                        loading="lazy"
+                        unoptimized
                         sizes="(min-width: 1280px) 18vw, (min-width: 768px) 30vw, 33vw"
                         className="object-cover transition duration-500 ease-out group-hover:scale-[1.03]"
                       />
