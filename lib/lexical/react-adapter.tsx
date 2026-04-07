@@ -150,7 +150,9 @@ function LexicalComposer({
   initialConfig: InitialConfig;
   children: ReactNode;
 }) {
-  const composerContext = useMemo<LexicalComposerContextType>(() => {
+  const composerContextRef = useRef<LexicalComposerContextType | null>(null);
+
+  if (composerContextRef.current === null) {
     const { namespace, nodes, onError, editorState: initialEditorState, html } = initialConfig;
     const theme = initialConfig.theme ?? undefined;
     const context = createLexicalComposerContext(null, theme ?? null);
@@ -163,8 +165,10 @@ function LexicalComposer({
       theme,
     });
     initializeEditor(editor, initialEditorState);
-    return [editor, context];
-  }, []);
+    composerContextRef.current = [editor, context];
+  }
+
+  const composerContext = composerContextRef.current;
 
   useLayoutEffectImpl(() => {
     const isEditable = initialConfig.editable;
