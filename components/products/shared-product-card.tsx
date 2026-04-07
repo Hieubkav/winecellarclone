@@ -212,13 +212,13 @@ export const SharedProductCard = React.memo(function SharedProductCard({
 
     if (pathname === "/filter") {
       if (initialized && attr.filterCode && attr.termSlugs && attr.termSlugs.length > 0) {
-        await applyAttributeFilterBySlug(attr.filterCode, attr.termSlugs);
+        await applyAttributeFilterBySlug(attr.filterCode, attr.termSlugs, item.wineTypeSlug);
       }
       return;
     }
 
     router.push(attr.filterUrl);
-  }, [applyAttributeFilterBySlug, initialized, pathname, router]);
+  }, [applyAttributeFilterBySlug, initialized, item.wineTypeSlug, pathname, router]);
 
   return (
     <div

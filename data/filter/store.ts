@@ -131,7 +131,7 @@ interface WineStoreActions {
   setSelectedProductType: (id: number | null, skipFetch?: boolean) => Promise<void>
   toggleAttributeFilter: (attributeCode: string, optionId: number, skipFetch?: boolean) => void
   setAttributeSelection: (attributeCode: string, optionId: number | null, skipFetch?: boolean) => void
-  applyAttributeFilterBySlug: (attributeCode: string, termSlugs: string[]) => Promise<boolean>
+  applyAttributeFilterBySlug: (attributeCode: string, termSlugs: string[], preferredTypeSlug?: string | null) => Promise<boolean>
   setPriceRange: (range: PriceRange, skipFetch?: boolean) => void
   setRangeFilter: (code: string, min: number, max: number, skipFetch?: boolean) => void
   setSortBy: (sort: SortOption, skipFetch?: boolean) => void
@@ -726,7 +726,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
       void get().fetchProducts()
     }
   },
-  applyAttributeFilterBySlug: async (attributeCode, termSlugs) => {
+  applyAttributeFilterBySlug: async (attributeCode, termSlugs, preferredTypeSlug = null) => {
     const normalizedSlugs = Array.from(new Set(termSlugs.map((slug) => slug.trim()).filter(Boolean)))
     if (normalizedSlugs.length === 0) {
       return false
@@ -745,10 +745,18 @@ export const useWineStore = create<WineStore>((set, get) => ({
         },
       }))
 
-      return get().options.attributeFilters.find((filter) => filter.code === attributeCode) ?? null
+      return {
+        options: get().options,
+        attributeFilter: get().options.attributeFilters.find((filter) => filter.code === attributeCode) ?? null,
+      }
     }
 
     let { options, filters } = get()
+    const preferredTypeId = preferredTypeSlug
+      ? options.productTypes.find((type) => type.slug === preferredTypeSlug)?.id ?? null
+      : null
+    const effectiveTypeId = preferredTypeId ?? filters.productTypeId ?? null
+
     let attributeFilter = options.attributeFilters.find((filter) => filter.code === attributeCode) ?? null
 
     const resolveIds = () =>
@@ -760,7 +768,9 @@ export const useWineStore = create<WineStore>((set, get) => ({
 
     if (!attributeFilter || resolvedIds.length === 0) {
       try {
-        attributeFilter = await refreshAttributeFilters(filters.productTypeId ?? null)
+        const refreshed = await refreshAttributeFilters(effectiveTypeId)
+        options = refreshed.options
+        attributeFilter = refreshed.attributeFilter
         resolvedIds = resolveIds()
       } catch (error) {
         console.error("Failed to refresh attribute filters:", error)
@@ -775,16 +785,24 @@ export const useWineStore = create<WineStore>((set, get) => ({
       ? resolvedIds
       : [resolvedIds[0]]
 
-    set((state) => ({
-      filters: {
-        ...state.filters,
-        attributeSelections: {
-          ...state.filters.attributeSelections,
-          [attributeCode]: nextSelections,
+    set((state) => {
+      const isTypeChanged = state.filters.productTypeId !== effectiveTypeId
+      const baseAttributeSelections = isTypeChanged ? {} : state.filters.attributeSelections
+      const baseRangeFilters = isTypeChanged ? {} : state.filters.rangeFilters
+
+      return {
+        filters: {
+          ...state.filters,
+          productTypeId: effectiveTypeId,
+          attributeSelections: {
+            ...baseAttributeSelections,
+            [attributeCode]: nextSelections,
+          },
+          rangeFilters: baseRangeFilters,
+          page: 1,
         },
-        page: 1,
-      },
-    }))
+      }
+    })
 
     await get().fetchProducts()
     return true
