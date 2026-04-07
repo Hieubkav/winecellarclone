@@ -17,6 +17,7 @@ interface ProductImageProps {
   loading?: "eager" | "lazy";
   style?: React.CSSProperties;
   showSkeleton?: boolean;
+  unoptimized?: boolean;
   onLoadComplete?: () => void;
 }
 
@@ -43,6 +44,7 @@ export function ProductImage({
   loading,
   style,
   showSkeleton = true,
+  unoptimized = false,
   onLoadComplete,
 }: ProductImageProps) {
   const [isLoading, setIsLoading] = useState(true);
@@ -134,6 +136,7 @@ export function ProductImage({
           priority={priority}
           fetchPriority={fetchPriority}
           loading={loading}
+          unoptimized={unoptimized}
           onLoad={handleLoad}
           onLoadingComplete={handleLoadComplete}
           onError={handleError}
@@ -159,6 +162,7 @@ export function ProductImage({
         priority={priority}
         fetchPriority={fetchPriority}
         loading={loading}
+        unoptimized={unoptimized}
         style={style}
         onLoad={handleLoad}
         onLoadingComplete={handleLoadComplete}

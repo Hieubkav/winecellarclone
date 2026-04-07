@@ -322,6 +322,7 @@ export default function DashboardPage() {
                       width={48}
                       height={48}
                       sizes="48px"
+                      unoptimized
                       className="w-12 h-12 rounded-lg object-cover"
                     />
                   ) : (
@@ -378,6 +379,7 @@ export default function DashboardPage() {
                       width={48}
                       height={48}
                       sizes="48px"
+                      unoptimized
                       className="w-12 h-12 rounded-lg object-cover"
                     />
                   ) : (

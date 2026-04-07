@@ -65,7 +65,8 @@ function ArticleCard({ article, index }: ArticleCardProps) {
           src={article.image}
           alt={article.title}
           fill
-          priority={index < 3}
+          loading="lazy"
+          unoptimized
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 45vw, 30vw"
           className="object-cover transition duration-500 ease-out group-hover:scale-[1.02]"
         />
