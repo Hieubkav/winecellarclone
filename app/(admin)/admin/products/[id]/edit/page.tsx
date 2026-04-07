@@ -689,7 +689,8 @@ const generateSlug = (text: string): string => {
                         width={previewSize}
                         height={previewSize}
                         sizes={`${previewSize}px`}
-                        unoptimized
+                        priority={index === 0}
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
                         className="object-cover rounded-lg border border-slate-200 dark:border-slate-700"
                         style={{ width: previewSize, height: previewSize }}
                       />
@@ -1086,7 +1087,6 @@ const generateSlug = (text: string): string => {
                 width={960}
                 height={960}
                 sizes="(max-width: 768px) 90vw, 800px"
-                unoptimized
                 className="max-h-[70vh] w-auto rounded-lg object-contain"
               />
             )}

@@ -39,8 +39,7 @@ export default function DualBanner({ banners = [] }: DualBannerProps) {
                       src={banner.image}
                       alt={banner.alt}
                       fill
-                      loading="lazy"
-                      unoptimized
+                      priority={index === 0}
                       sizes="(min-width: 1024px) 45vw, (min-width: 768px) 50vw, 100vw"
                       className="object-cover transition duration-500 group-hover:scale-[1.02]"
                     />
@@ -59,8 +58,7 @@ export default function DualBanner({ banners = [] }: DualBannerProps) {
                       src={banner.image}
                       alt={banner.alt}
                       fill
-                      loading="lazy"
-                      unoptimized
+                      priority={index === 0}
                       sizes="(min-width: 1024px) 45vw, (min-width: 768px) 50vw, 100vw"
                       className="object-cover transition duration-500 group-hover:scale-[1.02]"
                     />

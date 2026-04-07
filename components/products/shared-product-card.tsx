@@ -153,7 +153,6 @@ export const SharedProductCard = React.memo(function SharedProductCard({
             className="h-full w-full object-contain p-1"
             priority={priority}
             loading={priority ? "eager" : "lazy"}
-            unoptimized
           />
         </ProductPortraitFrame>
       </Link>

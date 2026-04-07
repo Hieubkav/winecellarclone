@@ -119,7 +119,7 @@ export default async function Page() {
     fetchProductFiltersSafe(),
     fetchProductListSafe({
       page: 1,
-      per_page: 16,
+      per_page: 24,
       sort: 'name',
     }),
     fetchSettingsSafe(),

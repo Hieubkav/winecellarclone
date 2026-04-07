@@ -193,7 +193,6 @@ export default function ImageCreatePage() {
                     alt="Preview"
                     width={400}
                     height={300}
-                    unoptimized
                     className="rounded-lg border border-slate-200 dark:border-slate-700 max-w-full h-auto"
                   />
                   <Button
