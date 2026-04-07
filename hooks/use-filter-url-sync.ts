@@ -201,6 +201,17 @@ export function useFilterUrlSync() {
           currentFilters.priceRange[1] !== priceMax ||
           JSON.stringify(currentFilters.attributeSelections) !== JSON.stringify(attributeSelections)
 
+        const hadActiveFiltersBeforeSync = Boolean(
+          currentFilters.categoryId ||
+          currentFilters.productTypeId ||
+          currentFilters.searchQuery ||
+          currentFilters.sortBy !== "name-asc" ||
+          currentFilters.priceRange[0] !== options.priceRange[0] ||
+          currentFilters.priceRange[1] !== options.priceRange[1] ||
+          Object.keys(currentFilters.attributeSelections).some((code) => (currentFilters.attributeSelections[code]?.length ?? 0) > 0) ||
+          Object.keys(currentFilters.rangeFilters ?? {}).length > 0
+        )
+
         // Apply ALL filters at once directly to store (atomic update)
         // This prevents partial state updates and is more predictable
         useWineStore.setState((state) => ({
@@ -216,9 +227,9 @@ export function useFilterUrlSync() {
           }
         }))
 
-        // Chỉ fetch products nếu có params không phải default
-        // Tránh fetch lại khi đã có prefetched data
-        if (filtersChanged && hasNonDefaultParams) {
+        const shouldFetchProducts = filtersChanged && (hasNonDefaultParams || hadActiveFiltersBeforeSync)
+
+        if (shouldFetchProducts) {
           await useWineStore.getState().fetchProducts()
         }
       } catch (error) {
