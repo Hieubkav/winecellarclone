@@ -6,7 +6,6 @@ import {
   deleteArticle,
   fetchAdminArticles,
   updateArticle,
-  type AdminArticle,
 } from "../api/articles.api";
 import { articleQueryKeys } from "../api/articles.query-keys";
 

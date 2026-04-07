@@ -42,8 +42,8 @@ export default function EditorialSpotlight({ label, title, description, articles
             )}
           </header>
           <div className="grid gap-8 md:grid-cols-3">
-            {articles.map((article, index) => (
-              <ArticleCard key={article.id} article={article} index={index} />
+            {articles.map((article) => (
+              <ArticleCard key={article.id} article={article} />
             ))}
           </div>
         </div>
@@ -54,10 +54,9 @@ export default function EditorialSpotlight({ label, title, description, articles
 
 type ArticleCardProps = {
   article: HomeEditorial
-  index: number
 }
 
-function ArticleCard({ article, index }: ArticleCardProps) {
+function ArticleCard({ article }: ArticleCardProps) {
   return (
     <Card className="group flex h-full flex-col overflow-hidden border border-[#efefef] bg-white/95 p-0 transition hover:-translate-y-1 hover:border-[#ECAA4D]/60 focus-within:outline-none focus-within:ring-2 focus-within:ring-[#ECAA4D]">
       <div className="relative aspect-video w-full overflow-hidden bg-[#FAFAFA]">

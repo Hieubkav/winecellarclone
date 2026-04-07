@@ -44,9 +44,7 @@ export const metadata: Metadata = {
 export const revalidate = 300; // ISR: Revalidate every 5 minutes
 
 export default async function ContactPage() {
-  const [settings] = await Promise.all([
-    fetchSettingsSafe(),
-  ]);
+  const settings = await fetchSettingsSafe();
 
   // Get contact config from settings, fallback to default
   const contactConfig: ContactConfig = settings.contact_config || DEFAULT_CONTACT_CONFIG;
