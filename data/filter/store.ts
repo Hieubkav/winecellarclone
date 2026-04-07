@@ -131,6 +131,7 @@ interface WineStoreActions {
   setSelectedProductType: (id: number | null, skipFetch?: boolean) => Promise<void>
   toggleAttributeFilter: (attributeCode: string, optionId: number, skipFetch?: boolean) => void
   setAttributeSelection: (attributeCode: string, optionId: number | null, skipFetch?: boolean) => void
+  applyAttributeFilterBySlug: (attributeCode: string, termSlugs: string[]) => Promise<boolean>
   setPriceRange: (range: PriceRange, skipFetch?: boolean) => void
   setRangeFilter: (code: string, min: number, max: number, skipFetch?: boolean) => void
   setSortBy: (sort: SortOption, skipFetch?: boolean) => void
@@ -724,6 +725,66 @@ export const useWineStore = create<WineStore>((set, get) => ({
     if (!skipFetch) {
       void get().fetchProducts()
     }
+  },
+  applyAttributeFilterBySlug: async (attributeCode, termSlugs) => {
+    const normalizedSlugs = Array.from(new Set(termSlugs.map((slug) => slug.trim()).filter(Boolean)))
+    if (normalizedSlugs.length === 0) {
+      return false
+    }
+
+    let { options, filters } = get()
+    let attributeFilter = options.attributeFilters.find((filter) => filter.code === attributeCode)
+
+    if (!attributeFilter && filters.productTypeId) {
+      try {
+        const payload = await fetchProductFilters(filters.productTypeId)
+        const newOptions = transformOptions(payload)
+
+        set((state) => ({
+          options: {
+            ...state.options,
+            attributeFilters: newOptions.attributeFilters,
+            rangeFilterBounds: newOptions.rangeFilterBounds,
+            categories: newOptions.categories,
+          },
+        }))
+
+        options = get().options
+        attributeFilter = options.attributeFilters.find((filter) => filter.code === attributeCode)
+      } catch (error) {
+        console.error("Failed to refresh attribute filters:", error)
+      }
+    }
+
+    if (!attributeFilter) {
+      return false
+    }
+
+    const resolvedIds = normalizedSlugs
+      .map((slug) => attributeFilter?.options.find((option) => option.slug === slug)?.id ?? null)
+      .filter((id): id is number => id !== null)
+
+    if (resolvedIds.length === 0) {
+      return false
+    }
+
+    const nextSelections = attributeFilter.filter_type === "chon_nhieu"
+      ? resolvedIds
+      : [resolvedIds[0]]
+
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        attributeSelections: {
+          ...state.filters.attributeSelections,
+          [attributeCode]: nextSelections,
+        },
+        page: 1,
+      },
+    }))
+
+    await get().fetchProducts()
+    return true
   },
   setSortBy: (sort, skipFetch = false) => {
     set((state) => ({

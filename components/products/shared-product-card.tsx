@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useShallow } from "zustand/react/shallow";
 
 import { cn } from "@/lib/utils";
 import type { ProductCardItem } from "@/lib/types/product-card";
@@ -9,6 +11,7 @@ import { ProductImage } from "@/components/ui/product-image";
 import { ProductPortraitFrame } from "@/components/ui/product-portrait-frame";
 import DynamicIcon from "@/components/shared/DynamicIcon";
 import { getImageUrl } from "@/lib/utils/image";
+import { useWineStore } from "@/data/filter/store";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -38,6 +41,8 @@ interface AttributeItem {
   show: boolean;
   groupName?: string;
   filterUrl?: string;
+  filterCode?: string;
+  termSlugs?: string[];
 }
 
 const AttributeIcon = ({ url, iconName }: { url?: string | null; iconName?: string | null }) => {
@@ -86,6 +91,15 @@ export const SharedProductCard = React.memo(function SharedProductCard({
   priority = false,
   className,
 }: ProductCardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { initialized, applyAttributeFilterBySlug } = useWineStore(
+    useShallow((state) => ({
+      initialized: state.initialized,
+      applyAttributeFilterBySlug: state.applyAttributeFilterBySlug,
+    }))
+  );
+
   const discountPercentage = typeof item.discountPercent === "number"
     ? item.discountPercent
     : item.originalPrice && item.originalPrice > (item.price ?? 0)
@@ -102,6 +116,8 @@ export const SharedProductCard = React.memo(function SharedProductCard({
         label: item.brand,
         show: true,
         groupName: "Thương hiệu",
+        filterCode: "thuong_hieu",
+        termSlugs: item.brandSlug ? [item.brandSlug] : [],
         filterUrl: item.brandSlug ? buildTaxonomyUrl("thuong_hieu", item.brandSlug) : undefined,
       });
       addedSemanticKeys.add("brand");
@@ -113,6 +129,8 @@ export const SharedProductCard = React.memo(function SharedProductCard({
         label: item.country,
         show: true,
         groupName: "Xuất xứ",
+        filterCode: "xuat_xu",
+        termSlugs: item.countrySlug ? [item.countrySlug] : [],
         filterUrl: item.countrySlug ? buildTaxonomyUrl("xuat_xu", item.countrySlug) : undefined,
       });
       addedSemanticKeys.add("country");
@@ -133,7 +151,8 @@ export const SharedProductCard = React.memo(function SharedProductCard({
         }
 
         const termNames = attrGroup.terms.map((term) => term.name).join(", ");
-        const firstTermSlug = attrGroup.terms[0]?.slug;
+        const termSlugs = attrGroup.terms.map((term) => term.slug).filter(Boolean);
+        const firstTermSlug = termSlugs[0];
 
         attrs.push({
           iconUrl: attrGroup.icon_url,
@@ -141,6 +160,8 @@ export const SharedProductCard = React.memo(function SharedProductCard({
           label: termNames,
           show: true,
           groupName,
+          filterCode: attrGroup.group_code,
+          termSlugs,
           filterUrl: firstTermSlug ? buildTaxonomyUrl(attrGroup.group_code, firstTermSlug) : undefined,
         });
 
@@ -181,8 +202,23 @@ export const SharedProductCard = React.memo(function SharedProductCard({
     return attrs.filter((attr) => attr.show);
   };
 
-  const attributes = buildAttributes();
+  const attributes = useMemo(() => buildAttributes(), [item]);
   const href = item.href ?? (item.slug ? `/san-pham/${item.slug}` : "#");
+
+  const handleAttributeClick = useCallback(async (attr: AttributeItem) => {
+    if (!attr.filterUrl) {
+      return;
+    }
+
+    if (pathname === "/filter" && initialized && attr.filterCode && attr.termSlugs && attr.termSlugs.length > 0) {
+      const applied = await applyAttributeFilterBySlug(attr.filterCode, attr.termSlugs);
+      if (applied) {
+        return;
+      }
+    }
+
+    router.push(attr.filterUrl);
+  }, [applyAttributeFilterBySlug, initialized, pathname, router]);
 
   return (
     <div
@@ -231,13 +267,16 @@ export const SharedProductCard = React.memo(function SharedProductCard({
             );
 
             return attr.filterUrl ? (
-              <Link
+              <button
                 key={`${attr.label}-${index}`}
-                href={attr.filterUrl}
-                className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600 transition-colors hover:text-[#9B2C3B]"
+                type="button"
+                onClick={() => {
+                  void handleAttributeClick(attr);
+                }}
+                className="flex w-full items-center gap-1.5 sm:gap-2 text-left text-[11px] sm:text-xs text-stone-600 transition-colors hover:text-[#9B2C3B]"
               >
                 {content}
-              </Link>
+              </button>
             ) : (
               <div key={`${attr.label}-${index}`} className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600">
                 {content}
