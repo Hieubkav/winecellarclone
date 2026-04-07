@@ -255,9 +255,9 @@ export default function ContactConfigPage() {
         setConfig({
           ...DEFAULT_CONTACT_CONFIG,
           ...rawConfig,
-          hero: { ...DEFAULT_CONTACT_CONFIG.hero, ...(rawConfig.hero ?? {}) },
-          map: { ...DEFAULT_CONTACT_CONFIG.map, ...(rawConfig.map ?? {}) },
-          social: { ...DEFAULT_CONTACT_CONFIG.social, ...(rawConfig.social ?? {}) },
+          hero: { ...DEFAULT_CONTACT_CONFIG.hero, ...rawConfig.hero },
+          map: { ...DEFAULT_CONTACT_CONFIG.map, ...rawConfig.map },
+          social: { ...DEFAULT_CONTACT_CONFIG.social, ...rawConfig.social },
           cards: Array.isArray(rawConfig.cards) ? rawConfig.cards : DEFAULT_CONTACT_CONFIG.cards,
           social_links: Array.isArray(rawConfig.social_links)
             ? rawConfig.social_links.slice().sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
