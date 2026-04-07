@@ -37,6 +37,7 @@ interface AttributeItem {
   label: string;
   show: boolean;
   groupName?: string;
+  filterUrl?: string;
 }
 
 const AttributeIcon = ({ url, iconName }: { url?: string | null; iconName?: string | null }) => {
@@ -49,6 +50,31 @@ const AttributeIcon = ({ url, iconName }: { url?: string | null; iconName?: stri
       imageClassName="w-3.5 sm:w-4 h-3.5 sm:h-4 object-contain"
     />
   );
+};
+
+const normalizeText = (value: string | null | undefined) =>
+  (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+
+const buildTaxonomyUrl = (key: string, value: string) => {
+  const params = new URLSearchParams();
+  params.set(key, value);
+  return `/filter?${params.toString()}`;
+};
+
+const isBrandGroup = (groupCode?: string, groupName?: string) => {
+  const normalizedCode = normalizeText(groupCode);
+  const normalizedName = normalizeText(groupName);
+  return normalizedCode === "thuong_hieu" || normalizedCode === "brand" || normalizedName === "thuong hieu";
+};
+
+const isCountryGroup = (groupCode?: string, groupName?: string) => {
+  const normalizedCode = normalizeText(groupCode);
+  const normalizedName = normalizeText(groupName);
+  return normalizedCode === "xuat_xu" || normalizedCode === "origin" || normalizedCode === "country" || normalizedName === "xuat xu";
 };
 
 const AttributeLabel = ({ attr }: { attr: AttributeItem }) => {
@@ -68,13 +94,17 @@ export const SharedProductCard = React.memo(function SharedProductCard({
 
   const buildAttributes = (): AttributeItem[] => {
     const attrs: AttributeItem[] = [];
+    const addedSemanticKeys = new Set<string>();
 
     if (item.brand) {
       attrs.push({
         iconName: "Tag",
         label: item.brand,
         show: true,
+        groupName: "Thương hiệu",
+        filterUrl: item.brandSlug ? buildTaxonomyUrl("thuong_hieu", item.brandSlug) : undefined,
       });
+      addedSemanticKeys.add("brand");
     }
 
     if (item.country) {
@@ -82,20 +112,44 @@ export const SharedProductCard = React.memo(function SharedProductCard({
         iconName: "MapPin",
         label: item.country,
         show: true,
+        groupName: "Xuất xứ",
+        filterUrl: item.countrySlug ? buildTaxonomyUrl("xuat_xu", item.countrySlug) : undefined,
       });
+      addedSemanticKeys.add("country");
     }
 
     if (item.attributes && item.attributes.length > 0) {
       item.attributes.forEach((attrGroup) => {
+        if (attrGroup.terms.length === 0) {
+          return;
+        }
+
+        const groupName = attrGroup.group_name || attrGroup.group_code;
+        const isBrand = isBrandGroup(attrGroup.group_code, groupName);
+        const isCountry = isCountryGroup(attrGroup.group_code, groupName);
+
+        if ((isBrand && addedSemanticKeys.has("brand")) || (isCountry && addedSemanticKeys.has("country"))) {
+          return;
+        }
+
         const termNames = attrGroup.terms.map((term) => term.name).join(", ");
+        const firstTermSlug = attrGroup.terms[0]?.slug;
 
         attrs.push({
           iconUrl: attrGroup.icon_url,
           iconName: attrGroup.icon_name,
           label: termNames,
           show: true,
-          groupName: attrGroup.group_name || attrGroup.group_code,
+          groupName,
+          filterUrl: firstTermSlug ? buildTaxonomyUrl(attrGroup.group_code, firstTermSlug) : undefined,
         });
+
+        if (isBrand) {
+          addedSemanticKeys.add("brand");
+        }
+        if (isCountry) {
+          addedSemanticKeys.add("country");
+        }
       });
     }
 
@@ -166,14 +220,30 @@ export const SharedProductCard = React.memo(function SharedProductCard({
         </Link>
 
         <div className="mb-1.5 sm:mb-2 flex flex-col gap-0.5 sm:gap-1">
-          {attributes.map((attr, index) => (
-            <div key={`${attr.label}-${index}`} className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600">
-              <span className="text-[#9B2C3B] shrink-0 w-3.5 sm:w-4 flex items-center justify-center">
-                <AttributeIcon url={attr.iconUrl} iconName={attr.iconName} />
-              </span>
-              <AttributeLabel attr={attr} />
-            </div>
-          ))}
+          {attributes.map((attr, index) => {
+            const content = (
+              <>
+                <span className="text-[#9B2C3B] shrink-0 w-3.5 sm:w-4 flex items-center justify-center">
+                  <AttributeIcon url={attr.iconUrl} iconName={attr.iconName} />
+                </span>
+                <AttributeLabel attr={attr} />
+              </>
+            );
+
+            return attr.filterUrl ? (
+              <Link
+                key={`${attr.label}-${index}`}
+                href={attr.filterUrl}
+                className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600 transition-colors hover:text-[#9B2C3B]"
+              >
+                {content}
+              </Link>
+            ) : (
+              <div key={`${attr.label}-${index}`} className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-stone-600">
+                {content}
+              </div>
+            );
+          })}
         </div>
 
         <div className="mt-auto flex items-end justify-between gap-2 pt-1.5 sm:pt-2 border-t border-stone-100">
