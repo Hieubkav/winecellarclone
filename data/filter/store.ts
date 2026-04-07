@@ -732,39 +732,42 @@ export const useWineStore = create<WineStore>((set, get) => ({
       return false
     }
 
+    const refreshAttributeFilters = async (typeId: number | null) => {
+      const payload = await fetchProductFilters(typeId, { bypassCache: true })
+      const newOptions = transformOptions(payload)
+
+      set((state) => ({
+        options: {
+          ...state.options,
+          attributeFilters: newOptions.attributeFilters,
+          rangeFilterBounds: newOptions.rangeFilterBounds,
+          categories: newOptions.categories,
+        },
+      }))
+
+      return get().options.attributeFilters.find((filter) => filter.code === attributeCode) ?? null
+    }
+
     let { options, filters } = get()
-    let attributeFilter = options.attributeFilters.find((filter) => filter.code === attributeCode)
+    let attributeFilter = options.attributeFilters.find((filter) => filter.code === attributeCode) ?? null
 
-    if (!attributeFilter && filters.productTypeId) {
+    const resolveIds = () =>
+      normalizedSlugs
+        .map((slug) => attributeFilter?.options.find((option) => option.slug === slug)?.id ?? null)
+        .filter((id): id is number => id !== null)
+
+    let resolvedIds = resolveIds()
+
+    if (!attributeFilter || resolvedIds.length === 0) {
       try {
-        const payload = await fetchProductFilters(filters.productTypeId)
-        const newOptions = transformOptions(payload)
-
-        set((state) => ({
-          options: {
-            ...state.options,
-            attributeFilters: newOptions.attributeFilters,
-            rangeFilterBounds: newOptions.rangeFilterBounds,
-            categories: newOptions.categories,
-          },
-        }))
-
-        options = get().options
-        attributeFilter = options.attributeFilters.find((filter) => filter.code === attributeCode)
+        attributeFilter = await refreshAttributeFilters(filters.productTypeId ?? null)
+        resolvedIds = resolveIds()
       } catch (error) {
         console.error("Failed to refresh attribute filters:", error)
       }
     }
 
-    if (!attributeFilter) {
-      return false
-    }
-
-    const resolvedIds = normalizedSlugs
-      .map((slug) => attributeFilter?.options.find((option) => option.slug === slug)?.id ?? null)
-      .filter((id): id is number => id !== null)
-
-    if (resolvedIds.length === 0) {
+    if (!attributeFilter || resolvedIds.length === 0) {
       return false
     }
 

@@ -210,11 +210,11 @@ export const SharedProductCard = React.memo(function SharedProductCard({
       return;
     }
 
-    if (pathname === "/filter" && initialized && attr.filterCode && attr.termSlugs && attr.termSlugs.length > 0) {
-      const applied = await applyAttributeFilterBySlug(attr.filterCode, attr.termSlugs);
-      if (applied) {
-        return;
+    if (pathname === "/filter") {
+      if (initialized && attr.filterCode && attr.termSlugs && attr.termSlugs.length > 0) {
+        await applyAttributeFilterBySlug(attr.filterCode, attr.termSlugs);
       }
+      return;
     }
 
     router.push(attr.filterUrl);
