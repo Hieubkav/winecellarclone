@@ -117,12 +117,16 @@ export function useFilterUrlSync() {
         let attributeFiltersToUse = options.attributeFilters
         const currentTypeId = useWineStore.getState().filters.productTypeId
         
-        // Chỉ fetch type-specific filters nếu có URL params không phải default
-        // Nếu không có params gì (fresh load /filter), đã có prefetched data rồi
-        const hasNonDefaultParams = typeId || categoryId || searchQuery || 
-          sortBy !== "name-asc" || priceMin !== options.priceRange[0] || priceMax !== options.priceRange[1]
+        const hasBaseNonDefaultParams = Boolean(
+          typeId ||
+          categoryId ||
+          searchQuery ||
+          sortBy !== "name-asc" ||
+          priceMin !== options.priceRange[0] ||
+          priceMax !== options.priceRange[1]
+        )
         
-        if (typeId && typeId !== currentTypeId && hasNonDefaultParams) {
+        if (typeId && typeId !== currentTypeId && hasBaseNonDefaultParams) {
           try {
             const payload = await fetchProductFilters(typeId)
             attributeFiltersToUse = payload.attribute_filters
@@ -138,7 +142,7 @@ export function useFilterUrlSync() {
           } catch (error) {
             console.error('Failed to fetch type-specific filters:', error)
           }
-        } else if (!typeId && currentTypeId && hasNonDefaultParams) {
+        } else if (!typeId && currentTypeId && hasBaseNonDefaultParams) {
           // Type was cleared, fetch common filters
           try {
             const payload = await fetchProductFilters(null)
@@ -182,6 +186,9 @@ export function useFilterUrlSync() {
             }
           }
         })
+
+        const hasAttributeParams = Object.keys(attributeSelections).length > 0
+        const hasNonDefaultParams = hasBaseNonDefaultParams || hasAttributeParams
 
         // Check if filters actually changed
         const currentFilters = useWineStore.getState().filters
