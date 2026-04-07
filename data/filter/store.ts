@@ -785,24 +785,17 @@ export const useWineStore = create<WineStore>((set, get) => ({
       ? resolvedIds
       : [resolvedIds[0]]
 
-    set((state) => {
-      const isTypeChanged = state.filters.productTypeId !== effectiveTypeId
-      const baseAttributeSelections = isTypeChanged ? {} : state.filters.attributeSelections
-      const baseRangeFilters = isTypeChanged ? {} : state.filters.rangeFilters
-
-      return {
-        filters: {
-          ...state.filters,
-          productTypeId: effectiveTypeId,
-          attributeSelections: {
-            ...baseAttributeSelections,
-            [attributeCode]: nextSelections,
-          },
-          rangeFilters: baseRangeFilters,
-          page: 1,
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        productTypeId: effectiveTypeId,
+        attributeSelections: {
+          [attributeCode]: nextSelections,
         },
-      }
-    })
+        rangeFilters: {},
+        page: 1,
+      },
+    }))
 
     await get().fetchProducts()
     return true
