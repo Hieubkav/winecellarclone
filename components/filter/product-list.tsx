@@ -81,18 +81,14 @@ export default function WineList({
   const currentPage = filters.page
   const canLoadMore = !!meta && currentPage < totalPages
 
-  const handleLandingTypeChange = useCallback((nextTypeSlug: string | null) => {
-    if (listingMode !== "type-landing") {
-      return
-    }
-
+  const handleTypeNavigation = useCallback((nextTypeSlug: string | null) => {
     if (!nextTypeSlug) {
       router.push("/filter")
       return
     }
 
     router.push(`/${nextTypeSlug}`)
-  }, [listingMode, router])
+  }, [router])
 
   const handleLandingReset = useCallback(() => {
     if (listingMode !== "type-landing") {
@@ -159,7 +155,7 @@ export default function WineList({
               <FilterSidebar
                 listingMode={listingMode}
                 initialTypeSlug={initialTypeSlug}
-                onTypeSlugNavigate={handleLandingTypeChange}
+                onTypeSlugNavigate={handleTypeNavigation}
                 onResetCompleted={handleLandingReset}
               />
             </Suspense>
@@ -202,7 +198,7 @@ export default function WineList({
                             <FilterSidebar
                               listingMode={listingMode}
                               initialTypeSlug={initialTypeSlug}
-                              onTypeSlugNavigate={handleLandingTypeChange}
+                              onTypeSlugNavigate={handleTypeNavigation}
                               onResetCompleted={handleLandingReset}
                             />
                           </Suspense>

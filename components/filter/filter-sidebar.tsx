@@ -519,13 +519,12 @@ export function FilterSidebar({
 
     const handleProductTypeChange = (value: string) => {
         const nextTypeId = value === "all" ? null : Number(value)
+        const nextTypeSlug = nextTypeId
+            ? options.productTypes.find((type) => type.id === nextTypeId)?.slug ?? null
+            : null
 
-        if (listingMode === "type-landing") {
-            const nextTypeSlug = nextTypeId
-                ? options.productTypes.find((type) => type.id === nextTypeId)?.slug ?? null
-                : null
-
-            onTypeSlugNavigate?.(nextTypeSlug)
+        if (onTypeSlugNavigate) {
+            onTypeSlugNavigate(nextTypeSlug)
             return
         }
 
