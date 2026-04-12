@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { fetchProductListSafe } from '@/lib/api/products'
+import { fetchProductListSafe, fetchProductFiltersSafe } from '@/lib/api/products'
 import { fetchArticleListSafe } from '@/lib/api/articles'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thienkimwine.vn'
@@ -9,6 +9,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ARTICLE_SITEMAP_BATCH_SIZE = 50
 
   // Static pages
+  const [productTypes, productsResponse] = await Promise.all([
+    fetchProductFiltersSafe(),
+    fetchProductListSafe({
+      page: 1,
+      per_page: SITEMAP_BATCH_SIZE,
+    }),
+  ])
+
+  const typePages: MetadataRoute.Sitemap = (productTypes?.types ?? []).map((type) => ({
+    url: `${SITE_URL}/${type.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.9,
+  }))
+
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
@@ -20,13 +35,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}/filter`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 0.9,
+      priority: 0.8,
     },
+    ...typePages,
     {
       url: `${SITE_URL}/san-pham`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 0.9,
+      priority: 0.8,
     },
     {
       url: `${SITE_URL}/bai-viet`,
@@ -41,11 +57,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
   ]
-
-  const productsResponse = await fetchProductListSafe({
-    page: 1,
-    per_page: SITEMAP_BATCH_SIZE,
-  })
 
   const totalProducts = productsResponse?.meta.total ?? productsResponse?.data.length ?? 0
   const productLastPage = productsResponse

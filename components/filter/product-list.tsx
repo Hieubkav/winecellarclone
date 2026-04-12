@@ -20,13 +20,14 @@ interface ProductListProps {
   initialFilterOptions?: ProductFiltersPayload | null
   initialProducts?: ProductListResponse | null
   fontFamily?: string
+  initialTypeSlug?: string | null
 }
 
-export default function WineList({ initialFilterOptions, initialProducts, fontFamily }: ProductListProps) {
+export default function WineList({ initialFilterOptions, initialProducts, fontFamily, initialTypeSlug = null }: ProductListProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const hydrated = useHydrated()
   
-  useFilterUrlSync()
+  useFilterUrlSync({ initialTypeSlug })
   
   const {
     wines,
