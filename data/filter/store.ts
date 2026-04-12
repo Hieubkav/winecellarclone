@@ -124,7 +124,7 @@ interface WineStoreActions {
   ) => Promise<void>
   fetchProducts: (append?: boolean) => Promise<boolean>
   fetchProductsDebounced: () => void
-  resetFilters: () => Promise<void>
+  resetFilters: (options?: { preserveTypeId?: number | null }) => Promise<void>
   setViewMode: (mode: "grid" | "list") => void
   setSearchQuery: (query: string) => void
   setSelectedCategory: (id: number | null, skipFetch?: boolean) => void
@@ -557,17 +557,19 @@ export const useWineStore = create<WineStore>((set, get) => ({
   fetchProductsDebounced: createDebounce(() => {
     void get().fetchProducts()
   }, 400),
-  resetFilters: async () => {
+  resetFilters: async (resetOptions) => {
     const { options, initialized } = get()
     if (!initialized) {
       return
     }
 
+    const preservedTypeId = resetOptions?.preserveTypeId ?? null
+
     set((state) => ({
       filters: {
         ...state.filters,
         categoryId: null,
-        productTypeId: null,
+        productTypeId: preservedTypeId,
         priceRange: options.priceRange,
         page: 1,
         sortBy: "name-asc",
@@ -577,9 +579,9 @@ export const useWineStore = create<WineStore>((set, get) => ({
       },
     }))
 
-    // Refresh filters về trạng thái ban đầu (common attributes)
+    // Refresh filters theo trạng thái type sau reset
     try {
-      const payload = await fetchProductFilters(null)
+      const payload = await fetchProductFilters(preservedTypeId)
       const newOptions = transformOptions(payload)
       
       set((state) => ({

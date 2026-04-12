@@ -31,7 +31,7 @@ const findSlugById = (options: ProductFilterOption[], id: number): string | null
  * - Effect 2 (Store → URL): Syncs filter changes to URL (converts ID to slug)
  * - Loop prevention: previousUrlParams tracks changes, isApplyingUrlParams prevents Effect 2 during Effect 1
  */
-export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null }) {
+export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null; listingMode?: "generic" | "type-landing" }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -91,7 +91,8 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
         
         const typeParam = searchParams.get("type")
         const routeTypeSlug = syncOptions?.initialTypeSlug?.trim() || null
-        const effectiveTypeParam = typeParam || routeTypeSlug
+        const listingMode = syncOptions?.listingMode ?? (routeTypeSlug ? "type-landing" : "generic")
+        const effectiveTypeParam = listingMode === "type-landing" ? routeTypeSlug : (typeParam || routeTypeSlug)
         let typeId: number | null = null
         if (effectiveTypeParam) {
           // Try as slug first, fallback to ID for backward compatibility
@@ -119,7 +120,7 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
         let attributeFiltersToUse = options.attributeFilters
         const currentTypeId = useWineStore.getState().filters.productTypeId
         
-        const hasRouteType = Boolean(routeTypeSlug)
+        const hasRouteType = listingMode === "type-landing" && Boolean(routeTypeSlug)
         const hasBaseNonDefaultParams = Boolean(
           hasRouteType ||
           typeId ||
@@ -248,7 +249,7 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
     }
 
     void applyUrlFilters()
-  }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange, options.categories, options.productTypes, syncOptions?.initialTypeSlug])
+  }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange, options.categories, options.productTypes, syncOptions?.initialTypeSlug, syncOptions?.listingMode])
 
   // Effect 2: Store → URL (sync filter changes to URL with slug for SEO-friendly URLs)
   useEffect(() => {
@@ -264,12 +265,10 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
       params.set("category", categorySlug ?? String(filters.categoryId))
     }
 
-    const initialTypeId = syncOptions?.initialTypeSlug
-      ? findIdBySlug(options.productTypes, syncOptions.initialTypeSlug)
-      : null
+    const listingMode = syncOptions?.listingMode ?? (syncOptions?.initialTypeSlug ? "type-landing" : "generic")
 
-    // Product Type - route landing bỏ query type nếu vẫn giữ đúng type của path
-    if (filters.productTypeId && (!syncOptions?.initialTypeSlug || filters.productTypeId !== initialTypeId)) {
+    // Generic mode giữ query type; landing mode tuyệt đối không serialize type vào query
+    if (listingMode === "generic" && filters.productTypeId) {
       const typeSlug = findSlugById(options.productTypes, filters.productTypeId)
       params.set("type", typeSlug ?? String(filters.productTypeId))
     }

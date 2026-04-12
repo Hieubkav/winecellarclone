@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useWineStore, type SortOption, type Wine } from "@/data/filter/store"
 import { useFilterUrlSync } from "@/hooks/use-filter-url-sync"
+import { usePathname, useRouter } from "next/navigation"
 import { useHydrated } from "@/hooks/use-hydrated"
 import { FilterSearchBar } from "./search-bar"
 import { ProductSkeleton } from "./product-skeleton"
@@ -21,13 +22,22 @@ interface ProductListProps {
   initialProducts?: ProductListResponse | null
   fontFamily?: string
   initialTypeSlug?: string | null
+  listingMode?: "generic" | "type-landing"
 }
 
-export default function WineList({ initialFilterOptions, initialProducts, fontFamily, initialTypeSlug = null }: ProductListProps) {
+export default function WineList({
+  initialFilterOptions,
+  initialProducts,
+  fontFamily,
+  initialTypeSlug = null,
+  listingMode = "generic",
+}: ProductListProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const hydrated = useHydrated()
+  const router = useRouter()
+  const pathname = usePathname()
   
-  useFilterUrlSync({ initialTypeSlug })
+  useFilterUrlSync({ initialTypeSlug, listingMode })
   
   const {
     wines,
@@ -70,6 +80,27 @@ export default function WineList({ initialFilterOptions, initialProducts, fontFa
   const totalPages = meta && meta.per_page > 0 ? Math.ceil(meta.total / meta.per_page) : 0
   const currentPage = filters.page
   const canLoadMore = !!meta && currentPage < totalPages
+
+  const handleLandingTypeChange = useCallback((nextTypeSlug: string | null) => {
+    if (listingMode !== "type-landing") {
+      return
+    }
+
+    if (!nextTypeSlug) {
+      router.push("/filter")
+      return
+    }
+
+    router.push(`/${nextTypeSlug}`)
+  }, [listingMode, router])
+
+  const handleLandingReset = useCallback(() => {
+    if (listingMode !== "type-landing") {
+      return
+    }
+
+    router.replace(pathname, { scroll: false })
+  }, [listingMode, pathname, router])
 
   const requestMore = useCallback(() => {
     if (!canLoadMore || loading || loadingMore) {
@@ -125,7 +156,12 @@ export default function WineList({ initialFilterOptions, initialProducts, fontFa
           {/* Desktop Sidebar */}
           <div className="hidden w-64 flex-none lg:block">
             <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
-              <FilterSidebar />
+              <FilterSidebar
+                listingMode={listingMode}
+                initialTypeSlug={initialTypeSlug}
+                onTypeSlugNavigate={handleLandingTypeChange}
+                onResetCompleted={handleLandingReset}
+              />
             </Suspense>
           </div>
 
@@ -163,7 +199,12 @@ export default function WineList({ initialFilterOptions, initialProducts, fontFa
                             />
                           </div>
                           <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded" />}>
-                            <FilterSidebar />
+                            <FilterSidebar
+                              listingMode={listingMode}
+                              initialTypeSlug={initialTypeSlug}
+                              onTypeSlugNavigate={handleLandingTypeChange}
+                              onResetCompleted={handleLandingReset}
+                            />
                           </Suspense>
                         </div>
                       </SheetContent>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { usePathname } from "next/navigation"
 import { useShallow } from "zustand/react/shallow"
 import { RotateCcw, ChevronDown } from "lucide-react"
 
@@ -450,7 +451,19 @@ function RadioFilterSection({
     )
 }
 
-export function FilterSidebar() {
+interface FilterSidebarProps {
+    listingMode?: "generic" | "type-landing"
+    initialTypeSlug?: string | null
+    onTypeSlugNavigate?: (nextTypeSlug: string | null) => void
+    onResetCompleted?: () => void
+}
+
+export function FilterSidebar({
+    listingMode = "generic",
+    initialTypeSlug = null,
+    onTypeSlugNavigate,
+    onResetCompleted,
+}: FilterSidebarProps) {
     const {
         options,
         filters,
@@ -475,6 +488,7 @@ export function FilterSidebar() {
         })),
     )
 
+    const pathname = usePathname()
     const sliderDisabled = options.priceRange[1] <= options.priceRange[0]
     const categoryValue = filters.categoryId ? String(filters.categoryId) : "all"
     const productTypeValue = filters.productTypeId ? String(filters.productTypeId) : "all"
@@ -482,7 +496,7 @@ export function FilterSidebar() {
     const activeFilterCount = useMemo(() => {
         let count = 0
         if (filters.categoryId) count++
-        if (filters.productTypeId) count++
+        if (filters.productTypeId && !(listingMode === "type-landing" && initialTypeSlug && pathname === `/${initialTypeSlug}`)) count++
         Object.values(filters.attributeSelections).forEach(selections => {
             count += selections.length
         })
@@ -497,14 +511,25 @@ export function FilterSidebar() {
             }
         })
         return count
-    }, [filters, options.priceRange, options.rangeFilterBounds])
+    }, [filters, options.priceRange, options.rangeFilterBounds, listingMode, initialTypeSlug, pathname])
 
     const handleCategoryChange = (value: string) => {
          setSelectedCategory(value === "all" ? null : Number(value))
     }
 
     const handleProductTypeChange = (value: string) => {
-        void setSelectedProductType(value === "all" ? null : Number(value))
+        const nextTypeId = value === "all" ? null : Number(value)
+
+        if (listingMode === "type-landing") {
+            const nextTypeSlug = nextTypeId
+                ? options.productTypes.find((type) => type.id === nextTypeId)?.slug ?? null
+                : null
+
+            onTypeSlugNavigate?.(nextTypeSlug)
+            return
+        }
+
+        void setSelectedProductType(nextTypeId)
     }
 
     const renderDynamicFilter = (attributeFilter: {
@@ -623,7 +648,13 @@ export function FilterSidebar() {
                     variant="ghost"
                     size="sm"
                     className="flex items-center gap-1.5 text-xs font-medium text-[#9B2C3B] hover:text-[#1C1C1C] hover:bg-[#ECAA4D]/10 transition-colors"
-                    onClick={resetFilters}
+                    onClick={async () => {
+                        await resetFilters({ preserveTypeId: listingMode === "type-landing" ? filters.productTypeId : null })
+
+                        if (listingMode === "type-landing") {
+                            onResetCompleted?.()
+                        }
+                    }}
                     disabled={activeFilterCount === 0}
                     aria-label="Xóa tất cả bộ lọc"
                 >

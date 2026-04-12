@@ -21,6 +21,8 @@ export type ProductTypeOption = {
   slug: string;
 };
 
+export type ListingMode = "generic" | "type-landing";
+
 export type ListingSeoContext = {
   canonicalPath: string;
   routeTypeSlug?: string | null;
@@ -160,6 +162,7 @@ export async function renderFilterListing({
   itemListName,
   itemListDescription,
 }: ListingSeoContext) {
+  const listingMode: ListingMode = routeTypeSlug ? "type-landing" : "generic";
   const productTypeContext = routeTypeSlug
     ? await fetchProductFiltersSafe(undefined, { bypassCache: true })
     : null;
@@ -230,6 +233,7 @@ export async function renderFilterListing({
         initialProducts={initialProducts}
         fontFamily={productListFontStyle.fontFamily}
         initialTypeSlug={routeTypeSlug ?? null}
+        listingMode={listingMode}
       />
     </>
   );

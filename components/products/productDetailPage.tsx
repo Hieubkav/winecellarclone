@@ -257,11 +257,9 @@ export default function ProductDetailPage({
     
     // Base filter URL với type (nếu có)
     const typeSlug = product.type?.slug;
-    const baseFilterUrl = typeSlug ? `/filter?type=${typeSlug}` : '/filter';
+    const baseFilterUrl = typeSlug ? `/${typeSlug}` : '/filter';
     const buildFilterUrl = (paramKey: string, paramValue: string) => {
-      return typeSlug 
-        ? `${baseFilterUrl}&${paramKey}=${paramValue}`
-        : `/filter?${paramKey}=${paramValue}`;
+      return `${baseFilterUrl}?${paramKey}=${paramValue}`;
     };
 
     // Brand và Origin - tìm từ attributes để lấy đúng group_code động

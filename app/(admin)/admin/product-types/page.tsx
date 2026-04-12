@@ -416,7 +416,7 @@ export default function ProductTypesPage() {
                     {visibleTypeColumns.includes('actions') && (
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={`/filter?type=${type.slug}`} target="_blank">
+                          <Link href={`/${type.slug}`} target="_blank">
                             <Button variant="ghost" size="icon" aria-label="Xem sản phẩm">
                               <ExternalLink size={16} />
                             </Button>
