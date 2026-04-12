@@ -266,12 +266,9 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
     }
 
     const listingMode = syncOptions?.listingMode ?? (syncOptions?.initialTypeSlug ? "type-landing" : "generic")
-
-    // Generic mode giữ query type; landing mode tuyệt đối không serialize type vào query
-    if (listingMode === "generic" && filters.productTypeId) {
-      const typeSlug = findSlugById(options.productTypes, filters.productTypeId)
-      params.set("type", typeSlug ?? String(filters.productTypeId))
-    }
+    const selectedTypeSlug = filters.productTypeId
+      ? findSlugById(options.productTypes, filters.productTypeId)
+      : null
 
     // Search query
     if (filters.searchQuery) {
@@ -307,6 +304,19 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
         }
       }
     })
+
+    // Generic mode: nếu đã chọn type thì URL chuẩn phải là /<typeSlug> thay vì /filter?type=...
+    if (listingMode === "generic" && pathname === "/filter" && selectedTypeSlug) {
+      const queryString = params.toString()
+      const newUrl = queryString ? `/${selectedTypeSlug}?${queryString}` : `/${selectedTypeSlug}`
+      const currentUrl = `${pathname}${window.location.search}`
+
+      if (newUrl !== currentUrl) {
+        router.replace(newUrl, { scroll: false })
+        previousUrlParams.current = queryString
+      }
+      return
+    }
 
     // Update URL without adding to history (replace instead of push)
     const queryString = params.toString()
