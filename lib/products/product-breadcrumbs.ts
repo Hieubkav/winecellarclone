@@ -38,11 +38,16 @@ export const buildProductBreadcrumbs = (
   ];
 
   if (categoryLabel && categorySlug && categoryParam) {
-    const categoryHref = `/filter?${categoryParam}=${categorySlug}`;
+    const isTypeCategory = categoryParam === "type";
+    const categoryHref = isTypeCategory
+      ? `/${categorySlug}`
+      : `/filter?${categoryParam}=${categorySlug}`;
     items.push({ label: categoryLabel, href: toAbsoluteHref(categoryHref, baseUrl) });
 
     if (originTerm?.name && originTerm.slug) {
-      const originHref = `${categoryHref}&xuat_xu=${originTerm.slug}`;
+      const originHref = isTypeCategory
+        ? `${categoryHref}?xuat_xu=${originTerm.slug}`
+        : `${categoryHref}&xuat_xu=${originTerm.slug}`;
       items.push({ label: originTerm.name, href: toAbsoluteHref(originHref, baseUrl) });
     }
 
