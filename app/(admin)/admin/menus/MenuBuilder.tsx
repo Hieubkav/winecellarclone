@@ -43,9 +43,19 @@ import {
   cn,
 } from '../components/ui';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   type AdminMenuDetail,
   type AdminMenuBlock,
   type AdminMenuBlockItem,
+  type AdminProductType,
+  type AdminCategory,
+  type AdminProduct,
+  type AdminArticle,
   updateMenu,
   createMenu,
   deleteMenu,
@@ -58,7 +68,8 @@ import {
   reorderMenus,
   fetchAdminProductTypes,
   fetchAdminCategories,
-  bulkDeleteMenus,
+  fetchAdminProducts,
+  fetchAdminArticles,
 } from '@/lib/api/admin';
 import { toast } from 'sonner';
 
@@ -253,7 +264,7 @@ function InlineAddItem({ onAdd }: InlineAddItemProps) {
         value={href}
         onChange={(e) => setHref(e.target.value)}
         placeholder="URL"
-        className="h-6 text-[11px] w-24 font-mono"
+        className="h-6 text-[11px] w-48 font-mono"
         disabled={isAdding}
       />
       <Button type="submit" size="sm" className="h-6 text-[10px] px-1.5" disabled={!label.trim() || isAdding}>
@@ -586,6 +597,7 @@ interface SortableItemProps {
   blockId: number;
   onToggleActive: () => void;
   onDelete: () => void;
+  onOpenSuggestion: (blockId: number, itemId: number) => void;
   editingState: EditingState | null;
   onStartEdit: (type: 'menu' | 'block' | 'item', id: number, field: string, currentValue: string) => void;
   onSaveEdit: () => void;
@@ -596,8 +608,10 @@ interface SortableItemProps {
 
 function SortableItem({
   item,
+  blockId,
   onToggleActive,
   onDelete,
+  onOpenSuggestion,
   editingState,
   onStartEdit,
   onSaveEdit,
@@ -669,7 +683,7 @@ function SortableItem({
         <Input
           value={editingState.value}
           onChange={(e) => onUpdateEditValue(e.target.value)}
-          className="h-6 text-xs w-32 font-mono"
+          className="h-6 text-xs w-64 font-mono"
           onKeyDown={(e) => {
             if (e.key === 'Enter') onSaveEdit();
             if (e.key === 'Escape') onCancelEdit();
@@ -678,7 +692,7 @@ function SortableItem({
       ) : (
         <button
           onClick={() => onStartEdit('item', item.id, 'href', item.href || '')}
-          className="text-[10px] font-mono text-slate-400 hover:text-blue-500 truncate max-w-[100px]"
+          className="text-[10px] font-mono text-slate-400 hover:text-blue-500 truncate max-w-[200px]"
           title={item.href || 'Không có URL'}
         >
           {item.href || '—'}
@@ -716,6 +730,16 @@ function SortableItem({
       <Button
         variant="ghost"
         size="icon"
+        className="h-5 w-5 text-amber-500 hover:text-amber-600"
+        onClick={() => onOpenSuggestion(blockId, item.id)}
+        title="Gợi ý URL"
+      >
+        <Sparkles size={10} />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
         className="h-5 w-5"
         onClick={onToggleActive}
       >
@@ -734,31 +758,6 @@ function SortableItem({
   );
 }
 
-// ==================== GENERATE FROM DATA ====================
-
-interface GenerateMenuDialogProps {
-  onGenerate: () => Promise<void>;
-  isGenerating: boolean;
-}
-
-function GenerateMenuButton({ onGenerate, isGenerating }: GenerateMenuDialogProps) {
-  return (
-    <Button
-      variant="outline"
-      onClick={onGenerate}
-      disabled={isGenerating}
-      className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-400 dark:hover:bg-purple-900/20"
-    >
-      {isGenerating ? (
-        <Loader2 size={16} className="animate-spin" />
-      ) : (
-        <Sparkles size={16} />
-      )}
-      {isGenerating ? 'Đang tạo...' : 'Tạo từ dữ liệu'}
-    </Button>
-  );
-}
-
 // ==================== MAIN COMPONENT ====================
 
 export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: MenuBuilderProps) {
@@ -769,7 +768,17 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
   const [isSaving, setIsSaving] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);
+  const [suggestionTarget, setSuggestionTarget] = useState<{ blockId: number; itemId: number } | null>(null);
+  const [suggestionMode, setSuggestionMode] = useState<'core' | 'type' | 'category' | 'product' | 'article'>('core');
+  const [suggestionSearch, setSuggestionSearch] = useState('');
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [suggestionSaving, setSuggestionSaving] = useState(false);
+  const [suggestionTypes, setSuggestionTypes] = useState<AdminProductType[]>([]);
+  const [suggestionCategories, setSuggestionCategories] = useState<AdminCategory[]>([]);
+  const [suggestionProducts, setSuggestionProducts] = useState<AdminProduct[]>([]);
+  const [suggestionArticles, setSuggestionArticles] = useState<AdminArticle[]>([]);
+  const [selectedTypeId, setSelectedTypeId] = useState<number | null>(null);
 
   // Sync when initialMenus changes
   useEffect(() => {
@@ -1015,124 +1024,188 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
     }
   }, []);
 
-  // Generate from data
-  const handleGenerateFromData = useCallback(async () => {
-    if (!confirm('Tính năng này sẽ XÓA tất cả menu hiện tại và tạo mới từ dữ liệu Phân mục + Danh mục. Tiếp tục?')) {
+  const coreSuggestions = useMemo(() => ([
+    { label: 'Trang chủ', href: '/' },
+    { label: 'Bộ lọc sản phẩm', href: '/filter' },
+    { label: 'Bài viết', href: '/bai-viet' },
+  ]), []);
+
+  const ensureSuggestionBaseData = useCallback(async () => {
+    if (suggestionTypes.length > 0 && suggestionCategories.length > 0) {
       return;
     }
 
-    setIsGenerating(true);
+    setSuggestionLoading(true);
     try {
-      // Fetch product types and categories
       const [typesRes, categoriesRes] = await Promise.all([
-        fetchAdminProductTypes({ per_page: 100 }),
+        fetchAdminProductTypes({ per_page: 200 }),
         fetchAdminCategories({ per_page: 500 }),
       ]);
 
-      const productTypes = typesRes.data.filter(t => t.active);
-      const categories = categoriesRes.data.filter(c => c.active);
-
-      // Delete all existing menus
-      if (menus.length > 0) {
-        await bulkDeleteMenus(menus.map(m => m.id));
-      }
-
-      // Create "Trang chủ" menu first
-      const homeResult = await createMenu({
-        title: 'Trang chủ',
-        href: '/',
-        type: 'link',
-        active: true,
-        order: 0,
-      });
-
-      const newMenus: AdminMenuDetail[] = [{
-        id: homeResult.data.id,
-        title: 'Trang chủ',
-        href: '/',
-        type: 'link',
-        order: 0,
-        active: true,
-        blocks: [],
-      }];
-
-      // Create menu for each product type
-      for (let i = 0; i < productTypes.length; i++) {
-        const productType = productTypes[i];
-        
-        // Create menu
-        const menuResult = await createMenu({
-          title: productType.name,
-          href: `/${productType.slug}`,
-          type: 'mega',
-          active: true,
-          order: i + 1,
-        });
-
-        // Get categories for this type
-        const typeCategories = categories.filter(c => c.type_id === productType.id);
-
-        const blocks: AdminMenuBlock[] = [];
-
-        if (typeCategories.length > 0) {
-          // Create block with product type name (không dùng "Theo danh mục")
-          const blockResult = await createMenuBlock(menuResult.data.id, {
-            title: productType.name,
-            active: true,
-          });
-
-          const items: AdminMenuBlockItem[] = [];
-
-          // Add category items (không cần "Xem tất cả" vì menu cha đã có href)
-          for (let j = 0; j < typeCategories.length; j++) {
-            const category = typeCategories[j];
-            const itemResult = await createMenuBlockItem(blockResult.data.id, {
-              label: category.name,
-              href: `/${productType.slug}?category=${category.slug}`,
-              active: true,
-            });
-
-            items.push({
-              id: itemResult.data.id,
-              label: category.name,
-              href: `/${productType.slug}?category=${category.slug}`,
-              badge: null,
-              order: j,
-              active: true,
-            });
-          }
-
-          blocks.push({
-            id: blockResult.data.id,
-            title: productType.name,
-            order: 0,
-            active: true,
-            items,
-          });
-        }
-
-        newMenus.push({
-          id: menuResult.data.id,
-          title: productType.name,
-          href: `/${productType.slug}`,
-          type: 'mega',
-          order: i + 1,
-          active: true,
-          blocks,
-        });
-      }
-
-      setMenus(newMenus);
-      setExpandedMenus(new Set(newMenus.map(m => m.id)));
-      toast.success(`Đã tạo ${newMenus.length} menu từ dữ liệu`);
-      
+      setSuggestionTypes(typesRes.data.filter((type) => type.active));
+      setSuggestionCategories(categoriesRes.data.filter((category) => category.active));
     } catch (error) {
-      console.error('Generate failed:', error);
-      toast.error('Không thể tạo menu từ dữ liệu');
+      console.error('Load suggestion data failed:', error);
+      toast.error('Không tải được dữ liệu gợi ý');
     } finally {
-      setIsGenerating(false);
+      setSuggestionLoading(false);
     }
-  }, [menus]);
+  }, [suggestionCategories.length, suggestionTypes.length]);
+
+  const openSuggestionDialog = useCallback((blockId: number, itemId: number) => {
+    setSuggestionTarget({ blockId, itemId });
+    setSuggestionMode('core');
+    setSuggestionSearch('');
+    setSuggestionProducts([]);
+    setSuggestionArticles([]);
+    setSelectedTypeId(null);
+    setIsSuggestionOpen(true);
+    void ensureSuggestionBaseData();
+  }, [ensureSuggestionBaseData]);
+
+  const applySuggestion = useCallback(async (href: string, label: string) => {
+    if (!suggestionTarget) return;
+
+    const targetItem = menus
+      .flatMap((menu) => menu.blocks || [])
+      .flatMap((block) => block.items || [])
+      .find((item) => item.id === suggestionTarget.itemId);
+
+    if (!targetItem) {
+      toast.error('Không tìm thấy item để cập nhật');
+      return;
+    }
+
+    const shouldUpdateLabel = !targetItem.label?.trim();
+    const payload: Record<string, unknown> = { href };
+    if (shouldUpdateLabel) {
+      payload.label = label;
+    }
+
+    setSuggestionSaving(true);
+    try {
+      await updateMenuBlockItem(suggestionTarget.blockId, suggestionTarget.itemId, payload);
+      setMenus((prev) => prev.map((menu) => ({
+        ...menu,
+        blocks: menu.blocks?.map((block) => ({
+          ...block,
+          items: block.items?.map((item) => item.id === suggestionTarget.itemId ? {
+            ...item,
+            href,
+            label: shouldUpdateLabel ? label : item.label,
+          } : item),
+        })),
+      })));
+      setEditingState(null);
+      toast.success('Đã cập nhật URL');
+      setIsSuggestionOpen(false);
+    } catch (error) {
+      console.error('Suggestion update failed:', error);
+      toast.error('Không thể cập nhật URL');
+    } finally {
+      setSuggestionSaving(false);
+    }
+  }, [menus, suggestionTarget]);
+
+  const handleSearchSuggestion = useCallback(async () => {
+    const keyword = suggestionSearch.trim();
+    if (keyword.length < 2) {
+      toast.error('Nhập tối thiểu 2 ký tự để tìm');
+      return;
+    }
+
+    setSuggestionLoading(true);
+    try {
+      if (suggestionMode === 'product') {
+        const response = await fetchAdminProducts({ per_page: 20, q: keyword });
+        setSuggestionProducts(response.data);
+      }
+
+      if (suggestionMode === 'article') {
+        const response = await fetchAdminArticles({ per_page: 20, q: keyword });
+        setSuggestionArticles(response.data);
+      }
+    } catch (error) {
+      console.error('Suggestion search failed:', error);
+      toast.error('Không thể tải gợi ý');
+    } finally {
+      setSuggestionLoading(false);
+    }
+  }, [suggestionMode, suggestionSearch]);
+
+  const selectedType = useMemo(
+    () => suggestionTypes.find((type) => type.id === selectedTypeId) ?? null,
+    [selectedTypeId, suggestionTypes]
+  );
+
+  const filteredCategories = useMemo(
+    () => selectedType ? suggestionCategories.filter((category) => category.type_id === selectedType.id) : [],
+    [selectedType, suggestionCategories]
+  );
+
+  const typeSuggestionItems = useMemo(
+    () => suggestionTypes.map((type) => ({ label: type.name, href: `/${type.slug}` })),
+    [suggestionTypes]
+  );
+
+  const categorySuggestionItems = useMemo(
+    () => selectedType
+      ? filteredCategories.map((category) => ({
+        label: category.name,
+        href: `/${selectedType.slug}?category=${category.slug}`,
+      }))
+      : [],
+    [filteredCategories, selectedType]
+  );
+
+  const productSuggestionItems = useMemo(
+    () => suggestionProducts.map((product) => ({ label: product.name, href: `/san-pham/${product.slug}` })),
+    [suggestionProducts]
+  );
+
+  const articleSuggestionItems = useMemo(
+    () => suggestionArticles.map((article) => ({ label: article.title, href: `/bai-viet/${article.slug}` })),
+    [suggestionArticles]
+  );
+
+  const renderSuggestionItems = useCallback((items: Array<{ label: string; href: string }>) => (
+    <div className="max-h-64 overflow-auto rounded-md border border-slate-200 dark:border-slate-700">
+      {items.length === 0 ? (
+        <p className="p-3 text-xs text-slate-500">Chưa có gợi ý phù hợp.</p>
+      ) : (
+        items.map((item) => (
+          <button
+            key={item.href}
+            type="button"
+            disabled={suggestionSaving}
+            className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-60"
+            onClick={() => applySuggestion(item.href, item.label)}
+          >
+            <div className="font-medium text-slate-800 dark:text-slate-200">{item.label}</div>
+            <div className="text-[11px] font-mono text-slate-400">{item.href}</div>
+          </button>
+        ))
+      )}
+    </div>
+  ), [applySuggestion, suggestionSaving]);
+
+  useEffect(() => {
+    if (suggestionMode === 'category' && !selectedTypeId && suggestionTypes.length > 0) {
+      setSelectedTypeId(suggestionTypes[0].id);
+    }
+
+    if (suggestionMode !== 'product') {
+      setSuggestionProducts([]);
+    }
+
+    if (suggestionMode !== 'article') {
+      setSuggestionArticles([]);
+    }
+
+    if (suggestionMode !== 'product' && suggestionMode !== 'article') {
+      setSuggestionSearch('');
+    }
+  }, [suggestionMode, suggestionTypes, selectedTypeId]);
 
   // ==================== DRAG HANDLERS ====================
 
@@ -1180,10 +1253,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
   return (
     <div className="space-y-4">
       {/* Header Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <GenerateMenuButton onGenerate={handleGenerateFromData} isGenerating={isGenerating} />
-        </div>
+      <div className="flex items-center justify-end">
         {!showAddMenu && (
           <Button onClick={() => setShowAddMenu(true)} className="gap-2">
             <Plus size={16} />
@@ -1273,6 +1343,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
                                 blockId={block.id}
                                 onToggleActive={() => handleToggleItemActive(block.id, item.id)}
                                 onDelete={() => handleDeleteItem(block.id, item.id)}
+                                onOpenSuggestion={openSuggestionDialog}
                                 editingState={editingState}
                                 onStartEdit={handleStartEdit}
                                 onSaveEdit={handleSaveEdit}
@@ -1299,8 +1370,6 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
                     <Plus size={16} />
                     Thêm menu thủ công
                   </Button>
-                  <span className="text-slate-400">hoặc</span>
-                  <GenerateMenuButton onGenerate={handleGenerateFromData} isGenerating={isGenerating} />
                 </div>
               </div>
             )}
@@ -1315,6 +1384,121 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
           )}
         </DragOverlay>
       </DndContext>
+
+      <Dialog
+        open={isSuggestionOpen}
+        onOpenChange={(open) => {
+          setIsSuggestionOpen(open);
+          if (!open) {
+            setSuggestionTarget(null);
+          }
+        }}
+      >
+        <DialogContent className="w-[92vw] max-w-2xl p-4 sm:p-6">
+          <DialogHeader>
+            <DialogTitle>Gợi ý URL</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={suggestionMode === 'core' ? 'secondary' : 'outline'}
+                onClick={() => setSuggestionMode('core')}
+              >
+                Trang cơ bản
+              </Button>
+              <Button
+                size="sm"
+                variant={suggestionMode === 'type' ? 'secondary' : 'outline'}
+                onClick={() => setSuggestionMode('type')}
+              >
+                Phân mục
+              </Button>
+              <Button
+                size="sm"
+                variant={suggestionMode === 'category' ? 'secondary' : 'outline'}
+                onClick={() => setSuggestionMode('category')}
+              >
+                Danh mục
+              </Button>
+              <Button
+                size="sm"
+                variant={suggestionMode === 'product' ? 'secondary' : 'outline'}
+                onClick={() => setSuggestionMode('product')}
+              >
+                Sản phẩm
+              </Button>
+              <Button
+                size="sm"
+                variant={suggestionMode === 'article' ? 'secondary' : 'outline'}
+                onClick={() => setSuggestionMode('article')}
+              >
+                Bài viết
+              </Button>
+            </div>
+
+            {suggestionLoading && (
+              <p className="text-xs text-slate-500">Đang tải dữ liệu...</p>
+            )}
+
+            {suggestionMode === 'core' && renderSuggestionItems(coreSuggestions)}
+
+            {suggestionMode === 'type' && renderSuggestionItems(typeSuggestionItems)}
+
+            {suggestionMode === 'category' && (
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500">Chọn phân mục</span>
+                  <select
+                    value={selectedTypeId ?? ''}
+                    onChange={(event) => setSelectedTypeId(event.target.value ? Number(event.target.value) : null)}
+                    className={cn(
+                      "h-9 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+                      !selectedTypeId && "text-slate-400"
+                    )}
+                  >
+                    <option value="">Chọn phân mục</option>
+                    {suggestionTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedType ? renderSuggestionItems(categorySuggestionItems) : (
+                  <p className="text-xs text-slate-500">Chọn phân mục để xem danh mục.</p>
+                )}
+              </div>
+            )}
+
+            {(suggestionMode === 'product' || suggestionMode === 'article') && (
+              <div className="space-y-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    value={suggestionSearch}
+                    onChange={(event) => setSuggestionSearch(event.target.value)}
+                    placeholder={suggestionMode === 'product' ? 'Tìm sản phẩm...' : 'Tìm bài viết...'}
+                    className="h-9"
+                  />
+                  <Button
+                    size="sm"
+                    className="gap-1"
+                    onClick={handleSearchSuggestion}
+                    disabled={suggestionLoading}
+                  >
+                    {suggestionLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    Tìm
+                  </Button>
+                </div>
+                {suggestionMode === 'product' && renderSuggestionItems(productSuggestionItems)}
+                {suggestionMode === 'article' && renderSuggestionItems(articleSuggestionItems)}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
