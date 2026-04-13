@@ -24,6 +24,9 @@ export interface AdminProduct {
   type_id: number | null;
   type_name: string | null;
   category_name: string | null;
+  category_names?: string[];
+  category_ids?: number[];
+  categories?: Array<{ id: number; name: string }>;
   cover_image_url: string | null;
   created_at: string;
 }
@@ -74,6 +77,7 @@ export interface AdminProductFilterOption {
   id: number;
   name: string;
   slug: string;
+  type_id?: number | null;
 }
 
 export interface AdminProductFiltersResponse {

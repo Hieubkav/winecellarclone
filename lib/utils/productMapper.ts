@@ -11,7 +11,7 @@ export interface ProductImportData {
   name: string;
   slug: string;
   type_name: string;
-  category_name?: string;
+  category_names?: string;
   price: number | null;
   original_price?: number | null;
   active: boolean;
@@ -89,11 +89,24 @@ export function mapExcelToBackendFormat(
   }
 
   const categoryIds: number[] = [];
-  if (excelData.category_name) {
-    const category = categories.find(c => c.name === excelData.category_name);
-    if (category) {
+  if (excelData.category_names) {
+    const categoryNames = excelData.category_names
+      .split(/[;,]/)
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    const uniqueNames = Array.from(new Set(categoryNames));
+    uniqueNames.forEach((categoryName) => {
+      const category = categories.find(
+        (item) => item.name === categoryName && item.type_id === type.id
+      );
+
+      if (!category) {
+        throw new Error(`Danh mục không hợp lệ hoặc không cùng phân loại: ${categoryName}`);
+      }
+
       categoryIds.push(category.id);
-    }
+    });
   }
 
   const backendData: BackendProductData = {

@@ -306,7 +306,7 @@ export function useProductExcel(): UseProductExcelReturn {
             name: row['Tên sản phẩm'],
             slug: row['Slug'],
             type_name: row['Phân loại'],
-            category_name: row['Danh mục'],
+            category_names: row['Danh mục'],
             price: row['Giá bán'] ? Number(row['Giá bán']) : null,
             original_price: row['Giá gốc'] ? Number(row['Giá gốc']) : null,
             active: row['Trạng thái'] === 'Có',

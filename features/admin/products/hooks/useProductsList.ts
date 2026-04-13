@@ -63,7 +63,7 @@ export const useProductsList = () => {
   });
   const [bulkUpdateActive, setBulkUpdateActive] = useState(true);
   const [bulkUpdateTypeId, setBulkUpdateTypeId] = useState("");
-  const [bulkUpdateCategoryId, setBulkUpdateCategoryId] = useState("");
+  const [bulkUpdateCategoryIds, setBulkUpdateCategoryIds] = useState<number[]>([]);
 
   const { isExporting, exportProducts, exportTemplate } = useProductExcel();
 
@@ -317,7 +317,7 @@ export const useProductsList = () => {
       changes.type_id = bulkUpdateTypeId ? Number(bulkUpdateTypeId) : null;
     }
     if (bulkUpdateFields.category_ids) {
-      changes.category_ids = bulkUpdateCategoryId ? [Number(bulkUpdateCategoryId)] : [];
+      changes.category_ids = bulkUpdateCategoryIds;
     }
 
     await bulkUpdateMutation.mutateAsync({
@@ -398,7 +398,7 @@ export const useProductsList = () => {
       bulkUpdateFields,
       bulkUpdateActive,
       bulkUpdateTypeId,
-      bulkUpdateCategoryId,
+      bulkUpdateCategoryIds,
       isBulkUpdating: bulkUpdateMutation.isPending,
       visibleColumns,
     },
@@ -416,7 +416,7 @@ export const useProductsList = () => {
       setBulkUpdateFields,
       setBulkUpdateActive,
       setBulkUpdateTypeId,
-      setBulkUpdateCategoryId,
+      setBulkUpdateCategoryIds,
       handleSort,
       toggleColumn,
       toggleSelectAll,

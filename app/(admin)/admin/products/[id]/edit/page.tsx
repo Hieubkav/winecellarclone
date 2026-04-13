@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use, useCallback, useRef } from 'react';
+import React, { useState, useEffect, use, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, ExternalLink, Eye, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
@@ -111,6 +111,13 @@ const generateSlug = (text: string): string => {
   const [isNameCopied, setIsNameCopied] = useState(false);
   const { isSidebarCollapsed } = useAdminLayout();
   const previewSize = PRODUCT_IMAGE_PREVIEW_SIZE;
+  const filteredCategories = useMemo(() => {
+    if (!typeId) {
+      return [];
+    }
+
+    return categories.filter((category) => category.type_id === Number(typeId));
+  }, [categories, typeId]);
   const [selectedTermIds, setSelectedTermIds] = useState<Record<string, number[]>>({});
   const [manualAttributes, setManualAttributes] = useState<Record<string, string>>({});
   const [productShopeeLinkEnabled, setProductShopeeLinkEnabled] = useState(false);
@@ -875,16 +882,13 @@ const generateSlug = (text: string): string => {
                </div>
                <div className="space-y-2">
                  <Label>Danh mục</Label>
-                 <select
-                   className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                   value={categoryIds[0] || ''}
-                   onChange={(e) => setCategoryIds(e.target.value ? [Number(e.target.value)] : [])}
-                 >
-                   <option value="">Chọn danh mục...</option>
-                   {categories.map(c => (
-                     <option key={c.id} value={c.id}>{c.name}</option>
-                   ))}
-                 </select>
+                 <AttributeCombobox
+                   options={filteredCategories}
+                   selectedIds={categoryIds}
+                   onChange={setCategoryIds}
+                   placeholder={typeId ? 'Gõ để tìm danh mục...' : 'Chọn phân loại trước'}
+                   emptyText={typeId ? 'Không có danh mục phù hợp' : 'Chưa chọn phân loại'}
+                 />
                </div>
              </div>
 

@@ -19,6 +19,7 @@ import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, Ta
 import { ColumnToggle, SortableHeader, BulkActionBar, SelectCheckbox } from '@/app/(admin)/admin/components/TableUtilities';
 import { cn } from '@/lib/utils';
 import { ImageWithFallback } from '@/app/(admin)/admin/components/ImageWithFallback';
+import { AttributeCombobox } from '@/app/(admin)/admin/components/AttributeCombobox';
 import { useProductsList } from '../hooks/useProductsList';
 
 const ImportProductsDialog = dynamic(
@@ -53,7 +54,7 @@ export const ProductsListScreen = () => {
     bulkUpdateFields,
     bulkUpdateActive,
     bulkUpdateTypeId,
-    bulkUpdateCategoryId,
+    bulkUpdateCategoryIds,
     isBulkUpdating,
     visibleColumns,
   } = state;
@@ -72,7 +73,7 @@ export const ProductsListScreen = () => {
     setBulkUpdateFields,
     setBulkUpdateActive,
     setBulkUpdateTypeId,
-    setBulkUpdateCategoryId,
+    setBulkUpdateCategoryIds,
     handleSort,
     toggleColumn,
     toggleSelectAll,
@@ -87,6 +88,10 @@ export const ProductsListScreen = () => {
     handleExportTemplate,
     handleImportSuccess,
   } = actions;
+
+  const filteredBulkCategories = bulkUpdateTypeId
+    ? categories.filter((category) => category.type_id === Number(bulkUpdateTypeId))
+    : [];
 
   if (isInitialLoading) {
     return (
@@ -318,7 +323,27 @@ export const ProductsListScreen = () => {
                     </TableCell>
                   )}
                   {visibleColumns.includes('category_name') && (
-                    <TableCell>{product.category_name || 'Không có'}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const categoryLabels = product.categories?.map((category) => category.name)
+                          ?? product.category_names
+                          ?? (product.category_name ? [product.category_name] : []);
+
+                        if (!categoryLabels.length) {
+                          return 'Không có';
+                        }
+
+                        return (
+                          <div className="flex flex-wrap gap-1">
+                            {categoryLabels.map((label, index) => (
+                              <Badge key={`${label}-${index}`} variant="secondary">
+                                {label}
+                              </Badge>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </TableCell>
                   )}
                   {visibleColumns.includes('price') && (
                     <TableCell>
@@ -539,7 +564,7 @@ export const ProductsListScreen = () => {
                   value={bulkUpdateTypeId}
                   onChange={(event) => {
                     setBulkUpdateTypeId(event.target.value);
-                    setBulkUpdateCategoryId('');
+                    setBulkUpdateCategoryIds([]);
                   }}
                   disabled={!bulkUpdateFields.type_id}
                 >
@@ -564,19 +589,19 @@ export const ProductsListScreen = () => {
                   />
                   Danh mục
                 </label>
-                <select
-                  className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                  value={bulkUpdateCategoryId}
-                  onChange={(event) => setBulkUpdateCategoryId(event.target.value)}
-                  disabled={!bulkUpdateFields.category_ids}
-                >
-                  <option value="">Chọn danh mục...</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                {bulkUpdateFields.category_ids ? (
+                  <AttributeCombobox
+                    options={filteredBulkCategories}
+                    selectedIds={bulkUpdateCategoryIds}
+                    onChange={setBulkUpdateCategoryIds}
+                    placeholder={bulkUpdateTypeId ? 'Gõ để tìm danh mục...' : 'Chọn phân loại trước'}
+                    emptyText={bulkUpdateTypeId ? 'Không có danh mục phù hợp' : 'Chưa chọn phân loại'}
+                  />
+                ) : (
+                  <div className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 flex items-center text-sm text-slate-400">
+                    Bật để chọn danh mục
+                  </div>
+                )}
               </div>
             </div>
 

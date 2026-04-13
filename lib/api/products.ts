@@ -323,6 +323,7 @@ export interface ProductFilterOption {
   id: number;
   name: string;
   slug: string;
+  type_id?: number | null;
   count?: number;
 }
 
