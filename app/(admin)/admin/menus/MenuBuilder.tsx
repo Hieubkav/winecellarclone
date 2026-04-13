@@ -287,6 +287,7 @@ interface SortableMenuProps {
   onToggleActive: () => void;
   onDelete: () => void;
   onAddBlock: (title: string) => Promise<void>;
+  onOpenSuggestion: (menuId: number) => void;
   children: React.ReactNode;
   editingState: EditingState | null;
   onStartEdit: (type: 'menu' | 'block' | 'item', id: number, field: string, currentValue: string) => void;
@@ -303,6 +304,7 @@ function SortableMenu({
   onToggleActive,
   onDelete,
   onAddBlock,
+  onOpenSuggestion,
   children,
   editingState,
   onStartEdit,
@@ -326,6 +328,7 @@ function SortableMenu({
   };
 
   const isEditingTitle = editingState?.type === 'menu' && editingState?.id === menu.id && editingState?.field === 'title';
+  const isEditingHref = editingState?.type === 'menu' && editingState?.id === menu.id && editingState?.field === 'href';
 
   return (
     <div
@@ -398,6 +401,47 @@ function SortableMenu({
           </button>
         )}
 
+        {/* Inline Href Edit */}
+        {isEditingHref ? (
+          <div className="flex items-center gap-2">
+            <Input
+              value={editingState.value}
+              onChange={(e) => onUpdateEditValue(e.target.value)}
+              className="h-8 text-xs w-56 font-mono"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSaveEdit();
+                if (e.key === 'Escape') onCancelEdit();
+              }}
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-green-600"
+              onClick={onSaveEdit}
+              disabled={isSaving}
+            >
+              {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 text-slate-500"
+              onClick={onCancelEdit}
+            >
+              <X size={14} />
+            </Button>
+          </div>
+        ) : (
+          <button
+            onClick={() => onStartEdit('menu', menu.id, 'href', menu.href || '')}
+            className="text-[10px] font-mono text-slate-400 hover:text-blue-500 truncate max-w-[200px]"
+            title={menu.href || 'Không có URL'}
+          >
+            {menu.href || '—'}
+          </button>
+        )}
+
         {menu.type && (
           <Badge variant="secondary" className="text-xs">
             {menu.type}
@@ -417,6 +461,16 @@ function SortableMenu({
           title={menu.active ? 'Ẩn' : 'Hiện'}
         >
           {menu.active ? <Eye size={14} /> : <EyeOff size={14} className="text-slate-400" />}
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-emerald-600 hover:text-emerald-700"
+          onClick={() => onOpenSuggestion(menu.id)}
+          title="Gợi ý URL"
+        >
+          <Link2 size={14} />
         </Button>
 
         <Button
@@ -770,7 +824,11 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);
-  const [suggestionTarget, setSuggestionTarget] = useState<{ blockId: number; itemId: number } | null>(null);
+  const [suggestionTarget, setSuggestionTarget] = useState<
+    | { kind: 'menu'; menuId: number }
+    | { kind: 'item'; blockId: number; itemId: number }
+    | null
+  >(null);
   const [suggestionMode, setSuggestionMode] = useState<'core' | 'type' | 'category' | 'product' | 'article'>('core');
   const [suggestionSearch, setSuggestionSearch] = useState('');
   const [suggestionLoading, setSuggestionLoading] = useState(false);
@@ -1054,7 +1112,18 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
   }, [suggestionCategories.length, suggestionTypes.length]);
 
   const openSuggestionDialog = useCallback((blockId: number, itemId: number) => {
-    setSuggestionTarget({ blockId, itemId });
+    setSuggestionTarget({ kind: 'item', blockId, itemId });
+    setSuggestionMode('core');
+    setSuggestionSearch('');
+    setSuggestionProducts([]);
+    setSuggestionArticles([]);
+    setSelectedTypeId(null);
+    setIsSuggestionOpen(true);
+    void ensureSuggestionBaseData();
+  }, [ensureSuggestionBaseData]);
+
+  const openMenuSuggestionDialog = useCallback((menuId: number) => {
+    setSuggestionTarget({ kind: 'menu', menuId });
     setSuggestionMode('core');
     setSuggestionSearch('');
     setSuggestionProducts([]);
@@ -1067,36 +1136,43 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
   const applySuggestion = useCallback(async (href: string, label: string) => {
     if (!suggestionTarget) return;
 
-    const targetItem = menus
-      .flatMap((menu) => menu.blocks || [])
-      .flatMap((block) => block.items || [])
-      .find((item) => item.id === suggestionTarget.itemId);
-
-    if (!targetItem) {
-      toast.error('Không tìm thấy item để cập nhật');
-      return;
-    }
-
-    const shouldUpdateLabel = !targetItem.label?.trim();
-    const payload: Record<string, unknown> = { href };
-    if (shouldUpdateLabel) {
-      payload.label = label;
-    }
-
     setSuggestionSaving(true);
     try {
-      await updateMenuBlockItem(suggestionTarget.blockId, suggestionTarget.itemId, payload);
-      setMenus((prev) => prev.map((menu) => ({
-        ...menu,
-        blocks: menu.blocks?.map((block) => ({
-          ...block,
-          items: block.items?.map((item) => item.id === suggestionTarget.itemId ? {
-            ...item,
-            href,
-            label: shouldUpdateLabel ? label : item.label,
-          } : item),
-        })),
-      })));
+      if (suggestionTarget.kind === 'menu') {
+        await updateMenu(suggestionTarget.menuId, { href });
+        setMenus((prev) => prev.map((menu) => (
+          menu.id === suggestionTarget.menuId ? { ...menu, href } : menu
+        )));
+      } else {
+        const targetItem = menus
+          .flatMap((menu) => menu.blocks || [])
+          .flatMap((block) => block.items || [])
+          .find((item) => item.id === suggestionTarget.itemId);
+
+        if (!targetItem) {
+          toast.error('Không tìm thấy item để cập nhật');
+          return;
+        }
+
+        const shouldUpdateLabel = !targetItem.label?.trim();
+        const payload: Record<string, unknown> = { href };
+        if (shouldUpdateLabel) {
+          payload.label = label;
+        }
+
+        await updateMenuBlockItem(suggestionTarget.blockId, suggestionTarget.itemId, payload);
+        setMenus((prev) => prev.map((menu) => ({
+          ...menu,
+          blocks: menu.blocks?.map((block) => ({
+            ...block,
+            items: block.items?.map((item) => item.id === suggestionTarget.itemId ? {
+              ...item,
+              href,
+              label: shouldUpdateLabel ? label : item.label,
+            } : item),
+          })),
+        })));
+      }
       setEditingState(null);
       toast.success('Đã cập nhật URL');
       setIsSuggestionOpen(false);
@@ -1300,6 +1376,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
                   onToggleActive={() => handleToggleMenuActive(menu.id)}
                   onDelete={() => handleDeleteMenu(menu.id)}
                   onAddBlock={(title) => handleAddBlock(menu.id, title)}
+                  onOpenSuggestion={openMenuSuggestionDialog}
                   editingState={editingState}
                   onStartEdit={handleStartEdit}
                   onSaveEdit={handleSaveEdit}
