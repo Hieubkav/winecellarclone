@@ -126,7 +126,7 @@ export const ProductsListScreen = () => {
     });
     setBulkUpdateActive(true);
     setBulkUpdateTypeId('');
-    setBulkUpdateCategoryId('');
+    setBulkUpdateCategoryIds([]);
   };
 
   return (
