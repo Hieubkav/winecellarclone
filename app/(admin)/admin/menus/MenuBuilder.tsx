@@ -34,7 +34,8 @@ import {
   Menu as MenuIcon,
   Layers,
   Link as LinkIcon,
-  Sparkles,
+  Link2,
+  Search,
 } from 'lucide-react';
 import {
   Button,
@@ -730,11 +731,11 @@ function SortableItem({
       <Button
         variant="ghost"
         size="icon"
-        className="h-5 w-5 text-amber-500 hover:text-amber-600"
+        className="h-5 w-5 text-slate-500 hover:text-slate-700"
         onClick={() => onOpenSuggestion(blockId, item.id)}
         title="Gợi ý URL"
       >
-        <Sparkles size={10} />
+        <Link2 size={10} />
       </Button>
 
       <Button
@@ -1488,7 +1489,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
                     onClick={handleSearchSuggestion}
                     disabled={suggestionLoading}
                   >
-                    {suggestionLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    {suggestionLoading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
                     Tìm
                   </Button>
                 </div>
