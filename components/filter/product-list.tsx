@@ -17,12 +17,18 @@ import type { ProductFiltersPayload, ProductListResponse } from "@/lib/api/produ
 const FilterSidebar = lazy(() => import("./filter-sidebar").then(mod => ({ default: mod.FilterSidebar })))
 const FilterProductCard = lazy(() => import("./product-card").then(mod => ({ default: mod.FilterProductCard })))
 
+const EMPTY_ATTRIBUTE_SELECTIONS: Record<string, string[]> = {}
+
 interface ProductListProps {
   initialFilterOptions?: ProductFiltersPayload | null
   initialProducts?: ProductListResponse | null
   fontFamily?: string
   initialTypeSlug?: string | null
+  initialCategorySlug?: string | null
+  initialAttributeSelections?: Record<string, string[]>
+  initialPriceRange?: { min: number; max: number } | null
   listingMode?: "generic" | "type-landing"
+  pageTitle?: string
 }
 
 export default function WineList({
@@ -30,14 +36,24 @@ export default function WineList({
   initialProducts,
   fontFamily,
   initialTypeSlug = null,
+  initialCategorySlug = null,
+  initialAttributeSelections = EMPTY_ATTRIBUTE_SELECTIONS,
+  initialPriceRange = null,
   listingMode = "generic",
+  pageTitle = "Sản phẩm của chúng tôi",
 }: ProductListProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const hydrated = useHydrated()
   const router = useRouter()
   const pathname = usePathname()
   
-  useFilterUrlSync({ initialTypeSlug, listingMode })
+  useFilterUrlSync({
+    initialTypeSlug,
+    initialCategorySlug,
+    initialAttributeSelections,
+    initialPriceRange,
+    listingMode,
+  })
   
   const {
     wines,
@@ -83,11 +99,11 @@ export default function WineList({
 
   const handleTypeNavigation = useCallback((nextTypeSlug: string | null) => {
     if (!nextTypeSlug) {
-      router.push("/filter")
+      router.push("/san-pham")
       return
     }
 
-    router.push(`/${nextTypeSlug}`)
+    router.push(`/san-pham/${nextTypeSlug}`)
   }, [router])
 
   const handleLandingReset = useCallback(() => {
@@ -136,7 +152,7 @@ export default function WineList({
         {/* Page Title & Search (Desktop) */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:mb-8">
           <div>
-            <h1 className="font-serif text-2xl md:text-3xl font-bold text-[#9B2C3B]">Sản phẩm của chúng tôi</h1>
+            <h1 className="font-serif text-2xl md:text-3xl font-bold text-[#9B2C3B]">{pageTitle}</h1>
           </div>
           <div className="hidden w-full max-w-xs md:block">
             <FilterSearchBar

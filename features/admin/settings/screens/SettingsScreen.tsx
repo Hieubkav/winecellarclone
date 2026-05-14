@@ -361,7 +361,7 @@ export const SettingsScreen = () => {
                       onChange={(event) => setProductContactCtaMode(event.target.value as typeof productContactCtaMode)}
                       className="w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm"
                     >
-                      <option value="contact_page">Nút liên hệ (mở trang /contact)</option>
+                      <option value="contact_page">Nút liên hệ (mở trang /lien-he)</option>
                       <option value="social_4_buttons">4 nút FB / Zalo / SĐT / TikTok</option>
                     </select>
                   </div>

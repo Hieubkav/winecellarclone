@@ -357,7 +357,7 @@ export default function CategoriesListPage() {
                 {visibleColumns.includes('actions') && (
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Link href={`/filter?category=${category.slug}`} target="_blank">
+                      <Link href={`/san-pham?category=${category.slug}`} target="_blank">
                         <Button 
                           variant="ghost" 
                           size="icon" 

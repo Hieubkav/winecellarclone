@@ -31,7 +31,13 @@ const findSlugById = (options: ProductFilterOption[], id: number): string | null
  * - Effect 2 (Store → URL): Syncs filter changes to URL (converts ID to slug)
  * - Loop prevention: previousUrlParams tracks changes, isApplyingUrlParams prevents Effect 2 during Effect 1
  */
-export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null; listingMode?: "generic" | "type-landing" }) {
+export function useFilterUrlSync(syncOptions?: {
+  initialTypeSlug?: string | null
+  initialCategorySlug?: string | null
+  initialAttributeSelections?: Record<string, string[]>
+  initialPriceRange?: { min: number; max: number } | null
+  listingMode?: "generic" | "type-landing"
+}) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -78,7 +84,7 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
         // Parse all URL params (slug-based) - convert to IDs for store
         // This ensures filters are cleared when navigating from /filter?type=vang-do to /filter
         
-        const categoryParam = searchParams.get("category")
+        const categoryParam = searchParams.get("category") || syncOptions?.initialCategorySlug || null
         let categoryId: number | null = null
         if (categoryParam) {
           // Try as slug first, fallback to ID for backward compatibility
@@ -115,6 +121,9 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
         const priceMaxParam = searchParams.get("price_max")
         const priceMin = priceMinParam ? parseInt(priceMinParam, 10) : options.priceRange[0]
         const priceMax = priceMaxParam ? parseInt(priceMaxParam, 10) : options.priceRange[1]
+        const routePriceRange = syncOptions?.initialPriceRange ?? null
+        const effectivePriceMin = routePriceRange ? routePriceRange.min : priceMin
+        const effectivePriceMax = routePriceRange ? routePriceRange.max : priceMax
         
         // If type changed, fetch type-specific filters FIRST before parsing attribute params
         let attributeFiltersToUse = options.attributeFilters
@@ -127,8 +136,8 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
           categoryId ||
           searchQuery ||
           sortBy !== "name-asc" ||
-          priceMin !== options.priceRange[0] ||
-          priceMax !== options.priceRange[1]
+          effectivePriceMin !== options.priceRange[0] ||
+          effectivePriceMax !== options.priceRange[1]
         )
         
         if (typeId && typeId !== currentTypeId && hasBaseNonDefaultParams) {
@@ -169,7 +178,8 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
         // Now using the correct attributeFilters for the selected type
         const attributeSelections: Record<string, number[]> = {}
         attributeFiltersToUse.forEach((attrFilter) => {
-          const attrParam = searchParams.get(attrFilter.code)
+          const routeAttrSlugs = syncOptions?.initialAttributeSelections?.[attrFilter.code]
+          const attrParam = searchParams.get(attrFilter.code) || (routeAttrSlugs?.join(",") ?? null)
           if (attrParam) {
             const slugs = attrParam.split(",")
             const ids: number[] = []
@@ -197,8 +207,8 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
 
         // Check if filters actually changed
         const currentFilters = useWineStore.getState().filters
-        const nextPriceRange: [number, number] = (!isNaN(priceMin) && !isNaN(priceMax))
-          ? [priceMin, priceMax]
+        const nextPriceRange: [number, number] = (!isNaN(effectivePriceMin) && !isNaN(effectivePriceMax))
+          ? [effectivePriceMin, effectivePriceMax]
           : [options.priceRange[0], options.priceRange[1]]
         const filtersChanged =
           currentFilters.categoryId !== categoryId ||
@@ -249,7 +259,20 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
     }
 
     void applyUrlFilters()
-  }, [initialized, pathname, searchParams, options.attributeFilters, options.priceRange, options.categories, options.productTypes, syncOptions?.initialTypeSlug, syncOptions?.listingMode])
+  }, [
+    initialized,
+    pathname,
+    searchParams,
+    options.attributeFilters,
+    options.priceRange,
+    options.categories,
+    options.productTypes,
+    syncOptions?.initialTypeSlug,
+    syncOptions?.initialCategorySlug,
+    syncOptions?.initialAttributeSelections,
+    syncOptions?.initialPriceRange,
+    syncOptions?.listingMode,
+  ])
 
   // Effect 2: Store → URL (sync filter changes to URL with slug for SEO-friendly URLs)
   useEffect(() => {
@@ -305,10 +328,10 @@ export function useFilterUrlSync(syncOptions?: { initialTypeSlug?: string | null
       }
     })
 
-    // Generic mode: nếu đã chọn type thì URL chuẩn phải là /<typeSlug> thay vì /filter?type=...
-    if (listingMode === "generic" && pathname === "/filter" && selectedTypeSlug) {
+    // Generic mode: nếu đã chọn type thì URL chuẩn phải là /san-pham/<typeSlug> thay vì /san-pham?type=...
+    if (listingMode === "generic" && pathname === "/san-pham" && selectedTypeSlug) {
       const queryString = params.toString()
-      const newUrl = queryString ? `/${selectedTypeSlug}?${queryString}` : `/${selectedTypeSlug}`
+      const newUrl = queryString ? `/san-pham/${selectedTypeSlug}?${queryString}` : `/san-pham/${selectedTypeSlug}`
       const currentUrl = `${pathname}${window.location.search}`
 
       if (newUrl !== currentUrl) {

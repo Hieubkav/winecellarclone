@@ -1,8 +1,7 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   buildFilterMetadata,
-  renderFilterListing,
   resolveTypeContext,
   type FilterRouteSearchParams,
 } from "../filter/shared";
@@ -26,7 +25,7 @@ export async function generateMetadata({
 
   return buildFilterMetadata({
     searchParams: resolvedSearchParams,
-    canonicalPath: `/${typeSlug}`,
+    canonicalPath: `/san-pham/${typeSlug}`,
     routeTypeSlug: typeContext.matchedType.slug,
     routeTypeName: typeContext.matchedType.name,
   });
@@ -34,24 +33,24 @@ export async function generateMetadata({
 
 export default async function ProductTypeLandingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ typeSlug: string }>;
+  searchParams: Promise<FilterRouteSearchParams>;
 }) {
-  const { typeSlug } = await params;
+  const [{ typeSlug }, resolvedSearchParams] = await Promise.all([params, searchParams]);
   const { matchedType } = await resolveTypeContext(typeSlug);
 
   if (!matchedType) {
     notFound();
   }
 
-  return renderFilterListing({
-    canonicalPath: `/${matchedType.slug}`,
-    routeTypeSlug: matchedType.slug,
-    routeTypeName: matchedType.name,
-    pageTitle: matchedType.name,
-    collectionName: `${matchedType.name} - Thiên Kim Wine`,
-    collectionDescription: `Khám phá danh mục ${matchedType.name.toLowerCase()} chính hãng tại Thiên Kim Wine`,
-    itemListName: `Danh sách ${matchedType.name}`,
-    itemListDescription: `Các sản phẩm ${matchedType.name.toLowerCase()} chính hãng tại Thiên Kim Wine`,
+  const query = new URLSearchParams();
+  Object.entries(resolvedSearchParams).forEach(([key, value]) => {
+    if (typeof value === "string" && value.length > 0) {
+      query.set(key, value);
+    }
   });
+
+  redirect(`/san-pham/${matchedType.slug}${query.toString() ? `?${query}` : ""}`);
 }

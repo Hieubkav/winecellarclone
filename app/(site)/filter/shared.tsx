@@ -27,6 +27,10 @@ export type ListingSeoContext = {
   canonicalPath: string;
   routeTypeSlug?: string | null;
   routeTypeName?: string | null;
+  routeCategorySlug?: string | null;
+  routeAttributeSelections?: Record<string, string[]>;
+  routePriceRange?: { min: number; max: number } | null;
+  initialProductParams?: Record<string, string | number | Array<string | number> | undefined>;
   pageTitle?: string;
   collectionName?: string;
   collectionDescription?: string;
@@ -156,6 +160,10 @@ export async function renderFilterListing({
   canonicalPath,
   routeTypeSlug,
   routeTypeName,
+  routeCategorySlug,
+  routeAttributeSelections,
+  routePriceRange,
+  initialProductParams,
   pageTitle,
   collectionName,
   collectionDescription,
@@ -179,6 +187,7 @@ export async function renderFilterListing({
       page: 1,
       per_page: 16,
       sort: "name",
+      ...initialProductParams,
       ...(effectiveType?.id && effectiveType.id > 0 ? { "type[]": [effectiveType.id] } : {}),
     }),
     fetchSettingsSafe(),
@@ -233,7 +242,11 @@ export async function renderFilterListing({
         initialProducts={initialProducts}
         fontFamily={productListFontStyle.fontFamily}
         initialTypeSlug={routeTypeSlug ?? null}
+        initialCategorySlug={routeCategorySlug ?? null}
+        initialAttributeSelections={routeAttributeSelections ?? {}}
+        initialPriceRange={routePriceRange ?? null}
         listingMode={listingMode}
+        pageTitle={resolvedPageTitle}
       />
     </>
   );

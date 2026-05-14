@@ -397,7 +397,7 @@ export default function ContactConfigPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Cấu hình trang Liên hệ</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Tùy chỉnh nội dung và bố cục trang liên hệ</p>
         </div>
-        <Link href="/contact" target="_blank" rel="noreferrer">
+        <Link href="/lien-he" target="_blank" rel="noreferrer">
           <Button variant="outline" className="gap-2">
             <ExternalLink size={16} />
             Mở trang Contact

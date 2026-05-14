@@ -1085,8 +1085,16 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
 
   const coreSuggestions = useMemo(() => ([
     { label: 'Trang chủ', href: '/' },
-    { label: 'Bộ lọc sản phẩm', href: '/filter' },
-    { label: 'Bài viết', href: '/bai-viet' },
+    { label: 'Sản phẩm', href: '/san-pham' },
+    { label: 'Kiến thức', href: '/kien-thuc' },
+    { label: 'Thương hiệu', href: '/thuong-hieu' },
+    { label: 'Bộ sưu tập', href: '/bo-suu-tap' },
+    { label: 'Quà tặng', href: '/qua-tang' },
+    { label: 'Dịch vụ', href: '/dich-vu' },
+    { label: 'Cửa hàng', href: '/cua-hang' },
+    { label: 'Hỗ trợ', href: '/ho-tro' },
+    { label: 'Giới thiệu', href: '/gioi-thieu' },
+    { label: 'Liên hệ', href: '/lien-he' },
   ]), []);
 
   const ensureSuggestionBaseData = useCallback(async () => {
@@ -1221,7 +1229,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
   );
 
   const typeSuggestionItems = useMemo(
-    () => suggestionTypes.map((type) => ({ label: type.name, href: `/${type.slug}` })),
+    () => suggestionTypes.map((type) => ({ label: type.name, href: `/san-pham/${type.slug}` })),
     [suggestionTypes]
   );
 
@@ -1229,7 +1237,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
     () => selectedType
       ? filteredCategories.map((category) => ({
         label: category.name,
-        href: `/${selectedType.slug}?category=${category.slug}`,
+        href: `/san-pham/${selectedType.slug}/${category.slug}`,
       }))
       : [],
     [filteredCategories, selectedType]

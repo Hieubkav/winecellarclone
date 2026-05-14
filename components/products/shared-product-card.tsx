@@ -67,7 +67,7 @@ const normalizeText = (value: string | null | undefined) =>
 const buildTaxonomyUrl = (key: string, value: string) => {
   const params = new URLSearchParams();
   params.set(key, value);
-  return `/filter?${params.toString()}`;
+  return `/san-pham?${params.toString()}`;
 };
 
 const isBrandGroup = (groupCode?: string, groupName?: string) => {
@@ -210,7 +210,7 @@ export const SharedProductCard = React.memo(function SharedProductCard({
       return;
     }
 
-    if (pathname === "/filter") {
+    if (pathname === "/san-pham" || pathname.startsWith("/san-pham/")) {
       if (initialized && attr.filterCode && attr.termSlugs && attr.termSlugs.length > 0) {
         await applyAttributeFilterBySlug(attr.filterCode, attr.termSlugs, item.wineTypeSlug);
       }

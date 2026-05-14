@@ -257,7 +257,7 @@ export default function ProductDetailPage({
     
     // Base filter URL với type (nếu có)
     const typeSlug = product.type?.slug;
-    const baseFilterUrl = typeSlug ? `/${typeSlug}` : '/filter';
+    const baseFilterUrl = typeSlug ? `/san-pham/${typeSlug}` : '/san-pham';
     const buildFilterUrl = (paramKey: string, paramValue: string) => {
       return `${baseFilterUrl}?${paramKey}=${paramValue}`;
     };
@@ -781,7 +781,7 @@ export default function ProductDetailPage({
                     product_name: product.name,
                   })}
                 >
-                  <Link href="/contact" target="_blank" rel="noopener noreferrer">
+                  <Link href="/lien-he" target="_blank" rel="noopener noreferrer">
                     <Phone className="w-5 h-5 mr-2" /> Liên hệ đặt hàng
                   </Link>
                 </Button>

@@ -292,7 +292,7 @@ export function WebSiteSchema({
   name,
   url = SITE_URL,
   description,
-  searchUrl = `${SITE_URL}/filter?q={search_term_string}`,
+  searchUrl = `${SITE_URL}/san-pham?q={search_term_string}`,
 }: WebSiteSchemaProps) {
   const schema = {
     '@context': 'https://schema.org',

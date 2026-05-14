@@ -12,6 +12,8 @@ import { ProductSchema, BreadcrumbSchema } from "@/lib/seo/structured-data";
 import { buildProductBreadcrumbs } from "@/lib/products/product-breadcrumbs";
 import { fetchSettingsSafe, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
+import { buildFilterMetadata, renderFilterListing } from "../../filter/shared";
+import { resolveProductLandingContext } from "@/lib/seo/ia-products";
 
 type ProductDetailRouteParams = {
   slug: string;
@@ -31,10 +33,20 @@ export async function generateMetadata({
   ]);
 
   if (!product) {
-    return {
-      title: "Sản phẩm không tồn tại",
-      description: "Sản phẩm này không tồn tại hoặc đã bị xóa.",
-    };
+    const landingContext = await resolveProductLandingContext([slug]);
+    if (!landingContext) {
+      return {
+        title: "Sản phẩm không tồn tại",
+        description: "Sản phẩm này không tồn tại hoặc đã bị xóa.",
+      };
+    }
+
+    return buildFilterMetadata({
+      searchParams: {},
+      canonicalPath: landingContext.canonicalPath,
+      routeTypeSlug: landingContext.routeFilters.typeSlug,
+      routeTypeName: landingContext.title,
+    });
   }
 
   const siteName = settings.site_name || "Thiên Kim Wine";
@@ -102,7 +114,25 @@ export default async function ProductDetailRoute({
   ]);
 
   if (!product) {
-    notFound();
+    const landingContext = await resolveProductLandingContext([slug]);
+    if (!landingContext) {
+      notFound();
+    }
+
+    return renderFilterListing({
+      canonicalPath: landingContext.canonicalPath,
+      routeTypeSlug: landingContext.routeFilters.typeSlug,
+      routeTypeName: landingContext.title,
+      routeCategorySlug: landingContext.routeFilters.categorySlug,
+      routeAttributeSelections: landingContext.routeFilters.attributeSelections,
+      routePriceRange: landingContext.routeFilters.priceRange,
+      initialProductParams: landingContext.apiParams,
+      pageTitle: landingContext.title,
+      collectionName: `${landingContext.title} - Thiên Kim Wine`,
+      collectionDescription: landingContext.description,
+      itemListName: `Danh sách ${landingContext.title}`,
+      itemListDescription: landingContext.description,
+    });
   }
   const productDetailFontStyle = getScopedFontStyle(settings, "product_detail");
   const sellerName = settings.site_name || "Thiên Kim Wine";

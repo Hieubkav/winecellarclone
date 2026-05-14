@@ -1,20 +1,29 @@
-import { Metadata } from "next";
-import { buildFilterMetadata, renderFilterListing, type FilterRouteSearchParams } from "./shared";
+import { redirect } from "next/navigation";
 
-export async function generateMetadata({
+type FilterRedirectSearchParams = Record<string, string | string[] | undefined>;
+
+const buildRedirectPath = (params: FilterRedirectSearchParams) => {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => searchParams.append(key, item));
+      return;
+    }
+
+    if (value) {
+      searchParams.set(key, value);
+    }
+  });
+
+  const query = searchParams.toString();
+  return query ? `/san-pham?${query}` : "/san-pham";
+};
+
+export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<FilterRouteSearchParams>;
-}): Promise<Metadata> {
-  return buildFilterMetadata({
-    searchParams: await searchParams,
-    canonicalPath: "/filter",
-  });
-}
-
-export default async function Page() {
-  return renderFilterListing({
-    canonicalPath: "/filter",
-    pageTitle: "Sản phẩm của chúng tôi",
-  });
+  searchParams: Promise<FilterRedirectSearchParams>;
+}) {
+  redirect(buildRedirectPath(await searchParams));
 }

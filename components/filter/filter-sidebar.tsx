@@ -496,7 +496,7 @@ export function FilterSidebar({
     const activeFilterCount = useMemo(() => {
         let count = 0
         if (filters.categoryId) count++
-        if (filters.productTypeId && !(listingMode === "type-landing" && initialTypeSlug && pathname === `/${initialTypeSlug}`)) count++
+        if (filters.productTypeId && !(listingMode === "type-landing" && initialTypeSlug && pathname === `/san-pham/${initialTypeSlug}`)) count++
         Object.values(filters.attributeSelections).forEach(selections => {
             count += selections.length
         })

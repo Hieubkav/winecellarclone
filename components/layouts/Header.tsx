@@ -212,9 +212,9 @@ function SearchForm() {
     const query = searchQuery.trim()
     setShowSuggestions(false)
     if (query) {
-      window.location.href = `/filter?q=${encodeURIComponent(query)}`
+      window.location.href = `/san-pham?q=${encodeURIComponent(query)}`
     } else {
-      window.location.href = `/filter`
+      window.location.href = `/san-pham`
     }
   }
 
@@ -290,7 +290,7 @@ function SearchForm() {
 function ContactButton() {
   return (
     <Link
-      href="/contact"
+      href="/lien-he"
       className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] transition hover:brightness-110"
       style={{ backgroundColor: BRAND_ACCENT, color: BRAND_BASE }}
     >

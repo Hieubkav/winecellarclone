@@ -28,7 +28,7 @@ export const buildProductBreadcrumbs = (
 
   const categoryLabel = category?.name || type?.name || null;
   const categorySlug = category?.slug || type?.slug || null;
-  const categoryParam = category?.slug ? "category" : type?.slug ? "type" : null;
+  const typeSlug = type?.slug || null;
 
   const originGroup = product.attributes?.find((group) => group.group_code === "xuat_xu");
   const originTerm = originGroup?.terms?.find((term) => Boolean(term.slug)) ?? null;
@@ -37,20 +37,22 @@ export const buildProductBreadcrumbs = (
     { label: "Trang chủ", href: toAbsoluteHref("/", baseUrl) },
   ];
 
-  if (categoryLabel && categorySlug && categoryParam) {
-    const isTypeCategory = categoryParam === "type";
-    const categoryHref = isTypeCategory
-      ? `/${categorySlug}`
-      : `/filter?${categoryParam}=${categorySlug}`;
+  items.push({ label: "Sản phẩm", href: toAbsoluteHref("/san-pham", baseUrl) });
+
+  if (categoryLabel && categorySlug) {
+    const categoryHref = typeSlug
+      ? `/san-pham/${typeSlug}${category?.slug ? `/${category.slug}` : ""}`
+      : `/san-pham`;
     items.push({ label: categoryLabel, href: toAbsoluteHref(categoryHref, baseUrl) });
 
     if (originTerm?.name && originTerm.slug) {
-      const originHref = isTypeCategory
-        ? `${categoryHref}?xuat_xu=${originTerm.slug}`
-        : `${categoryHref}&xuat_xu=${originTerm.slug}`;
+      const originHref = typeSlug
+        ? `/san-pham/${typeSlug}/${originTerm.slug}`
+        : `/san-pham?xuat_xu=${originTerm.slug}`;
       items.push({ label: originTerm.name, href: toAbsoluteHref(originHref, baseUrl) });
     }
 
+    items.push({ label: product.name, href: toAbsoluteHref(`/san-pham/${product.slug}`, baseUrl) });
     return items;
   }
 

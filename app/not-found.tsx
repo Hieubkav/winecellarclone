@@ -29,7 +29,7 @@ export default function NotFound() {
             Về trang chủ
           </Link>
           <Link
-            href="/filter"
+            href="/san-pham"
             className="rounded-lg border border-[#9B2C3B] px-6 py-3 text-[#9B2C3B] transition-colors hover:bg-[#9B2C3B] hover:text-white"
           >
             Xem sản phẩm

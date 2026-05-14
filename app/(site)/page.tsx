@@ -110,7 +110,7 @@ export default async function Home() {
         name={organizationName}
         url={normalizedSiteUrl}
         description={organizationDescription}
-        searchUrl={`${normalizedSiteUrl}/filter?q={search_term_string}`}
+        searchUrl={`${normalizedSiteUrl}/san-pham?q={search_term_string}`}
       />
       <WebPageSchema
         name={homepageTitle}

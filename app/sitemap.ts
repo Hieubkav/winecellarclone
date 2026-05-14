@@ -4,6 +4,57 @@ import { fetchArticleListSafe } from '@/lib/api/articles'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thienkimwine.vn'
 
+const IA_STATIC_PATHS = [
+  'thuong-hieu',
+  'thuong-hieu/noi-bat',
+  'bo-suu-tap',
+  'bo-suu-tap/ban-chay',
+  'bo-suu-tap/hang-moi-ve',
+  'bo-suu-tap/khuyen-mai',
+  'bo-suu-tap/cao-cap',
+  'bo-suu-tap/uong-hang-ngay',
+  'bo-suu-tap/theo-mua',
+  'qua-tang',
+  'qua-tang/doanh-nghiep',
+  'qua-tang/ruou-vang',
+  'qua-tang/ruou-manh',
+  'qua-tang/tet',
+  'qua-tang/hop-tui-qua',
+  'kien-thuc',
+  'kien-thuc/cho-nguoi-moi-bat-dau',
+  'kien-thuc/co-ban',
+  'kien-thuc/chuyen-sau',
+  'kien-thuc/thuong-thuc-phuc-vu',
+  'kien-thuc/bao-quan',
+  'kien-thuc/ket-hop-mon-an',
+  'kien-thuc/vang-phap',
+  'kien-thuc/vang-y',
+  'kien-thuc/whisky',
+  'tin-tuc',
+  'su-kien',
+  'dich-vu',
+  'dich-vu/dat-hang-doanh-nghiep',
+  'dich-vu/in-logo-ten-doanh-nghiep',
+  'dich-vu/tu-van-chon-qua',
+  'dich-vu/tang-qua-tu-xa',
+  'cua-hang',
+  'cua-hang/danh-sach',
+  'cua-hang/gio-mo-cua',
+  'ho-tro',
+  'ho-tro/faq',
+  'ho-tro/giao-hang-van-chuyen',
+  'ho-tro/doi-tra-hoan-tien',
+  'ho-tro/thanh-toan',
+  'ho-tro/cam-ket-chinh-hang',
+  'ho-tro/chinh-sach-bao-mat',
+  'ho-tro/dieu-khoan-dieu-kien',
+  'gioi-thieu',
+  'gioi-thieu/ve-thien-kim-wine',
+  'gioi-thieu/cau-chuyen-thuong-hieu',
+  'gioi-thieu/vi-sao-chon-chung-toi',
+  'gioi-thieu/chung-nhan-giay-phep',
+]
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITEMAP_BATCH_SIZE = 100
   const ARTICLE_SITEMAP_BATCH_SIZE = 50
@@ -18,11 +69,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ])
 
   const typePages: MetadataRoute.Sitemap = (productTypes?.types ?? []).map((type) => ({
-    url: `${SITE_URL}/${type.slug}`,
+    url: `${SITE_URL}/san-pham/${type.slug}`,
     lastModified: new Date(),
     changeFrequency: 'daily',
     priority: 0.9,
   }))
+
+  const categoryPages: MetadataRoute.Sitemap = (productTypes?.categories ?? [])
+    .filter((category) => category.slug)
+    .flatMap((category) => {
+      const matchedType = (productTypes?.types ?? []).find((type) => type.id === category.type_id)
+      return matchedType ? [{
+        url: `${SITE_URL}/san-pham/${matchedType.slug}/${category.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'daily' as const,
+        priority: 0.85,
+      }] : []
+    })
 
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -32,30 +95,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${SITE_URL}/filter`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    ...typePages,
-    {
       url: `${SITE_URL}/san-pham`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,
     },
+    ...typePages,
+    ...categoryPages,
     {
-      url: `${SITE_URL}/bai-viet`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/contact`,
+      url: `${SITE_URL}/lien-he`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+    ...IA_STATIC_PATHS.map((slug) => ({
+      url: `${SITE_URL}/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: slug.includes('/') ? 0.6 : 0.7,
+    })),
   ]
 
   const totalProducts = productsResponse?.meta.total ?? productsResponse?.data.length ?? 0
