@@ -20,6 +20,16 @@ const findSlugById = (options: ProductFilterOption[], id: number): string | null
   return option?.slug ?? null
 }
 
+const areSlugListsEqual = (left: string[], right: string[]) => {
+  if (left.length !== right.length) {
+    return false
+  }
+
+  const normalizedLeft = [...left].sort()
+  const normalizedRight = [...right].sort()
+  return normalizedLeft.every((value, index) => value === normalizedRight[index])
+}
+
 /**
  * Hook to synchronize filter state with URL query parameters
  * Enables deep linking and shareable filter URLs
@@ -328,6 +338,30 @@ export function useFilterUrlSync(syncOptions?: {
       }
     })
 
+    if (listingMode === "type-landing") {
+      const routeCategorySlug = syncOptions?.initialCategorySlug ?? null
+      if (routeCategorySlug && params.get("category") === routeCategorySlug) {
+        params.delete("category")
+      }
+
+      Object.entries(syncOptions?.initialAttributeSelections ?? {}).forEach(([code, routeSlugs]) => {
+        const currentSlugs = params.get(code)?.split(",").filter(Boolean) ?? []
+        if (currentSlugs.length > 0 && areSlugListsEqual(currentSlugs, routeSlugs)) {
+          params.delete(code)
+        }
+      })
+
+      const routePriceRange = syncOptions?.initialPriceRange ?? null
+      if (
+        routePriceRange &&
+        params.get("price_min") === String(routePriceRange.min) &&
+        params.get("price_max") === String(routePriceRange.max)
+      ) {
+        params.delete("price_min")
+        params.delete("price_max")
+      }
+    }
+
     // Generic mode: nếu đã chọn type thì URL chuẩn phải là /san-pham/<typeSlug> thay vì /san-pham?type=...
     if (listingMode === "generic" && pathname === "/san-pham" && selectedTypeSlug) {
       const queryString = params.toString()
@@ -359,5 +393,10 @@ export function useFilterUrlSync(syncOptions?: {
     options.categories,
     options.productTypes,
     options.attributeFilters,
+    syncOptions?.initialCategorySlug,
+    syncOptions?.initialAttributeSelections,
+    syncOptions?.initialPriceRange,
+    syncOptions?.initialTypeSlug,
+    syncOptions?.listingMode,
   ])
 }

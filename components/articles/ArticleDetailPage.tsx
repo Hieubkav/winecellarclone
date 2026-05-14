@@ -195,8 +195,8 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
                   Trang chủ
                 </Link>
                 <ChevronRight className="h-3 w-3 text-[#C9A050]" />
-                <Link href="/bai-viet" className="hover:text-[#8B1832] cursor-pointer transition-colors">
-                  Bài viết
+                <Link href="/kien-thuc" className="hover:text-[#8B1832] cursor-pointer transition-colors">
+                  Kiến thức
                 </Link>
                 <ChevronRight className="h-3 w-3 text-[#C9A050]" />
                 <span className="text-[#C9A050] font-medium truncate max-w-[300px]">

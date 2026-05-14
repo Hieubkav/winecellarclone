@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Calendar, ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -119,6 +119,7 @@ function BlogCard({ article, index }: BlogCardProps) {
 
 export default function ArticleListPage({ data, fontFamily }: ArticleListPageProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { pagination } = data.meta;
   const currentSort = searchParams.get("sort") || "-created_at";
@@ -141,14 +142,14 @@ export default function ArticleListPage({ data, fontFamily }: ArticleListPagePro
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
-    router.push(`/bai-viet?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const handleSortChange = (sortValue: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("sort", sortValue);
     params.delete("page");
-    router.push(`/bai-viet?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
     setIsDropdownOpen(false);
   };
 
