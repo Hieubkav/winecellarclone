@@ -288,9 +288,15 @@ function SearchForm() {
   )
 }
 function ContactButton() {
+  const [href, setHref] = useState("/contact")
+
+  useEffect(() => {
+    setHref("/lien-he")
+  }, [])
+
   return (
     <Link
-      href="/lien-he"
+      href={href}
       className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-bold uppercase tracking-[0.12em] transition hover:brightness-110"
       style={{ backgroundColor: BRAND_ACCENT, color: BRAND_BASE }}
     >
