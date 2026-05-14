@@ -21,32 +21,54 @@ type ProductDetailRouteParams = {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
+const renderLandingPage = (landingContext: Awaited<ReturnType<typeof resolveProductLandingContext>>) => {
+  if (!landingContext) {
+    return null;
+  }
+
+  return renderFilterListing({
+    canonicalPath: landingContext.canonicalPath,
+    routeTypeSlug: landingContext.routeFilters.typeSlug,
+    routeTypeName: landingContext.title,
+    routeCategorySlug: landingContext.routeFilters.categorySlug,
+    routeAttributeSelections: landingContext.routeFilters.attributeSelections,
+    routePriceRange: landingContext.routeFilters.priceRange,
+    initialProductParams: landingContext.apiParams,
+    pageTitle: landingContext.title,
+    collectionName: `${landingContext.title} - Thiên Kim Wine`,
+    collectionDescription: landingContext.description,
+    itemListName: `Danh sách ${landingContext.title}`,
+    itemListDescription: landingContext.description,
+  });
+};
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<ProductDetailRouteParams>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const [product, settings] = await Promise.all([
-    fetchProductDetailSafe(slug),
-    fetchSettingsSafe(),
-  ]);
+  const landingContext = await resolveProductLandingContext([slug]);
 
-  if (!product) {
-    const landingContext = await resolveProductLandingContext([slug]);
-    if (!landingContext) {
-      return {
-        title: "Sản phẩm không tồn tại",
-        description: "Sản phẩm này không tồn tại hoặc đã bị xóa.",
-      };
-    }
-
+  if (landingContext) {
     return buildFilterMetadata({
       searchParams: {},
       canonicalPath: landingContext.canonicalPath,
       routeTypeSlug: landingContext.routeFilters.typeSlug,
       routeTypeName: landingContext.title,
     });
+  }
+
+  const [product, settings] = await Promise.all([
+    fetchProductDetailSafe(slug),
+    fetchSettingsSafe(),
+  ]);
+
+  if (!product) {
+    return {
+      title: "Sản phẩm không tồn tại",
+      description: "Sản phẩm này không tồn tại hoặc đã bị xóa.",
+    };
   }
 
   const siteName = settings.site_name || "Thiên Kim Wine";
@@ -108,31 +130,19 @@ export default async function ProductDetailRoute({
   params: Promise<ProductDetailRouteParams>;
 }) {
   const { slug } = await params;
+  const landingContext = await resolveProductLandingContext([slug]);
+
+  if (landingContext) {
+    return renderLandingPage(landingContext);
+  }
+
   const [product, settings] = await Promise.all([
     fetchProductDetailSafe(slug),
     fetchSettingsSafe(),
   ]);
 
   if (!product) {
-    const landingContext = await resolveProductLandingContext([slug]);
-    if (!landingContext) {
-      notFound();
-    }
-
-    return renderFilterListing({
-      canonicalPath: landingContext.canonicalPath,
-      routeTypeSlug: landingContext.routeFilters.typeSlug,
-      routeTypeName: landingContext.title,
-      routeCategorySlug: landingContext.routeFilters.categorySlug,
-      routeAttributeSelections: landingContext.routeFilters.attributeSelections,
-      routePriceRange: landingContext.routeFilters.priceRange,
-      initialProductParams: landingContext.apiParams,
-      pageTitle: landingContext.title,
-      collectionName: `${landingContext.title} - Thiên Kim Wine`,
-      collectionDescription: landingContext.description,
-      itemListName: `Danh sách ${landingContext.title}`,
-      itemListDescription: landingContext.description,
-    });
+    notFound();
   }
   const productDetailFontStyle = getScopedFontStyle(settings, "product_detail");
   const sellerName = settings.site_name || "Thiên Kim Wine";
