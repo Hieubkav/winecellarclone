@@ -72,6 +72,11 @@ import {
   fetchAdminProducts,
   fetchAdminArticles,
 } from '@/lib/api/admin';
+import {
+  CORE_ROUTE_OPTIONS,
+  serializeRouteSource,
+  type IARouteSource,
+} from '@/lib/ia/route-registry';
 import { toast } from 'sonner';
 
 // ==================== TYPES ====================
@@ -87,6 +92,12 @@ interface EditingState {
   field: string;
   value: string;
 }
+
+type RouteSuggestion = {
+  label: string;
+  href: string;
+  source?: IARouteSource;
+};
 
 // ==================== INLINE ADD FORMS ====================
 
@@ -1083,18 +1094,16 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
     }
   }, []);
 
-  const coreSuggestions = useMemo(() => ([
-    { label: 'Trang chủ', href: '/' },
-    { label: 'Sản phẩm', href: '/san-pham' },
-    { label: 'Kiến thức', href: '/kien-thuc' },
-    { label: 'Thương hiệu', href: '/thuong-hieu' },
-    { label: 'Bộ sưu tập', href: '/bo-suu-tap' },
-    { label: 'Quà tặng', href: '/qua-tang' },
-    { label: 'Dịch vụ', href: '/dich-vu' },
-    { label: 'Cửa hàng', href: '/cua-hang' },
-    { label: 'Hỗ trợ', href: '/ho-tro' },
-    { label: 'Giới thiệu', href: '/gioi-thieu' },
-    { label: 'Liên hệ', href: '/lien-he' },
+  const coreSuggestions = useMemo<RouteSuggestion[]>(() => ([
+    ...CORE_ROUTE_OPTIONS.map((item) => ({ label: item.label, href: item.href, source: item.source })),
+    { label: 'Kiến thức', href: '/kien-thuc', source: { kind: 'static_hub', hub: 'kien-thuc' } },
+    { label: 'Thương hiệu', href: '/thuong-hieu', source: { kind: 'static_hub', hub: 'thuong-hieu' } },
+    { label: 'Bộ sưu tập', href: '/bo-suu-tap', source: { kind: 'static_hub', hub: 'bo-suu-tap' } },
+    { label: 'Quà tặng', href: '/qua-tang', source: { kind: 'static_hub', hub: 'qua-tang' } },
+    { label: 'Dịch vụ', href: '/dich-vu', source: { kind: 'static_hub', hub: 'dich-vu' } },
+    { label: 'Cửa hàng', href: '/cua-hang', source: { kind: 'static_hub', hub: 'cua-hang' } },
+    { label: 'Hỗ trợ', href: '/ho-tro', source: { kind: 'static_hub', hub: 'ho-tro' } },
+    { label: 'Giới thiệu', href: '/gioi-thieu', source: { kind: 'static_hub', hub: 'gioi-thieu' } },
   ]), []);
 
   const ensureSuggestionBaseData = useCallback(async () => {
@@ -1141,15 +1150,27 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
     void ensureSuggestionBaseData();
   }, [ensureSuggestionBaseData]);
 
-  const applySuggestion = useCallback(async (href: string, label: string) => {
+  const applySuggestion = useCallback(async (suggestion: RouteSuggestion) => {
     if (!suggestionTarget) return;
 
     setSuggestionSaving(true);
     try {
+      const semanticPayload = suggestion.source
+        ? {
+          semantic_type: suggestion.source.kind,
+          route_payload: serializeRouteSource(suggestion.source),
+        }
+        : {};
+
       if (suggestionTarget.kind === 'menu') {
-        await updateMenu(suggestionTarget.menuId, { href });
+        await updateMenu(suggestionTarget.menuId, { href: suggestion.href, ...semanticPayload });
         setMenus((prev) => prev.map((menu) => (
-          menu.id === suggestionTarget.menuId ? { ...menu, href } : menu
+          menu.id === suggestionTarget.menuId ? {
+            ...menu,
+            href: suggestion.href,
+            semantic_type: suggestion.source?.kind ?? menu.semantic_type,
+            route_payload: suggestion.source ? serializeRouteSource(suggestion.source) : menu.route_payload,
+          } : menu
         )));
       } else {
         const targetItem = menus
@@ -1163,9 +1184,9 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
         }
 
         const shouldUpdateLabel = !targetItem.label?.trim();
-        const payload: Record<string, unknown> = { href };
+        const payload: Record<string, unknown> = { href: suggestion.href, ...semanticPayload };
         if (shouldUpdateLabel) {
-          payload.label = label;
+          payload.label = suggestion.label;
         }
 
         await updateMenuBlockItem(suggestionTarget.blockId, suggestionTarget.itemId, payload);
@@ -1175,8 +1196,10 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
             ...block,
             items: block.items?.map((item) => item.id === suggestionTarget.itemId ? {
               ...item,
-              href,
-              label: shouldUpdateLabel ? label : item.label,
+              href: suggestion.href,
+              label: shouldUpdateLabel ? suggestion.label : item.label,
+              semantic_type: suggestion.source?.kind ?? item.semantic_type,
+              route_payload: suggestion.source ? serializeRouteSource(suggestion.source) : item.route_payload,
             } : item),
           })),
         })));
@@ -1228,32 +1251,45 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
     [selectedType, suggestionCategories]
   );
 
-  const typeSuggestionItems = useMemo(
-    () => suggestionTypes.map((type) => ({ label: type.name, href: `/san-pham/${type.slug}` })),
+  const typeSuggestionItems = useMemo<RouteSuggestion[]>(
+    () => suggestionTypes.map((type) => ({
+      label: type.name,
+      href: `/san-pham/${type.slug}`,
+      source: { kind: 'product_type', typeSlug: type.slug },
+    })),
     [suggestionTypes]
   );
 
-  const categorySuggestionItems = useMemo(
+  const categorySuggestionItems = useMemo<RouteSuggestion[]>(
     () => selectedType
       ? filteredCategories.map((category) => ({
         label: category.name,
         href: `/san-pham/${selectedType.slug}/${category.slug}`,
+        source: { kind: 'product_category', typeSlug: selectedType.slug, categorySlug: category.slug },
       }))
       : [],
     [filteredCategories, selectedType]
   );
 
-  const productSuggestionItems = useMemo(
-    () => suggestionProducts.map((product) => ({ label: product.name, href: `/san-pham/${product.slug}` })),
+  const productSuggestionItems = useMemo<RouteSuggestion[]>(
+    () => suggestionProducts.map((product) => ({
+      label: product.name,
+      href: `/san-pham/${product.slug}`,
+      source: { kind: 'product', slug: product.slug },
+    })),
     [suggestionProducts]
   );
 
-  const articleSuggestionItems = useMemo(
-    () => suggestionArticles.map((article) => ({ label: article.title, href: `/bai-viet/${article.slug}` })),
+  const articleSuggestionItems = useMemo<RouteSuggestion[]>(
+    () => suggestionArticles.map((article) => ({
+      label: article.title,
+      href: `/bai-viet/${article.slug}`,
+      source: { kind: 'article', slug: article.slug },
+    })),
     [suggestionArticles]
   );
 
-  const renderSuggestionItems = useCallback((items: Array<{ label: string; href: string }>) => (
+  const renderSuggestionItems = useCallback((items: RouteSuggestion[]) => (
     <div className="max-h-64 overflow-auto rounded-md border border-slate-200 dark:border-slate-700">
       {items.length === 0 ? (
         <p className="p-3 text-xs text-slate-500">Chưa có gợi ý phù hợp.</p>
@@ -1264,7 +1300,7 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
             type="button"
             disabled={suggestionSaving}
             className="w-full px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-60"
-            onClick={() => applySuggestion(item.href, item.label)}
+            onClick={() => applySuggestion(item)}
           >
             <div className="font-medium text-slate-800 dark:text-slate-200">{item.label}</div>
             <div className="text-[11px] font-mono text-slate-400">{item.href}</div>

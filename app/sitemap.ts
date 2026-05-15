@@ -1,59 +1,9 @@
 import { MetadataRoute } from 'next'
 import { fetchProductListSafe, fetchProductFiltersSafe } from '@/lib/api/products'
 import { fetchArticleListSafe } from '@/lib/api/articles'
+import { IA_STATIC_PATHS } from '@/lib/ia/route-registry'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thienkimwine.vn'
-
-const IA_STATIC_PATHS = [
-  'thuong-hieu',
-  'thuong-hieu/noi-bat',
-  'bo-suu-tap',
-  'bo-suu-tap/ban-chay',
-  'bo-suu-tap/hang-moi-ve',
-  'bo-suu-tap/khuyen-mai',
-  'bo-suu-tap/cao-cap',
-  'bo-suu-tap/uong-hang-ngay',
-  'bo-suu-tap/theo-mua',
-  'qua-tang',
-  'qua-tang/doanh-nghiep',
-  'qua-tang/ruou-vang',
-  'qua-tang/ruou-manh',
-  'qua-tang/tet',
-  'qua-tang/hop-tui-qua',
-  'kien-thuc',
-  'kien-thuc/cho-nguoi-moi-bat-dau',
-  'kien-thuc/co-ban',
-  'kien-thuc/chuyen-sau',
-  'kien-thuc/thuong-thuc-phuc-vu',
-  'kien-thuc/bao-quan',
-  'kien-thuc/ket-hop-mon-an',
-  'kien-thuc/vang-phap',
-  'kien-thuc/vang-y',
-  'kien-thuc/whisky',
-  'tin-tuc',
-  'su-kien',
-  'dich-vu',
-  'dich-vu/dat-hang-doanh-nghiep',
-  'dich-vu/in-logo-ten-doanh-nghiep',
-  'dich-vu/tu-van-chon-qua',
-  'dich-vu/tang-qua-tu-xa',
-  'cua-hang',
-  'cua-hang/danh-sach',
-  'cua-hang/gio-mo-cua',
-  'ho-tro',
-  'ho-tro/faq',
-  'ho-tro/giao-hang-van-chuyen',
-  'ho-tro/doi-tra-hoan-tien',
-  'ho-tro/thanh-toan',
-  'ho-tro/cam-ket-chinh-hang',
-  'ho-tro/chinh-sach-bao-mat',
-  'ho-tro/dieu-khoan-dieu-kien',
-  'gioi-thieu',
-  'gioi-thieu/ve-thien-kim-wine',
-  'gioi-thieu/cau-chuyen-thuong-hieu',
-  'gioi-thieu/vi-sao-chon-chung-toi',
-  'gioi-thieu/chung-nhan-giay-phep',
-]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const SITEMAP_BATCH_SIZE = 100

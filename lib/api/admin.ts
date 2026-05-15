@@ -540,6 +540,8 @@ export interface AdminMenuBlockItem {
   id: number;
   label: string;
   href: string | null;
+  semantic_type?: string | null;
+  route_payload?: Record<string, unknown> | null;
   badge: string | null;
   order: number;
   active: boolean;
@@ -558,6 +560,8 @@ export interface AdminMenu {
   title: string;
   type: string | null;
   href: string | null;
+  semantic_type?: string | null;
+  route_payload?: Record<string, unknown> | null;
   order: number;
   active: boolean;
   blocks_count?: number;
@@ -589,6 +593,53 @@ export async function fetchAdminMenus(params?: Record<string, string | number>):
 
 export async function fetchAdminMenu(id: number): Promise<{ data: AdminMenuDetail }> {
   return apiFetch(`v1/admin/menus/${id}`);
+}
+
+export interface AdminIaTemplateItem {
+  label: string;
+  path: string;
+  source: string;
+  route_payload?: Record<string, unknown> | null;
+  children?: AdminIaTemplateItem[];
+}
+
+export interface AdminIaTemplateGroup {
+  key: string;
+  label: string;
+  items: AdminIaTemplateItem[];
+}
+
+export interface AdminIaComplianceItem {
+  label: string;
+  path: string;
+  group: string;
+  source: string;
+  menu_covered: boolean;
+  resolvable: boolean;
+  severity: 'pass' | 'warning' | 'missing';
+  message: string;
+  route_payload?: Record<string, unknown> | null;
+}
+
+export interface AdminIaResponse {
+  data: {
+    template_name: string;
+    groups: AdminIaTemplateGroup[];
+    compliance: {
+      score: number;
+      summary: {
+        total: number;
+        passed: number;
+        warnings: number;
+        missing: number;
+      };
+      items: AdminIaComplianceItem[];
+    };
+  };
+}
+
+export async function fetchAdminIa(): Promise<AdminIaResponse> {
+  return apiFetch<AdminIaResponse>('v1/admin/ia');
 }
 
 export async function createMenu(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
