@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles } from 'lucide-react';
+import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles, ChevronDown } from 'lucide-react';
 import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
 import { stripHtmlTags } from '@/lib/utils/article-content';
@@ -31,6 +31,7 @@ const LexicalEditor = dynamic(
 export const ArticleCreateScreen = () => {
   const { state, actions } = useArticleForm();
   const [isEditorReady, setIsEditorReady] = useState(false);
+  const [isPageMappingOpen, setIsPageMappingOpen] = useState(false);
 
   const {
     isSubmitting,
@@ -160,31 +161,44 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
                 <p className="text-xs text-slate-500">Dùng để lọc bài và gợi ý đặt vào trang phù hợp.</p>
               </div>
               <div className="space-y-2">
-                <Label>Gắn vào trang cố định</Label>
-                <div className="max-h-36 overflow-auto rounded-md border border-slate-200 p-2 dark:border-slate-700">
-                  {visibleSlots.length > 0 ? (
-                    visibleSlots.map((slot) => (
-                      <label key={slot.key} className="flex items-start gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <input
-                          type="checkbox"
-                          checked={contentSlots.includes(slot.key)}
-                          onChange={(event) =>
-                            setContentSlots((prev) =>
-                              event.target.checked ? Array.from(new Set([...prev, slot.key])) : prev.filter((key) => key !== slot.key)
-                            )
-                          }
-                          className="mt-1 h-4 w-4 rounded border-slate-300"
-                        />
-                        <span>
-                          <span className="block font-medium text-slate-800 dark:text-slate-100">{slot.label}</span>
-                          <span className="text-xs text-slate-500">{slot.path}</span>
-                        </span>
-                      </label>
-                    ))
-                  ) : (
-                    <p className="px-2 py-3 text-sm text-slate-500">Chọn nhóm nội dung để xem trang có thể gắn.</p>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPageMappingOpen((value) => !value)}
+                  aria-expanded={isPageMappingOpen}
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-left text-sm font-medium text-slate-800 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/60"
+                >
+                  <span>Gắn vào trang cố định</span>
+                  <span className="flex items-center gap-2 text-xs font-normal text-slate-500">
+                    {contentSlots.length > 0 ? `${contentSlots.length} trang` : 'Tùy chọn'}
+                    <ChevronDown size={16} className={isPageMappingOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                  </span>
+                </button>
+                {isPageMappingOpen ? (
+                  <div className="max-h-36 overflow-auto rounded-md border border-slate-200 p-2 dark:border-slate-700">
+                    {visibleSlots.length > 0 ? (
+                      visibleSlots.map((slot) => (
+                        <label key={slot.key} className="flex items-start gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                          <input
+                            type="checkbox"
+                            checked={contentSlots.includes(slot.key)}
+                            onChange={(event) =>
+                              setContentSlots((prev) =>
+                                event.target.checked ? Array.from(new Set([...prev, slot.key])) : prev.filter((key) => key !== slot.key)
+                              )
+                            }
+                            className="mt-1 h-4 w-4 rounded border-slate-300"
+                          />
+                          <span>
+                            <span className="block font-medium text-slate-800 dark:text-slate-100">{slot.label}</span>
+                            <span className="text-xs text-slate-500">{slot.path}</span>
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="px-2 py-3 text-sm text-slate-500">Chọn nhóm nội dung để xem trang có thể gắn.</p>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </div>
 
