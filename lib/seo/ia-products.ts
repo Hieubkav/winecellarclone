@@ -67,6 +67,28 @@ const resolvePresetPriceRange = (payload: Record<string, unknown>) => {
     : null;
 };
 
+const findFilterPresetBySlug = (
+  filters: ProductFiltersPayload,
+  presetSlug?: string | null
+) => {
+  if (!presetSlug) {
+    return null;
+  }
+
+  for (const group of filters.filter_groups ?? []) {
+    if (group.route_prefix !== "san-pham") {
+      continue;
+    }
+
+    const preset = group.presets.find((item) => item.slug === presetSlug);
+    if (preset) {
+      return { group, preset };
+    }
+  }
+
+  return null;
+};
+
 const applyAttributeRouteSegments = (
   attributeFilters: AttributeFilter[],
   slugs: string[],
@@ -226,6 +248,19 @@ export async function resolveProductLandingContext(
       routeFilters.categorySlug = category.slug;
       apiParams["category[]"] = [category.id];
       titleParts.push(category.name);
+      remainingSlugs.shift();
+    }
+  }
+
+  if (matchedType && remainingSlugs.length > 0) {
+    const presetMatch = findFilterPresetBySlug(allFilters, remainingSlugs[0]);
+
+    if (presetMatch) {
+      const { preset } = presetMatch;
+      const presetPayload = preset.filter_payload ?? {};
+      applyPresetPayload(apiParams, presetPayload);
+      routeFilters.priceRange = resolvePresetPriceRange(presetPayload);
+      titleParts.push(preset.name);
       remainingSlugs.shift();
     }
   }

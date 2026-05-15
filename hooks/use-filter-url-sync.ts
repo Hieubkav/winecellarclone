@@ -373,19 +373,24 @@ export function useFilterUrlSync(syncOptions?: {
     }
 
     const routeCanonicalPath = syncOptions?.initialCanonicalPath ?? null
+    const routePresetSlug = routeCanonicalPath?.split("?")[0]?.split("/").filter(Boolean).at(-1) ?? null
     const isPresetLanding = Boolean(
       routeCanonicalPath &&
       routePriceRange &&
-      listingMode === "generic" &&
       pathname === routeCanonicalPath
     )
 
     const pathSegments: string[] = []
     if (isPresetLanding) {
       if (selectedTypeSlug) {
-        params.set("type", selectedTypeSlug)
-      }
-      if (selectedCategorySlug) {
+        pathSegments.push(selectedTypeSlug)
+        if (routePresetSlug) {
+          pathSegments.push(routePresetSlug)
+        }
+        if (selectedCategorySlug) {
+          params.set("category", selectedCategorySlug)
+        }
+      } else if (selectedCategorySlug) {
         params.set("category", selectedCategorySlug)
       }
       appendAttributeQueryParams(params, filters.attributeSelections, options.attributeFilters)
