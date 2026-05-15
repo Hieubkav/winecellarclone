@@ -241,49 +241,53 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
     setQuery('');
   };
 
-  const save = async () => {
-    setIsSaving(true);
-    try {
-      const normalized = assignParents(items).map((item, index) => ({
+  const persistItems = async (nextItems: DraftMenuItem[], successMessage: string) => {
+    const normalized = assignParents(nextItems).map((item, index) => ({
         ...item,
         order: index,
       })) as DraftMenuItem[];
-      const topItems = normalized.filter((item) => item.depth === 0);
-      const existingMenuIds = menus.map((menu) => menu.id);
-      const keptMenuIds: number[] = [];
+    const topItems = normalized.filter((item) => item.depth === 0);
+    const existingMenuIds = menus.map((menu) => menu.id);
 
-      for (let topIndex = 0; topIndex < topItems.length; topIndex++) {
-        const topItem = topItems[topIndex];
-        const descendants = collectDescendants(normalized, topItem);
-        let menuId = topItem.source === 'menu' ? topItem.menu_id : undefined;
+    const savedMenuIds = await Promise.all(topItems.map(async (topItem, topIndex) => {
+      const descendants = collectDescendants(normalized, topItem);
+      let menuId = topItem.source === 'menu' ? topItem.menu_id : undefined;
 
-        const menuPayload = {
-          title: topItem.label.trim() || 'Menu mới',
-          type: 'mega',
-          href: topItem.href?.trim() || '#',
-          semantic_type: topItem.semantic_type ?? null,
-          route_payload: topItem.route_payload ?? null,
-          order: topIndex,
-          active: Boolean(topItem.active),
-        };
+      const menuPayload = {
+        title: topItem.label.trim() || 'Menu mới',
+        type: 'mega',
+        href: topItem.href?.trim() || '#',
+        semantic_type: topItem.semantic_type ?? null,
+        route_payload: topItem.route_payload ?? null,
+        order: topIndex,
+        active: Boolean(topItem.active),
+      };
 
-        if (menuId) {
-          await updateMenu(menuId, menuPayload);
-        } else {
-          const created = await createMenu(menuPayload);
-          menuId = created.data.id;
-        }
-
-        keptMenuIds.push(menuId);
-        await saveMenuTreeItems(menuId, buildChildPayload(descendants));
+      if (menuId) {
+        await updateMenu(menuId, menuPayload);
+      } else {
+        const created = await createMenu(menuPayload);
+        menuId = created.data.id;
       }
 
-      await Promise.all(existingMenuIds.filter((id) => !keptMenuIds.includes(id)).map((id) => deleteMenu(id)));
+      await saveMenuTreeItems(menuId, buildChildPayload(descendants));
+      return menuId;
+    }));
 
-      setItems(normalized);
-      setOriginalJson(JSON.stringify(normalized));
-      toast.success('Đã lưu menu 5 cấp');
-      await onRefresh();
+    await Promise.all(existingMenuIds.filter((id) => !savedMenuIds.includes(id)).map((id) => deleteMenu(id)));
+
+    setItems(normalized);
+    setOriginalJson(JSON.stringify(normalized));
+    toast.success(successMessage);
+    await onRefresh();
+
+    return normalized;
+  };
+
+  const save = async () => {
+    setIsSaving(true);
+    try {
+      await persistItems(items, 'Đã lưu menu 5 cấp');
     } catch (error) {
       console.error(error);
       toast.error('Không thể lưu menu');
@@ -316,12 +320,24 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
     setSelectedIds(allSelected ? [] : items.map((item) => item.client_id));
   };
 
-  const bulkDelete = () => {
+  const bulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    const selected = new Set(selectedIds);
-    setItems(assignParents(items.filter((item) => !selected.has(item.client_id))) as DraftMenuItem[]);
+    const previousItems = items;
+    const nextItems = removeSelectedItemsWithDescendants(items, selectedIds);
+
+    setItems(nextItems);
     setSelectedIds([]);
-    toast.success(`Đã xóa ${selectedIds.length} liên kết`);
+
+    setIsSaving(true);
+    try {
+      await persistItems(nextItems, `Đã xóa ${selectedIds.length} liên kết`);
+    } catch (error) {
+      console.error(error);
+      setItems(previousItems);
+      toast.error('Không thể xóa menu');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const bulkToggleActive = (active: boolean) => {
@@ -672,6 +688,29 @@ function collectDescendants(items: DraftMenuItem[], topItem: DraftMenuItem): Dra
   }
 
   return descendants;
+}
+
+function removeSelectedItemsWithDescendants(items: DraftMenuItem[], selectedIds: string[]): DraftMenuItem[] {
+  const selected = new Set(selectedIds);
+  const removingDepths: number[] = [];
+  const next = items.filter((item) => {
+    while (removingDepths.length > 0 && item.depth <= removingDepths[removingDepths.length - 1]) {
+      removingDepths.pop();
+    }
+
+    if (removingDepths.length > 0) {
+      return false;
+    }
+
+    if (selected.has(item.client_id)) {
+      removingDepths.push(item.depth);
+      return false;
+    }
+
+    return true;
+  });
+
+  return assignParents(next) as DraftMenuItem[];
 }
 
 function buildChildPayload(descendants: DraftMenuItem[]) {
