@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, CheckCircle2, FolderTree, Loader2, RefreshCw, Sparkles } from 'lucide-react';
+import { ExternalLink, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Badge,
@@ -21,6 +21,7 @@ import {
 } from '@/lib/api/admin';
 
 const isTopLevelRoute = (path: string) => path === '/' || path.split('/').filter(Boolean).length === 1;
+const MAX_QUICK_ITEMS = 8;
 
 export default function InformationArchitecturePage() {
   const [groups, setGroups] = useState<AdminIaTemplateGroup[]>([]);
@@ -65,6 +66,11 @@ export default function InformationArchitecturePage() {
     [items]
   );
 
+  const quickItems = useMemo(
+    () => [...missingItems, ...warningItems].slice(0, MAX_QUICK_ITEMS),
+    [missingItems, warningItems]
+  );
+
   const handleGenerateDraftMenus = async () => {
     if (missingTopLevelMenus.length === 0) {
       toast.info('Không còn menu cấp 1 cần tạo.');
@@ -96,201 +102,160 @@ export default function InformationArchitecturePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-16 w-full" />
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
+      <div className="mx-auto max-w-6xl space-y-6 pb-16">
+        <Skeleton className="h-14 w-full" />
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
         </div>
-        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-[520px] w-full" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-6xl space-y-5 pb-16">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Sơ đồ trang
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Xem các trang nên có, trang nào đã có trong menu, trang nào còn thiếu dữ liệu và tạo menu nháp an toàn.
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Sơ đồ trang</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Trang nào đã ổn, trang nào cần thêm menu hoặc nội dung.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={loadIa} className="gap-2">
+          <Button variant="outline" onClick={loadIa} className="h-9 gap-2">
             <RefreshCw size={16} />
             Làm mới
           </Button>
-          <Button onClick={handleGenerateDraftMenus} disabled={isGenerating} className="gap-2">
+          <Button onClick={handleGenerateDraftMenus} disabled={isGenerating || missingTopLevelMenus.length === 0} className="h-9 gap-2">
             {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
             Sinh menu nháp
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base">Mức độ sẵn sàng</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold text-slate-900 dark:text-slate-100">{score}%</div>
-            <div className="mt-3 h-2 rounded-full bg-slate-100 dark:bg-slate-800">
-              <div
-                className="h-2 rounded-full bg-emerald-500"
-                style={{ width: `${Math.min(Math.max(score, 0), 100)}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <MetricCard label="Đã có trong menu" value={summary.passed} tone="success" />
-        <MetricCard label="Thiếu menu" value={summary.warnings} tone="warning" />
-        <MetricCard label="Thiếu dữ liệu" value={summary.missing} tone="danger" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <SummaryCard label="Sẵn sàng" value={`${score}%`} variant={score >= 80 ? 'success' : score >= 50 ? 'warning' : 'destructive'} />
+        <SummaryCard label="Đã ổn" value={summary.passed} variant="success" />
+        <SummaryCard label="Thiếu menu" value={summary.warnings} variant="warning" />
+        <SummaryCard label="Thiếu nội dung" value={summary.missing} variant="destructive" />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.8fr)]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <FolderTree size={18} />
-              Sơ đồ trang đề xuất
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {groups.map((group) => (
-              <section key={group.key} className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  {group.label}
-                </h2>
-                <div className="space-y-3">
-                  {group.items.map((item) => (
-                    <div key={item.path} className="space-y-2">
-                      <IaRouteRow item={items.find((entry) => entry.path === item.path)} label={item.label} path={item.path} />
-                      {item.children && item.children.length > 0 && (
-                        <div className="ml-4 space-y-2 border-l border-slate-200 pl-4 dark:border-slate-800">
-                          {item.children.map((child) => (
-                            <IaRouteRow
-                              key={child.path}
-                              item={items.find((entry) => entry.path === child.path)}
-                              label={child.label}
-                              path={child.path}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex flex-wrap items-center justify-between gap-2 text-base">
+            <span>Cần xử lý</span>
+            <Link href="/admin/menus">
+              <Button variant="outline" className="h-7 gap-1 px-2 text-xs">
+                Quản lý menu
+                <ExternalLink size={13} />
+              </Button>
+            </Link>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {quickItems.length === 0 ? (
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
+              Các trang chính đã ổn.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {quickItems.map((item) => (
+                <IssueRow key={`${item.path}-${item.severity}`} item={item} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Hành động an toàn</CardTitle>
+      <div className="grid grid-cols-1 gap-4">
+        {groups.map((group) => (
+          <Card key={group.key}>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">{group.label}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-              <p>
-                Nút sinh menu chỉ tạo menu cấp 1 ở trạng thái <strong>chưa bật</strong>, nên chưa hiển thị ngoài website.
-              </p>
-              <p>
-                Sau khi sinh, vào <Link href="/admin/menus" className="font-medium text-blue-600 hover:underline">quản lý menu</Link> để kiểm tra, kéo thả và bật khi sẵn sàng.
-              </p>
-              <Badge variant={missingTopLevelMenus.length > 0 ? 'warning' : 'success'}>
-                {missingTopLevelMenus.length} menu cấp 1 có thể tạo nháp
-              </Badge>
+            <CardContent className="space-y-2">
+              {group.items.map((item) => (
+                <div key={item.path} className="space-y-2">
+                  <IaRouteRow item={items.find((entry) => entry.path === item.path)} label={item.label} path={item.path} />
+                  {item.children && item.children.length > 0 && (
+                    <div className="ml-3 space-y-2 border-l border-slate-200 pl-3 dark:border-slate-800">
+                      {item.children.map((child) => (
+                        <IaRouteRow
+                          key={child.path}
+                          item={items.find((entry) => entry.path === child.path)}
+                          label={child.label}
+                          path={child.path}
+                          compact
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </CardContent>
           </Card>
-
-          <IssueCard title="Thiếu dữ liệu hoặc đường dẫn chưa khớp" items={missingItems} empty="Không có lỗi dữ liệu nghiêm trọng." />
-          <IssueCard title="Có trang nhưng chưa đưa vào menu" items={warningItems.slice(0, 12)} empty="Menu đã có các trang quan trọng." />
-        </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function MetricCard({ label, value, tone }: { label: string; value: number; tone: 'success' | 'warning' | 'danger' }) {
-  const color = tone === 'success' ? 'text-emerald-600' : tone === 'warning' ? 'text-amber-600' : 'text-red-600';
+function SummaryCard({ label, value, variant }: { label: string; value: number | string; variant: 'success' | 'warning' | 'destructive' }) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-sm text-slate-500">{label}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className={`text-3xl font-bold ${color}`}>{value}</div>
+      <CardContent className="p-4">
+        <div className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">{label}</div>
+        <div className="flex items-end justify-between gap-2">
+          <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">{value}</div>
+          <Badge variant={variant}>{variant === 'success' ? 'Ổn' : 'Xem lại'}</Badge>
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-function IaRouteRow({ item, label, path }: { item?: AdminIaComplianceItem; label: string; path: string }) {
-  const sourceLabel = item?.source ? formatSourceLabel(item.source) : null;
-
+function IaRouteRow({ item, label, path, compact = false }: { item?: AdminIaComplianceItem; label: string; path: string; compact?: boolean }) {
   const severity = item?.severity ?? 'warning';
-  const badgeVariant = severity === 'pass' ? 'success' : severity === 'missing' ? 'destructive' : 'warning';
-  const icon = severity === 'pass'
-    ? <CheckCircle2 size={14} className="text-emerald-600" />
-    : <AlertTriangle size={14} className={severity === 'missing' ? 'text-red-600' : 'text-amber-600'} />;
-
   return (
-    <div className="flex flex-col gap-2 rounded-md bg-slate-50 p-3 dark:bg-slate-800/60 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="font-medium text-slate-800 dark:text-slate-100">{label}</span>
+    <div className="flex flex-col gap-2 rounded-md border border-slate-200 px-3 py-2 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <div className={compact ? 'text-sm font-medium text-slate-800 dark:text-slate-100' : 'font-medium text-slate-900 dark:text-slate-100'}>
+          {label}
         </div>
-        <div className="mt-1 font-mono text-xs text-slate-500">{path}</div>
-        {item?.message && <div className="mt-1 text-xs text-slate-500">{item.message}</div>}
+        <div className="truncate font-mono text-xs text-slate-500">{path}</div>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Badge variant={badgeVariant}>{severity === 'pass' ? 'Đã có' : severity === 'missing' ? 'Thiếu dữ liệu' : 'Chưa vào menu'}</Badge>
-        {sourceLabel && <Badge variant="outline">{sourceLabel}</Badge>}
+      <div className="flex shrink-0 items-center gap-2">
+        <RouteStatusBadge severity={severity} />
+        <Link href={path} target="_blank" rel="noopener noreferrer">
+          <Button variant="ghost" className="h-7 px-2 text-xs">Mở</Button>
+        </Link>
       </div>
     </div>
   );
 }
 
-function formatSourceLabel(source: string) {
-  const labels: Record<string, string> = {
-    core: 'Trang chính',
-    static_hub: 'Nhóm trang',
-    static_child: 'Trang con',
-    product_type: 'Nhóm sản phẩm',
-    product_category: 'Danh mục',
-    product_term: 'Bộ lọc',
-    price_preset: 'Mức giá',
-  };
-
-  return labels[source] ?? source;
+function IssueRow({ item }: { item: AdminIaComplianceItem }) {
+  return (
+    <div className="rounded-md border border-slate-200 p-3 dark:border-slate-800">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="min-w-0 truncate font-medium text-slate-900 dark:text-slate-100">{item.label}</div>
+        <RouteStatusBadge severity={item.severity} />
+      </div>
+      <div className="truncate font-mono text-xs text-slate-500">{item.path}</div>
+      <div className="mt-1 line-clamp-2 text-xs text-slate-500">{item.message}</div>
+    </div>
+  );
 }
 
-function IssueCard({ title, items, empty }: { title: string; items: AdminIaComplianceItem[]; empty: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {items.length === 0 ? (
-          <p className="text-sm text-slate-500">{empty}</p>
-        ) : (
-          <div className="space-y-3">
-            {items.map((item) => (
-              <div key={`${item.path}-${item.severity}`} className="rounded-md border border-slate-200 p-3 dark:border-slate-800">
-                <div className="font-medium text-slate-800 dark:text-slate-100">{item.label}</div>
-                <div className="font-mono text-xs text-slate-500">{item.path}</div>
-                <p className="mt-1 text-xs text-slate-500">{item.message}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+function RouteStatusBadge({ severity }: { severity: AdminIaComplianceItem['severity'] }) {
+  if (severity === 'pass') {
+    return <Badge variant="success">Ổn</Badge>;
+  }
+
+  if (severity === 'missing') {
+    return <Badge variant="destructive">Thiếu nội dung</Badge>;
+  }
+
+  return <Badge variant="warning">Thiếu menu</Badge>;
 }
