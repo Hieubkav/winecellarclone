@@ -96,6 +96,7 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<AdminMenuRouteSuggestionGroup[]>([]);
   const [routePickerFor, setRoutePickerFor] = useState<string | null>(null);
+  const [selectedRouteGroupKey, setSelectedRouteGroupKey] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -113,30 +114,20 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   }, []);
 
   const hasChanges = JSON.stringify(items) !== originalJson;
-  const flatSuggestions = useMemo(
-    () => suggestions.flatMap((group) => group.items.map((item) => ({ ...item, groupKey: group.key, groupLabel: group.label }))),
-    [suggestions]
+  const selectedRouteGroup = useMemo(
+    () => suggestions.find((group) => group.key === selectedRouteGroupKey) ?? null,
+    [selectedRouteGroupKey, suggestions]
   );
-
-  const filteredSuggestions = useMemo(() => {
+  const filteredGroupItems = useMemo(() => {
     const keyword = query.trim().toLowerCase();
-    if (!keyword) return suggestions;
+    const groupItems = selectedRouteGroup?.items ?? [];
 
-    return suggestions
-      .map((group) => {
-        const groupMatched = `${group.label} ${group.key}`.toLowerCase().includes(keyword);
+    if (!keyword) return groupItems;
 
-        return {
-          ...group,
-          items: groupMatched
-            ? group.items
-            : group.items.filter((item) =>
-              `${group.label} ${group.key} ${item.label} ${item.path} ${item.source}`.toLowerCase().includes(keyword)
-            ),
-        };
-      })
-      .filter((group) => group.items.length > 0);
-  }, [query, suggestions]);
+    return groupItems.filter((item) =>
+      `${item.label} ${item.path} ${item.source}`.toLowerCase().includes(keyword)
+    );
+  }, [query, selectedRouteGroup]);
 
   const allSelected = items.length > 0 && items.every((item) => selectedIds.includes(item.client_id));
   const someSelected = items.some((item) => selectedIds.includes(item.client_id));
@@ -246,6 +237,8 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
       route_payload: suggestion.route_payload ?? null,
     });
     setRoutePickerFor(null);
+    setSelectedRouteGroupKey(null);
+    setQuery('');
   };
 
   const save = async () => {
@@ -484,7 +477,11 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
                       variant="outline"
                       size="sm"
                       className="h-8 whitespace-nowrap"
-                      onClick={() => setRoutePickerFor(item.client_id)}
+                      onClick={() => {
+                        setRoutePickerFor(item.client_id);
+                        setSelectedRouteGroupKey(null);
+                        setQuery('');
+                      }}
                     >
                       Gợi ý
                     </Button>
@@ -558,84 +555,85 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
         onOpenChange={(open) => {
           if (!open) {
             setRoutePickerFor(null);
+            setSelectedRouteGroupKey(null);
             setQuery('');
           }
         }}
       >
         <DialogContent className="w-[80vw] max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Chọn URL</DialogTitle>
+            <DialogTitle>{selectedRouteGroup ? `Chọn URL - ${selectedRouteGroup.label}` : 'Chọn URL'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm theo tên, URL hoặc nguồn..."
-              className="h-9 text-sm"
-            />
-
-            {!query.trim() && (
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                {suggestions.slice(0, 4).map((group) => (
-                  <Button
-                    key={group.key}
-                    type="button"
-                    variant="outline"
-                    className="h-20 flex-col items-start gap-1.5 text-left"
-                    onClick={() => setQuery(group.label)}
-                  >
-                    <span className="font-semibold">{group.label}</span>
-                    <span className="text-xs text-slate-500">{group.items.length} route thật</span>
-                  </Button>
-                ))}
-              </div>
-            )}
-
-            <div className="max-h-[50vh] overflow-auto rounded-md border border-slate-200 dark:border-slate-800">
-              {query.trim() ? (
-                filteredSuggestions.length === 0 ? (
-                  <div className="px-4 py-6 text-sm text-slate-500">Không có gợi ý phù hợp.</div>
-                ) : (
-                  <div className="space-y-3 p-2">
-                    {filteredSuggestions.map((group) => (
-                      <div key={group.key}>
-                        <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{group.label}</div>
-                        {group.items.map((suggestion) => (
-                          <button
-                            key={`${group.key}-${suggestion.path}`}
-                            type="button"
-                            onClick={() => routePickerFor && applySuggestion(routePickerFor, suggestion)}
-                            className="flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
-                          >
-                            <div className="min-w-0">
-                              <div className="truncate font-semibold text-slate-700 dark:text-slate-200">{suggestion.label}</div>
-                              <div className="truncate font-mono text-xs text-slate-500">{suggestion.path}</div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )
+            {!selectedRouteGroup ? (
+              suggestions.length === 0 ? (
+                <div className="rounded-md border border-slate-200 px-4 py-6 text-sm text-slate-500 dark:border-slate-800">
+                  Chưa tải được gợi ý route.
+                </div>
               ) : (
-                <div className="space-y-1 p-2">
-                  {flatSuggestions.slice(0, 80).map((suggestion) => (
-                    <button
-                      key={`${suggestion.groupKey}-${suggestion.path}`}
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {suggestions.map((group) => (
+                    <Button
+                      key={group.key}
                       type="button"
-                      onClick={() => routePickerFor && applySuggestion(routePickerFor, suggestion)}
-                      className="flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                      variant="outline"
+                      className="h-20 flex-col items-start gap-1.5 text-left"
+                      onClick={() => {
+                        setSelectedRouteGroupKey(group.key);
+                        setQuery('');
+                      }}
                     >
-                      <div className="min-w-0">
-                        <div className="truncate font-semibold text-slate-700 dark:text-slate-200">{suggestion.label}</div>
-                        <div className="truncate font-mono text-xs text-slate-500">{suggestion.path}</div>
-                      </div>
-                      <span className="shrink-0 text-xs text-slate-400">{suggestion.groupLabel}</span>
-                    </button>
+                      <span className="font-semibold">{group.label}</span>
+                      <span className="text-xs text-slate-500">{group.items.length} route thật</span>
+                    </Button>
                   ))}
                 </div>
-              )}
-            </div>
+              )
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRouteGroupKey(null);
+                    setQuery('');
+                  }}
+                >
+                  ← Quay lại
+                </Button>
+
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Tìm theo tên hoặc URL..."
+                  className="h-9 text-sm"
+                />
+
+                <div className="max-h-[50vh] overflow-auto rounded-md border border-slate-200 dark:border-slate-800">
+                  {filteredGroupItems.length === 0 ? (
+                    <div className="px-4 py-6 text-sm text-slate-500">Không có gợi ý phù hợp.</div>
+                  ) : (
+                    <div className="space-y-1 p-2">
+                      {filteredGroupItems.map((suggestion) => (
+                        <button
+                          key={`${selectedRouteGroup.key}-${suggestion.path}-${suggestion.label}`}
+                          type="button"
+                          onClick={() => routePickerFor && applySuggestion(routePickerFor, suggestion)}
+                          className="flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate font-semibold text-slate-700 dark:text-slate-200">{suggestion.label}</div>
+                            <div className="truncate font-mono text-xs text-slate-500">{suggestion.path}</div>
+                          </div>
+                          <span className="shrink-0 text-xs text-slate-400">{suggestion.source}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
