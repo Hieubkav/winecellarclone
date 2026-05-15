@@ -373,7 +373,7 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
         style={isFull ? { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` } : undefined}
       >
         {validSections.map((section, idx) => (
-          <div key={section.label || idx} className={`min-w-[180px] ${isFull && idx > 0 ? "border-l border-[#ECAA4D]/25 pl-6" : ""}`}>
+          <div key={`${section.label}-${idx}`} className={`min-w-[180px] ${isFull && idx > 0 ? "border-l border-[#ECAA4D]/25 pl-6" : ""}`}>
             <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
             <ul className="space-y-2">
               {section.children.map((child, childIdx) => (
