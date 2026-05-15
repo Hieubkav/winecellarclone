@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react"
-import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { useSearchParams, usePathname } from "next/navigation"
 import { useShallow } from "zustand/react/shallow"
 import { useWineStore } from "@/data/filter/store"
 import { fetchProductFilters, type ProductFilterOption } from "@/lib/api/products"
@@ -66,7 +66,6 @@ export function useFilterUrlSync(syncOptions?: {
   initialPriceRange?: { min: number; max: number } | null
   listingMode?: "generic" | "type-landing"
 }) {
-  const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const isApplyingUrlParams = useRef(false)
@@ -366,17 +365,16 @@ export function useFilterUrlSync(syncOptions?: {
     // Update URL without adding to history (replace instead of push)
     const queryString = params.toString()
     const newUrl = queryString ? `${basePath}?${queryString}` : basePath
-    const currentUrl = `${pathname}${window.location.search}`
+    const currentUrl = `${window.location.pathname}${window.location.search}`
     
     if (newUrl !== currentUrl) {
-      router.replace(newUrl, { scroll: false })
+      window.history.replaceState(window.history.state, "", newUrl)
       previousUrlParams.current = queryString
     }
   }, [
     filters,
     initialized,
     pathname,
-    router,
     options.priceRange,
     options.categories,
     options.productTypes,
