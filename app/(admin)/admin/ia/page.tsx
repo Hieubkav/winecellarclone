@@ -39,8 +39,8 @@ export default function InformationArchitecturePage() {
       setScore(response.data.compliance.score);
       setSummary(response.data.compliance.summary);
     } catch (error) {
-      console.error('Load IA failed:', error);
-      toast.error('Không tải được dữ liệu IA');
+      console.error('Load page structure failed:', error);
+      toast.error('Không tải được sơ đồ trang');
     } finally {
       setIsLoading(false);
     }
@@ -84,11 +84,11 @@ export default function InformationArchitecturePage() {
           order: 100 + index,
         });
       }
-      toast.success(`Đã tạo ${missingTopLevelMenus.length} menu nháp. Kiểm tra rồi bật active khi sẵn sàng.`);
+      toast.success(`Đã tạo ${missingTopLevelMenus.length} menu nháp. Kiểm tra rồi bật khi sẵn sàng.`);
       await loadIa();
     } catch (error) {
-      console.error('Generate IA draft menus failed:', error);
-      toast.error('Không tạo được menu nháp từ IA');
+      console.error('Generate draft menus failed:', error);
+      toast.error('Không tạo được menu nháp');
     } finally {
       setIsGenerating(false);
     }
@@ -113,10 +113,10 @@ export default function InformationArchitecturePage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Kiến trúc thông tin
+            Sơ đồ trang
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Theo dõi IA theo chuẩn chị Ngân, kiểm tra route/menu/sitemap và sinh menu nháp an toàn.
+            Xem các trang nên có, trang nào đã có trong menu, trang nào còn thiếu dữ liệu và tạo menu nháp an toàn.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -134,7 +134,7 @@ export default function InformationArchitecturePage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base">Tuân thủ IA chị Ngân</CardTitle>
+            <CardTitle className="text-base">Mức độ sẵn sàng</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold text-slate-900 dark:text-slate-100">{score}%</div>
@@ -146,9 +146,9 @@ export default function InformationArchitecturePage() {
             </div>
           </CardContent>
         </Card>
-        <MetricCard label="Đã phủ menu" value={summary.passed} tone="success" />
+        <MetricCard label="Đã có trong menu" value={summary.passed} tone="success" />
         <MetricCard label="Thiếu menu" value={summary.warnings} tone="warning" />
-        <MetricCard label="Thiếu taxonomy" value={summary.missing} tone="danger" />
+        <MetricCard label="Thiếu dữ liệu" value={summary.missing} tone="danger" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.8fr)]">
@@ -156,7 +156,7 @@ export default function InformationArchitecturePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <FolderTree size={18} />
-              Cây IA đề xuất
+              Sơ đồ trang đề xuất
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -196,10 +196,10 @@ export default function InformationArchitecturePage() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
               <p>
-                Nút sinh menu chỉ tạo menu cấp 1 ở trạng thái <strong>inactive</strong>, không tự publish ra header.
+                Nút sinh menu chỉ tạo menu cấp 1 ở trạng thái <strong>chưa bật</strong>, nên chưa hiển thị ngoài website.
               </p>
               <p>
-                Sau khi sinh, vào <Link href="/admin/menus" className="font-medium text-blue-600 hover:underline">Menu Builder</Link> để kiểm tra, kéo thả và bật active.
+                Sau khi sinh, vào <Link href="/admin/menus" className="font-medium text-blue-600 hover:underline">quản lý menu</Link> để kiểm tra, kéo thả và bật khi sẵn sàng.
               </p>
               <Badge variant={missingTopLevelMenus.length > 0 ? 'warning' : 'success'}>
                 {missingTopLevelMenus.length} menu cấp 1 có thể tạo nháp
@@ -207,8 +207,8 @@ export default function InformationArchitecturePage() {
             </CardContent>
           </Card>
 
-          <IssueCard title="Thiếu taxonomy / slug lệch" items={missingItems} empty="Không có lỗi taxonomy nghiêm trọng." />
-          <IssueCard title="Có route nhưng chưa phủ menu" items={warningItems.slice(0, 12)} empty="Menu đã phủ các route quan trọng." />
+          <IssueCard title="Thiếu dữ liệu hoặc đường dẫn chưa khớp" items={missingItems} empty="Không có lỗi dữ liệu nghiêm trọng." />
+          <IssueCard title="Có trang nhưng chưa đưa vào menu" items={warningItems.slice(0, 12)} empty="Menu đã có các trang quan trọng." />
         </div>
       </div>
     </div>
@@ -230,6 +230,8 @@ function MetricCard({ label, value, tone }: { label: string; value: number; tone
 }
 
 function IaRouteRow({ item, label, path }: { item?: AdminIaComplianceItem; label: string; path: string }) {
+  const sourceLabel = item?.source ? formatSourceLabel(item.source) : null;
+
   const severity = item?.severity ?? 'warning';
   const badgeVariant = severity === 'pass' ? 'success' : severity === 'missing' ? 'destructive' : 'warning';
   const icon = severity === 'pass'
@@ -247,11 +249,25 @@ function IaRouteRow({ item, label, path }: { item?: AdminIaComplianceItem; label
         {item?.message && <div className="mt-1 text-xs text-slate-500">{item.message}</div>}
       </div>
       <div className="flex flex-wrap gap-2">
-        <Badge variant={badgeVariant}>{severity === 'pass' ? 'Đã phủ' : severity === 'missing' ? 'Thiếu data' : 'Chưa vào menu'}</Badge>
-        {item?.source && <Badge variant="outline">{item.source}</Badge>}
+        <Badge variant={badgeVariant}>{severity === 'pass' ? 'Đã có' : severity === 'missing' ? 'Thiếu dữ liệu' : 'Chưa vào menu'}</Badge>
+        {sourceLabel && <Badge variant="outline">{sourceLabel}</Badge>}
       </div>
     </div>
   );
+}
+
+function formatSourceLabel(source: string) {
+  const labels: Record<string, string> = {
+    core: 'Trang chính',
+    static_hub: 'Nhóm trang',
+    static_child: 'Trang con',
+    product_type: 'Nhóm sản phẩm',
+    product_category: 'Danh mục',
+    product_term: 'Bộ lọc',
+    price_preset: 'Mức giá',
+  };
+
+  return labels[source] ?? source;
 }
 
 function IssueCard({ title, items, empty }: { title: string; items: AdminIaComplianceItem[]; empty: string }) {
