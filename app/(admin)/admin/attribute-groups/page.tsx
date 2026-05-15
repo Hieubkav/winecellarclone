@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Edit, Search } from 'lucide-react';
+import { ExternalLink, Plus, Edit, Search } from 'lucide-react';
 import { Button, Card, Badge, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, ColumnToggle } from '../components/TableUtilities';
 import { 
@@ -345,6 +345,11 @@ export default function AttributeGroupsPage() {
                   {visibleAttributeColumns.includes('actions') && (
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <Link href={`/san-pham/${attr.slug}`} target="_blank" rel="noopener noreferrer">
+                          <Button variant="ghost" size="icon" aria-label="Mở trang">
+                            <ExternalLink size={16} />
+                          </Button>
+                        </Link>
                         <Link href={`/admin/attribute-groups/${attr.id}/edit`}>
                           <Button variant="ghost" size="icon" aria-label="Edit">
                             <Edit size={16} />

@@ -1,7 +1,8 @@
  'use client';
  
- import React, { useState } from 'react';
- import { Plus, Edit, Trash2, GripVertical, X } from 'lucide-react';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { ExternalLink, Plus, Edit, Trash2, GripVertical, X } from 'lucide-react';
  import { Button, Card, CardContent, Input, Label } from '../../../components/ui';
  import {
    type AdminCatalogTerm,
@@ -18,11 +19,12 @@ import { LexicalEditor } from '../../../components/LexicalEditor';
 interface TermsManagerProps {
    groupId: number;
    groupCode?: string;
+   groupSlug?: string;
    terms: AdminCatalogTerm[];
    onTermsChange: () => void;
  }
  
- export function TermsManager({ groupId, groupCode, terms, onTermsChange }: TermsManagerProps) {
+ export function TermsManager({ groupId, groupCode, groupSlug, terms, onTermsChange }: TermsManagerProps) {
    const [isDialogOpen, setIsDialogOpen] = useState(false);
    const [editingTerm, setEditingTerm] = useState<AdminCatalogTerm | null>(null);
    const [termName, setTermName] = useState('');
@@ -209,6 +211,13 @@ interface TermsManagerProps {
                      </div>
                    </div>
                    <div className="flex items-center gap-2">
+                     {groupSlug ? (
+                       <Link href={`/san-pham/${groupSlug}/${term.slug}`} target="_blank" rel="noopener noreferrer">
+                         <Button size="sm" variant="ghost" type="button" aria-label="Mở trang">
+                           <ExternalLink size={14} />
+                         </Button>
+                       </Link>
+                     ) : null}
                      <Button
                        size="sm"
                        variant="ghost"

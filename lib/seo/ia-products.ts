@@ -102,6 +102,17 @@ export async function resolveProductLandingContext(
   const titleParts: string[] = [];
 
   if (matchedAttributeGroup) {
+    if (restSlugs.length === 0) {
+      const resolvedTitle = matchedAttributeGroup.name;
+      return {
+        canonicalPath: `/san-pham/${matchedAttributeGroup.slug}`,
+        title: resolvedTitle,
+        description: `Khám phá sản phẩm theo ${resolvedTitle.toLowerCase()} tại Thiên Kim Wine.`,
+        routeFilters,
+        apiParams,
+        filterOptions: allFilters,
+      };
+    }
     if (restSlugs.length !== 1) return null;
     const term = findBySlug(matchedAttributeGroup.options, restSlugs[0]);
     if (!term) return null;

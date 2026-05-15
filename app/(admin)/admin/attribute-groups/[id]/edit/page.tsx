@@ -373,6 +373,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
       <TermsManager
         groupId={Number(id)}
         groupCode={code}
+        groupSlug={slug}
         terms={terms}
         onTermsChange={reloadTerms}
       />
