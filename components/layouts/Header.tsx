@@ -19,9 +19,6 @@ import {
   languageOptions,
   trendingKeywords,
   menuItems as defaultMenuItems,
-  type MenuItemWithChildren,
-  type NavLeaf,
-  type NavNode,
 } from "./header.data"
 import type { MenuItem } from "@/lib/api/menus"
 import { useSettingsStore } from "@/lib/stores/settingsStore"
@@ -36,13 +33,60 @@ const { base: BRAND_BASE, accent: BRAND_ACCENT, highlight: BRAND_HIGHLIGHT } = B
 
 type ApiMenuNode = NonNullable<MenuItem["children"]>[number]
 
-function toNavLeaf(node: ApiMenuNode): NavLeaf {
+type HeaderMenuNode = {
+  id: string
+  label: string
+  href: string
+  isHot?: boolean
+  isViewAll?: boolean
+  children: HeaderMenuNode[]
+}
+
+function toHeaderNode(node: ApiMenuNode | MenuItem, fallbackId: string): HeaderMenuNode {
   return {
+    id: `${fallbackId}-${node.label || node.href || "item"}`,
     label: node.label || '',
     href: node.href || '#',
-    isHot: node.isHot,
-    children: node.children?.map(toNavLeaf),
+    isHot: "isHot" in node ? node.isHot : undefined,
+    isViewAll: "isViewAll" in node ? node.isViewAll : undefined,
+    children: node.children?.map((child, index) => toHeaderNode(child, `${fallbackId}-${index}`)) ?? [],
   }
+}
+
+function defaultToHeaderNode(item: (typeof defaultMenuItems)[number], index: number): HeaderMenuNode {
+  return {
+    id: `fallback-${index}-${item.label}`,
+    label: item.label,
+    href: item.href,
+    children: item.children?.map((section, sectionIndex) => ({
+      id: `fallback-${index}-${sectionIndex}-${section.label}`,
+      label: section.label,
+      href: '#',
+      isViewAll: section.isViewAll,
+      children: section.children.map((leaf, leafIndex) => ({
+        id: `fallback-${index}-${sectionIndex}-${leafIndex}-${leaf.label}`,
+        label: leaf.label,
+        href: leaf.href,
+        isHot: leaf.isHot,
+        isViewAll: leaf.isViewAll,
+        children: leaf.children?.map((child, childIndex) => ({
+          id: `fallback-${index}-${sectionIndex}-${leafIndex}-${childIndex}-${child.label}`,
+          label: child.label,
+          href: child.href,
+          isHot: child.isHot,
+          isViewAll: child.isViewAll,
+          children: [],
+        })) ?? [],
+      })),
+    })) ?? [],
+  }
+}
+
+const fallbackHeaderItems: HeaderMenuNode[] = defaultMenuItems.map(defaultToHeaderNode)
+
+function getMaxLevel(node: HeaderMenuNode, level = 1): number {
+  if (node.children.length === 0) return level
+  return node.children.reduce((max, child) => Math.max(max, getMaxLevel(child, level + 1)), level)
 }
 
 interface HeaderProps {
@@ -50,24 +94,10 @@ interface HeaderProps {
 }
 
 export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
-  // Chuyển đổi API menu items sang format cũ để tương thích với UI hiện tại
-  // Defensive: handle null/undefined/empty arrays gracefully
-  const convertedMenuItems: MenuItemWithChildren[] = apiMenuItems?.length
+  const convertedMenuItems: HeaderMenuNode[] = apiMenuItems?.length
     ? apiMenuItems
-        .filter(item => item.label) // Bỏ qua menu không có label
-        .map(item => ({
-          label: item.label || '',
-          href: item.href || '#',
-          children: item.children?.length
-            ? item.children
-                .filter(block => block.label) // Bỏ qua block rỗng
-                .map(block => ({
-                  label: block.label || '',
-                  children: block.children?.length ? block.children.map(toNavLeaf) : [toNavLeaf(block)]
-                }))
-                .filter(block => block.children.length > 0) // Bỏ qua block không còn children
-            : undefined
-        }))
+        .filter(item => item.label)
+        .map((item, index) => toHeaderNode(item, `api-${item.id ?? index}`))
     : [];
 
   useEffect(() => {
@@ -91,7 +121,7 @@ export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
   )
 }
 
-function MainBar({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
+function MainBar({ menuItems }: { menuItems?: HeaderMenuNode[] }) {
   const settings = useSettingsStore((state) => state.settings);
   const hasHydrated = useSettingsStore((state) => state._hasHydrated);
 
@@ -309,38 +339,16 @@ function ContactButton() {
     </Link>
   )
 }
-function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren[] }) {
-  // Use default menuItems from header.data.ts as fallback
-  const items: MenuItemWithChildren[] = propMenuItems || defaultMenuItems;
+function NavBar({ menuItems: propMenuItems }: { menuItems?: HeaderMenuNode[] }) {
+  const items = propMenuItems?.length ? propMenuItems : fallbackHeaderItems
 
   return (
-    <div className="border-b border-[#751826] bg-[#C99041] lg:bg-[#ECAA4D] shadow-[0_12px_32px_rgba(236,170,77,0.35)]">
+    <div className="border-b border-[#7A2330] bg-[#ECAA4D] shadow-[0_10px_28px_rgba(155,44,59,0.18)]">
       <div className="relative mx-auto hidden max-w-7xl items-center justify-center px-4 lg:flex">
-        <nav className="relative flex items-center gap-4 text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[#1C1C1C]/80">
+        <nav className="relative flex items-center gap-1 text-[0.82rem] font-semibold text-[#1C1C1C]/85">
           {items.map((item) => {
-            // Có dropdown nếu có children với items
-            const hasValidChildren = item.children && item.children.length > 0
-            // Mega menu khi có nhiều hơn 1 block
-            const isMega = hasValidChildren && item.children!.length > 1
-            return (
-              <div
-                key={item.label}
-                className={`group py-2 ${isMega ? "relative lg:static" : "relative"}`}
-              >
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[#1C1C1C]/80 transition-all hover:bg-[#1C1C1C]/10 hover:text-[#1C1C1C]"
-                >
-                  <span className="whitespace-nowrap">{item.label}</span>
-                  {hasValidChildren && (
-                    <ChevronDown size={14} className="text-[#1C1C1C]/70 transition-transform group-hover:rotate-180" />
-                  )}
-                </Link>
-                {hasValidChildren && (
-                  <MegaMenu menu={item.children!} isFull={isMega} />
-                )}
-              </div>
-            )
+            const isDeep = getMaxLevel(item) >= 4
+            return <DesktopRootItem key={item.id} item={item} isDeep={isDeep} />
           })}
         </nav>
         <div className="pointer-events-none absolute inset-x-6 bottom-0 h-px bg-gradient-to-r from-transparent via-[#1C1C1C]/25 to-transparent" />
@@ -348,84 +356,104 @@ function NavBar({ menuItems: propMenuItems }: { menuItems?: MenuItemWithChildren
     </div>
   )
 }
-function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean }) {
-  // Guard: không render nếu menu rỗng
-  if (!menu || menu.length === 0) return null
 
-  // Chỉ lấy các section có label và children
-  const validSections = menu.filter(section => section.label && section.children && section.children.length > 0)
-  
-  if (validSections.length === 0) return null
-
-  const containerClasses = isFull
-    ? "absolute left-1/2 top-full z-20 w-[min(100vw-3rem,1280px)] -translate-x-1/2 rounded-b-2xl border border-[#ECAA4D]/35 bg-white px-8 py-7 shadow-[0_28px_60px_rgba(28,28,28,0.12)]"
-    : "absolute left-0 top-full z-20 min-w-[200px] max-w-sm rounded-b-xl border border-[#ECAA4D]/35 bg-white px-6 py-5 shadow-[0_24px_48px_rgba(28,28,28,0.1)]"
-
-  // Dynamic grid columns based on number of sections (max 4)
-  const colCount = Math.min(validSections.length, 4)
+function DesktopRootItem({ item, isDeep }: { item: HeaderMenuNode; isDeep: boolean }) {
+  const hasChildren = item.children.length > 0
 
   return (
-    <div
-      className={`invisible translate-y-4 opacity-0 transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 ${containerClasses}`}
-    >
-      <div 
-        className={`mx-auto grid max-w-7xl ${isFull ? "gap-8" : "grid-cols-1 gap-4"}`} 
-        style={isFull ? { gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` } : undefined}
+    <div className={`group py-2 ${isDeep ? "relative lg:static" : "relative"}`}>
+      <Link
+        href={item.href || '#'}
+        className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:bg-[#1C1C1C]/10 hover:text-[#1C1C1C]"
       >
-        {validSections.map((section, idx) => (
-          <div key={`${section.label}-${idx}`} className={`min-w-[180px] ${isFull && idx > 0 ? "border-l border-[#ECAA4D]/25 pl-6" : ""}`}>
-            <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
-            <ul className="space-y-2">
-              {section.children.map((child, childIdx) => (
-                <li key={`${child.label}-${childIdx}`} className="relative group/menu-node">
-                  <RecursiveMenuLink child={child} depth={0} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <span className="whitespace-nowrap">{item.label}</span>
+        {hasChildren && (
+          <ChevronDown size={14} className="text-[#1C1C1C]/70 transition-transform group-hover:rotate-180" />
+        )}
+      </Link>
+      {hasChildren && (
+        isDeep ? <DeepMegaMenu item={item} /> : <SimpleDropdown nodes={item.children} />
+      )}
+    </div>
+  )
+}
+
+function DeepMegaMenu({ item }: { item: HeaderMenuNode }) {
+  const columns = Math.min(Math.max(item.children.length, 1), 5)
+
+  return (
+    <div className="invisible absolute left-1/2 top-full z-40 w-[min(100vw-2rem,1180px)] -translate-x-1/2 translate-y-3 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+      <div className="rounded-2xl border border-[#ECAA4D]/35 bg-white p-5 shadow-[0_28px_70px_rgba(28,28,28,0.14)]">
+        <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+          {item.children.map((column) => (
+            <div key={column.id} className="min-w-0 space-y-3">
+              <Link
+                href={column.href || '#'}
+                className="block text-sm font-bold leading-snug text-[#9B2C3B] transition hover:text-[#751826]"
+              >
+                {column.label}
+              </Link>
+              <div className="space-y-1">
+                <RecursiveDesktopNode nodes={column.children} deepMode />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-function RecursiveMenuLink({ child, depth }: { child: NavLeaf; depth: number }) {
-  const hasChildren = !!child.children?.length
+function SimpleDropdown({ nodes }: { nodes: HeaderMenuNode[] }) {
+  return (
+    <div className="invisible absolute left-0 top-full z-40 min-w-[240px] translate-y-2 pt-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+      <div className="rounded-xl border border-[#ECAA4D]/35 bg-white py-2 shadow-[0_24px_54px_rgba(28,28,28,0.12)]">
+        <RecursiveDesktopNode nodes={nodes} />
+      </div>
+    </div>
+  )
+}
 
+function RecursiveDesktopNode({ nodes, deepMode = false }: { nodes: HeaderMenuNode[]; deepMode?: boolean }) {
   return (
     <>
-      <Link
-        href={child.href || '#'}
-        className={`flex items-start justify-between gap-2 rounded-md px-2 py-1 text-[0.78rem] transition-all ${
-          child.isHot
-            ? "font-semibold text-[#9B2C3B]"
-            : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
-        }`}
-      >
-        <span className="min-w-0 break-words">
-          {child.isHot && (
-            <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
-              HOT
-            </span>
-          )}
-          {child.label}
-        </span>
-        {hasChildren && <ChevronRight size={13} className="mt-0.5 shrink-0" />}
-      </Link>
-      {hasChildren && (
-        <div className={`absolute top-0 z-30 hidden min-w-[210px] rounded-lg border border-[#ECAA4D]/35 bg-white py-2 shadow-[0_18px_42px_rgba(28,28,28,0.12)] group-hover/menu-node:block ${depth === 0 ? 'left-full ml-1' : 'right-full mr-1'}`}>
-          {child.children?.map((sub, index) => (
-            <div key={`${sub.label}-${index}`} className="relative group/menu-node px-2">
-              <RecursiveMenuLink child={sub} depth={depth + 1} />
-            </div>
-          ))}
-        </div>
-      )}
+      {nodes.map((node) => {
+        const hasChildren = node.children.length > 0
+        return (
+          <div key={node.id} className="relative group/menu-node px-2">
+            <Link
+              href={node.href || '#'}
+              className={`flex min-w-0 items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm leading-snug transition-colors ${
+                node.isHot
+                  ? "font-semibold text-[#9B2C3B] hover:bg-[#9B2C3B]/8"
+                  : "text-[#1C1C1C]/78 hover:bg-[#ECAA4D]/14 hover:text-[#1C1C1C]"
+              }`}
+            >
+              <span className="min-w-0 whitespace-normal break-words">
+                {node.isHot && (
+                  <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.1em] text-white">
+                    HOT
+                  </span>
+                )}
+                {node.label}
+              </span>
+              {hasChildren && <ChevronRight size={14} className="mt-0.5 shrink-0 text-[#9B2C3B]/75" />}
+            </Link>
+            {hasChildren && (
+              <div className={`${deepMode ? "left-0 top-full pt-1" : "left-full top-0 pl-1"} absolute z-50 hidden min-w-[230px] group-hover/menu-node:block`}>
+                <div className="rounded-xl border border-[#ECAA4D]/35 bg-white py-2 shadow-[0_22px_48px_rgba(28,28,28,0.12)]">
+                  <RecursiveDesktopNode nodes={node.children} deepMode={deepMode} />
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })}
     </>
   )
 }
 
-function MobileTrigger({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
+function MobileTrigger({ menuItems }: { menuItems?: HeaderMenuNode[] }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -443,38 +471,15 @@ function MobileTrigger({ menuItems }: { menuItems?: MenuItemWithChildren[] }) {
   )
 }
 
-function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => void; menuItems?: MenuItemWithChildren[] }) {
-  // Use default menuItems from header.data.ts as fallback
-  const menuItems: MenuItemWithChildren[] = propMenuItems || defaultMenuItems;
+function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => void; menuItems?: HeaderMenuNode[] }) {
+  const menuItems = propMenuItems?.length ? propMenuItems : fallbackHeaderItems
+  const [expandedMobileItems, setExpandedMobileItems] = useState<string[]>([])
 
-  const [activeMenu, setActiveMenu] = useState<MenuItemWithChildren | null>(null)
-  const [activeSection, setActiveSection] = useState<NavNode | null>(null)
-
-  const handleSelectMenu = (item: MenuItemWithChildren) => {
-    if (item.children && item.children.length > 0) {
-      setActiveMenu(item)
-      setActiveSection(null)
-    } else {
-      onClose()
-    }
+  const toggleMobileItem = (id: string) => {
+    setExpandedMobileItems((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    )
   }
-
-  const handleSelectSection = (section: NavNode) => {
-    setActiveSection(section)
-  }
-
-  const handleBack = () => {
-    if (activeSection) {
-      setActiveSection(null)
-    } else if (activeMenu) {
-      setActiveMenu(null)
-    } else {
-      onClose()
-    }
-  }
-
-  const headerTitle = activeSection?.label ?? activeMenu?.label ?? "Menu"
-  const showBackButton = !!activeMenu
 
   return (
     <div className="fixed inset-0 z-50">
@@ -482,19 +487,12 @@ function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => vo
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
       {/* Panel */}
       <div
-        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#751826] bg-[#ECAA4D] text-[#1C1C1C] shadow-[0_24px_64px_rgba(28,28,28,0.25)]"
+        className="absolute inset-y-0 right-0 w-[88%] max-w-md border-l border-[#751826] bg-[#F7E1B3] text-[#1C1C1C] shadow-[0_24px_64px_rgba(28,28,28,0.25)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#1C1C1C]/10 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-[#9B2C3B]/15 bg-[#ECAA4D] px-4 py-3">
           <span className="text-base font-bold uppercase tracking-[0.16em]" style={{ color: BRAND_BASE }}>
-            {showBackButton ? (
-              <button onClick={handleBack} className="flex items-center gap-2 text-[#1C1C1C] transition hover:text-[#9B2C3B]">
-                <ChevronDown size={18} className="rotate-90" />
-                <span>{headerTitle}</span>
-              </button>
-            ) : (
-              headerTitle
-            )}
+            Menu
           </span>
           <button
             className="inline-flex h-9 w-9 items-center justify-center rounded-md text-[#1C1C1C] transition hover:bg-[#1C1C1C]/10"
@@ -507,93 +505,73 @@ function MobileDrawer({ onClose, menuItems: propMenuItems }: { onClose: () => vo
 
         {/* Navigation */}
         <nav className="max-h-[calc(100vh-56px)] space-y-1 overflow-y-auto px-3 py-3 text-sm text-[#1C1C1C]/85">
-          {!activeMenu && (
-            <>
-              {menuItems.map((item) =>
-                item.children ? (
-                  <button
-                    key={item.label}
-                    onClick={() => handleSelectMenu(item)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-[#1C1C1C] transition hover:bg-[#1C1C1C]/10"
-                  >
-                    <span className="text-sm">{item.label}</span>
-                    <ChevronDown size={18} className="-rotate-90 text-[#1C1C1C]/70" />
-                  </button>
-                ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="block rounded-lg px-3 py-2.5 font-semibold uppercase tracking-[0.1em] text-[#1C1C1C] transition hover:bg-[#1C1C1C]/10"
-                    onClick={onClose}
-                  >
-                    {item.label}
-                  </Link>
-                ),
-              )}
-            </>
-          )}
-
-          {activeMenu && !activeSection && (
-            <div className="space-y-1">
-              {/* Best Practice: "Xem tất cả" link ở đầu - từ API hoặc từ href của menu cha */}
-              {activeMenu.children?.find(s => s.isViewAll)?.children?.[0] ? (
-                <Link
-                  href={activeMenu.children.find(s => s.isViewAll)?.children?.[0]?.href || activeMenu.href}
-                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2.5 text-sm font-bold uppercase tracking-[0.1em] text-[#1C1C1C] shadow-sm transition hover:bg-white/90"
-                  onClick={onClose}
-                >
-                  <span>→</span>
-                  <span>{activeMenu.children.find(s => s.isViewAll)?.children?.[0]?.label || `Xem tất cả ${activeMenu.label}`}</span>
-                </Link>
-              ) : activeMenu.href && activeMenu.href !== '#' && activeMenu.href !== '/' ? (
-                <Link
-                  href={activeMenu.href}
-                  className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2.5 text-sm font-bold uppercase tracking-[0.1em] text-[#1C1C1C] shadow-sm transition hover:bg-white/90"
-                  onClick={onClose}
-                >
-                  <span>→</span>
-                  <span>Xem tất cả {activeMenu.label}</span>
-                </Link>
-              ) : null}
-
-              {activeMenu.children?.filter(s => !s.isViewAll).map((section) => (
-                <button
-                  key={section.label}
-                  onClick={() => handleSelectSection(section)}
-                  className="flex w-full items-center justify-between rounded-lg bg-white/50 px-3 py-2 text-sm font-semibold uppercase tracking-[0.08em] text-[#1C1C1C] transition hover:bg-white"
-                >
-                  <span>{section.label}</span>
-                  <ChevronDown size={18} className="-rotate-90 text-[#1C1C1C]/80" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {activeMenu && activeSection && (
-            <div className="space-y-1">
-              {activeSection.children.map((child) => (
-                <Link
-                  key={child.label}
-                  href={child.href}
-                  className={`block rounded px-3 py-1.5 text-[0.85rem] transition ${
-                    child.isHot
-                      ? "bg-[#1C1C1C]/10 font-semibold text-[#1C1C1C]"
-                      : "text-[#1C1C1C]/80 hover:bg-[#1C1C1C]/10 hover:text-[#1C1C1C]"
-                  }`}
-                  onClick={onClose}
-                >
-                  {child.isHot && (
-                    <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
-                      HOT
-                    </span>
-                  )}
-                  {child.label}
-                </Link>
-              ))}
-            </div>
-          )}
+          <RecursiveMobileNodes
+            nodes={menuItems}
+            expandedIds={expandedMobileItems}
+            onToggle={toggleMobileItem}
+            onClose={onClose}
+          />
         </nav>
       </div>
+    </div>
+  )
+}
+
+function RecursiveMobileNodes({
+  nodes,
+  expandedIds,
+  onToggle,
+  onClose,
+}: {
+  nodes: HeaderMenuNode[]
+  expandedIds: string[]
+  onToggle: (id: string) => void
+  onClose: () => void
+}) {
+  return (
+    <div className="space-y-1">
+      {nodes.map((node) => {
+        const hasChildren = node.children.length > 0
+        const isExpanded = expandedIds.includes(node.id)
+
+        return (
+          <div key={node.id}>
+            <div className="flex items-center rounded-lg bg-white/50 transition hover:bg-white">
+              <Link
+                href={node.href || '#'}
+                className="min-w-0 flex-1 px-3 py-2.5 text-sm font-semibold leading-snug text-[#1C1C1C]"
+                onClick={onClose}
+              >
+                {node.label}
+              </Link>
+              {hasChildren && (
+                <button
+                  type="button"
+                  aria-label={`Mở menu con ${node.label}`}
+                  aria-expanded={isExpanded}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    onToggle(node.id)
+                  }}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center text-[#9B2C3B]"
+                >
+                  <ChevronDown size={17} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
+              )}
+            </div>
+            {hasChildren && isExpanded && (
+              <div className="ml-4 mt-1 border-l border-[#9B2C3B]/20 pl-3">
+                <RecursiveMobileNodes
+                  nodes={node.children}
+                  expandedIds={expandedIds}
+                  onToggle={onToggle}
+                  onClose={onClose}
+                />
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -602,16 +580,13 @@ export function __selfTest(): boolean {
   try {
     console.assert(Array.isArray(languageOptions) && languageOptions.length >= 2, "languageOptions missing")
     console.assert(Array.isArray(trendingKeywords), "trendingKeywords not array")
-    console.assert(
-      defaultMenuItems.every((m: MenuItemWithChildren) => typeof m.label === "string" && typeof m.href === "string"),
-      "menuItems shape",
-    )
-    const firstMenu = defaultMenuItems.find((m: MenuItemWithChildren) => m.children)
+    console.assert(defaultMenuItems.every((m) => typeof m.label === "string" && typeof m.href === "string"), "menuItems shape")
+    const firstMenu = defaultMenuItems.find((m) => m.children)
     if (firstMenu?.children) {
       console.assert(Array.isArray(firstMenu.children[0].children), "nested children shape")
     }
-    const probeNavLeaf: NavLeaf = { label: "_", href: "/_" }
-    console.assert(!!probeNavLeaf.href, "NavLeaf href missing")
+    const probeNode: HeaderMenuNode = { id: "_", label: "_", href: "/_", children: [] }
+    console.assert(!!probeNode.href, "HeaderMenuNode href missing")
     return true
   } catch {
     return false
