@@ -16,6 +16,8 @@ export interface ArticleListItem {
   title: string;
   slug: string;
   excerpt: string | null;
+  category_key?: string | null;
+  content_slots?: string[];
   cover_image_url: string | null;
   cover_image_canonical_url?: string | null;
   published_at: string;
@@ -41,6 +43,8 @@ export interface ArticleDetail {
   title: string;
   slug: string;
   excerpt: string | null;
+  category_key?: string | null;
+  content_slots?: string[];
   content: string | null;
   cover_image_url: string | null;
   cover_image_canonical_url?: string | null;
@@ -229,6 +233,44 @@ export async function fetchArticleDetail(slug: string): Promise<ArticleDetail | 
     }
 
     throw error;
+  }
+}
+
+export async function fetchContentPage(section: string, slug: string): Promise<ArticleDetail | null> {
+  try {
+    const response = await apiFetch<ArticleDetailResponse>(
+      `v1/noi-dung/${encodeURIComponent(section)}/${encodeURIComponent(slug)}`,
+      {
+        next: { tags: ["articles", `content-page:${section}:${slug}`] },
+      }
+    );
+    return normalizeArticleDetail(response.data);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+export async function fetchContentPageSafe(section: string, slug: string): Promise<ArticleDetail | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
+  try {
+    return await fetchContentPage(section, slug);
+  } catch (error) {
+    if (!didWarnArticleDetail) {
+      didWarnArticleDetail = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua content page."
+        : "Không lấy được content page, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
   }
 }
 

@@ -42,6 +42,9 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
     title,
     slug,
     content,
+    categoryKey,
+    contentSlots,
+    contentOptions,
     metaTitle,
     metaDescription,
     active,
@@ -55,6 +58,8 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
     setTitle,
     setSlug,
     setContent,
+    setCategoryKey,
+    setContentSlots,
     setMetaTitle,
     setMetaDescription,
     setActive,
@@ -102,6 +107,7 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
   }
 
   const publicSlug = slug || generateSlug(title);
+  const visibleSlots = contentOptions?.slots.filter((slot) => !categoryKey || slot.category_key === categoryKey) ?? [];
 
   return (
     <div className="space-y-4 pb-28">
@@ -133,6 +139,58 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
                 placeholder="Nhập tiêu đề bài viết"
                 required
               />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
+              <div className="space-y-2">
+                <Label>Nhóm nội dung</Label>
+                <select
+                  value={categoryKey}
+                  onChange={(event) => {
+                    const nextCategory = event.target.value;
+                    setCategoryKey(nextCategory);
+                    setContentSlots((prev) =>
+                      prev.filter((slotKey) => contentOptions?.slots.some((slot) => slot.key === slotKey && (!nextCategory || slot.category_key === nextCategory)))
+                    );
+                  }}
+                  className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-800"
+                >
+                  <option value="">Chưa phân nhóm</option>
+                  {contentOptions?.categories.map((category) => (
+                    <option key={category.key} value={category.key}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-500">Dùng để lọc bài và gợi ý đặt vào trang phù hợp.</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Gắn vào trang cố định</Label>
+                <div className="max-h-36 overflow-auto rounded-md border border-slate-200 p-2 dark:border-slate-700">
+                  {visibleSlots.length > 0 ? (
+                    visibleSlots.map((slot) => (
+                      <label key={slot.key} className="flex items-start gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <input
+                          type="checkbox"
+                          checked={contentSlots.includes(slot.key)}
+                          onChange={(event) =>
+                            setContentSlots((prev) =>
+                              event.target.checked ? Array.from(new Set([...prev, slot.key])) : prev.filter((key) => key !== slot.key)
+                            )
+                          }
+                          className="mt-1 h-4 w-4 rounded border-slate-300"
+                        />
+                        <span>
+                          <span className="block font-medium text-slate-800 dark:text-slate-100">{slot.label}</span>
+                          <span className="text-xs text-slate-500">{slot.path}</span>
+                        </span>
+                      </label>
+                    ))
+                  ) : (
+                    <p className="px-2 py-3 text-sm text-slate-500">Chọn nhóm nội dung để xem trang có thể gắn.</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2">

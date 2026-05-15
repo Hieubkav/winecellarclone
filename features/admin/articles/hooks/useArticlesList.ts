@@ -11,6 +11,7 @@ import { articleQueryKeys } from "../api/articles.query-keys";
 
 const DEFAULT_COLUMNS = [
   { key: "title", label: "Tiêu đề", required: true },
+  { key: "category_key", label: "Nhóm" },
   { key: "excerpt", label: "Mô tả ngắn" },
   { key: "published_at", label: "Ngày xuất bản" },
   { key: "active", label: "Trạng thái" },

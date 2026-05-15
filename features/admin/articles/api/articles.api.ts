@@ -17,6 +17,8 @@ export interface AdminArticle {
   title: string;
   slug: string;
   excerpt: string | null;
+  category_key?: string | null;
+  content_slots?: string[];
   meta_title?: string | null;
   meta_description?: string | null;
   active: boolean;
@@ -32,6 +34,26 @@ export interface AdminArticle {
     file_path?: string;
     canonical_url?: string;
   }>;
+}
+
+export interface ArticleContentCategory {
+  key: string;
+  label: string;
+  description: string;
+}
+
+export interface ArticleContentSlot {
+  key: string;
+  label: string;
+  path: string;
+  category_key: string;
+}
+
+export interface ArticleContentOptionsResponse {
+  data: {
+    categories: ArticleContentCategory[];
+    slots: ArticleContentSlot[];
+  };
 }
 
 export interface AdminArticlesResponse {
@@ -53,6 +75,10 @@ export interface AdminArticlesResponse {
 export async function fetchAdminArticles(params?: Record<string, string | number>): Promise<AdminArticlesResponse> {
   const query = buildQueryString(params);
   return apiFetch<AdminArticlesResponse>(`v1/admin/articles${query}`);
+}
+
+export async function fetchArticleContentOptions(): Promise<ArticleContentOptionsResponse> {
+  return apiFetch<ArticleContentOptionsResponse>("v1/admin/articles/content-options");
 }
 
 export async function fetchAdminArticle(

@@ -5,9 +5,10 @@ import { getImageUrl } from "@/lib/utils/image";
 
 interface ArticleJsonLdProps {
   article: ArticleDetail;
+  canonicalPath?: string;
 }
 
-export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
+export default function ArticleJsonLd({ article, canonicalPath }: ArticleJsonLdProps) {
   const settings = useSettingsStore((state) => state.settings);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn").replace(/\/$/, "");
   const publisherName = settings?.site_name || FALLBACK_SETTINGS.site_name;
@@ -47,7 +48,7 @@ export default function ArticleJsonLd({ article }: ArticleJsonLdProps) {
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `${siteUrl}/bai-viet/${article.slug}`,
+      "@id": `${siteUrl}${canonicalPath || `/bai-viet/${article.slug}`}`,
     },
   };
 

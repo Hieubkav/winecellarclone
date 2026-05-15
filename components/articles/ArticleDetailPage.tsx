@@ -15,6 +15,9 @@ import RichContent from "@/components/shared/RichContent";
 interface ArticleDetailPageProps {
   article: ArticleDetail;
   fontFamily?: string;
+  canonicalPath?: string;
+  parentHref?: string;
+  parentLabel?: string;
 }
 
 const formatDate = (dateString: string): string => {
@@ -129,7 +132,7 @@ const ImageGallery = ({
   );
 };
 
-export default function ArticleDetailPage({ article, fontFamily }: ArticleDetailPageProps) {
+export default function ArticleDetailPage({ article, fontFamily, canonicalPath, parentHref = "/kien-thuc", parentLabel = "Kiến thức" }: ArticleDetailPageProps) {
   const { trackArticleView, trackCTAContact } = useTracking();
 
   useEffect(() => {
@@ -164,7 +167,7 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
   // Share functionality
   const shareUrl = typeof window !== "undefined" 
     ? window.location.href 
-    : `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn"}/bai-viet/${article.slug}`;
+    : `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn"}${canonicalPath || `/bai-viet/${article.slug}`}`;
   const shareTitle = article.title;
 
   const handleShareFacebook = () => {
@@ -181,7 +184,7 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
 
   return (
     <>
-      <ArticleJsonLd article={article} />
+      <ArticleJsonLd article={article} canonicalPath={canonicalPath} />
       <div
         className="min-h-screen bg-white selection:bg-[#C9A050]/30 selection:text-[#8B1832]"
         style={fontFamily ? { fontFamily } : undefined}
@@ -195,8 +198,8 @@ export default function ArticleDetailPage({ article, fontFamily }: ArticleDetail
                   Trang chủ
                 </Link>
                 <ChevronRight className="h-3 w-3 text-[#C9A050]" />
-                <Link href="/kien-thuc" className="hover:text-[#8B1832] cursor-pointer transition-colors">
-                  Kiến thức
+                <Link href={parentHref} className="hover:text-[#8B1832] cursor-pointer transition-colors">
+                  {parentLabel}
                 </Link>
                 <ChevronRight className="h-3 w-3 text-[#C9A050]" />
                 <span className="text-[#C9A050] font-medium truncate max-w-[300px]">

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   createArticle,
   fetchAdminArticle,
+  fetchArticleContentOptions,
   updateArticle,
   type AdminArticle,
 } from "../api/articles.api";
@@ -48,6 +49,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
+  const [categoryKey, setCategoryKey] = useState("");
+  const [contentSlots, setContentSlots] = useState<string[]>([]);
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [active, setActive] = useState(true);
@@ -79,6 +82,15 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     gcTime: 10 * 60 * 1000,
   });
 
+  const contentOptionsQuery = useQuery({
+    queryKey: ["admin", "articles", "content-options"],
+    queryFn: async () => {
+      const result = await fetchArticleContentOptions();
+      return result.data;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
   useEffect(() => {
     if (!articleQuery.error) {
       return;
@@ -98,6 +110,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     setTitle(article.title);
     setSlug(article.slug);
     setContent(article.content || "");
+    setCategoryKey(article.category_key || "");
+    setContentSlots(Array.isArray(article.content_slots) ? article.content_slots : []);
     setMetaTitle(article.meta_title || "");
     setMetaDescription(article.meta_description || "");
     setActive(article.active);
@@ -303,6 +317,7 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       metaDescription.trim() || stripHtmlTags(content || ""),
       160
     );
+    const excerpt = truncateText(stripHtmlTags(content || ""), 220);
 
     if (isEditMode && !articleId) return;
 
@@ -310,6 +325,9 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     const data: Record<string, unknown> = {
       title: title.trim(),
       slug: slug.trim() || generateSlug(title),
+      excerpt: excerpt || null,
+      category_key: categoryKey || null,
+      content_slots: contentSlots,
       content: content?.trim() || null,
       meta_title: resolvedMetaTitle || null,
       meta_description: resolvedMetaDescription || null,
@@ -327,6 +345,9 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       title,
       slug,
       content,
+      categoryKey,
+      contentSlots,
+      contentOptions: contentOptionsQuery.data,
       metaTitle,
       metaDescription,
       active,
@@ -341,6 +362,8 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
       setTitle: handleTitleChange,
       setSlug,
       setContent,
+      setCategoryKey,
+      setContentSlots,
       setMetaTitle,
       setMetaDescription,
       setActive,
