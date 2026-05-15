@@ -17,7 +17,7 @@ type BrandShowcaseProps = {
   }>;
 };
 
-export default function BrandShowcase({ title, brands = [] }: BrandShowcaseProps) {
+export default function BrandShowcase({ title, brands }: BrandShowcaseProps) {
   const autoplay = useRef<AutoplayType>(
     Autoplay({
       delay: ANIMATION_TIMINGS.autoplayDelay,

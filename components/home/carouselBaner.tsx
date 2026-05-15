@@ -23,7 +23,7 @@ type HeroCarouselProps = {
   }>;
 };
 
-export default function HeroCarousel({ slides = [] }: HeroCarouselProps) {
+export default function HeroCarousel({ slides }: HeroCarouselProps) {
   const hasSlides = slides.length > 0
   const hasMultipleSlides = slides.length > 1
   const [api, setApi] = useState<CarouselApi>()

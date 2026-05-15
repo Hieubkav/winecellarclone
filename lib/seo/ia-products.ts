@@ -74,7 +74,7 @@ const applyAttributeRouteSegments = (
 
   const titleParts: string[] = [];
   const attributeSelections: Record<string, string[]> = {
-    ...(routeFilters.attributeSelections ?? {}),
+    ...routeFilters.attributeSelections,
   };
 
   for (let index = 0; index < slugs.length; index += 2) {

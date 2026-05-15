@@ -84,7 +84,7 @@ interface TermsManagerProps {
            slug: termSlug.trim() || undefined,
            description: termDescription.trim() || null,
            metadata: {
-             ...(editingTerm.metadata ?? {}),
+             ...editingTerm.metadata,
              featured: termFeatured,
              seo_title: termSeoTitle.trim() || null,
              seo_description: termSeoDescription.trim() || null,

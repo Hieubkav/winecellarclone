@@ -13,7 +13,7 @@ type CategoryGridProps = {
   }>;
 };
 
-export default function CategoryGrid({ categories = [] }: CategoryGridProps) {
+export default function CategoryGrid({ categories }: CategoryGridProps) {
   if (categories.length === 0) {
     return null;
   }

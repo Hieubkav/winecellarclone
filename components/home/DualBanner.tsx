@@ -9,7 +9,7 @@ type DualBannerProps = {
   }>;
 };
 
-export default function DualBanner({ banners = [] }: DualBannerProps) {
+export default function DualBanner({ banners }: DualBannerProps) {
   if (banners.length === 0) {
     return null
   }
