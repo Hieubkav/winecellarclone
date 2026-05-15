@@ -46,9 +46,11 @@ export function MenuTreePreview({ menus }: MenuTreePreviewProps) {
   );
 }
 
-function renderNodes(nodes: Array<MenuTreeNode<AdminMenuTreeItem>>) {
+type PreviewMenuItem = AdminMenuTreeItem & { client_id?: string };
+
+function renderNodes(nodes: Array<MenuTreeNode<PreviewMenuItem>>) {
   return nodes.map((node) => (
-    <div key={node.id} className="space-y-2">
+    <div key={node.client_id ?? node.id} className="space-y-2">
       <div
         className={cn(
           'flex items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900',
