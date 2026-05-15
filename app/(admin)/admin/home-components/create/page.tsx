@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Check } from 'lucide-react';
 import { Button, Card, Label } from '../../components/ui';
 import { createHomeComponent } from '@/lib/api/admin';
 import { toast } from 'sonner';
@@ -326,19 +326,59 @@ export default function HomeComponentCreatePage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <Link href="/admin/home-components">
           <Button variant="outline" size="icon">
             <ArrowLeft size={18} />
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Thêm thành phần trang chủ</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Tạo section mới cho trang chủ</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Template component trang chủ</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Chọn mẫu, điền nội dung, lưu vào trang chủ</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <Card>
+          <div className="p-6">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Chọn template</h2>
+              <p className="text-sm text-slate-500">Các mẫu đang map trực tiếp vào API hiện tại.</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {COMPONENT_TYPES.map((template) => {
+                const selected = selectedType === template.value;
+                const info = getComponentTypeInfo(template.value);
+                const Icon = info?.icon;
+
+                return (
+                  <button
+                    key={template.value}
+                    type="button"
+                    onClick={() => setSelectedType(template.value)}
+                    className={`rounded-xl border p-4 text-left transition ${
+                      selected
+                        ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-200 dark:bg-amber-950/20'
+                        : 'border-slate-200 bg-white hover:border-amber-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {Icon && <Icon size={22} className="text-amber-500" />}
+                        <div>
+                          <p className="font-semibold text-slate-900 dark:text-slate-100">{template.label}</p>
+                          <p className="mt-1 line-clamp-2 text-xs text-slate-500">{info?.description}</p>
+                        </div>
+                      </div>
+                      {selected && <Check size={18} className="text-amber-600" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+
         <Card>
           <div className="p-6 space-y-6">
             <div className="space-y-2">

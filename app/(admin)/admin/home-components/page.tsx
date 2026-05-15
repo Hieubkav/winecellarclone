@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Trash2, Edit, AlertTriangle, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Edit, AlertTriangle, GripVertical, Eye, EyeOff, LayoutTemplate } from 'lucide-react';
 import { Button, Card, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '../components/ui';
 import { SortableHeader, useSortableData, SelectCheckbox, BulkActionBar } from '../components/TableUtilities';
 import { fetchAdminHomeComponents, deleteHomeComponent, bulkDeleteHomeComponents, reorderHomeComponents, updateHomeComponent, type AdminHomeComponent } from '@/lib/api/admin';
@@ -12,6 +12,31 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from '@dnd-kit/utilities';
 import { getComponentTypeInfo } from './componentTypes';
 import { cn } from '@/lib/utils';
+
+function getComponentTitle(component: AdminHomeComponent, fallback: string) {
+  const title = component.config?.title;
+  const heading = component.config?.heading;
+  const preview = component.config?.preview;
+
+  return typeof title === 'string' && title.trim()
+    ? title
+    : typeof heading === 'string' && heading.trim()
+      ? heading
+      : typeof preview === 'string' && preview.trim()
+        ? preview
+        : fallback;
+}
+
+function getComponentPreview(component: AdminHomeComponent, fallback: string) {
+  const description = component.config?.description;
+  const subtitle = component.config?.subtitle;
+
+  return typeof description === 'string' && description.trim()
+    ? description
+    : typeof subtitle === 'string' && subtitle.trim()
+      ? subtitle
+      : fallback;
+}
 
 interface SortableRowProps {
   component: AdminHomeComponent;
@@ -39,6 +64,8 @@ function SortableRow({ component, isSelected, onToggleSelect, onDelete, onToggle
   };
 
   const typeInfo = getComponentTypeInfo(component.type);
+  const title = getComponentTitle(component, typeInfo?.label ?? component.type);
+  const preview = getComponentPreview(component, typeInfo?.description ?? 'Component trang chủ');
 
   return (
     <TableRow ref={setNodeRef} style={style} className={isSelected ? 'bg-blue-500/5' : ''}>
@@ -49,6 +76,15 @@ function SortableRow({ component, isSelected, onToggleSelect, onDelete, onToggle
         <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
           <GripVertical size={18} className="text-slate-400" />
         </button>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm font-semibold text-slate-500">#{component.order + 1}</span>
+      </TableCell>
+      <TableCell>
+        <div>
+          <p className="font-medium text-slate-900 dark:text-slate-100">{title}</p>
+          <p className="line-clamp-1 text-xs text-slate-500 dark:text-slate-400">{preview}</p>
+        </div>
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
@@ -239,6 +275,19 @@ export default function HomeComponentsListPage() {
     }
   };
 
+  const handleBulkStatus = async (active: boolean) => {
+    if (selectedIds.length === 0) return;
+
+    try {
+      await Promise.all(selectedIds.map((id) => updateHomeComponent(id, { active })));
+      setComponents((prev) => prev.map((component) => selectedIds.includes(component.id) ? { ...component, active } : component));
+      toast.success(active ? 'Đã bật các thành phần đã chọn' : 'Đã ẩn các thành phần đã chọn');
+    } catch (error) {
+      console.error('Bulk status failed:', error);
+      toast.error('Không thể cập nhật hàng loạt');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -250,18 +299,33 @@ export default function HomeComponentsListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Thành phần trang chủ</h1>
-          <p className="text-sm text-slate-500">Quản lý các phần hiển thị trên trang chủ ({totalComponents} thành phần)</p>
+          <div className="flex items-center gap-2">
+            <LayoutTemplate className="text-amber-500" size={22} />
+            <h1 className="text-2xl font-bold">Giao diện Trang chủ</h1>
+          </div>
+          <p className="mt-1 text-sm text-slate-500">Sắp xếp, bật/tắt và chỉnh nội dung các khối trang chủ ({totalComponents} thành phần)</p>
         </div>
         <Link href="/admin/home-components/create">
-          <Button className="gap-2"><Plus size={16} />Thêm thành phần</Button>
+          <Button className="gap-2"><Plus size={16} />Thêm component</Button>
         </Link>
       </div>
 
       {selectedIds.length > 0 && (
-        <BulkActionBar selectedCount={selectedIds.length} onDelete={() => setDeleteConfirm({ type: 'bulk' })} onClearSelection={() => setSelectedIds([])} />
+        <div className="flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950/30 sm:flex-row sm:items-center sm:justify-between">
+          <BulkActionBar selectedCount={selectedIds.length} onDelete={() => setDeleteConfirm({ type: 'bulk' })} onClearSelection={() => setSelectedIds([])} />
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => handleBulkStatus(true)}>
+              <Eye size={14} />
+              Hiển thị
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => handleBulkStatus(false)}>
+              <EyeOff size={14} />
+              Ẩn
+            </Button>
+          </div>
+        </div>
       )}
 
       <Card>
@@ -277,6 +341,8 @@ export default function HomeComponentsListPage() {
                   <SelectCheckbox checked={selectedIds.length === sortedData.length && sortedData.length > 0} onChange={toggleSelectAll} indeterminate={selectedIds.length > 0 && selectedIds.length < sortedData.length} />
                 </TableHead>
                 <TableHead className="w-[40px]"></TableHead>
+                <SortableHeader label="TT" sortKey="order" sortConfig={sortConfig} onSort={handleSort} />
+                <TableHead>Tên component</TableHead>
                 <SortableHeader label="Loại" sortKey="type" sortConfig={sortConfig} onSort={handleSort} />
                 <TableHead>Trạng thái</TableHead>
                 <TableHead className="text-right">Hành động</TableHead>
@@ -297,7 +363,7 @@ export default function HomeComponentsListPage() {
                 ))}
               </SortableContext>
               {sortedData.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Chưa có thành phần nào</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-500">Chưa có thành phần nào</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

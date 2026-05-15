@@ -7,6 +7,7 @@ export interface MenuLeaf {
   isHot?: boolean;
   badge?: string;
   isViewAll?: boolean;
+  children?: MenuLeaf[];
 }
 
 // Menu block (nhóm các links)
@@ -22,7 +23,7 @@ export interface MenuItem {
   label: string;
   href: string;
   type: "standard" | "mega";
-  children?: MenuBlock[];
+  children?: MenuLeaf[];
 }
 
 export interface MenusResponse {

@@ -34,6 +34,20 @@ const montserrat = Montserrat({
 
 const { base: BRAND_BASE, accent: BRAND_ACCENT, highlight: BRAND_HIGHLIGHT } = BRAND_COLORS
 
+type ApiMenuNode = NonNullable<MenuItem["children"]>[number]
+
+function flattenApiLeaves(nodes: ApiMenuNode[] = [], prefix = ""): NavLeaf[] {
+  return nodes.flatMap((node) => {
+    const label = prefix ? `${prefix} / ${node.label}` : node.label
+    const children = node.children ? flattenApiLeaves(node.children, label) : []
+    const current = node.href && node.href !== "#"
+      ? [{ label, href: node.href, isHot: node.isHot }]
+      : []
+
+    return [...current, ...children]
+  })
+}
+
 interface HeaderProps {
   menuItems?: MenuItem[];
 }
@@ -49,16 +63,10 @@ export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
           href: item.href || '#',
           children: item.children?.length
             ? item.children
-                .filter(block => block.label && block.children?.length) // Bỏ qua block rỗng
+                .filter(block => block.label) // Bỏ qua block rỗng
                 .map(block => ({
                   label: block.label || '',
-                  children: (block.children || [])
-                    .filter(leaf => leaf.label) // Bỏ qua item không có label
-                    .map(leaf => ({
-                      label: leaf.label || '',
-                      href: leaf.href || '#',
-                      isHot: leaf.isHot,
-                    }))
+                  children: flattenApiLeaves(block.children ?? [block])
                 }))
                 .filter(block => block.children.length > 0) // Bỏ qua block không còn children
             : undefined

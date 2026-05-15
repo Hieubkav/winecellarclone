@@ -612,6 +612,22 @@ export interface AdminMenuBlockItem {
   active: boolean;
 }
 
+export interface AdminMenuTreeItem {
+  id: number;
+  menu_id: number;
+  parent_id: number | null;
+  label: string;
+  href: string | null;
+  semantic_type?: string | null;
+  route_payload?: Record<string, unknown> | null;
+  badge?: string | null;
+  icon?: string | null;
+  depth: number;
+  order: number;
+  active: boolean;
+  open_in_new_tab: boolean;
+}
+
 export interface AdminMenuBlock {
   id: number;
   title: string;
@@ -630,7 +646,9 @@ export interface AdminMenu {
   order: number;
   active: boolean;
   blocks_count?: number;
+  items_count?: number;
   blocks?: AdminMenuBlock[];
+  items?: AdminMenuTreeItem[];
   created_at?: string;
   updated_at?: string;
 }
@@ -707,6 +725,23 @@ export async function fetchAdminIa(): Promise<AdminIaResponse> {
   return apiFetch<AdminIaResponse>('v1/admin/ia');
 }
 
+export interface AdminMenuRouteSuggestion {
+  label: string;
+  path: string;
+  source: string;
+  route_payload?: Record<string, unknown> | null;
+}
+
+export interface AdminMenuRouteSuggestionGroup {
+  key: string;
+  label: string;
+  items: AdminMenuRouteSuggestion[];
+}
+
+export async function fetchAdminMenuRouteSuggestions(): Promise<{ data: AdminMenuRouteSuggestionGroup[] }> {
+  return apiFetch('v1/admin/menus/route-suggestions');
+}
+
 export async function createMenu(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
   return apiFetch('v1/admin/menus', {
     method: 'POST',
@@ -736,6 +771,16 @@ export async function bulkDeleteMenus(ids: number[]): Promise<{ success: boolean
 
 export async function reorderMenus(items: Array<{ id: number; order: number }>): Promise<{ success: boolean; message: string }> {
   return apiFetch('v1/admin/menus/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
+
+export async function saveMenuTreeItems(
+  menuId: number,
+  items: unknown[]
+): Promise<{ success: boolean; message: string; data: AdminMenuTreeItem[] }> {
+  return apiFetch(`v1/admin/menus/${menuId}/items/bulk-save`, {
     method: 'POST',
     body: JSON.stringify({ items }),
   });

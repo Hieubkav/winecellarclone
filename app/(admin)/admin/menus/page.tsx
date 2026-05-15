@@ -8,8 +8,8 @@ import {
   type AdminMenuDetail,
 } from '@/lib/api/admin';
 import { toast } from 'sonner';
-import { MenuBuilder } from './MenuBuilder';
-import { MenuPreview } from './MenuPreview';
+import { MenuTreeBuilder } from './MenuTreeBuilder';
+import { MenuTreePreview } from './MenuTreePreview';
 
 export default function MenusPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +18,7 @@ export default function MenusPage() {
   const loadMenus = useCallback(async () => {
     setIsLoading(true);
     try {
-      const listRes = await fetchAdminMenus({ per_page: 100, with_items: 1 });
+      const listRes = await fetchAdminMenus({ per_page: 100, with_tree: 1 });
       setMenus(listRes.data as AdminMenuDetail[]);
     } catch (error) {
       console.error('Failed to fetch menus:', error);
@@ -53,10 +53,8 @@ export default function MenusPage() {
   }
 
   // Stats
-  const totalBlocks = menus.reduce((acc, m) => acc + (m.blocks?.length || 0), 0);
-  const totalItems = menus.reduce((acc, m) => 
-    acc + (m.blocks?.reduce((a, b) => a + (b.items?.length || 0), 0) || 0), 0
-  );
+  const totalBlocks = menus.reduce((acc, m) => acc + (m.items?.filter((item) => item.depth === 0).length || 0), 0);
+  const totalItems = menus.reduce((acc, m) => acc + (m.items?.length || 0), 0);
   const activeMenus = menus.filter(m => m.active).length;
 
   return (
@@ -80,7 +78,7 @@ export default function MenusPage() {
             </span>
             <span className="flex items-center gap-1">
               <Layers size={14} />
-              {totalBlocks} blocks
+              {totalBlocks} nhóm
             </span>
             <span className="flex items-center gap-1">
               <LinkIcon size={14} />
@@ -96,11 +94,11 @@ export default function MenusPage() {
 
       {/* Menu Builder */}
       <Card className="p-4">
-        <MenuBuilder menus={menus} onRefresh={loadMenus} />
+        <MenuTreeBuilder menus={menus} onRefresh={loadMenus} />
       </Card>
 
       {/* Preview - Full Width at bottom */}
-      <MenuPreview menus={menus} />
+      <MenuTreePreview menus={menus} />
     </div>
   );
 }
