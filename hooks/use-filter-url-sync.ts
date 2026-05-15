@@ -48,6 +48,31 @@ const buildAttributePathSegments = (
   return segments
 }
 
+const appendAttributeQueryParams = (
+  params: URLSearchParams,
+  attributeSelections: Record<string, number[]>,
+  attributeFilters: Array<{ code: string; slug: string; options: ProductFilterOption[] }>
+) => {
+  Object.entries(attributeSelections).forEach(([code, ids]) => {
+    if (ids.length === 0) {
+      return
+    }
+
+    const attrFilter = attributeFilters.find((filter) => filter.code === code)
+    if (!attrFilter) {
+      return
+    }
+
+    const termSlugs = ids
+      .map((id) => findSlugById(attrFilter.options, id))
+      .filter((slug): slug is string => Boolean(slug))
+
+    if (termSlugs.length > 0) {
+      params.set(attrFilter.code, termSlugs.join(","))
+    }
+  })
+}
+
 /**
  * Hook to synchronize filter state with URL query parameters
  * Enables deep linking and shareable filter URLs
@@ -347,19 +372,36 @@ export function useFilterUrlSync(syncOptions?: {
       params.delete("price_max")
     }
 
+    const routeCanonicalPath = syncOptions?.initialCanonicalPath ?? null
+    const isPresetLanding = Boolean(
+      routeCanonicalPath &&
+      routePriceRange &&
+      listingMode === "generic" &&
+      pathname === routeCanonicalPath
+    )
+
     const pathSegments: string[] = []
-    if (selectedTypeSlug) {
+    if (isPresetLanding) {
+      if (selectedTypeSlug) {
+        params.set("type", selectedTypeSlug)
+      }
+      if (selectedCategorySlug) {
+        params.set("category", selectedCategorySlug)
+      }
+      appendAttributeQueryParams(params, filters.attributeSelections, options.attributeFilters)
+    } else if (selectedTypeSlug) {
       pathSegments.push(selectedTypeSlug)
       if (selectedCategorySlug) {
         pathSegments.push(selectedCategorySlug)
       }
+      pathSegments.push(...buildAttributePathSegments(filters.attributeSelections, options.attributeFilters))
     } else if (selectedCategorySlug) {
       params.set("category", selectedCategorySlug)
+      pathSegments.push(...buildAttributePathSegments(filters.attributeSelections, options.attributeFilters))
+    } else {
+      pathSegments.push(...buildAttributePathSegments(filters.attributeSelections, options.attributeFilters))
     }
 
-    pathSegments.push(...buildAttributePathSegments(filters.attributeSelections, options.attributeFilters))
-
-    const routeCanonicalPath = syncOptions?.initialCanonicalPath ?? null
     const basePath = pathSegments.length > 0
       ? `/san-pham/${pathSegments.join("/")}`
       : routeCanonicalPath && pathname === routeCanonicalPath
