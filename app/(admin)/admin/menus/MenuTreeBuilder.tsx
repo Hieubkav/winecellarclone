@@ -1,17 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowDown,
-  ArrowLeft,
-  ArrowRight,
   ArrowUp,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Copy,
+  ExternalLink,
   Eye,
   EyeOff,
-  Link as LinkIcon,
+  GripVertical,
   Plus,
   Save,
-  Search,
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,7 +26,10 @@ import {
   type AdminMenuTreeItem,
 } from '@/lib/api/admin';
 import { assignParents, MENU_MAX_LEVEL } from '@/lib/menus/menu-tree';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, cn } from '../components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, cn } from '../components/ui';
+import { BulkActionBar, SelectCheckbox } from '../components/TableUtilities';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MenuTreePreview } from './MenuTreePreview';
 
 interface MenuTreeBuilderProps {
   menus: AdminMenuDetail[];
@@ -50,8 +53,9 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<AdminMenuRouteSuggestionGroup[]>([]);
   const [routePickerFor, setRoutePickerFor] = useState<string | null>(null);
-  const [newMenuTitle, setNewMenuTitle] = useState('');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const selectedMenu = useMemo(
     () => menus.find((menu) => menu.id === selectedMenuId) ?? menus[0],
@@ -77,6 +81,11 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   }, []);
 
   const hasChanges = JSON.stringify(items) !== originalJson;
+  const flatSuggestions = useMemo(
+    () => suggestions.flatMap((group) => group.items.map((item) => ({ ...item, groupKey: group.key, groupLabel: group.label }))),
+    [suggestions]
+  );
+
   const filteredSuggestions = useMemo(() => {
     const keyword = query.trim().toLowerCase();
     if (!keyword) return suggestions;
@@ -90,6 +99,20 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
       }))
       .filter((group) => group.items.length > 0);
   }, [query, suggestions]);
+
+  const allSelected = items.length > 0 && items.every((item) => selectedIds.includes(item.client_id));
+  const someSelected = items.some((item) => selectedIds.includes(item.client_id));
+  const hasInvalidStructure = items.some((item, index) => index === 0 ? item.depth !== 0 : item.depth > items[index - 1].depth + 1);
+  const stats = [
+    { label: 'Tổng', value: items.length },
+    { label: 'Hiện', value: items.filter((item) => item.active).length },
+    { label: 'Ẩn', value: items.filter((item) => !item.active).length },
+    { label: 'Tầng', value: MENU_MAX_LEVEL },
+  ];
+
+  useEffect(() => {
+    setSelectedIds((current) => current.filter((id) => items.some((item) => item.client_id === id)));
+  }, [items]);
 
   const updateItem = (clientId: string, patch: Partial<DraftMenuItem>) => {
     setItems((current) =>
@@ -135,17 +158,34 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
     setItems(assignParents(next) as DraftMenuItem[]);
   };
 
-  const moveItem = (index: number, direction: -1 | 1) => {
+  const canMove = (index: number, direction: -1 | 1) => {
     const target = index + direction;
-    if (target < 0 || target >= items.length) return;
+    if (target < 0 || target >= items.length) return false;
+    const next = [...items];
+    [next[index], next[target]] = [next[target], next[index]];
+    return !next.some((item, itemIndex) => itemIndex === 0 ? item.depth !== 0 : item.depth > next[itemIndex - 1].depth + 1);
+  };
+
+  const moveItem = (index: number, direction: -1 | 1) => {
+    if (!canMove(index, direction)) return;
+    const target = index + direction;
     const next = [...items];
     [next[index], next[target]] = [next[target], next[index]];
     setItems(assignParents(next) as DraftMenuItem[]);
   };
 
+  const canChangeDepth = (index: number, direction: -1 | 1) => {
+    const current = items[index];
+    if (!current) return false;
+    const previousDepth = index > 0 ? items[index - 1].depth : 0;
+    const maxDepth = Math.min(previousDepth + 1, MENU_MAX_LEVEL - 1);
+    const depth = Math.min(Math.max(current.depth + direction, 0), maxDepth);
+    return depth !== current.depth;
+  };
+
   const changeDepth = (index: number, direction: -1 | 1) => {
     const current = items[index];
-    if (!current) return;
+    if (!current || !canChangeDepth(index, direction)) return;
     const previousDepth = index > 0 ? items[index - 1].depth : 0;
     const maxDepth = Math.min(previousDepth + 1, MENU_MAX_LEVEL - 1);
     const depth = Math.min(Math.max(current.depth + direction, 0), maxDepth);
@@ -185,21 +225,6 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
     }
   };
 
-  const createTopMenu = async () => {
-    const title = newMenuTitle.trim();
-    if (!title) return;
-
-    try {
-      await createMenu({ title, type: 'mega', href: '#', active: true, order: menus.length });
-      setNewMenuTitle('');
-      toast.success('Đã tạo menu');
-      await onRefresh();
-    } catch (error) {
-      console.error(error);
-      toast.error('Không thể tạo menu');
-    }
-  };
-
   const toggleMenuActive = async () => {
     if (!selectedMenu) return;
 
@@ -216,201 +241,334 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
     const next = [...items];
     const [dragged] = next.splice(dragIndex, 1);
     next.splice(targetIndex, 0, dragged);
+    const invalid = next.some((item, index) => index === 0 ? item.depth !== 0 : item.depth > next[index - 1].depth + 1);
+    if (invalid) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
     setItems(assignParents(next) as DraftMenuItem[]);
     setDragIndex(null);
+    setDragOverIndex(null);
   };
 
+  const toggleSelectItem = (clientId: string) => {
+    setSelectedIds((current) => current.includes(clientId) ? current.filter((id) => id !== clientId) : [...current, clientId]);
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? [] : items.map((item) => item.client_id));
+  };
+
+  const bulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    const selected = new Set(selectedIds);
+    setItems(assignParents(items.filter((item) => !selected.has(item.client_id))) as DraftMenuItem[]);
+    setSelectedIds([]);
+    toast.success(`Đã xóa ${selectedIds.length} liên kết`);
+  };
+
+  const bulkToggleActive = (active: boolean) => {
+    if (selectedIds.length === 0) return;
+    const selected = new Set(selectedIds);
+    setItems((current) => current.map((item) => selected.has(item.client_id) ? { ...item, active } : item));
+  };
+
+  const createHeaderMenu = async () => {
+    try {
+      await createMenu({ title: 'Header Menu', type: 'mega', href: '#', active: true, order: menus.length });
+      toast.success('Đã tạo Header Menu');
+      await onRefresh();
+    } catch (error) {
+      console.error(error);
+      toast.error('Không thể tạo Header Menu');
+    }
+  };
+
+  if (!selectedMenu) {
+    return (
+      <Card className="p-8 text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+          <GripVertical size={22} />
+        </div>
+        <h3 className="mb-2 text-lg font-medium text-slate-900 dark:text-slate-100">Chưa có Header Menu</h3>
+        <p className="mb-4 text-sm text-slate-500">Chưa có dữ liệu menu.</p>
+        <Button type="button" onClick={createHeaderMenu}>Tạo Header Menu</Button>
+      </Card>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b border-slate-100 p-4 dark:border-slate-800">
-            <CardTitle className="text-base">Menu header</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 p-4">
-            <div className="space-y-2">
-              {menus.map((menu) => (
-                <button
-                  key={menu.id}
-                  type="button"
-                  onClick={() => setSelectedMenuId(menu.id)}
-                  className={cn(
-                    'flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition',
-                    selectedMenu?.id === menu.id
-                      ? 'border-amber-300 bg-amber-50 text-amber-900'
-                      : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900'
-                  )}
-                >
-                  <span className="font-medium">{menu.title}</span>
-                  <Badge variant={menu.active ? 'success' : 'secondary'}>{menu.active ? 'Hiện' : 'Ẩn'}</Badge>
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,7fr)_minmax(180px,1fr)] xl:gap-6">
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-slate-500">Chỉnh sửa menu và bấm lưu để áp dụng. Tối đa 500 menu items.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" className="gap-2" onClick={toggleMenuActive}>
+              {selectedMenu.active ? <EyeOff size={15} /> : <Eye size={15} />}
+              {selectedMenu.active ? 'Ẩn menu' : 'Hiện menu'}
+            </Button>
+            <Button type="button" onClick={save} disabled={!hasChanges || isSaving || hasInvalidStructure} className="gap-2">
+              <Save size={15} />
+              {isSaving ? 'Đang lưu...' : 'Lưu tất cả'}
+            </Button>
+          </div>
+        </div>
+
+        <BulkActionBar
+          selectedCount={selectedIds.length}
+          onDelete={bulkDelete}
+          onClearSelection={() => setSelectedIds([])}
+        />
+
+        {selectedIds.length > 0 && (
+          <div className="-mt-2 flex justify-end gap-2">
+            <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => bulkToggleActive(true)}>
+              <Eye size={14} /> Hiện
+            </Button>
+            <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => bulkToggleActive(false)}>
+              <EyeOff size={14} /> Ẩn
+            </Button>
+          </div>
+        )}
+
+        {items.length > 0 && (
+          <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <SelectCheckbox
+              checked={allSelected}
+              indeterminate={!allSelected && someSelected}
+              onChange={toggleSelectAll}
+            />
+            <span className="text-slate-600 dark:text-slate-300">Chọn tất cả menu ở trang hiện tại</span>
+          </div>
+        )}
+
+        {items.map((item, index) => {
+          const selected = selectedIds.includes(item.client_id);
+
+          return (
+            <div
+              key={item.client_id}
+              draggable
+              onDragStart={(event) => {
+                setDragIndex(index);
+                event.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragOverIndex(index);
+              }}
+              onDragLeave={() => setDragOverIndex(null)}
+              onDrop={() => onDrop(index)}
+              onDragEnd={() => {
+                setDragIndex(null);
+                setDragOverIndex(null);
+              }}
+              className={cn(
+                'flex min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-all dark:border-slate-700 dark:bg-slate-900',
+                selected && 'border-blue-300 ring-2 ring-blue-500/40 dark:border-blue-700',
+                !item.active && 'opacity-50',
+                dragIndex === index && 'scale-[0.98] opacity-50',
+                dragOverIndex === index && 'border-2 border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+              )}
+              style={{ marginLeft: Math.min(item.depth, MENU_MAX_LEVEL - 1) * 24 }}
+            >
+              <div className="flex items-center self-start pt-1">
+                <SelectCheckbox checked={selected} onChange={() => toggleSelectItem(item.client_id)} />
+              </div>
+
+              <div className="flex cursor-grab flex-col gap-1 text-slate-300 active:cursor-grabbing">
+                <button type="button" onClick={() => moveItem(index, -1)} className="hover:text-orange-600 disabled:opacity-30" disabled={!canMove(index, -1)}>
+                  <ArrowUp size={14} />
                 </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={newMenuTitle}
-                onChange={(event) => setNewMenuTitle(event.target.value)}
-                placeholder="Menu mới"
-              />
-              <Button onClick={createTopMenu} size="icon" aria-label="Tạo menu">
-                <Plus size={16} />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b border-slate-100 p-4 dark:border-slate-800">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <CardTitle className="text-base">{selectedMenu?.title ?? 'Chưa có menu'}</CardTitle>
-                <p className="mt-1 text-xs text-slate-500">Quản lý cây menu tối đa {MENU_MAX_LEVEL} cấp.</p>
+                <GripVertical size={14} className="text-slate-400" />
+                <button type="button" onClick={() => moveItem(index, 1)} className="hover:text-orange-600 disabled:opacity-30" disabled={!canMove(index, 1)}>
+                  <ArrowDown size={14} />
+                </button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {selectedMenu && (
-                  <Button variant="outline" onClick={toggleMenuActive} className="gap-2">
-                    {selectedMenu.active ? <EyeOff size={15} /> : <Eye size={15} />}
-                    {selectedMenu.active ? 'Ẩn menu' : 'Hiện menu'}
-                  </Button>
-                )}
-                <Button variant="outline" onClick={() => addItem()} className="gap-2" disabled={!selectedMenu}>
-                  <Plus size={15} />
-                  Thêm dòng
-                </Button>
-                <Button onClick={save} disabled={!selectedMenu || !hasChanges || isSaving} className="gap-2">
-                  <Save size={15} />
-                  {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
 
-          <CardContent className="p-0">
-            {items.length === 0 ? (
-              <div className="p-8 text-center">
-                <p className="text-sm text-slate-500">Menu này chưa có item.</p>
-                <Button onClick={() => addItem()} className="mt-4 gap-2" disabled={!selectedMenu}>
-                  <Plus size={15} />
-                  Tạo item đầu tiên
-                </Button>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {items.map((item, index) => (
-                  <div
-                    key={item.client_id}
-                    draggable
-                    onDragStart={() => setDragIndex(index)}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={() => onDrop(index)}
-                    className="relative grid gap-3 p-3 lg:grid-cols-[120px_1fr_1fr_190px] lg:items-center"
-                    style={{ paddingLeft: `${12 + item.depth * 24}px` }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">Tầng {item.depth + 1}</Badge>
-                      <span className="cursor-grab text-xs text-slate-400">kéo</span>
-                    </div>
-
+              <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-500">Nhãn hiển thị</Label>
+                  <Input
+                    value={item.label}
+                    onChange={(event) => updateItem(item.client_id, { label: event.target.value })}
+                    className="h-8 min-w-0 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-slate-500">URL</Label>
+                  <div className="flex items-center gap-2">
                     <Input
-                      value={item.label}
-                      onChange={(event) => updateItem(item.client_id, { label: event.target.value })}
-                      placeholder="Nhãn menu"
+                      value={item.href ?? ''}
+                      onChange={(event) => updateItem(item.client_id, { href: event.target.value })}
+                      className="h-8 min-w-0 font-mono text-xs"
                     />
-
-                    <div className="relative">
-                      <Input
-                        value={item.href ?? ''}
-                        onChange={(event) => updateItem(item.client_id, { href: event.target.value })}
-                        placeholder="/duong-dan"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setRoutePickerFor(routePickerFor === item.client_id ? null : item.client_id)}
-                        className="absolute right-0 top-0"
-                        aria-label="Chọn route"
-                      >
-                        <LinkIcon size={15} />
-                      </Button>
-                    </div>
-
-                    <div className="flex flex-wrap justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => moveItem(index, -1)} disabled={index === 0}>
-                        <ArrowUp size={15} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => moveItem(index, 1)} disabled={index === items.length - 1}>
-                        <ArrowDown size={15} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => changeDepth(index, -1)} disabled={item.depth === 0}>
-                        <ArrowLeft size={15} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => changeDepth(index, 1)} disabled={item.depth >= MENU_MAX_LEVEL - 1 || index === 0}>
-                        <ArrowRight size={15} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => updateItem(item.client_id, { active: !item.active })}>
-                        {item.active ? <Eye size={15} /> : <EyeOff size={15} />}
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => duplicateItem(index)}>
-                        <Copy size={15} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => addItem(index)}>
-                        <Plus size={15} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => removeItem(item.client_id)} className="text-red-600">
-                        <Trash2 size={15} />
-                      </Button>
-                    </div>
-
-                    {routePickerFor === item.client_id && (
-                      <div className="z-20 rounded-lg border border-slate-200 bg-white p-3 shadow-xl lg:col-span-4 dark:border-slate-800 dark:bg-slate-900">
-                        <div className="relative mb-3">
-                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                          <Input
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                            placeholder="Tìm route thật..."
-                            className="pl-9"
-                          />
-                        </div>
-                        <div className="max-h-72 space-y-3 overflow-auto">
-                          {filteredSuggestions.map((group) => (
-                            <div key={group.key}>
-                              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{group.label}</div>
-                              <div className="grid gap-1 md:grid-cols-2">
-                                {group.items.map((suggestion) => (
-                                  <button
-                                    key={`${group.key}-${suggestion.path}`}
-                                    type="button"
-                                    onClick={() => applySuggestion(item.client_id, suggestion)}
-                                    className="rounded-md border border-slate-100 px-3 py-2 text-left text-sm hover:border-amber-300 hover:bg-amber-50 dark:border-slate-800"
-                                  >
-                                    <span className="block font-medium text-slate-800 dark:text-slate-100">{suggestion.label}</span>
-                                    <span className="block truncate text-xs text-slate-500">{suggestion.path}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 whitespace-nowrap"
+                      onClick={() => setRoutePickerFor(item.client_id)}
+                    >
+                      Gợi ý
+                    </Button>
                   </div>
-                ))}
+                </div>
               </div>
-            )}
+
+              <div className="flex items-center gap-0.5 border-l border-slate-100 pl-2 dark:border-slate-700">
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeDepth(index, -1)} disabled={!canChangeDepth(index, -1)} title="Thụt lề trái">
+                  <ChevronLeft size={14} />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => changeDepth(index, 1)} disabled={!canChangeDepth(index, 1)} title={`Thụt lề phải (tối đa ${MENU_MAX_LEVEL} tầng)`}>
+                  <ChevronRight size={14} />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => addItem(index)} title="Thêm ngay bên dưới">
+                  <Plus size={14} />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => duplicateItem(index)} title="Copy menu item">
+                  <Copy size={14} />
+                </Button>
+                {item.open_in_new_tab && <ExternalLink size={14} className="text-slate-400" />}
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateItem(item.client_id, { active: !item.active })} title={item.active ? 'Ẩn' : 'Hiện'}>
+                  {item.active ? <Eye size={14} /> : <EyeOff size={14} className="text-slate-400" />}
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50" onClick={() => removeItem(item.client_id)}>
+                  <Trash2 size={14} />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" className="flex-1 border-dashed" onClick={() => addItem()}>
+            <Plus size={16} className="mr-2" /> Thêm liên kết mới
+          </Button>
+        </div>
+
+        {hasInvalidStructure && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            Cấu trúc menu không hợp lệ: item đầu phải ở tầng 1 và không được nhảy tầng.
+          </div>
+        )}
+      </div>
+
+      <div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Thống kê</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 pt-0">
+            {stats.map((stat) => (
+              <div key={stat.label} className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">{stat.label}</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-100">{stat.value}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
 
-      {hasChanges && (
-        <div className="sticky bottom-4 z-30 rounded-xl border border-amber-200 bg-amber-50 p-3 shadow-lg">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm font-medium text-amber-900">Bạn có thay đổi chưa lưu.</span>
-            <Button onClick={save} disabled={isSaving} className="gap-2">
-              <Check size={15} />
-              Lưu tất cả
-            </Button>
+      <div className="xl:col-span-2">
+        <MenuTreePreview menus={[{ ...selectedMenu, items } as AdminMenuDetail]} />
+      </div>
+
+      <Dialog
+        open={routePickerFor !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRoutePickerFor(null);
+            setQuery('');
+          }
+        }}
+      >
+        <DialogContent className="w-[80vw] max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Chọn URL</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Tìm theo tên, URL hoặc nguồn..."
+              className="h-9 text-sm"
+            />
+
+            {!query.trim() && (
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                {suggestions.slice(0, 4).map((group) => (
+                  <Button
+                    key={group.key}
+                    type="button"
+                    variant="outline"
+                    className="h-20 flex-col items-start gap-1.5 text-left"
+                    onClick={() => setQuery(group.label)}
+                  >
+                    <span className="font-semibold">{group.label}</span>
+                    <span className="text-xs text-slate-500">{group.items.length} route thật</span>
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            <div className="max-h-[50vh] overflow-auto rounded-md border border-slate-200 dark:border-slate-800">
+              {query.trim() ? (
+                filteredSuggestions.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-slate-500">Không có gợi ý phù hợp.</div>
+                ) : (
+                  <div className="space-y-3 p-2">
+                    {filteredSuggestions.map((group) => (
+                      <div key={group.key}>
+                        <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{group.label}</div>
+                        {group.items.map((suggestion) => (
+                          <button
+                            key={`${group.key}-${suggestion.path}`}
+                            type="button"
+                            onClick={() => routePickerFor && applySuggestion(routePickerFor, suggestion)}
+                            className="flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                          >
+                            <div className="min-w-0">
+                              <div className="truncate font-semibold text-slate-700 dark:text-slate-200">{suggestion.label}</div>
+                              <div className="truncate font-mono text-xs text-slate-500">{suggestion.path}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="space-y-1 p-2">
+                  {flatSuggestions.slice(0, 80).map((suggestion) => (
+                    <button
+                      key={`${suggestion.groupKey}-${suggestion.path}`}
+                      type="button"
+                      onClick={() => routePickerFor && applySuggestion(routePickerFor, suggestion)}
+                      className="flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold text-slate-700 dark:text-slate-200">{suggestion.label}</div>
+                        <div className="truncate font-mono text-xs text-slate-500">{suggestion.path}</div>
+                      </div>
+                      <span className="shrink-0 text-xs text-slate-400">{suggestion.groupLabel}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {hasChanges && (
+        <div className="fixed bottom-4 right-4 z-40 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          <span className="text-sm text-slate-600">Có thay đổi chưa lưu</span>
+          <Button type="button" onClick={save} disabled={isSaving || hasInvalidStructure} className="gap-2">
+            <Check size={15} />
+            {isSaving ? 'Đang lưu...' : 'Lưu tất cả'}
+          </Button>
         </div>
       )}
     </div>
