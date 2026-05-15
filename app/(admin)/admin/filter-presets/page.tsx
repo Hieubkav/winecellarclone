@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, Input, Label, Badge } from '../components/ui';
 import {
   createProductFilterGroup,
@@ -14,6 +15,11 @@ import {
 import { toast } from 'sonner';
 
 const emptyPayload = '{\n  "price_min": 0,\n  "price_max": 500000\n}';
+
+const buildPresetPath = (group: Pick<AdminProductFilterGroup, 'route_prefix' | 'slug'>, presetSlug?: string) => {
+  const segments = [group.route_prefix, group.slug, presetSlug].filter(Boolean);
+  return `/${segments.join('/')}`;
+};
 
 export default function FilterPresetsPage() {
   const [groups, setGroups] = useState<AdminProductFilterGroup[]>([]);
@@ -161,6 +167,11 @@ export default function FilterPresetsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={group.active ? 'success' : 'secondary'}>{group.active ? 'Bật' : 'Tắt'}</Badge>
+                <Link href={buildPresetPath(group)} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" size="icon" aria-label="Mở nhóm">
+                    <ExternalLink size={16} />
+                  </Button>
+                </Link>
                 <Button variant="ghost" size="icon" onClick={async () => { await deleteProductFilterGroup(group.id); await loadGroups(); }}>
                   <Trash2 size={16} />
                 </Button>
@@ -170,9 +181,16 @@ export default function FilterPresetsPage() {
               {group.presets.map((preset) => (
                 <div key={preset.id} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">
                   <span>{preset.name} <code className="text-xs text-slate-500">/{group.route_prefix}/{group.slug}/{preset.slug}</code></span>
-                  <Button variant="ghost" size="icon" onClick={async () => { await deleteProductFilterPreset(group.id, preset.id); await loadGroups(); }}>
-                    <Trash2 size={14} />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Link href={buildPresetPath(group, preset.slug)} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="icon" aria-label="Mở preset">
+                        <ExternalLink size={14} />
+                      </Button>
+                    </Link>
+                    <Button variant="ghost" size="icon" onClick={async () => { await deleteProductFilterPreset(group.id, preset.id); await loadGroups(); }}>
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
