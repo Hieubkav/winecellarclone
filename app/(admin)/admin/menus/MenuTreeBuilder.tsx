@@ -218,8 +218,24 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
         ...item,
         order: index,
       })) as DraftMenuItem[];
+      const payload = normalized.map((item) => ({
+        ...(typeof item.id === 'number' ? { id: item.id } : {}),
+        client_id: item.client_id,
+        parent_id: typeof item.parent_id === 'number' ? item.parent_id : null,
+        parent_client_id: item.parent_client_id ?? null,
+        label: item.label.trim() || 'Menu mới',
+        href: item.href?.trim() || null,
+        semantic_type: item.semantic_type ?? null,
+        route_payload: item.route_payload ?? null,
+        badge: item.badge?.trim() || null,
+        icon: item.icon?.trim() || null,
+        depth: Number(item.depth) || 0,
+        order: Number(item.order) || 0,
+        active: Boolean(item.active),
+        open_in_new_tab: Boolean(item.open_in_new_tab),
+      }));
 
-      await saveMenuTreeItems(selectedMenu.id, normalized);
+      await saveMenuTreeItems(selectedMenu.id, payload);
       setItems(normalized);
       setOriginalJson(JSON.stringify(normalized));
       toast.success('Đã lưu menu 5 cấp');
