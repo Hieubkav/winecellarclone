@@ -92,7 +92,7 @@ export const CORE_ROUTE_OPTIONS: IARouteOption[] = [
   route("Liên hệ", { kind: "core", key: "contact" }),
 ];
 
-export const NGAN_IA_GROUPS: IAGroup[] = [
+export const WEBSITE_ROUTE_GROUPS: IAGroup[] = [
   { key: "core", label: "Core", items: CORE_ROUTE_OPTIONS },
   {
     key: "products",
@@ -210,7 +210,7 @@ export const NGAN_IA_GROUPS: IAGroup[] = [
   ]),
 ];
 
-export const flattenIARoutes = (groups: IAGroup[] = NGAN_IA_GROUPS): IARouteOption[] =>
+export const flattenIARoutes = (groups: IAGroup[] = WEBSITE_ROUTE_GROUPS): IARouteOption[] =>
   groups.flatMap((group) => group.items.flatMap((item) => [item, ...(item.children ?? [])]));
 
 export const IA_STATIC_PATHS = flattenIARoutes()

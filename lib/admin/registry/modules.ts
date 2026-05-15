@@ -52,7 +52,7 @@ export const ADMIN_MODULES: AdminModuleMeta[] = [
   { key: "articles", label: "Bài viết", route: "/admin/articles", group: "content" },
   { key: "images", label: "Thư viện ảnh", route: "/admin/images", group: "content" },
   { key: "home-components", label: "Trang chủ", route: "/admin/home-components", group: "website" },
-  { key: "ia", label: "Kiến trúc thông tin", route: "/admin/ia", group: "website" },
+  { key: "ia", label: "Trang website", route: "/admin/ia", group: "website" },
   { key: "menus", label: "Menu", route: "/admin/menus", group: "website" },
   { key: "settings", label: "Cấu hình chung", route: "/admin/settings", group: "system" },
   { key: "users", label: "Users", route: "/admin/users", group: "system" },
@@ -116,7 +116,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: "Globe",
         subItems: [
           { label: "Trang chủ", href: "/admin/home-components" },
-          { label: "Kiến trúc thông tin", href: "/admin/ia" },
+          { label: "Trang website", href: "/admin/ia" },
           { label: "Menu", href: "/admin/menus" },
           { label: "Cấu hình Liên hệ", href: "/admin/contact-config" },
           { label: "Cấu hình Footer", href: "/admin/footer-config" },
