@@ -3,6 +3,7 @@ export interface NavLeaf {
   href: string
   isHot?: boolean
   isViewAll?: boolean
+  children?: NavLeaf[]
 }
 
 export interface NavNode {

@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Montserrat } from "next/font/google"
-import { ChevronDown, Menu, SearchIcon, X } from "lucide-react"
+import { ChevronDown, ChevronRight, Menu, SearchIcon, X } from "lucide-react"
 import type React from "react"
 import { useHydrated } from "@/hooks/use-hydrated"
 
@@ -36,16 +36,13 @@ const { base: BRAND_BASE, accent: BRAND_ACCENT, highlight: BRAND_HIGHLIGHT } = B
 
 type ApiMenuNode = NonNullable<MenuItem["children"]>[number]
 
-function flattenApiLeaves(nodes: ApiMenuNode[] = [], prefix = ""): NavLeaf[] {
-  return nodes.flatMap((node) => {
-    const label = prefix ? `${prefix} / ${node.label}` : node.label
-    const children = node.children ? flattenApiLeaves(node.children, label) : []
-    const current = node.href && node.href !== "#"
-      ? [{ label, href: node.href, isHot: node.isHot }]
-      : []
-
-    return [...current, ...children]
-  })
+function toNavLeaf(node: ApiMenuNode): NavLeaf {
+  return {
+    label: node.label || '',
+    href: node.href || '#',
+    isHot: node.isHot,
+    children: node.children?.map(toNavLeaf),
+  }
 }
 
 interface HeaderProps {
@@ -66,7 +63,7 @@ export default function Header({ menuItems: apiMenuItems }: HeaderProps) {
                 .filter(block => block.label) // Bỏ qua block rỗng
                 .map(block => ({
                   label: block.label || '',
-                  children: flattenApiLeaves(block.children ?? [block])
+                  children: block.children?.length ? block.children.map(toNavLeaf) : [toNavLeaf(block)]
                 }))
                 .filter(block => block.children.length > 0) // Bỏ qua block không còn children
             : undefined
@@ -380,22 +377,8 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
             <h3 className="pb-3 text-[0.78rem] font-bold uppercase tracking-[0.2em] text-[#ECAA4D]">{section.label}</h3>
             <ul className="space-y-2">
               {section.children.map((child, childIdx) => (
-                <li key={child.label || childIdx}>
-                  <Link
-                    href={child.href || '#'}
-                    className={`block rounded-md px-2 py-1 text-[0.78rem] transition-all ${
-                      child.isHot
-                        ? "font-semibold text-[#9B2C3B]"
-                        : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
-                    }`}
-                  >
-                    {child.isHot && (
-                      <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
-                        HOT
-                      </span>
-                    )}
-                    {child.label}
-                  </Link>
+                <li key={`${child.label}-${childIdx}`} className="relative group/menu-node">
+                  <RecursiveMenuLink child={child} depth={0} />
                 </li>
               ))}
             </ul>
@@ -403,6 +386,42 @@ function MegaMenu({ menu, isFull = false }: { menu: NavNode[]; isFull?: boolean 
         ))}
       </div>
     </div>
+  )
+}
+
+function RecursiveMenuLink({ child, depth }: { child: NavLeaf; depth: number }) {
+  const hasChildren = !!child.children?.length
+
+  return (
+    <>
+      <Link
+        href={child.href || '#'}
+        className={`flex items-start justify-between gap-2 rounded-md px-2 py-1 text-[0.78rem] transition-all ${
+          child.isHot
+            ? "font-semibold text-[#9B2C3B]"
+            : "text-[#1C1C1C]/75 hover:bg-[#ECAA4D]/12 hover:text-[#1C1C1C]"
+        }`}
+      >
+        <span className="min-w-0 break-words">
+          {child.isHot && (
+            <span className="mr-1 inline-block rounded bg-[#9B2C3B] px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-white">
+              HOT
+            </span>
+          )}
+          {child.label}
+        </span>
+        {hasChildren && <ChevronRight size={13} className="mt-0.5 shrink-0" />}
+      </Link>
+      {hasChildren && (
+        <div className={`absolute top-0 z-30 hidden min-w-[210px] rounded-lg border border-[#ECAA4D]/35 bg-white py-2 shadow-[0_18px_42px_rgba(28,28,28,0.12)] group-hover/menu-node:block ${depth === 0 ? 'left-full ml-1' : 'right-full mr-1'}`}>
+          {child.children?.map((sub, index) => (
+            <div key={`${sub.label}-${index}`} className="relative group/menu-node px-2">
+              <RecursiveMenuLink child={sub} depth={depth + 1} />
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   )
 }
 

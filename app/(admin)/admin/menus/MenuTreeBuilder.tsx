@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import {
   createMenu,
+  deleteMenu,
   fetchAdminMenuRouteSuggestions,
   saveMenuTreeItems,
   updateMenu,
@@ -41,19 +42,54 @@ interface DraftMenuItem extends Omit<AdminMenuTreeItem, 'id' | 'menu_id'> {
   menu_id?: number;
   client_id: string;
   parent_client_id?: string | null;
+  source: 'menu' | 'item';
 }
 
 const newClientId = () => `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+function buildHeaderDraftItems(menus: AdminMenuDetail[]): DraftMenuItem[] {
+  const rows: DraftMenuItem[] = [];
+
+  menus
+    .slice()
+    .sort((a, b) => a.order - b.order || a.id - b.id)
+    .forEach((menu) => {
+      const menuClientId = `menu-${menu.id}`;
+      rows.push({
+        client_id: menuClientId,
+        menu_id: menu.id,
+        parent_id: null,
+        parent_client_id: null,
+        label: menu.title,
+        href: menu.href ?? '#',
+        semantic_type: menu.semantic_type ?? null,
+        route_payload: menu.route_payload ?? null,
+        badge: null,
+        icon: null,
+        depth: 0,
+        order: rows.length,
+        active: menu.active,
+        open_in_new_tab: false,
+        source: 'menu',
+      });
+
+      (menu.items ?? [])
+        .slice()
+        .sort((a, b) => a.order - b.order || a.id - b.id)
+        .forEach((item) => {
+          rows.push({
+            ...toDraftItem(item),
+            depth: Math.min(item.depth + 1, MENU_MAX_LEVEL - 1),
+            order: rows.length,
+            parent_client_id: item.parent_id ? String(item.parent_id) : menuClientId,
+          });
+        });
+    });
+
+  return assignParents(rows) as DraftMenuItem[];
+}
+
 export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
-  const preferredMenu = useMemo(
-    () => menus.find((menu) => menu.active && (menu.items?.length ?? 0) > 0)
-      ?? menus.find((menu) => (menu.items?.length ?? 0) > 0)
-      ?? menus.find((menu) => menu.active)
-      ?? menus[0],
-    [menus]
-  );
-  const [selectedMenuId, setSelectedMenuId] = useState<number | null>(preferredMenu?.id ?? null);
   const [items, setItems] = useState<DraftMenuItem[]>([]);
   const [originalJson, setOriginalJson] = useState('[]');
   const [isSaving, setIsSaving] = useState(false);
@@ -64,22 +100,11 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const selectedMenu = useMemo(
-    () => menus.find((menu) => menu.id === selectedMenuId) ?? preferredMenu,
-    [menus, preferredMenu, selectedMenuId]
-  );
-
   useEffect(() => {
-    if (!selectedMenuId && preferredMenu?.id) {
-      setSelectedMenuId(preferredMenu.id);
-    }
-  }, [preferredMenu, selectedMenuId]);
-
-  useEffect(() => {
-    const nextItems = (selectedMenu?.items ?? []).map(toDraftItem);
+    const nextItems = buildHeaderDraftItems(menus);
     setItems(nextItems);
     setOriginalJson(JSON.stringify(nextItems));
-  }, [selectedMenu?.id, selectedMenu?.items]);
+  }, [menus]);
 
   useEffect(() => {
     fetchAdminMenuRouteSuggestions()
@@ -143,6 +168,7 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
       order: afterIndex === undefined ? items.length : afterIndex + 1,
       active: true,
       open_in_new_tab: false,
+      source: 'item',
     };
     const next = [...items];
     next.splice(afterIndex === undefined ? next.length : afterIndex + 1, 0, item);
@@ -159,9 +185,15 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   };
 
   const removeItem = (clientId: string) => {
-    const removing = items.find((item) => item.client_id === clientId);
+    const removingIndex = items.findIndex((item) => item.client_id === clientId);
+    const removing = items[removingIndex];
     if (!removing) return;
-    const next = items.filter((item) => item.client_id !== clientId && item.parent_client_id !== clientId && item.parent_id !== removing.id);
+    const next = items.filter((item, index) => {
+      if (index < removingIndex) return true;
+      if (index === removingIndex) return false;
+
+      return !(index > removingIndex && item.depth > removing.depth);
+    });
     setItems(assignParents(next) as DraftMenuItem[]);
   };
 
@@ -211,31 +243,44 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   };
 
   const save = async () => {
-    if (!selectedMenu) return;
     setIsSaving(true);
     try {
       const normalized = assignParents(items).map((item, index) => ({
         ...item,
         order: index,
       })) as DraftMenuItem[];
-      const payload = normalized.map((item) => ({
-        ...(typeof item.id === 'number' ? { id: item.id } : {}),
-        client_id: item.client_id,
-        parent_id: typeof item.parent_id === 'number' ? item.parent_id : null,
-        parent_client_id: item.parent_client_id ?? null,
-        label: item.label.trim() || 'Menu mới',
-        href: item.href?.trim() || null,
-        semantic_type: item.semantic_type ?? null,
-        route_payload: item.route_payload ?? null,
-        badge: item.badge?.trim() || null,
-        icon: item.icon?.trim() || null,
-        depth: Number(item.depth) || 0,
-        order: Number(item.order) || 0,
-        active: Boolean(item.active),
-        open_in_new_tab: Boolean(item.open_in_new_tab),
-      }));
+      const topItems = normalized.filter((item) => item.depth === 0);
+      const existingMenuIds = menus.map((menu) => menu.id);
+      const keptMenuIds: number[] = [];
 
-      await saveMenuTreeItems(selectedMenu.id, payload);
+      for (let topIndex = 0; topIndex < topItems.length; topIndex++) {
+        const topItem = topItems[topIndex];
+        const descendants = collectDescendants(normalized, topItem);
+        let menuId = topItem.source === 'menu' ? topItem.menu_id : undefined;
+
+        const menuPayload = {
+          title: topItem.label.trim() || 'Menu mới',
+          type: 'mega',
+          href: topItem.href?.trim() || '#',
+          semantic_type: topItem.semantic_type ?? null,
+          route_payload: topItem.route_payload ?? null,
+          order: topIndex,
+          active: Boolean(topItem.active),
+        };
+
+        if (menuId) {
+          await updateMenu(menuId, menuPayload);
+        } else {
+          const created = await createMenu(menuPayload);
+          menuId = created.data.id;
+        }
+
+        keptMenuIds.push(menuId);
+        await saveMenuTreeItems(menuId, buildChildPayload(descendants));
+      }
+
+      await Promise.all(existingMenuIds.filter((id) => !keptMenuIds.includes(id)).map((id) => deleteMenu(id)));
+
       setItems(normalized);
       setOriginalJson(JSON.stringify(normalized));
       toast.success('Đã lưu menu 5 cấp');
@@ -245,17 +290,6 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
       toast.error('Không thể lưu menu');
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const toggleMenuActive = async () => {
-    if (!selectedMenu) return;
-
-    try {
-      await updateMenu(selectedMenu.id, { active: !selectedMenu.active });
-      await onRefresh();
-    } catch {
-      toast.error('Không thể đổi trạng thái menu');
     }
   };
 
@@ -297,18 +331,34 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
     setItems((current) => current.map((item) => selected.has(item.client_id) ? { ...item, active } : item));
   };
 
-  const createHeaderMenu = async () => {
+  const createHeaderMenu = () => {
     try {
-      await createMenu({ title: 'Header Menu', type: 'mega', href: '#', active: true, order: menus.length });
-      toast.success('Đã tạo Header Menu');
-      await onRefresh();
+      setItems(assignParents([
+        ...items,
+        {
+          client_id: newClientId(),
+          parent_id: null,
+          parent_client_id: null,
+          label: 'Menu mới',
+          href: '#',
+          semantic_type: null,
+          route_payload: null,
+          badge: null,
+          icon: null,
+          depth: 0,
+          order: items.length,
+          active: true,
+          open_in_new_tab: false,
+          source: 'menu',
+        },
+      ]) as DraftMenuItem[]);
     } catch (error) {
       console.error(error);
-      toast.error('Không thể tạo Header Menu');
+      toast.error('Không thể tạo menu');
     }
   };
 
-  if (!selectedMenu) {
+  if (items.length === 0) {
     return (
       <Card className="p-8 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
@@ -327,10 +377,6 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-slate-500">Chỉnh sửa menu và bấm lưu để áp dụng. Tối đa 500 menu items.</p>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" className="gap-2" onClick={toggleMenuActive}>
-              {selectedMenu.active ? <EyeOff size={15} /> : <Eye size={15} />}
-              {selectedMenu.active ? 'Ẩn menu' : 'Hiện menu'}
-            </Button>
             <Button type="button" onClick={save} disabled={!hasChanges || isSaving || hasInvalidStructure} className="gap-2">
               <Save size={15} />
               {isSaving ? 'Đang lưu...' : 'Lưu tất cả'}
@@ -469,6 +515,9 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
           <Button type="button" variant="outline" className="flex-1 border-dashed" onClick={() => addItem()}>
             <Plus size={16} className="mr-2" /> Thêm liên kết mới
           </Button>
+          <Button type="button" variant="outline" className="border-dashed" onClick={createHeaderMenu}>
+            <Plus size={16} className="mr-2" /> Thêm menu cấp 1
+          </Button>
         </div>
 
         {hasInvalidStructure && (
@@ -495,7 +544,7 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
       </div>
 
       <div className="xl:col-span-2">
-        <MenuTreePreview menus={[{ ...selectedMenu, items } as AdminMenuDetail]} />
+        <MenuTreePreview menus={buildPreviewMenus(items)} />
       </div>
 
       <Dialog
@@ -603,5 +652,77 @@ function toDraftItem(item: AdminMenuTreeItem): DraftMenuItem {
     ...item,
     client_id: String(item.id),
     parent_client_id: item.parent_id ? String(item.parent_id) : null,
+    source: 'item',
   };
+}
+
+function collectDescendants(items: DraftMenuItem[], topItem: DraftMenuItem): DraftMenuItem[] {
+  const startIndex = items.findIndex((item) => item.client_id === topItem.client_id);
+  if (startIndex < 0) return [];
+
+  const descendants: DraftMenuItem[] = [];
+  for (let index = startIndex + 1; index < items.length; index++) {
+    const item = items[index];
+    if (item.depth === 0) break;
+    descendants.push(item);
+  }
+
+  return descendants;
+}
+
+function buildChildPayload(descendants: DraftMenuItem[]) {
+  const children = descendants.map((item, index) => ({
+    ...item,
+    depth: Math.max(0, item.depth - 1),
+    order: index,
+  }));
+
+  return (assignParents(children) as DraftMenuItem[]).map((item) => ({
+    ...(item.source === 'item' && typeof item.id === 'number' ? { id: item.id } : {}),
+    client_id: item.client_id,
+    parent_id: typeof item.parent_id === 'number' ? item.parent_id : null,
+    parent_client_id: item.parent_client_id?.startsWith('menu-') ? null : item.parent_client_id ?? null,
+    label: item.label.trim() || 'Menu mới',
+    href: item.href?.trim() || null,
+    semantic_type: item.semantic_type ?? null,
+    route_payload: item.route_payload ?? null,
+    badge: item.badge?.trim() || null,
+    icon: item.icon?.trim() || null,
+    depth: Number(item.depth) || 0,
+    order: Number(item.order) || 0,
+    active: Boolean(item.active),
+    open_in_new_tab: Boolean(item.open_in_new_tab),
+  }));
+}
+
+function buildPreviewMenus(items: DraftMenuItem[]): AdminMenuDetail[] {
+  return items
+    .filter((item) => item.depth === 0)
+    .map((topItem, index) => ({
+      id: topItem.menu_id ?? -index - 1,
+      title: topItem.label,
+      type: 'mega',
+      href: topItem.href,
+      semantic_type: topItem.semantic_type,
+      route_payload: topItem.route_payload,
+      order: index,
+      active: topItem.active,
+      blocks: [],
+      items: collectDescendants(items, topItem).map((item, itemIndex) => ({
+        id: item.id ?? -itemIndex - 1,
+        menu_id: topItem.menu_id ?? -index - 1,
+        parent_id: typeof item.parent_id === 'number' ? item.parent_id : null,
+        label: item.label,
+        href: item.href,
+        semantic_type: item.semantic_type,
+        route_payload: item.route_payload,
+        badge: item.badge,
+        icon: item.icon,
+        depth: Math.max(0, item.depth - 1),
+        order: itemIndex,
+        active: item.active,
+        open_in_new_tab: item.open_in_new_tab,
+        client_id: item.client_id,
+      })),
+    })) as AdminMenuDetail[];
 }
