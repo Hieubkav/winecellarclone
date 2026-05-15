@@ -46,7 +46,14 @@ interface DraftMenuItem extends Omit<AdminMenuTreeItem, 'id' | 'menu_id'> {
 const newClientId = () => `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
-  const [selectedMenuId, setSelectedMenuId] = useState<number | null>(menus[0]?.id ?? null);
+  const preferredMenu = useMemo(
+    () => menus.find((menu) => menu.active && (menu.items?.length ?? 0) > 0)
+      ?? menus.find((menu) => (menu.items?.length ?? 0) > 0)
+      ?? menus.find((menu) => menu.active)
+      ?? menus[0],
+    [menus]
+  );
+  const [selectedMenuId, setSelectedMenuId] = useState<number | null>(preferredMenu?.id ?? null);
   const [items, setItems] = useState<DraftMenuItem[]>([]);
   const [originalJson, setOriginalJson] = useState('[]');
   const [isSaving, setIsSaving] = useState(false);
@@ -58,15 +65,15 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const selectedMenu = useMemo(
-    () => menus.find((menu) => menu.id === selectedMenuId) ?? menus[0],
-    [menus, selectedMenuId]
+    () => menus.find((menu) => menu.id === selectedMenuId) ?? preferredMenu,
+    [menus, preferredMenu, selectedMenuId]
   );
 
   useEffect(() => {
-    if (!selectedMenuId && menus[0]?.id) {
-      setSelectedMenuId(menus[0].id);
+    if (!selectedMenuId && preferredMenu?.id) {
+      setSelectedMenuId(preferredMenu.id);
     }
-  }, [menus, selectedMenuId]);
+  }, [preferredMenu, selectedMenuId]);
 
   useEffect(() => {
     const nextItems = (selectedMenu?.items ?? []).map(toDraftItem);
