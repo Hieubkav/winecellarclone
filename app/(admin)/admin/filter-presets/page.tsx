@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { Edit, ExternalLink, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, Input, Label, Badge } from '../components/ui';
 import {
   createProductFilterGroup,
@@ -10,27 +10,52 @@ import {
   deleteProductFilterGroup,
   deleteProductFilterPreset,
   fetchAdminProductFilterGroups,
+  updateProductFilterGroup,
+  updateProductFilterPreset,
   type AdminProductFilterGroup,
+  type AdminProductFilterPreset,
 } from '@/lib/api/admin';
 import { toast } from 'sonner';
-
-const emptyPayload = '{\n  "price_min": 0,\n  "price_max": 500000\n}';
 
 const buildPresetPath = (group: Pick<AdminProductFilterGroup, 'route_prefix' | 'slug'>, presetSlug?: string) => {
   const segments = [group.route_prefix, group.slug, presetSlug].filter(Boolean);
   return `/${segments.join('/')}`;
 };
 
+const readNumberField = (value: string) => {
+  const normalized = value.trim();
+  if (!normalized) return undefined;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const buildFilterPayload = (priceMin: string, priceMax: string) => {
+  const payload: Record<string, number> = {};
+  const min = readNumberField(priceMin);
+  const max = readNumberField(priceMax);
+  if (min !== undefined) payload.price_min = min;
+  if (max !== undefined) payload.price_max = max;
+  return payload;
+};
+
+const readPayloadNumber = (payload: Record<string, unknown>, key: 'price_min' | 'price_max') => {
+  const value = payload[key];
+  return typeof value === 'number' ? String(value) : '';
+};
+
 export default function FilterPresetsPage() {
   const [groups, setGroups] = useState<AdminProductFilterGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [groupName, setGroupName] = useState('');
   const [groupSlug, setGroupSlug] = useState('');
   const [routePrefix, setRoutePrefix] = useState('san-pham');
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [editingPreset, setEditingPreset] = useState<{ groupId: number; presetId: number } | null>(null);
   const [presetName, setPresetName] = useState('');
   const [presetSlug, setPresetSlug] = useState('');
-  const [payload, setPayload] = useState(emptyPayload);
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
 
   const loadGroups = async () => {
     setIsLoading(true);
@@ -53,40 +78,85 @@ export default function FilterPresetsPage() {
   const handleCreateGroup = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!groupName.trim()) return;
-    await createProductFilterGroup({
+    const payload = {
       name: groupName.trim(),
       slug: groupSlug.trim() || undefined,
       route_prefix: routePrefix.trim() || 'san-pham',
       active: true,
-    });
+    };
+    if (editingGroupId) {
+      await updateProductFilterGroup(editingGroupId, payload);
+      toast.success('Đã cập nhật nhóm bộ lọc');
+    } else {
+      await createProductFilterGroup(payload);
+      toast.success('Đã tạo nhóm bộ lọc');
+    }
+    setEditingGroupId(null);
     setGroupName('');
     setGroupSlug('');
-    toast.success('Đã tạo nhóm bộ lọc');
+    setRoutePrefix('san-pham');
     await loadGroups();
   };
 
   const handleCreatePreset = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedGroupId || !presetName.trim()) return;
-    let parsed: Record<string, unknown> = {};
-    try {
-      parsed = payload.trim() ? JSON.parse(payload) : {};
-    } catch {
-      toast.error('Filter payload không đúng JSON');
+    const filterPayload = buildFilterPayload(priceMin, priceMax);
+    if (Object.keys(filterPayload).length === 0) {
+      toast.error('Nhập ít nhất một khoảng giá.');
       return;
     }
 
-    await createProductFilterPreset(selectedGroupId, {
+    const payload = {
       name: presetName.trim(),
       slug: presetSlug.trim() || undefined,
-      filter_payload: parsed,
+      filter_payload: filterPayload,
       active: true,
-    });
+    };
+    if (editingPreset) {
+      await updateProductFilterPreset(editingPreset.groupId, editingPreset.presetId, payload);
+      toast.success('Đã cập nhật preset');
+    } else {
+      await createProductFilterPreset(selectedGroupId, payload);
+      toast.success('Đã tạo preset');
+    }
+    setEditingPreset(null);
     setPresetName('');
     setPresetSlug('');
-    setPayload(emptyPayload);
-    toast.success('Đã tạo preset');
+    setPriceMin('');
+    setPriceMax('');
     await loadGroups();
+  };
+
+  const startEditGroup = (group: AdminProductFilterGroup) => {
+    setEditingGroupId(group.id);
+    setGroupName(group.name);
+    setGroupSlug(group.slug);
+    setRoutePrefix(group.route_prefix || 'san-pham');
+  };
+
+  const startEditPreset = (group: AdminProductFilterGroup, preset: AdminProductFilterPreset) => {
+    setEditingPreset({ groupId: group.id, presetId: preset.id });
+    setSelectedGroupId(group.id);
+    setPresetName(preset.name);
+    setPresetSlug(preset.slug);
+    setPriceMin(readPayloadNumber(preset.filter_payload, 'price_min'));
+    setPriceMax(readPayloadNumber(preset.filter_payload, 'price_max'));
+  };
+
+  const cancelGroupEdit = () => {
+    setEditingGroupId(null);
+    setGroupName('');
+    setGroupSlug('');
+    setRoutePrefix('san-pham');
+  };
+
+  const cancelPresetEdit = () => {
+    setEditingPreset(null);
+    setPresetName('');
+    setPresetSlug('');
+    setPriceMin('');
+    setPriceMax('');
   };
 
   return (
@@ -99,7 +169,7 @@ export default function FilterPresetsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-4">
           <form onSubmit={handleCreateGroup} className="space-y-3">
-            <h2 className="font-semibold">Tạo nhóm bộ lọc</h2>
+            <h2 className="font-semibold">{editingGroupId ? 'Sửa nhóm bộ lọc' : 'Tạo nhóm bộ lọc'}</h2>
             <div className="space-y-1">
               <Label>Tên nhóm</Label>
               <Input value={groupName} onChange={(event) => setGroupName(event.target.value)} placeholder="Mức giá" />
@@ -112,13 +182,16 @@ export default function FilterPresetsPage() {
               <Label>Route prefix</Label>
               <Input value={routePrefix} onChange={(event) => setRoutePrefix(event.target.value)} placeholder="san-pham" />
             </div>
-            <Button type="submit" className="gap-2"><Plus size={16} /> Tạo nhóm</Button>
+            <div className="flex gap-2">
+              <Button type="submit" className="gap-2"><Plus size={16} /> {editingGroupId ? 'Lưu nhóm' : 'Tạo nhóm'}</Button>
+              {editingGroupId ? <Button type="button" variant="outline" onClick={cancelGroupEdit}>Hủy</Button> : null}
+            </div>
           </form>
         </Card>
 
         <Card className="p-4">
           <form onSubmit={handleCreatePreset} className="space-y-3">
-            <h2 className="font-semibold">Tạo preset</h2>
+            <h2 className="font-semibold">{editingPreset ? 'Sửa preset' : 'Tạo preset'}</h2>
             <div className="space-y-1">
               <Label>Nhóm</Label>
               <select
@@ -141,14 +214,27 @@ export default function FilterPresetsPage() {
               </div>
             </div>
             <div className="space-y-1">
-              <Label>Filter payload JSON</Label>
-              <textarea
-                value={payload}
-                onChange={(event) => setPayload(event.target.value)}
-                className="min-h-28 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-mono dark:border-slate-700 dark:bg-slate-800"
-              />
+              <Label>Khoảng giá</Label>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Input
+                  value={priceMin}
+                  onChange={(event) => setPriceMin(event.target.value)}
+                  inputMode="numeric"
+                  placeholder="Giá từ, ví dụ: 1000000"
+                />
+                <Input
+                  value={priceMax}
+                  onChange={(event) => setPriceMax(event.target.value)}
+                  inputMode="numeric"
+                  placeholder="Giá đến, ví dụ: 3000000"
+                />
+              </div>
+              <p className="text-xs text-slate-500">Để trống một đầu nếu chỉ cần “dưới” hoặc “trên” một mức giá.</p>
             </div>
-            <Button type="submit" className="gap-2"><Plus size={16} /> Tạo preset</Button>
+            <div className="flex gap-2">
+              <Button type="submit" className="gap-2"><Plus size={16} /> {editingPreset ? 'Lưu preset' : 'Tạo preset'}</Button>
+              {editingPreset ? <Button type="button" variant="outline" onClick={cancelPresetEdit}>Hủy</Button> : null}
+            </div>
           </form>
         </Card>
       </div>
@@ -167,6 +253,9 @@ export default function FilterPresetsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={group.active ? 'success' : 'secondary'}>{group.active ? 'Bật' : 'Tắt'}</Badge>
+                <Button variant="ghost" size="icon" aria-label="Sửa nhóm" onClick={() => startEditGroup(group)}>
+                  <Edit size={16} />
+                </Button>
                 <Link href={buildPresetPath(group)} target="_blank" rel="noopener noreferrer">
                   <Button variant="ghost" size="icon" aria-label="Mở nhóm">
                     <ExternalLink size={16} />
@@ -187,6 +276,9 @@ export default function FilterPresetsPage() {
                         <ExternalLink size={14} />
                       </Button>
                     </Link>
+                    <Button variant="ghost" size="icon" aria-label="Sửa preset" onClick={() => startEditPreset(group, preset)}>
+                      <Edit size={14} />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={async () => { await deleteProductFilterPreset(group.id, preset.id); await loadGroups(); }}>
                       <Trash2 size={14} />
                     </Button>
