@@ -123,12 +123,18 @@ export function MenuTreeBuilder({ menus, onRefresh }: MenuTreeBuilderProps) {
     if (!keyword) return suggestions;
 
     return suggestions
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) =>
-          `${item.label} ${item.path} ${item.source}`.toLowerCase().includes(keyword)
-        ),
-      }))
+      .map((group) => {
+        const groupMatched = `${group.label} ${group.key}`.toLowerCase().includes(keyword);
+
+        return {
+          ...group,
+          items: groupMatched
+            ? group.items
+            : group.items.filter((item) =>
+              `${group.label} ${group.key} ${item.label} ${item.path} ${item.source}`.toLowerCase().includes(keyword)
+            ),
+        };
+      })
       .filter((group) => group.items.length > 0);
   }, [query, suggestions]);
 
