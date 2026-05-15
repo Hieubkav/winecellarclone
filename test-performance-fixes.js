@@ -124,7 +124,7 @@ setTimeout(() => {
   console.log('❌ = Test failed\n');
   console.log('Next steps:');
   console.log('1. Start dev server: npm run dev');
-  console.log('2. Navigate to http://localhost:3000/filter');
+  console.log('2. Navigate to http://localhost:3000/san-pham');
   console.log('3. Open DevTools Network tab');
   console.log('4. Verify improvements:\n');
   console.log('   - Static assets show "304 Not Modified" on refresh');

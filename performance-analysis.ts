@@ -49,10 +49,10 @@ async function analyzePerformance() {
     }
   });
 
-  console.log('\n🚀 Starting performance analysis for http://localhost:3000/filter\n');
+  console.log('\n🚀 Starting performance analysis for http://localhost:3000/san-pham\n');
 
   try {
-    await page.goto('http://localhost:3000/filter', {
+    await page.goto('http://localhost:3000/san-pham', {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     });

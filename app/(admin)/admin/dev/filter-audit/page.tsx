@@ -297,7 +297,7 @@ export default function FilterAuditPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Filter Audit Report</h1>
-          <p className="text-sm text-slate-500">Tự chạy audit hiệu năng /filter và tạo báo cáo copy được.</p>
+          <p className="text-sm text-slate-500">Tự chạy audit hiệu năng /san-pham và tạo báo cáo copy được.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={handleCopy} disabled={!reportText}>Copy report</Button>

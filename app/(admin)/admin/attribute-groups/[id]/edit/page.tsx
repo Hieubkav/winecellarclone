@@ -230,7 +230,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
                     Nếu không có dữ liệu, breadcrumb sẽ fallback về <strong>Trang chủ &gt; danh mục</strong>.
                   </p>
                   <p className="mt-1">
-                    Khi click breadcrumb sẽ mở đúng trang <strong>/filter</strong> theo danh mục và giá trị xuất xứ.
+                    Khi click breadcrumb sẽ mở đúng trang <strong>/san-pham</strong> theo danh mục và giá trị xuất xứ.
                   </p>
                 </div>
               )}

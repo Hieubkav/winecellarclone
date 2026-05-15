@@ -55,7 +55,7 @@ const buildAttributePathSegments = (
  * Best Practice: URL as Single Source of Truth
  * - Effect 1 (URL → Store): ALWAYS syncs when URL changes (navigation, back/forward, direct link)
  *   - Parses URL params (slug) and converts to ID for store
- *   - Ensures /filter?type=vang-do → /filter correctly resets filters
+ *   - Ensures /san-pham?type=vang-do → /san-pham correctly resets filters
  * - Effect 2 (Store → URL): Syncs filter changes to URL (converts ID to slug)
  * - Loop prevention: previousUrlParams tracks changes, isApplyingUrlParams prevents Effect 2 during Effect 1
  */
@@ -86,7 +86,7 @@ export function useFilterUrlSync(syncOptions?: {
   )
 
   // Effect 1: URL → Store (ALWAYS sync when URL changes, not just on mount)
-  // This ensures /filter?type=1 → /filter correctly resets filters
+  // This ensures /san-pham?type=1 → /san-pham correctly resets filters
   useEffect(() => {
     if (!initialized) {
       return
@@ -97,7 +97,7 @@ export function useFilterUrlSync(syncOptions?: {
     const pathnameChanged = pathname !== previousPathname.current
     
     // Skip only if BOTH URL and pathname haven't changed
-    // CRITICAL: Don't skip if pathname changed (fresh navigation to /filter)
+    // CRITICAL: Don't skip if pathname changed (fresh navigation to /san-pham)
     if (!pathnameChanged && currentUrlString === previousUrlParams.current) {
       return
     }
@@ -110,7 +110,7 @@ export function useFilterUrlSync(syncOptions?: {
     const applyUrlFilters = async () => {
       try {
         // Parse all URL params (slug-based) - convert to IDs for store
-        // This ensures filters are cleared when navigating from /filter?type=vang-do to /filter
+        // This ensures filters are cleared when navigating from /san-pham?type=vang-do to /san-pham
         
         const categoryParam = searchParams.get("category") || syncOptions?.initialCategorySlug || null
         let categoryId: number | null = null
