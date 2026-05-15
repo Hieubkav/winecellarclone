@@ -72,6 +72,16 @@ export default function InformationArchitecturePage() {
     [items]
   );
 
+  const fixedItems = useMemo(
+    () => items.filter((item) => item.source !== 'dynamic_source'),
+    [items]
+  );
+
+  const sourceItems = useMemo(
+    () => items.filter((item) => item.source === 'dynamic_source'),
+    [items]
+  );
+
   const handleGenerateDraftMenus = async () => {
     if (missingTopLevelMenus.length === 0) {
       toast.info('Không còn menu cấp 1 cần tạo.');
@@ -142,10 +152,19 @@ export default function InformationArchitecturePage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4">
-        {(actionItems.length > 0 ? actionItems : readyItems.slice(0, 8)).map((item) => (
-          <PageCard key={`${item.path}-${item.severity}`} item={item} />
-        ))}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_0.7fr]">
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Trang cố định</h2>
+          {(actionItems.length > 0 ? actionItems.filter((item) => item.source !== 'dynamic_source') : fixedItems.slice(0, 12)).map((item) => (
+            <PageCard key={`${item.path}-${item.severity}`} item={item} />
+          ))}
+        </section>
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Nguồn động</h2>
+          {sourceItems.map((item) => (
+            <PageCard key={`${item.path}-${item.severity}`} item={item} />
+          ))}
+        </section>
       </div>
 
       {actionItems.length === 0 && readyItems.length === 0 && (
@@ -154,8 +173,8 @@ export default function InformationArchitecturePage() {
         </Card>
       )}
 
-      {readyItems.length > 8 && actionItems.length === 0 && (
-        <div className="text-center text-xs text-slate-500">Còn {readyItems.length - 8} trang đã ổn.</div>
+      {fixedItems.length > 12 && actionItems.length === 0 && (
+        <div className="text-center text-xs text-slate-500">Còn {fixedItems.length - 12} trang cố định đã ổn.</div>
       )}
     </div>
   );
@@ -215,6 +234,9 @@ function PageCard({ item }: { item: AdminIaComplianceItem }) {
 
 function humanMessage(item: AdminIaComplianceItem) {
   if (item.severity === 'pass') {
+    if (item.source === 'dynamic_source') {
+      return item.message;
+    }
     return 'Đã có menu và dữ liệu.';
   }
 

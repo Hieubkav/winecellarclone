@@ -329,6 +329,7 @@ export interface ProductFilterOption {
 
 export interface AttributeFilter {
   code: string;
+  slug: string;
   name: string;
   filter_type: string;
   input_type?: string;
@@ -337,6 +338,23 @@ export interface AttributeFilter {
   icon_name?: string | null; // Lucide icon name (e.g., "Grape", "Award")
   range?: { min: number; max: number }; // For range filters
   options: ProductFilterOption[];
+}
+
+export interface ProductFilterPreset {
+  id: number;
+  name: string;
+  slug: string;
+  filter_payload: Record<string, unknown>;
+  seo_title?: string | null;
+  seo_description?: string | null;
+}
+
+export interface ProductFilterGroup {
+  id: number;
+  name: string;
+  slug: string;
+  route_prefix: string;
+  presets: ProductFilterPreset[];
 }
 
 export interface ProductFiltersPayload {
@@ -351,6 +369,7 @@ export interface ProductFiltersPayload {
     max: number;
   };
   attribute_filters: AttributeFilter[];
+  filter_groups?: ProductFilterGroup[];
 }
 
 interface ProductFiltersResponse {

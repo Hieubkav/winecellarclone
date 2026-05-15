@@ -4,6 +4,7 @@ export type AdminModuleKey =
   | "categories"
   | "product-types"
   | "attribute-groups"
+  | "filter-presets"
   | "articles"
   | "images"
   | "home-components"
@@ -49,6 +50,7 @@ export const ADMIN_MODULES: AdminModuleMeta[] = [
   { key: "categories", label: "Danh mục", route: "/admin/categories", group: "products" },
   { key: "product-types", label: "Nhóm sản phẩm", route: "/admin/product-types", group: "products" },
   { key: "attribute-groups", label: "Nhóm thuộc tính", route: "/admin/attribute-groups", group: "products" },
+  { key: "filter-presets", label: "Bộ lọc SEO", route: "/admin/filter-presets", group: "products" },
   { key: "articles", label: "Bài viết", route: "/admin/articles", group: "content" },
   { key: "images", label: "Thư viện ảnh", route: "/admin/images", group: "content" },
   { key: "home-components", label: "Trang chủ", route: "/admin/home-components", group: "website" },
@@ -85,6 +87,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
           { label: "Danh mục", href: "/admin/categories" },
           { label: "Nhóm sản phẩm", href: "/admin/product-types" },
           { label: "Nhóm thuộc tính", href: "/admin/attribute-groups" },
+          { label: "Bộ lọc SEO", href: "/admin/filter-presets" },
         ],
       },
     ],

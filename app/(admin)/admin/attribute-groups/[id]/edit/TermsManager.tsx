@@ -29,6 +29,9 @@ interface TermsManagerProps {
    const [termSlug, setTermSlug] = useState('');
    const [termDescription, setTermDescription] = useState('');
    const [initialTermDescription, setInitialTermDescription] = useState('');
+   const [termFeatured, setTermFeatured] = useState(false);
+   const [termSeoTitle, setTermSeoTitle] = useState('');
+   const [termSeoDescription, setTermSeoDescription] = useState('');
    const [isSubmitting, setIsSubmitting] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
    const [localTerms, setLocalTerms] = useState(terms);
@@ -44,6 +47,9 @@ interface TermsManagerProps {
      setTermSlug('');
      setTermDescription('');
      setInitialTermDescription('');
+     setTermFeatured(false);
+     setTermSeoTitle('');
+     setTermSeoDescription('');
      setIsDialogOpen(true);
    };
  
@@ -54,6 +60,10 @@ interface TermsManagerProps {
      const desc = term.description || '';
      setTermDescription(desc);
      setInitialTermDescription(desc);
+     const metadata = term.metadata ?? {};
+     setTermFeatured(Boolean(metadata.featured));
+     setTermSeoTitle(typeof metadata.seo_title === 'string' ? metadata.seo_title : '');
+     setTermSeoDescription(typeof metadata.seo_description === 'string' ? metadata.seo_description : '');
      setIsDialogOpen(true);
    };
  
@@ -70,7 +80,13 @@ interface TermsManagerProps {
          await updateCatalogTerm(editingTerm.id, {
            name: termName.trim(),
            slug: termSlug.trim() || undefined,
-           description: isBrandAttribute ? termDescription.trim() || null : undefined,
+           description: termDescription.trim() || null,
+           metadata: {
+             ...(editingTerm.metadata ?? {}),
+             featured: termFeatured,
+             seo_title: termSeoTitle.trim() || null,
+             seo_description: termSeoDescription.trim() || null,
+           },
          });
          toast.success('Cập nhật giá trị thành công');
        } else {
@@ -78,7 +94,12 @@ interface TermsManagerProps {
            group_id: groupId,
            name: termName.trim(),
            slug: termSlug.trim() || undefined,
-           description: isBrandAttribute ? termDescription.trim() || null : undefined,
+           description: termDescription.trim() || null,
+           metadata: {
+             featured: termFeatured,
+             seo_title: termSeoTitle.trim() || null,
+             seo_description: termSeoDescription.trim() || null,
+           },
          });
          toast.success('Tạo giá trị thành công');
        }
@@ -255,20 +276,47 @@ interface TermsManagerProps {
                  />
                </div>
 
-               {isBrandAttribute && (
-                 <div className="space-y-2">
-                   <Label>Mô tả thương hiệu (Lexical)</Label>
-                   <LexicalEditor
-                     onChange={setTermDescription}
-                     initialContent={initialTermDescription}
-                     resetKey={editingTerm?.id ?? `create-${isDialogOpen ? 'open' : 'closed'}`}
-                     folder="products"
-                     placeholder="Nhập mô tả thương hiệu..."
+               <div className="space-y-2">
+                 <Label>Mô tả</Label>
+                 {isBrandAttribute ? (
+                   <>
+                     <LexicalEditor
+                       initialContent={initialTermDescription}
+                       onChange={setTermDescription}
+                       folder="catalog-terms"
+                     />
+                     <p className="text-xs text-slate-500">Dùng cho landing /thuong-hieu/slug nếu đây là thương hiệu.</p>
+                   </>
+                 ) : (
+                   <textarea
+                     value={termDescription}
+                     onChange={(event) => setTermDescription(event.target.value)}
+                     className="min-h-24 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800"
+                     placeholder="Mô tả ngắn cho landing/filter nếu cần"
                    />
-                   <p className="text-xs text-slate-500">Nội dung này sẽ được ghép vào cuối mô tả chi tiết sản phẩm.</p>
+                 )}
+               </div>
+
+               <div className="grid gap-4 md:grid-cols-2">
+                 <div className="space-y-2">
+                   <Label>SEO title</Label>
+                   <Input value={termSeoTitle} onChange={(event) => setTermSeoTitle(event.target.value)} placeholder="Tùy chọn" />
                  </div>
-               )}
- 
+                 <div className="space-y-2">
+                   <Label>SEO description</Label>
+                   <Input value={termSeoDescription} onChange={(event) => setTermSeoDescription(event.target.value)} placeholder="Tùy chọn" />
+                 </div>
+               </div>
+
+               <label className="flex items-center gap-2 text-sm">
+                 <input
+                   type="checkbox"
+                   checked={termFeatured}
+                   onChange={(event) => setTermFeatured(event.target.checked)}
+                   className="h-4 w-4 rounded border-slate-300"
+                 />
+                 Nổi bật
+               </label>
                <div className="flex justify-end gap-3 pt-4">
                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                    Hủy

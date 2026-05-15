@@ -53,6 +53,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [code, setCode] = useState('');
+  const [slug, setSlug] = useState('');
   const [name, setName] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('checkbox');
   const [inputType, setInputType] = useState<string>('');
@@ -74,6 +75,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
         const attr = res.data;
         
         setCode(attr.code);
+        setSlug(attr.slug || '');
         setName(attr.name);
         setFilterType(normalizeFilterTypeFromApi(attr.filter_type));
         setInputType(attr.input_type || '');
@@ -125,6 +127,7 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
     try {
       await updateCatalogAttributeGroup(Number(id), {
         name: name.trim(),
+        slug: slug.trim(),
         filter_type: normalizeFilterTypeForApi(filterType),
         input_type: inputType.trim() || null,
         is_filterable: Boolean(isFilterable),
@@ -244,6 +247,20 @@ export default function AttributeGroupEditPage({ params }: PageProps) {
                   </p>
                 </div>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug URL <span className="text-red-500">*</span></Label>
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSlug(e.target.value)}
+                placeholder="Ví dụ: xuat-xu"
+                required
+              />
+              <p className="text-xs text-slate-500">
+                Dùng để sinh route public như /san-pham/slug-nhom/slug-gia-tri. Mã kỹ thuật vẫn dùng cho API filter.
+              </p>
             </div>
 
             <div className="space-y-2">

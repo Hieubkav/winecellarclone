@@ -197,6 +197,7 @@ export async function syncAttributeGroupsToType(typeId: number, groups: Array<{ 
 export interface AdminCatalogAttributeGroup {
   id: number;
   code: string;
+  slug: string;
   name: string;
   filter_type: 'checkbox' | 'radio' | 'range' | 'color';
   input_type?: 'select' | 'text' | 'number' | null;
@@ -227,7 +228,7 @@ export async function fetchAdminCatalogAttributeGroups(params?: Record<string, s
   return apiFetch<AdminCatalogAttributeGroupsResponse>(`v1/admin/catalog-attribute-groups${query}`);
 }
 
-export async function fetchAdminCatalogAttributeGroup(id: number): Promise<{ data: AdminCatalogAttributeGroup & { terms: Array<{ id: number; name: string; slug: string; description?: string | null; position: number }> } }> {
+export async function fetchAdminCatalogAttributeGroup(id: number): Promise<{ data: AdminCatalogAttributeGroup & { terms: Array<{ id: number; name: string; slug: string; description?: string | null; metadata?: Record<string, unknown> | null; position: number }> } }> {
   return apiFetch(`v1/admin/catalog-attribute-groups/${id}`);
 }
 
@@ -313,6 +314,69 @@ export async function deleteCatalogTerm(id: number): Promise<{ success: boolean;
   return apiFetch(`v1/admin/catalog-terms/${id}`, {
     method: 'DELETE',
   });
+}
+
+export interface AdminProductFilterPreset {
+  id: number;
+  group_id: number;
+  name: string;
+  slug: string;
+  filter_payload: Record<string, unknown>;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  content?: string | null;
+  position: number;
+  active: boolean;
+}
+
+export interface AdminProductFilterGroup {
+  id: number;
+  name: string;
+  slug: string;
+  route_prefix: string;
+  position: number;
+  active: boolean;
+  presets: AdminProductFilterPreset[];
+}
+
+export async function fetchAdminProductFilterGroups(): Promise<{ data: AdminProductFilterGroup[] }> {
+  return apiFetch('v1/admin/product-filter-groups');
+}
+
+export async function createProductFilterGroup(data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch('v1/admin/product-filter-groups', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateProductFilterGroup(id: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-filter-groups/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteProductFilterGroup(id: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-filter-groups/${id}`, { method: 'DELETE' });
+}
+
+export async function createProductFilterPreset(groupId: number, data: Record<string, unknown>): Promise<{ success: boolean; data: { id: number }; message: string }> {
+  return apiFetch(`v1/admin/product-filter-groups/${groupId}/presets`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateProductFilterPreset(groupId: number, presetId: number, data: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-filter-groups/${groupId}/presets/${presetId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteProductFilterPreset(groupId: number, presetId: number): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-filter-groups/${groupId}/presets/${presetId}`, { method: 'DELETE' });
 }
 
 export async function reorderCatalogTerms(items: Array<{ id: number; position: number }>): Promise<{ success: boolean; message: string }> {

@@ -47,6 +47,7 @@ export default function AttributeGroupsPage() {
   
   const attributeColumnsConfig = [
     { key: 'name', label: 'Tên thuộc tính', required: true },
+    { key: 'slug', label: 'Slug URL' },
     { key: 'code', label: 'Mã' },
     { key: 'filter_type', label: 'Loại filter', required: true },
     { key: 'input_type', label: 'Kiểu nhập' },
@@ -61,7 +62,7 @@ export default function AttributeGroupsPage() {
   ];
   
   const [visibleAttributeColumns, setVisibleAttributeColumns] = useState<string[]>(
-    attributeColumnsConfig.filter(c => c.required || ['name', 'filter_type', 'terms_count', 'is_filterable', 'actions'].includes(c.key)).map(c => c.key)
+    attributeColumnsConfig.filter(c => c.required || ['name', 'slug', 'filter_type', 'terms_count', 'is_filterable', 'actions'].includes(c.key)).map(c => c.key)
   );
   
   const toggleAttributeColumn = (key: string) => {
@@ -213,6 +214,7 @@ export default function AttributeGroupsPage() {
           <TableHeader>
             <TableRow>
               {visibleAttributeColumns.includes('name') && <SortableHeader label="Tên thuộc tính" sortKey="name" sortConfig={sortConfig} onSort={handleSort} />}
+              {visibleAttributeColumns.includes('slug') && <TableHead>Slug URL</TableHead>}
               {visibleAttributeColumns.includes('code') && <SortableHeader label="Mã" sortKey="code" sortConfig={sortConfig} onSort={handleSort} />}
               {visibleAttributeColumns.includes('filter_type') && <SortableHeader label="Loại filter" sortKey="filter_type" sortConfig={sortConfig} onSort={handleSort} />}
               {visibleAttributeColumns.includes('input_type') && <TableHead>Kiểu nhập</TableHead>}
@@ -255,6 +257,13 @@ export default function AttributeGroupsPage() {
                           )}
                         </div>
                       </div>
+                    </TableCell>
+                  )}
+                  {visibleAttributeColumns.includes('slug') && (
+                    <TableCell>
+                      <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                        {attr.slug}
+                      </code>
                     </TableCell>
                   )}
                   {visibleAttributeColumns.includes('code') && (

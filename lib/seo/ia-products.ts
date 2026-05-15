@@ -1,7 +1,6 @@
 import {
   fetchProductFiltersSafe,
   type AttributeFilter,
-  type ProductFilterOption,
   type ProductFiltersPayload,
 } from "@/lib/api/products";
 
@@ -21,56 +20,8 @@ export type ProductLandingContext = {
   filterOptions: ProductFiltersPayload | null;
 };
 
-const PRICE_PRESETS: Record<string, { label: string; min?: number; max?: number }> = {
-  "duoi-500k": { label: "Dưới 500k", max: 500_000 },
-  "500k-1-trieu": { label: "500k - 1 triệu", min: 500_000, max: 1_000_000 },
-  "1-2-trieu": { label: "1 - 2 triệu", min: 1_000_000, max: 2_000_000 },
-  "2-5-trieu": { label: "2 - 5 triệu", min: 2_000_000, max: 5_000_000 },
-  "duoi-1-trieu": { label: "Dưới 1 triệu", max: 1_000_000 },
-  "1-3-trieu": { label: "1 - 3 triệu", min: 1_000_000, max: 3_000_000 },
-  "3-5-trieu": { label: "3 - 5 triệu", min: 3_000_000, max: 5_000_000 },
-  "tren-5-trieu": { label: "Trên 5 triệu", min: 5_000_000 },
-};
-
-const PREFERRED_TERM_GROUPS = [
-  "category",
-  "occasion",
-  "dip",
-  "muc_dich",
-  "origin",
-  "xuat_xu",
-  "country",
-  "quoc_gia",
-  "brand",
-  "thuong_hieu",
-  "grape",
-  "giong_nho",
-  "accessory_type",
-  "loai_phu_kien",
-];
-
 const findBySlug = <T extends { slug: string }>(items: T[], slug: string): T | null =>
   items.find((item) => item.slug === slug) ?? null;
-
-const findTermBySlug = (
-  attributeFilters: AttributeFilter[],
-  slug: string
-): { group: AttributeFilter; term: ProductFilterOption } | null => {
-  const sortedFilters = [...attributeFilters].sort((a, b) => {
-    const aIndex = PREFERRED_TERM_GROUPS.indexOf(a.code);
-    const bIndex = PREFERRED_TERM_GROUPS.indexOf(b.code);
-    return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
-  });
-
-  for (const group of sortedFilters) {
-    const term = findBySlug(group.options, slug);
-    if (term) {
-      return { group, term };
-    }
-  }
-
-  return null;
-};
 
 const appendParamValue = (
   params: ProductLandingContext["apiParams"],
@@ -84,6 +35,27 @@ const appendParamValue = (
   }
 
   params[key] = [value];
+};
+
+const applyPresetPayload = (
+  params: ProductLandingContext["apiParams"],
+  payload: Record<string, unknown>
+) => {
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === null || value === undefined) return;
+    if (key === "terms" && typeof value === "object" && !Array.isArray(value)) {
+      Object.entries(value as Record<string, unknown>).forEach(([groupCode, rawIds]) => {
+        const ids = Array.isArray(rawIds) ? rawIds : [rawIds];
+        params[`terms[${groupCode}][]`] = ids.filter((id): id is number | string => typeof id === "number" || typeof id === "string");
+      });
+      return;
+    }
+    params[key] = Array.isArray(value)
+      ? value.filter((item): item is number | string => typeof item === "number" || typeof item === "string")
+      : typeof value === "number" || typeof value === "string"
+        ? value
+        : undefined;
+  });
 };
 
 export const buildProductLandingPath = (typeSlug?: string | null, childSlug?: string | null) => {
@@ -106,8 +78,14 @@ export async function resolveProductLandingContext(
 
   const [typeSlug, ...restSlugs] = cleanSlugs;
   const matchedType = typeSlug ? findBySlug(allFilters.types, typeSlug) : null;
+  const matchedAttributeGroup = typeSlug
+    ? allFilters.attribute_filters.find((group) => group.slug === typeSlug)
+    : null;
+  const matchedFilterGroup = typeSlug
+    ? allFilters.filter_groups?.find((group) => group.route_prefix === "san-pham" && group.slug === typeSlug) ?? null
+    : null;
 
-  if (typeSlug && !matchedType) {
+  if (typeSlug && !matchedType && !matchedAttributeGroup && !matchedFilterGroup) {
     return null;
   }
 
@@ -123,6 +101,42 @@ export async function resolveProductLandingContext(
   const apiParams: ProductLandingContext["apiParams"] = {};
   const titleParts: string[] = [];
 
+  if (matchedAttributeGroup) {
+    if (restSlugs.length !== 1) return null;
+    const term = findBySlug(matchedAttributeGroup.options, restSlugs[0]);
+    if (!term) return null;
+    appendParamValue(apiParams, `terms[${matchedAttributeGroup.code}][]`, term.id);
+    routeFilters.attributeSelections = {
+      [matchedAttributeGroup.code]: [term.slug],
+    };
+    titleParts.push(matchedAttributeGroup.name, term.name);
+    const resolvedTitle = titleParts.join(" - ");
+    return {
+      canonicalPath: `/san-pham/${matchedAttributeGroup.slug}/${term.slug}`,
+      title: resolvedTitle,
+      description: `Khám phá ${resolvedTitle.toLowerCase()} chính hãng tại Thiên Kim Wine.`,
+      routeFilters,
+      apiParams,
+      filterOptions: allFilters,
+    };
+  }
+
+  if (matchedFilterGroup) {
+    if (restSlugs.length !== 1) return null;
+    const preset = matchedFilterGroup.presets.find((item) => item.slug === restSlugs[0]);
+    if (!preset) return null;
+    applyPresetPayload(apiParams, preset.filter_payload ?? {});
+    const resolvedTitle = preset.seo_title || `${matchedFilterGroup.name} - ${preset.name}`;
+    return {
+      canonicalPath: `/san-pham/${matchedFilterGroup.slug}/${preset.slug}`,
+      title: resolvedTitle,
+      description: preset.seo_description || `Khám phá ${resolvedTitle.toLowerCase()} tại Thiên Kim Wine.`,
+      routeFilters,
+      apiParams,
+      filterOptions: allFilters,
+    };
+  }
+
   if (matchedType) {
     apiParams["type[]"] = [matchedType.id];
     titleParts.push(matchedType.name);
@@ -134,34 +148,6 @@ export async function resolveProductLandingContext(
       routeFilters.categorySlug = category.slug;
       apiParams["category[]"] = [category.id];
       titleParts.push(category.name);
-      continue;
-    }
-
-    const pricePreset = PRICE_PRESETS[slug];
-    if (pricePreset) {
-      if (typeof pricePreset.min === "number") {
-        apiParams.price_min = pricePreset.min;
-      }
-      if (typeof pricePreset.max === "number") {
-        apiParams.price_max = pricePreset.max;
-      }
-      routeFilters.priceRange = {
-        min: pricePreset.min ?? filters.price.min ?? 0,
-        max: pricePreset.max ?? filters.price.max ?? 10_000_000,
-      };
-      titleParts.push(pricePreset.label);
-      continue;
-    }
-
-    const termMatch = findTermBySlug(filters.attribute_filters, slug);
-    if (termMatch) {
-      const { group, term } = termMatch;
-      appendParamValue(apiParams, `terms[${group.code}][]`, term.id);
-      routeFilters.attributeSelections = {
-        ...(routeFilters.attributeSelections ?? {}),
-        [group.code]: [...(routeFilters.attributeSelections?.[group.code] ?? []), term.slug],
-      };
-      titleParts.push(term.name);
       continue;
     }
 

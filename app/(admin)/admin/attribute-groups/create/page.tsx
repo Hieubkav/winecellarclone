@@ -24,11 +24,16 @@ function generateCode(text: string): string {
     .replace(/^_+|_+$/g, '');
 }
 
+function generateSlug(text: string): string {
+  return generateCode(text).replace(/_/g, '-');
+}
+
 export default function AttributeGroupCreatePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [code, setCode] = useState('');
+  const [slug, setSlug] = useState('');
   const [name, setName] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('checkbox');
   const [inputType, setInputType] = useState<string>('');
@@ -50,6 +55,7 @@ export default function AttributeGroupCreatePage() {
     try {
       const result = await createCatalogAttributeGroup({
         code: code.trim(),
+        slug: slug.trim() || undefined,
         name: name.trim(),
         filter_type: filterType,
         input_type: inputType.trim() || null,
@@ -122,6 +128,20 @@ export default function AttributeGroupCreatePage() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="slug">Slug URL <span className="text-red-500">*</span></Label>
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="Ví dụ: xuat-xu"
+                required
+              />
+              <p className="text-xs text-slate-500">
+                Dùng cho route public như /san-pham/xuat-xu/phap. Khác với mã kỹ thuật bên trên.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="name">Tên thuộc tính <span className="text-red-500">*</span></Label>
               <Input
                 id="name"
@@ -130,6 +150,9 @@ export default function AttributeGroupCreatePage() {
                   setName(e.target.value);
                   if (!code) {
                     setCode(generateCode(e.target.value));
+                  }
+                  if (!slug) {
+                    setSlug(generateSlug(e.target.value));
                   }
                 }}
                 placeholder="Ví dụ: Xuất xứ"
