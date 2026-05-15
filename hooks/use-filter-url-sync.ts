@@ -20,14 +20,32 @@ const findSlugById = (options: ProductFilterOption[], id: number): string | null
   return option?.slug ?? null
 }
 
-const areSlugListsEqual = (left: string[], right: string[]) => {
-  if (left.length !== right.length) {
-    return false
-  }
+const buildAttributePathSegments = (
+  attributeSelections: Record<string, number[]>,
+  attributeFilters: Array<{ code: string; slug: string; options: ProductFilterOption[] }>
+) => {
+  const segments: string[] = []
 
-  const normalizedLeft = [...left].sort()
-  const normalizedRight = [...right].sort()
-  return normalizedLeft.every((value, index) => value === normalizedRight[index])
+  Object.entries(attributeSelections).forEach(([code, ids]) => {
+    if (ids.length === 0) {
+      return
+    }
+
+    const attrFilter = attributeFilters.find((filter) => filter.code === code)
+    if (!attrFilter?.slug) {
+      return
+    }
+
+    const termSlugs = ids
+      .map((id) => findSlugById(attrFilter.options, id))
+      .filter((slug): slug is string => Boolean(slug))
+
+    if (termSlugs.length > 0) {
+      segments.push(attrFilter.slug, termSlugs.join(","))
+    }
+  })
+
+  return segments
 }
 
 /**
@@ -292,15 +310,12 @@ export function useFilterUrlSync(syncOptions?: {
 
     const params = new URLSearchParams()
 
-    // Category - use slug instead of ID
-    if (filters.categoryId) {
-      const categorySlug = findSlugById(options.categories, filters.categoryId)
-      params.set("category", categorySlug ?? String(filters.categoryId))
-    }
-
     const listingMode = syncOptions?.listingMode ?? (syncOptions?.initialTypeSlug ? "type-landing" : "generic")
     const selectedTypeSlug = filters.productTypeId
       ? findSlugById(options.productTypes, filters.productTypeId)
+      : null
+    const selectedCategorySlug = filters.categoryId
+      ? findSlugById(options.categories, filters.categoryId)
       : null
 
     // Search query
@@ -322,35 +337,7 @@ export function useFilterUrlSync(syncOptions?: {
       params.set("price_max", String(filters.priceRange[1]))
     }
 
-    // Dynamic attribute filters - use slug instead of ID
-    Object.entries(filters.attributeSelections).forEach(([code, ids]) => {
-      if (ids.length > 0) {
-        const attrFilter = options.attributeFilters.find((f) => f.code === code)
-        if (attrFilter) {
-          const slugs = ids.map((id) => {
-            const slug = findSlugById(attrFilter.options, id)
-            return slug ?? String(id)
-          })
-          params.set(code, slugs.join(","))
-        } else {
-          params.set(code, ids.join(","))
-        }
-      }
-    })
-
     if (listingMode === "type-landing") {
-      const routeCategorySlug = syncOptions?.initialCategorySlug ?? null
-      if (routeCategorySlug && params.get("category") === routeCategorySlug) {
-        params.delete("category")
-      }
-
-      Object.entries(syncOptions?.initialAttributeSelections ?? {}).forEach(([code, routeSlugs]) => {
-        const currentSlugs = params.get(code)?.split(",").filter(Boolean) ?? []
-        if (currentSlugs.length > 0 && areSlugListsEqual(currentSlugs, routeSlugs)) {
-          params.delete(code)
-        }
-      })
-
       const routePriceRange = syncOptions?.initialPriceRange ?? null
       if (
         routePriceRange &&
@@ -362,22 +349,23 @@ export function useFilterUrlSync(syncOptions?: {
       }
     }
 
-    // Generic mode: nếu đã chọn type thì URL chuẩn phải là /san-pham/<typeSlug> thay vì /san-pham?type=...
-    if (listingMode === "generic" && pathname === "/san-pham" && selectedTypeSlug) {
-      const queryString = params.toString()
-      const newUrl = queryString ? `/san-pham/${selectedTypeSlug}?${queryString}` : `/san-pham/${selectedTypeSlug}`
-      const currentUrl = `${pathname}${window.location.search}`
-
-      if (newUrl !== currentUrl) {
-        router.replace(newUrl, { scroll: false })
-        previousUrlParams.current = queryString
+    const pathSegments: string[] = []
+    if (selectedTypeSlug) {
+      pathSegments.push(selectedTypeSlug)
+      if (selectedCategorySlug) {
+        pathSegments.push(selectedCategorySlug)
       }
-      return
+    } else if (selectedCategorySlug) {
+      params.set("category", selectedCategorySlug)
     }
+
+    pathSegments.push(...buildAttributePathSegments(filters.attributeSelections, options.attributeFilters))
+
+    const basePath = pathSegments.length > 0 ? `/san-pham/${pathSegments.join("/")}` : "/san-pham"
 
     // Update URL without adding to history (replace instead of push)
     const queryString = params.toString()
-    const newUrl = queryString ? `${pathname}?${queryString}` : pathname
+    const newUrl = queryString ? `${basePath}?${queryString}` : basePath
     const currentUrl = `${pathname}${window.location.search}`
     
     if (newUrl !== currentUrl) {

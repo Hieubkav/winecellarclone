@@ -71,6 +71,7 @@ type CachePayload<T> = {
 
 interface AttributeFilter {
   code: string
+  slug: string
   name: string
   filter_type: string
   input_type?: string
@@ -311,6 +312,7 @@ const transformOptions = (payload: {
   price: { min: number; max: number }
   attribute_filters: Array<{
     code: string
+    slug: string
     name: string
     filter_type: string
     input_type?: string

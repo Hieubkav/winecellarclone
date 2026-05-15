@@ -58,6 +58,59 @@ const applyPresetPayload = (
   });
 };
 
+const applyAttributeRouteSegments = (
+  attributeFilters: AttributeFilter[],
+  slugs: string[],
+  apiParams: ProductLandingContext["apiParams"],
+  routeFilters: ProductLandingRouteFilters
+): string[] | null => {
+  if (slugs.length === 0) {
+    return [];
+  }
+
+  if (slugs.length % 2 !== 0) {
+    return null;
+  }
+
+  const titleParts: string[] = [];
+  const attributeSelections: Record<string, string[]> = {
+    ...(routeFilters.attributeSelections ?? {}),
+  };
+
+  for (let index = 0; index < slugs.length; index += 2) {
+    const groupSlug = slugs[index];
+    const termSegment = slugs[index + 1];
+    const group = attributeFilters.find((item) => item.slug === groupSlug);
+
+    if (!group || !termSegment) {
+      return null;
+    }
+
+    const termSlugs = termSegment.split(",").map((slug) => slug.trim()).filter(Boolean);
+    if (termSlugs.length === 0) {
+      return null;
+    }
+
+    const matchedTerms = termSlugs.map((slug) => findBySlug(group.options, slug));
+    if (matchedTerms.some((term) => !term)) {
+      return null;
+    }
+
+    matchedTerms.forEach((term) => {
+      if (!term) return;
+      appendParamValue(apiParams, `terms[${group.code}][]`, term.id);
+    });
+
+    attributeSelections[group.code] = matchedTerms
+      .filter((term): term is NonNullable<typeof term> => Boolean(term))
+      .map((term) => term.slug);
+    titleParts.push(...matchedTerms.filter((term): term is NonNullable<typeof term> => Boolean(term)).map((term) => term.name));
+  }
+
+  routeFilters.attributeSelections = attributeSelections;
+  return titleParts;
+};
+
 export const buildProductLandingPath = (typeSlug?: string | null, childSlug?: string | null) => {
   if (!typeSlug) {
     return "/san-pham";
@@ -114,16 +167,17 @@ export async function resolveProductLandingContext(
       };
     }
     if (restSlugs.length !== 1) return null;
-    const term = findBySlug(matchedAttributeGroup.options, restSlugs[0]);
-    if (!term) return null;
-    appendParamValue(apiParams, `terms[${matchedAttributeGroup.code}][]`, term.id);
-    routeFilters.attributeSelections = {
-      [matchedAttributeGroup.code]: [term.slug],
-    };
-    titleParts.push(matchedAttributeGroup.name, term.name);
+    const attributeTitleParts = applyAttributeRouteSegments(
+      [matchedAttributeGroup],
+      [matchedAttributeGroup.slug, restSlugs[0]],
+      apiParams,
+      routeFilters
+    );
+    if (!attributeTitleParts) return null;
+    titleParts.push(matchedAttributeGroup.name, ...attributeTitleParts);
     const resolvedTitle = titleParts.join(" - ");
     return {
-      canonicalPath: `/san-pham/${matchedAttributeGroup.slug}/${term.slug}`,
+      canonicalPath: `/san-pham/${matchedAttributeGroup.slug}/${restSlugs[0]}`,
       title: resolvedTitle,
       description: `Khám phá ${resolvedTitle.toLowerCase()} chính hãng tại Thiên Kim Wine.`,
       routeFilters,
@@ -153,17 +207,28 @@ export async function resolveProductLandingContext(
     titleParts.push(matchedType.name);
   }
 
-  for (const slug of restSlugs) {
-    const category = findBySlug(filters.categories, slug);
+  const remainingSlugs = [...restSlugs];
+  const firstRestSlug = remainingSlugs[0];
+  if (firstRestSlug) {
+    const category = findBySlug(filters.categories, firstRestSlug);
     if (category) {
       routeFilters.categorySlug = category.slug;
       apiParams["category[]"] = [category.id];
       titleParts.push(category.name);
-      continue;
+      remainingSlugs.shift();
     }
+  }
 
+  const attributeTitleParts = applyAttributeRouteSegments(
+    filters.attribute_filters,
+    remainingSlugs,
+    apiParams,
+    routeFilters
+  );
+  if (!attributeTitleParts) {
     return null;
   }
+  titleParts.push(...attributeTitleParts);
 
   const resolvedTitle = titleParts.length > 0 ? titleParts.join(" - ") : "Sản phẩm";
   const canonicalPath = cleanSlugs.length > 0 ? `/san-pham/${cleanSlugs.join("/")}` : "/san-pham";
