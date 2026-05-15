@@ -293,7 +293,7 @@ function SearchForm() {
   )
 }
 function ContactButton() {
-  const [href, setHref] = useState("/contact")
+  const [href, setHref] = useState("/lien-he")
 
   useEffect(() => {
     setHref("/lien-he")
