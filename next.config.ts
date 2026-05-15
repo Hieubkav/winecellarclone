@@ -84,7 +84,7 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   async headers() {
-    return [
+    const headers: Awaited<ReturnType<NonNullable<NextConfig["headers"]>>> = [
       {
         source: '/(.*)',
         headers: [
@@ -123,26 +123,32 @@ const nextConfig: NextConfig = {
           // HTML pages dùng cache/revalidation của App Router, tránh ép cache-control global gây stale sau khi CMS update
         ],
       },
-      // Aggressive caching for static assets
-      {
-        source: '/media/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
     ];
+
+    if (isProduction) {
+      headers.push(
+        {
+          source: '/media/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
+        {
+          source: '/_next/static/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        }
+      );
+    }
+
+    return headers;
   },
 };
 
