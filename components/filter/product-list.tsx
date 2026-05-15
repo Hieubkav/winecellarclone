@@ -27,6 +27,7 @@ interface ProductListProps {
   initialCategorySlug?: string | null
   initialAttributeSelections?: Record<string, string[]>
   initialPriceRange?: { min: number; max: number } | null
+  initialCanonicalPath?: string | null
   listingMode?: "generic" | "type-landing"
   pageTitle?: string
 }
@@ -39,6 +40,7 @@ export default function WineList({
   initialCategorySlug = null,
   initialAttributeSelections = EMPTY_ATTRIBUTE_SELECTIONS,
   initialPriceRange = null,
+  initialCanonicalPath = null,
   listingMode = "generic",
   pageTitle = "Sản phẩm của chúng tôi",
 }: ProductListProps) {
@@ -52,6 +54,7 @@ export default function WineList({
     initialCategorySlug,
     initialAttributeSelections,
     initialPriceRange,
+    initialCanonicalPath,
     listingMode,
   })
   

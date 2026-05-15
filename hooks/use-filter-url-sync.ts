@@ -64,6 +64,7 @@ export function useFilterUrlSync(syncOptions?: {
   initialCategorySlug?: string | null
   initialAttributeSelections?: Record<string, string[]>
   initialPriceRange?: { min: number; max: number } | null
+  initialCanonicalPath?: string | null
   listingMode?: "generic" | "type-landing"
 }) {
   const pathname = usePathname()
@@ -336,16 +337,14 @@ export function useFilterUrlSync(syncOptions?: {
       params.set("price_max", String(filters.priceRange[1]))
     }
 
-    if (listingMode === "type-landing") {
-      const routePriceRange = syncOptions?.initialPriceRange ?? null
-      if (
-        routePriceRange &&
-        params.get("price_min") === String(routePriceRange.min) &&
-        params.get("price_max") === String(routePriceRange.max)
-      ) {
-        params.delete("price_min")
-        params.delete("price_max")
-      }
+    const routePriceRange = syncOptions?.initialPriceRange ?? null
+    if (
+      routePriceRange &&
+      params.get("price_min") === String(routePriceRange.min) &&
+      params.get("price_max") === String(routePriceRange.max)
+    ) {
+      params.delete("price_min")
+      params.delete("price_max")
     }
 
     const pathSegments: string[] = []
@@ -360,7 +359,12 @@ export function useFilterUrlSync(syncOptions?: {
 
     pathSegments.push(...buildAttributePathSegments(filters.attributeSelections, options.attributeFilters))
 
-    const basePath = pathSegments.length > 0 ? `/san-pham/${pathSegments.join("/")}` : "/san-pham"
+    const routeCanonicalPath = syncOptions?.initialCanonicalPath ?? null
+    const basePath = pathSegments.length > 0
+      ? `/san-pham/${pathSegments.join("/")}`
+      : routeCanonicalPath && pathname === routeCanonicalPath
+        ? routeCanonicalPath
+        : "/san-pham"
 
     // Update URL without adding to history (replace instead of push)
     const queryString = params.toString()
@@ -382,6 +386,7 @@ export function useFilterUrlSync(syncOptions?: {
     syncOptions?.initialCategorySlug,
     syncOptions?.initialAttributeSelections,
     syncOptions?.initialPriceRange,
+    syncOptions?.initialCanonicalPath,
     syncOptions?.initialTypeSlug,
     syncOptions?.listingMode,
   ])

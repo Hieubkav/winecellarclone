@@ -245,6 +245,7 @@ export async function renderFilterListing({
         initialCategorySlug={routeCategorySlug ?? null}
         initialAttributeSelections={routeAttributeSelections ?? {}}
         initialPriceRange={routePriceRange ?? null}
+        initialCanonicalPath={canonicalPath}
         listingMode={listingMode}
         pageTitle={resolvedPageTitle}
       />

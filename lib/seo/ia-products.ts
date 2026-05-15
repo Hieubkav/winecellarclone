@@ -58,6 +58,15 @@ const applyPresetPayload = (
   });
 };
 
+const resolvePresetPriceRange = (payload: Record<string, unknown>) => {
+  const min = typeof payload.price_min === "number" ? payload.price_min : null;
+  const max = typeof payload.price_max === "number" ? payload.price_max : null;
+
+  return min !== null || max !== null
+    ? { min: min ?? 0, max: max ?? 0 }
+    : null;
+};
+
 const applyAttributeRouteSegments = (
   attributeFilters: AttributeFilter[],
   slugs: string[],
@@ -190,7 +199,9 @@ export async function resolveProductLandingContext(
     if (restSlugs.length !== 1) return null;
     const preset = matchedFilterGroup.presets.find((item) => item.slug === restSlugs[0]);
     if (!preset) return null;
-    applyPresetPayload(apiParams, preset.filter_payload ?? {});
+    const presetPayload = preset.filter_payload ?? {};
+    applyPresetPayload(apiParams, presetPayload);
+    routeFilters.priceRange = resolvePresetPriceRange(presetPayload);
     const resolvedTitle = preset.seo_title || `${matchedFilterGroup.name} - ${preset.name}`;
     return {
       canonicalPath: `/san-pham/${matchedFilterGroup.slug}/${preset.slug}`,
