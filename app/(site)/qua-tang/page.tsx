@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import SeoHubPage from "@/components/seo/SeoHubPage";
+import ArticleListPage from "@/components/articles/ArticleListPage";
+import { fetchArticleListSafe } from "@/lib/api/articles";
+import { fetchSettingsSafe } from "@/lib/api/settings";
+import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
@@ -9,19 +12,45 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/qua-tang` },
 };
 
-export default function GiftsPage() {
+type GiftsRouteSearchParams = {
+  page?: string;
+  per_page?: string;
+  sort?: string;
+};
+
+export default async function GiftsPage({
+  searchParams,
+}: {
+  searchParams: Promise<GiftsRouteSearchParams>;
+}) {
+  const params = await searchParams;
+  const page = parseInt(params.page || "1", 10);
+  const perPage = parseInt(params.per_page || "12", 10);
+  const sort = params.sort || "-created_at";
+  const [data, settings] = await Promise.all([
+    fetchArticleListSafe({ page, per_page: perPage, sort, category_key: "qua-tang" }),
+    fetchSettingsSafe(),
+  ]);
+  const articleListFontStyle = getScopedFontStyle(settings, "article_list");
+
   return (
-    <SeoHubPage
-      eyebrow="Quà tặng"
-      title="Quà tặng rượu sang trọng"
-      description="Điểm vào cho các nhu cầu quà biếu cá nhân, doanh nghiệp và dịp lễ Tết, giúp khách hàng chọn đúng món quà theo ngân sách và người nhận."
-      links={[
-        { label: "Quà tặng doanh nghiệp", href: "/qua-tang/doanh-nghiep" },
-        { label: "Quà tặng rượu vang", href: "/qua-tang/ruou-vang" },
-        { label: "Quà tặng rượu mạnh", href: "/qua-tang/ruou-manh" },
-        { label: "Quà Tết", href: "/qua-tang/tet" },
-        { label: "Hộp quà / túi quà", href: "/qua-tang/hop-tui-qua" },
-      ]}
+    <ArticleListPage
+      data={
+        data ?? {
+          data: [],
+          meta: {
+            pagination: { page, per_page: perPage, total: 0, last_page: 1, has_more: false },
+            sorting: { sort },
+            filtering: { author: null, q: null },
+            api_version: "offline",
+            timestamp: new Date().toISOString(),
+          },
+          _links: { self: { href: `${SITE_URL}/qua-tang`, method: "GET" } },
+        }
+      }
+      fontFamily={articleListFontStyle.fontFamily}
+      title="Quà tặng"
+      description="Tư vấn quà tặng theo nhu cầu, ngân sách và dịp tặng"
     />
   );
 }

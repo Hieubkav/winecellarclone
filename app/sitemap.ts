@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { fetchProductListSafe, fetchProductFiltersSafe } from '@/lib/api/products'
 import { fetchArticleListSafe } from '@/lib/api/articles'
+import { getArticlePublicHref } from '@/lib/articles/routes'
 import { IA_STATIC_PATHS } from '@/lib/ia/route-registry'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.thienkimwine.vn'
@@ -52,6 +53,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...typePages,
     ...categoryPages,
+    {
+      url: `${SITE_URL}/bai-viet`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
     {
       url: `${SITE_URL}/lien-he`,
       lastModified: new Date(),
@@ -120,7 +127,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const articlePages: MetadataRoute.Sitemap = allArticles.map((article) => ({
-    url: `${SITE_URL}/bai-viet/${article.slug}`,
+    url: `${SITE_URL}${getArticlePublicHref(article)}`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,

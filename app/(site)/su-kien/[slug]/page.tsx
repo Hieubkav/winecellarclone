@@ -6,8 +6,8 @@ import { fetchSettingsSafe } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
-const CATEGORY_KEY = "kien-thuc";
-const HUB = "kien-thuc";
+const HUB = "su-kien";
+const CATEGORY_KEY = "su-kien";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function KnowledgeChildPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function EventDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const [article, settings] = await Promise.all([
     fetchArticleDetailSafe(slug),
@@ -38,14 +38,13 @@ export default async function KnowledgeChildPage({ params }: { params: Promise<{
   }
 
   const articleDetailFontStyle = getScopedFontStyle(settings, "article_detail");
-
   return (
     <ArticleDetailPage
       article={article}
       fontFamily={articleDetailFontStyle.fontFamily}
       canonicalPath={`/${HUB}/${article.slug}`}
-      parentHref="/kien-thuc"
-      parentLabel="Kiến thức"
+      parentHref={`/${HUB}`}
+      parentLabel="Sự kiện"
     />
   );
 }

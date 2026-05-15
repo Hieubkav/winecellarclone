@@ -15,6 +15,7 @@ import type {
 import type { HomeEditorial } from "@/data/homeCollections";
 import type { ProductCardItem } from "@/lib/types/product-card";
 import { getImageUrl } from "@/lib/utils/article-content";
+import { getArticlePublicHref } from "@/lib/articles/routes";
 
 const resolveApiImageUrl = (image?: { canonical_url?: string | null; url?: string | null } | null) =>
   image?.canonical_url || image?.url || "";
@@ -60,7 +61,7 @@ export function transformApiArticle(article: ApiArticle): HomeEditorial {
     id: article.id.toString(),
     title: article.title,
     summary: article.excerpt || "",
-    href: `/bai-viet/${article.slug}`,
+    href: getArticlePublicHref(article),
     image: getImageUrl(resolveCoverImageUrl(article.cover_image_url, article.cover_image_canonical_url)),
     readingTime: article.reading_time ? `${article.reading_time} phút đọc` : "",
     highlight: "",

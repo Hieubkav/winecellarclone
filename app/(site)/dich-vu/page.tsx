@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import SeoHubPage from "@/components/seo/SeoHubPage";
+import ArticleListPage from "@/components/articles/ArticleListPage";
+import { fetchArticleListSafe } from "@/lib/api/articles";
+import { fetchSettingsSafe } from "@/lib/api/settings";
+import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
@@ -9,18 +12,45 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/dich-vu` },
 };
 
-export default function ServicesPage() {
+type ServicesRouteSearchParams = {
+  page?: string;
+  per_page?: string;
+  sort?: string;
+};
+
+export default async function ServicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<ServicesRouteSearchParams>;
+}) {
+  const params = await searchParams;
+  const page = parseInt(params.page || "1", 10);
+  const perPage = parseInt(params.per_page || "12", 10);
+  const sort = params.sort || "-created_at";
+  const [data, settings] = await Promise.all([
+    fetchArticleListSafe({ page, per_page: perPage, sort, category_key: "dich-vu" }),
+    fetchSettingsSafe(),
+  ]);
+  const articleListFontStyle = getScopedFontStyle(settings, "article_list");
+
   return (
-    <SeoHubPage
-      eyebrow="Dịch vụ"
-      title="Dịch vụ rượu vang và quà tặng"
-      description="Các dịch vụ hỗ trợ doanh nghiệp và cá nhân chọn rượu, cá nhân hóa quà tặng và gửi quà chuyên nghiệp."
-      links={[
-        { label: "Đặt hàng doanh nghiệp", href: "/dich-vu/dat-hang-doanh-nghiep" },
-        { label: "In logo / tên doanh nghiệp", href: "/dich-vu/in-logo-ten-doanh-nghiep" },
-        { label: "Tư vấn chọn quà", href: "/dich-vu/tu-van-chon-qua" },
-        { label: "Tặng quà từ xa", href: "/dich-vu/tang-qua-tu-xa" },
-      ]}
+    <ArticleListPage
+      data={
+        data ?? {
+          data: [],
+          meta: {
+            pagination: { page, per_page: perPage, total: 0, last_page: 1, has_more: false },
+            sorting: { sort },
+            filtering: { author: null, q: null },
+            api_version: "offline",
+            timestamp: new Date().toISOString(),
+          },
+          _links: { self: { href: `${SITE_URL}/dich-vu`, method: "GET" } },
+        }
+      }
+      fontFamily={articleListFontStyle.fontFamily}
+      title="Dịch vụ"
+      description="Dịch vụ quà tặng, doanh nghiệp và tư vấn"
     />
   );
 }

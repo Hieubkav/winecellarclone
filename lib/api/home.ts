@@ -43,6 +43,7 @@ export interface ApiArticle {
   title: string;
   slug: string;
   excerpt: string | null;
+  category_key?: string | null;
   cover_image_url: string | null;
   cover_image_canonical_url?: string | null;
   published_at: string | null;

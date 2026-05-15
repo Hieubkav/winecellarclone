@@ -8,6 +8,7 @@ import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles, ChevronDown
 import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
 import { stripHtmlTags } from '@/lib/utils/article-content';
+import { getArticleCategoryHub } from '@/lib/articles/routes';
 import { getImageUrl } from '@/lib/utils/image';
 import { useArticleForm } from '../hooks/useArticleForm';
 
@@ -95,6 +96,9 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
   };
 
   const visibleSlots = contentOptions?.slots.filter((slot) => !categoryKey || slot.category_key === categoryKey) ?? [];
+  const previewHub = getArticleCategoryHub(categoryKey);
+  const previewSlug = slug || generateSlug(title) || 'bai-viet';
+  const previewPath = previewHub ? `/${previewHub}/${previewSlug}` : `/bai-viet/${previewSlug}`;
 
   return (
     <div className="space-y-4 pb-28">
@@ -391,7 +395,7 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
                 {metaTitle.trim() || title || 'Tiêu đề bài viết'}
               </div>
               <div className="text-emerald-600 text-xs">
-                /bai-viet/{slug || generateSlug(title) || 'bai-viet'}
+                {previewPath}
               </div>
               <div className="text-slate-600 text-xs mt-1 line-clamp-2">
                 {metaDescription.trim()

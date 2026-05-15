@@ -55,6 +55,7 @@ export default async function KnowledgePage({
       page,
       per_page: perPage,
       sort,
+      category_key: "kien-thuc",
     }),
     fetchSettingsSafe(),
   ]);
@@ -84,6 +85,8 @@ export default async function KnowledgePage({
         }
       }
       fontFamily={articleListFontStyle.fontFamily}
+      title="Kiến thức"
+      description="Bài hướng dẫn, chia sẻ kinh nghiệm và kiến thức rượu"
     />
   );
 }

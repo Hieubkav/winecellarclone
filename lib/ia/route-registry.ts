@@ -1,5 +1,7 @@
+import { getArticleCategoryHub } from "@/lib/articles/routes";
+
 export type IARouteSource =
-  | { kind: "core"; key: "home" | "products" | "contact" }
+  | { kind: "core"; key: "home" | "products" | "articles" | "contact" }
   | { kind: "static_hub"; hub: string }
   | { kind: "static_child"; hub: string; slug: string }
   | { kind: "product_type"; typeSlug: string }
@@ -7,7 +9,7 @@ export type IARouteSource =
   | { kind: "product_term"; typeSlug: string; groupCode?: string; termSlug: string }
   | { kind: "price_preset"; typeSlug: string; presetSlug: string }
   | { kind: "product"; slug: string }
-  | { kind: "article"; slug: string }
+  | { kind: "article"; slug: string; categoryKey?: string }
   | { kind: "custom"; href: string };
 
 export type IARouteOption = {
@@ -27,7 +29,13 @@ export type IAGroup = {
 export const buildIARoute = (source: IARouteSource): string => {
   switch (source.kind) {
     case "core":
-      return source.key === "home" ? "/" : source.key === "products" ? "/san-pham" : "/lien-he";
+      return source.key === "home"
+        ? "/"
+        : source.key === "products"
+          ? "/san-pham"
+          : source.key === "articles"
+            ? "/bai-viet"
+            : "/lien-he";
     case "static_hub":
       return `/${source.hub}`;
     case "static_child":
@@ -43,7 +51,8 @@ export const buildIARoute = (source: IARouteSource): string => {
     case "product":
       return `/san-pham/${source.slug}`;
     case "article":
-      return `/bai-viet/${source.slug}`;
+      const hub = getArticleCategoryHub(source.categoryKey);
+      return hub ? `/${hub}/${source.slug}` : `/bai-viet/${source.slug}`;
     case "custom":
       return source.href;
   }
@@ -89,6 +98,7 @@ const productNode = (
 export const CORE_ROUTE_OPTIONS: IARouteOption[] = [
   route("Trang chủ", { kind: "core", key: "home" }),
   route("Sản phẩm", { kind: "core", key: "products" }),
+  route("Bài viết", { kind: "core", key: "articles" }),
   route("Liên hệ", { kind: "core", key: "contact" }),
 ];
 

@@ -77,6 +77,7 @@ import {
   serializeRouteSource,
   type IARouteSource,
 } from '@/lib/ia/route-registry';
+import { getArticlePublicHref } from '@/lib/articles/routes';
 import { toast } from 'sonner';
 
 // ==================== TYPES ====================
@@ -1283,8 +1284,8 @@ export function MenuBuilder({ menus: initialMenus, onRefresh: _onRefresh }: Menu
   const articleSuggestionItems = useMemo<RouteSuggestion[]>(
     () => suggestionArticles.map((article) => ({
       label: article.title,
-      href: `/bai-viet/${article.slug}`,
-      source: { kind: 'article', slug: article.slug },
+      href: getArticlePublicHref(article),
+      source: { kind: 'article', slug: article.slug, categoryKey: article.category_key ?? undefined },
     })),
     [suggestionArticles]
   );

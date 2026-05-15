@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ArticleListResponse } from "@/lib/api/articles";
 import { cn } from "@/lib/utils";
 import { getArticleImageUrl } from "@/lib/utils/image";
+import { getArticlePublicHref } from "@/lib/articles/routes";
 
 const SORT_OPTIONS = [
   { value: "-created_at", label: "Mới nhất" },
@@ -21,6 +22,8 @@ const SORT_OPTIONS = [
 interface ArticleListPageProps {
   data: ArticleListResponse;
   fontFamily?: string;
+  title?: string;
+  description?: string;
 }
 
 const formatDate = (dateString: string): string => {
@@ -44,6 +47,7 @@ interface BlogCardProps {
     excerpt: string | null;
     cover_image_url: string | null;
     cover_image_canonical_url?: string | null;
+    category_key?: string | null;
     published_at: string;
   };
   index: number;
@@ -51,6 +55,7 @@ interface BlogCardProps {
 
 function BlogCard({ article, index }: BlogCardProps) {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const articleHref = getArticlePublicHref(article);
 
   return (
     <div
@@ -59,7 +64,7 @@ function BlogCard({ article, index }: BlogCardProps) {
     >
       <div className="group overflow-hidden border-none bg-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full rounded-xl">
         {/* Image Container */}
-        <Link href={`/bai-viet/${article.slug}`} className="block">
+        <Link href={articleHref} className="block">
           <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
             {!isImageLoaded && (
               <Skeleton className="absolute inset-0 w-full h-full" />
@@ -90,7 +95,7 @@ function BlogCard({ article, index }: BlogCardProps) {
           </div>
 
           {/* Title */}
-          <Link href={`/bai-viet/${article.slug}`} className="block">
+          <Link href={articleHref} className="block">
             <h3 className="text-lg font-bold leading-snug mb-2 group-hover:text-[#9B2C3B] transition-colors line-clamp-2">
               {article.title}
             </h3>
@@ -104,7 +109,7 @@ function BlogCard({ article, index }: BlogCardProps) {
           {/* Footer Action */}
           <div className="mt-auto pt-3 border-t border-dashed border-stone-200">
             <Link
-              href={`/bai-viet/${article.slug}`}
+              href={articleHref}
               className="w-full flex items-center justify-between text-[#9B2C3B] font-semibold text-xs uppercase tracking-widest group/btn hover:opacity-80 transition-opacity"
             >
               <span>Đọc tiếp</span>
@@ -117,7 +122,7 @@ function BlogCard({ article, index }: BlogCardProps) {
   );
 }
 
-export default function ArticleListPage({ data, fontFamily }: ArticleListPageProps) {
+export default function ArticleListPage({ data, fontFamily, title = "Bài viết", description = "Tin tức, kiến thức và xu hướng mới nhất" }: ArticleListPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -172,10 +177,10 @@ export default function ArticleListPage({ data, fontFamily }: ArticleListPagePro
             <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
               <div className="text-center md:text-left">
                 <h1 className="text-3xl md:text-4xl font-bold text-stone-800 mb-2">
-                  Bài viết
+                  {title}
                 </h1>
                 <p className="text-stone-500 text-sm md:text-base">
-                  Tin tức, kiến thức và xu hướng mới nhất
+                  {description}
                 </p>
               </div>
               <div className="relative" ref={dropdownRef}>

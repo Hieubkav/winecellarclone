@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Package, FileText, Eye, TrendingUp, TrendingDown, Users } from 'lucide-react';
 import { Card, Skeleton, Badge } from '../components/ui';
 import { cn } from '@/lib/utils';
+import { getArticlePublicHref } from '@/lib/articles/routes';
 import { getProductImageUrl, getArticleImageUrl } from '@/lib/utils/image';
 import {
   AreaChart,
@@ -367,7 +368,7 @@ export default function DashboardPage() {
               topArticles.map((article, index) => (
                 <Link 
                   key={article.id} 
-                  href={`/bai-viet/${article.slug}`}
+                  href={getArticlePublicHref(article)}
                   target="_blank"
                   className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors duration-150"
                 >

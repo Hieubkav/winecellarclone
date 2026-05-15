@@ -33,6 +33,7 @@ export interface RelatedArticle {
   title: string;
   slug: string;
   excerpt: string | null;
+  category_key?: string | null;
   cover_image_url: string | null;
   cover_image_canonical_url?: string | null;
   published_at: string;
@@ -82,6 +83,7 @@ export interface ArticleListMeta {
   filtering: {
     author: number | null;
     q: string | null;
+    category_key?: string | null;
   };
   api_version: string;
   timestamp: string;

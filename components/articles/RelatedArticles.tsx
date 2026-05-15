@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Calendar, ArrowRight } from "lucide-react";
 import type { RelatedArticle } from "@/lib/api/articles";
 import { getArticleImageUrl } from "@/lib/utils/image";
+import { getArticlePublicHref } from "@/lib/articles/routes";
 
 interface RelatedArticlesProps {
   articles: RelatedArticle[];
@@ -30,6 +31,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {articles.map((article) => {
         const coverImageSource = article.cover_image_canonical_url || article.cover_image_url;
+        const articleHref = getArticlePublicHref(article);
         const hasCoverImage = Boolean(
           coverImageSource?.trim() && coverImageSource !== "/placeholder/article.svg"
         );
@@ -37,7 +39,7 @@ export default function RelatedArticles({ articles }: RelatedArticlesProps) {
         return (
         <Link
           key={article.id}
-          href={`/bai-viet/${article.slug}`}
+          href={articleHref}
           className="group block h-full flex flex-col p-4 -mx-4 rounded-xl hover:bg-gray-50/50 transition-all duration-300 border border-transparent hover:border-[#C9A050]/30"
         >
           <div className="relative overflow-hidden rounded-lg aspect-[4/3] mb-4 bg-gray-100 shadow-sm">

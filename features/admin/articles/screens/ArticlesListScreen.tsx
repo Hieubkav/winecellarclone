@@ -5,6 +5,7 @@ import { Search, ExternalLink, Edit, Trash2, Plus, AlertTriangle } from 'lucide-
 import { Button, Card, Input, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Skeleton } from '@/app/(admin)/admin/components/ui';
 import { SortableHeader, SelectCheckbox, BulkActionBar, ColumnToggle } from '@/app/(admin)/admin/components/TableUtilities';
 import { cn } from '@/lib/utils';
+import { getArticlePublicHref } from '@/lib/articles/routes';
 import { ImageWithFallback } from '@/app/(admin)/admin/components/ImageWithFallback';
 import { useArticlesList } from '../hooks/useArticlesList';
 
@@ -210,7 +211,7 @@ export const ArticlesListScreen = () => {
                   )}
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Link href={`/bai-viet/${article.slug}`} target="_blank">
+                      <Link href={getArticlePublicHref(article)} target="_blank">
                         <Button
                           variant="ghost"
                           size="icon"

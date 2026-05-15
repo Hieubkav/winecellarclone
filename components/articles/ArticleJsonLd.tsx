@@ -1,5 +1,6 @@
 import type { ArticleDetail } from "@/lib/api/articles";
 import { FALLBACK_SETTINGS } from "@/lib/api/settings";
+import { getArticlePublicHref } from "@/lib/articles/routes";
 import { useSettingsStore } from "@/lib/stores/settingsStore";
 import { getImageUrl } from "@/lib/utils/image";
 
@@ -48,7 +49,7 @@ export default function ArticleJsonLd({ article, canonicalPath }: ArticleJsonLdP
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `${siteUrl}${canonicalPath || `/bai-viet/${article.slug}`}`,
+      "@id": `${siteUrl}${canonicalPath || getArticlePublicHref(article)}`,
     },
   };
 

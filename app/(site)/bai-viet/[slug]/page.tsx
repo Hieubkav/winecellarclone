@@ -7,9 +7,10 @@ export const runtime = "nodejs";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import ArticleDetailPage from "@/components/articles/ArticleDetailPage";
 import { fetchArticleDetailSafe } from "@/lib/api/articles";
+import { getArticlePublicHref } from "@/lib/articles/routes";
 import { ArticleSchema, BreadcrumbSchema } from "@/lib/seo/structured-data";
 import { fetchSettingsSafe, FALLBACK_SETTINGS } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
@@ -38,7 +39,7 @@ export async function generateMetadata({
   }
 
   const siteName = settings.site_name || "Thiên Kim Wine";
-  const canonicalUrl = `${SITE_URL}/bai-viet/${article.slug}`;
+  const canonicalUrl = `${SITE_URL}${getArticlePublicHref(article)}`;
   const ogImageSource = article.cover_image_canonical_url
     || article.cover_image_url
     || "/placeholder/article.svg";
@@ -87,9 +88,13 @@ export default async function ArticleDetailRoute({
   if (!article) {
     notFound();
   }
+  const canonicalHref = getArticlePublicHref(article);
+  if (canonicalHref !== `/bai-viet/${article.slug}`) {
+    redirect(canonicalHref);
+  }
   const articleDetailFontStyle = getScopedFontStyle(settings, "article_detail");
 
-  const articleUrl = `${SITE_URL}/bai-viet/${article.slug}`;
+  const articleUrl = `${SITE_URL}${canonicalHref}`;
   const publisherLogo = settings.logo_url || settings.og_image_url || FALLBACK_SETTINGS.logo_url;
   const resolveSeoImage = (value?: string | null): string | undefined => {
     if (!value) {

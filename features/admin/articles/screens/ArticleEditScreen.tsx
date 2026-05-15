@@ -9,6 +9,7 @@ import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
 import { getImageUrl } from '@/lib/utils/image';
 import { stripHtmlTags } from '@/lib/utils/article-content';
+import { getArticleCategoryHub } from '@/lib/articles/routes';
 import { useArticleForm } from '../hooks/useArticleForm';
 
 const truncateText = (value: string, maxLength: number) => {
@@ -108,6 +109,8 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
   }
 
   const publicSlug = slug || generateSlug(title);
+  const publicHub = getArticleCategoryHub(categoryKey);
+  const publicPath = publicHub ? `/${publicHub}/${publicSlug || 'bai-viet'}` : `/bai-viet/${publicSlug || 'bai-viet'}`;
   const visibleSlots = contentOptions?.slots.filter((slot) => !categoryKey || slot.category_key === categoryKey) ?? [];
 
   return (
@@ -396,7 +399,7 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
                 {metaTitle.trim() || title || 'Tiêu đề bài viết'}
               </div>
               <div className="text-emerald-600 text-xs">
-                /bai-viet/{publicSlug || 'bai-viet'}
+                {publicPath}
               </div>
               <div className="text-slate-600 text-xs mt-1 line-clamp-2">
                 {metaDescription.trim()
@@ -416,7 +419,7 @@ export const ArticleEditScreen = ({ articleId }: ArticleEditScreenProps) => {
                 </Button>
               </Link>
               {publicSlug ? (
-                <Link href={`/bai-viet/${publicSlug}`} target="_blank" rel="noopener noreferrer">
+                <Link href={publicPath} target="_blank" rel="noopener noreferrer">
                   <Button type="button" variant="outline" size="icon" aria-label="Xem trên web" disabled={isSubmitting}>
                     <ExternalLink size={16} />
                   </Button>

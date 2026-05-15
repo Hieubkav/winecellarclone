@@ -9,6 +9,7 @@ import RelatedArticles from "./RelatedArticles";
 import type { ArticleDetail } from "@/lib/api/articles";
 import { processArticleContent, calculateReadingTime } from "@/lib/utils/article-content";
 import { getArticleImageUrl, getImageUrl } from "@/lib/utils/image";
+import { getArticlePublicHref } from "@/lib/articles/routes";
 import { useTracking } from "@/hooks/use-tracking";
 import RichContent from "@/components/shared/RichContent";
 
@@ -132,7 +133,7 @@ const ImageGallery = ({
   );
 };
 
-export default function ArticleDetailPage({ article, fontFamily, canonicalPath, parentHref = "/kien-thuc", parentLabel = "Kiến thức" }: ArticleDetailPageProps) {
+export default function ArticleDetailPage({ article, fontFamily, canonicalPath, parentHref = "/bai-viet", parentLabel = "Bài viết" }: ArticleDetailPageProps) {
   const { trackArticleView, trackCTAContact } = useTracking();
 
   useEffect(() => {
@@ -167,7 +168,7 @@ export default function ArticleDetailPage({ article, fontFamily, canonicalPath, 
   // Share functionality
   const shareUrl = typeof window !== "undefined" 
     ? window.location.href 
-    : `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn"}${canonicalPath || `/bai-viet/${article.slug}`}`;
+    : `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn"}${canonicalPath || getArticlePublicHref(article)}`;
   const shareTitle = article.title;
 
   const handleShareFacebook = () => {

@@ -52,6 +52,7 @@ import { apiFetch } from "./client";
    id: number;
    title: string;
    slug: string;
+   category_key?: string | null;
    image_url: string | null;
    views: number;
  }
