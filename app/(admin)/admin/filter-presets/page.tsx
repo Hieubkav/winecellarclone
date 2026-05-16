@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Edit, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, Input, Label, Badge } from '../components/ui';
 import {
   createProductFilterGroup,
@@ -9,6 +9,7 @@ import {
   deleteProductFilterGroup,
   deleteProductFilterPreset,
   fetchAdminProductFilterGroups,
+  reorderProductFilterPresets,
   updateProductFilterGroup,
   updateProductFilterPreset,
   type AdminProductFilterGroup,
@@ -52,6 +53,7 @@ export default function FilterPresetsPage() {
   const [presetSlug, setPresetSlug] = useState('');
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
+  const [reorderingPresetId, setReorderingPresetId] = useState<number | null>(null);
 
   const loadGroups = async () => {
     setIsLoading(true);
@@ -154,6 +156,37 @@ export default function FilterPresetsPage() {
     setPresetSlug('');
     setPriceMin('');
     setPriceMax('');
+  };
+
+  const movePreset = async (group: AdminProductFilterGroup, presetId: number, direction: -1 | 1) => {
+    const currentIndex = group.presets.findIndex((preset) => preset.id === presetId);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex < 0 || nextIndex < 0 || nextIndex >= group.presets.length) return;
+
+    const nextPresets = [...group.presets];
+    const [movedPreset] = nextPresets.splice(currentIndex, 1);
+    if (!movedPreset) return;
+    nextPresets.splice(nextIndex, 0, movedPreset);
+
+    setReorderingPresetId(presetId);
+    setGroups((currentGroups) => currentGroups.map((item) => (
+      item.id === group.id ? { ...item, presets: nextPresets } : item
+    )));
+
+    try {
+      await reorderProductFilterPresets(
+        group.id,
+        nextPresets.map((preset, index) => ({ id: preset.id, position: index }))
+      );
+      toast.success('Đã đổi vị trí preset');
+      await loadGroups();
+    } catch (error) {
+      console.error('Reorder filter presets failed:', error);
+      toast.error('Không đổi được vị trí preset');
+      await loadGroups();
+    } finally {
+      setReorderingPresetId(null);
+    }
   };
 
   return (
@@ -270,10 +303,28 @@ export default function FilterPresetsPage() {
               </div>
             </div>
             <div className="grid gap-2">
-              {group.presets.map((preset) => (
+              {group.presets.map((preset, index) => (
                 <div key={preset.id} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">
                   <span>{preset.name} <code className="text-xs text-slate-500">{buildPresetPath(preset.slug)}</code></span>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Đưa preset lên"
+                      disabled={index === 0 || reorderingPresetId !== null}
+                      onClick={() => movePreset(group, preset.id, -1)}
+                    >
+                      <ArrowUp size={14} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Đưa preset xuống"
+                      disabled={index === group.presets.length - 1 || reorderingPresetId !== null}
+                      onClick={() => movePreset(group, preset.id, 1)}
+                    >
+                      <ArrowDown size={14} />
+                    </Button>
                     <Button variant="ghost" size="icon" aria-label="Sửa preset" onClick={() => startEditPreset(group, preset)}>
                       <Edit size={14} />
                     </Button>

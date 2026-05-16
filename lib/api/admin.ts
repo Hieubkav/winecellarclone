@@ -380,6 +380,13 @@ export async function deleteProductFilterPreset(groupId: number, presetId: numbe
   return apiFetch(`v1/admin/product-filter-groups/${groupId}/presets/${presetId}`, { method: 'DELETE' });
 }
 
+export async function reorderProductFilterPresets(groupId: number, items: Array<{ id: number; position: number }>): Promise<{ success: boolean; message: string }> {
+  return apiFetch(`v1/admin/product-filter-groups/${groupId}/presets/reorder`, {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+  });
+}
+
 export async function reorderCatalogTerms(items: Array<{ id: number; position: number }>): Promise<{ success: boolean; message: string }> {
   return apiFetch('v1/admin/catalog-terms/reorder', {
     method: 'POST',
