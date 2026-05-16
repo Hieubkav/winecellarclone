@@ -238,6 +238,10 @@ const normalizeProductFilters = (filters: ProductFiltersPayload): ProductFilters
     ...filter,
     icon_url: normalizeIconUrl(filter.icon_url),
   })),
+  route_attribute_filters: filters.route_attribute_filters?.map((filter) => ({
+    ...filter,
+    icon_url: normalizeIconUrl(filter.icon_url),
+  })),
 });
 
 export async function fetchProductList(

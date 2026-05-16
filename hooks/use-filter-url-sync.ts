@@ -107,7 +107,8 @@ export function useFilterUrlSync(syncOptions?: {
   initialAttributeSelections?: Record<string, string[]>
   initialPriceRange?: { min: number; max: number } | null
   initialCanonicalPath?: string | null
-  listingMode?: "generic" | "type-landing"
+  initialAttributeGroupSlug?: string | null
+  listingMode?: "generic" | "type-landing" | "attribute-group-landing"
 }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -392,6 +393,35 @@ export function useFilterUrlSync(syncOptions?: {
     }
 
     const routeCanonicalPath = syncOptions?.initialCanonicalPath ?? null
+    const routeAttributeGroupSlug = syncOptions?.initialAttributeGroupSlug ?? null
+
+    if (listingMode === "attribute-group-landing" && routeAttributeGroupSlug) {
+      const routeAttributeFilter = options.attributeFilters.find((filter) => filter.slug === routeAttributeGroupSlug)
+      const selectedTermSlugs = routeAttributeFilter
+        ? (filters.attributeSelections[routeAttributeFilter.code] ?? [])
+          .map((id) => findSlugById(routeAttributeFilter.options, id))
+          .filter((slug): slug is string => Boolean(slug))
+        : []
+      const isBrandHub = Boolean(routeCanonicalPath?.startsWith("/thuong-hieu"))
+      const basePath = isBrandHub
+        ? selectedTermSlugs.length > 0
+          ? `/thuong-hieu/${selectedTermSlugs.join(",")}`
+          : "/thuong-hieu"
+        : selectedTermSlugs.length > 0
+          ? `/san-pham/${routeAttributeGroupSlug}/${selectedTermSlugs.join(",")}`
+          : `/san-pham/${routeAttributeGroupSlug}`
+      const queryString = params.toString()
+      const newUrl = queryString ? `${basePath}?${queryString}` : basePath
+      const currentUrl = `${window.location.pathname}${window.location.search}`
+
+      if (newUrl !== currentUrl) {
+        window.history.replaceState(window.history.state, "", newUrl)
+        previousUrlParams.current = queryString
+      }
+
+      return
+    }
+
     const routePresetSlug = routeCanonicalPath?.split("?")[0]?.split("/").filter(Boolean).at(-1) ?? null
     const matchedPresetSlug = selectedTypeSlug && isPriceChanged
       ? options.filterGroups
@@ -472,6 +502,7 @@ export function useFilterUrlSync(syncOptions?: {
     syncOptions?.initialAttributeSelections,
     syncOptions?.initialPriceRange,
     syncOptions?.initialCanonicalPath,
+    syncOptions?.initialAttributeGroupSlug,
     syncOptions?.initialTypeSlug,
     syncOptions?.listingMode,
   ])

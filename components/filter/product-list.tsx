@@ -25,10 +25,11 @@ interface ProductListProps {
   fontFamily?: string
   initialTypeSlug?: string | null
   initialCategorySlug?: string | null
+  initialAttributeGroupSlug?: string | null
   initialAttributeSelections?: Record<string, string[]>
   initialPriceRange?: { min: number; max: number } | null
   initialCanonicalPath?: string | null
-  listingMode?: "generic" | "type-landing"
+  listingMode?: "generic" | "type-landing" | "attribute-group-landing"
   pageTitle?: string
 }
 
@@ -38,6 +39,7 @@ export default function WineList({
   fontFamily,
   initialTypeSlug = null,
   initialCategorySlug = null,
+  initialAttributeGroupSlug = null,
   initialAttributeSelections = EMPTY_ATTRIBUTE_SELECTIONS,
   initialPriceRange = null,
   initialCanonicalPath = null,
@@ -55,6 +57,7 @@ export default function WineList({
     initialAttributeSelections,
     initialPriceRange,
     initialCanonicalPath,
+    initialAttributeGroupSlug,
     listingMode,
   })
   
@@ -90,10 +93,8 @@ export default function WineList({
 
   // Hydrate store với server-prefetched data
   useEffect(() => {
-    if (!initialized) {
-      initialize(initialFilterOptions, initialProducts).catch(() => undefined)
-    }
-  }, [initialized, initialize, initialFilterOptions, initialProducts])
+    initialize(initialFilterOptions, initialProducts).catch(() => undefined)
+  }, [initialize, initialFilterOptions, initialProducts])
 
   const totalProducts = meta?.total ?? wines.length
   const totalPages = meta && meta.per_page > 0 ? Math.ceil(meta.total / meta.per_page) : 0
@@ -110,12 +111,18 @@ export default function WineList({
   }, [router])
 
   const handleLandingReset = useCallback(() => {
-    if (listingMode !== "type-landing") {
+    if (listingMode !== "type-landing" && listingMode !== "attribute-group-landing") {
       return
     }
 
-    router.replace(pathname, { scroll: false })
-  }, [listingMode, pathname, router])
+    const resetPath = listingMode === "attribute-group-landing"
+      ? initialAttributeGroupSlug === "thuong-hieu" && pathname.startsWith("/thuong-hieu")
+        ? "/thuong-hieu"
+        : `/san-pham/${initialAttributeGroupSlug}`
+      : pathname
+
+    router.replace(resetPath, { scroll: false })
+  }, [initialAttributeGroupSlug, listingMode, pathname, router])
 
   const requestMore = useCallback(() => {
     if (!canLoadMore || loading || loadingMore) {
@@ -174,6 +181,7 @@ export default function WineList({
               <FilterSidebar
                 listingMode={listingMode}
                 initialTypeSlug={initialTypeSlug}
+                initialAttributeGroupSlug={initialAttributeGroupSlug}
                 onTypeSlugNavigate={handleTypeNavigation}
                 onResetCompleted={handleLandingReset}
               />
@@ -217,6 +225,7 @@ export default function WineList({
                             <FilterSidebar
                               listingMode={listingMode}
                               initialTypeSlug={initialTypeSlug}
+                              initialAttributeGroupSlug={initialAttributeGroupSlug}
                               onTypeSlugNavigate={handleTypeNavigation}
                               onResetCompleted={handleLandingReset}
                             />

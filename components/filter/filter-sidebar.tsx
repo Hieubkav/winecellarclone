@@ -469,8 +469,9 @@ function RadioFilterSection({
 }
 
 interface FilterSidebarProps {
-    listingMode?: "generic" | "type-landing"
+    listingMode?: "generic" | "type-landing" | "attribute-group-landing"
     initialTypeSlug?: string | null
+    initialAttributeGroupSlug?: string | null
     onTypeSlugNavigate?: (nextTypeSlug: string | null) => void
     onResetCompleted?: () => void
 }
@@ -478,6 +479,7 @@ interface FilterSidebarProps {
 export function FilterSidebar({
     listingMode = "generic",
     initialTypeSlug = null,
+    initialAttributeGroupSlug = null,
     onTypeSlugNavigate,
     onResetCompleted,
 }: FilterSidebarProps) {
@@ -509,7 +511,11 @@ export function FilterSidebar({
     const sliderDisabled = options.priceRange[1] <= options.priceRange[0]
     const categoryValue = filters.categoryId ? String(filters.categoryId) : "all"
     const productTypeValue = filters.productTypeId ? String(filters.productTypeId) : "all"
-    const visiblePresetGroups = filters.productTypeId
+    const isAttributeGroupLanding = listingMode === "attribute-group-landing"
+    const visibleAttributeFilters = isAttributeGroupLanding && initialAttributeGroupSlug
+        ? options.attributeFilters.filter((filter) => filter.slug === initialAttributeGroupSlug)
+        : options.attributeFilters
+    const visiblePresetGroups = !isAttributeGroupLanding && filters.productTypeId
         ? options.filterGroups.filter((group) => group.presets.length > 0 && group.show_in_filters !== false)
         : []
     const getSelectedPresetSlug = (group: (typeof visiblePresetGroups)[number]) => {
@@ -523,23 +529,26 @@ export function FilterSidebar({
 
     const activeFilterCount = useMemo(() => {
         let count = 0
-        if (filters.categoryId) count++
-        if (filters.productTypeId && !(listingMode === "type-landing" && initialTypeSlug && pathname === `/san-pham/${initialTypeSlug}`)) count++
-        Object.values(filters.attributeSelections).forEach(selections => {
-            count += selections.length
+        if (!isAttributeGroupLanding && filters.categoryId) count++
+        if (!isAttributeGroupLanding && filters.productTypeId && !(listingMode === "type-landing" && initialTypeSlug && pathname === `/san-pham/${initialTypeSlug}`)) count++
+        const visibleAttributeCodes = new Set(visibleAttributeFilters.map((filter) => filter.code))
+        Object.entries(filters.attributeSelections).forEach(([code, selections]) => {
+            if (!isAttributeGroupLanding || visibleAttributeCodes.has(code)) {
+                count += selections.length
+            }
         })
         const isPriceFiltered = filters.priceRange[0] !== options.priceRange[0] ||
             filters.priceRange[1] !== options.priceRange[1]
-        if (isPriceFiltered) count++
+        if (!isAttributeGroupLanding && isPriceFiltered) count++
         // Đếm range filters (nhap_tay number)
         Object.entries(filters.rangeFilters).forEach(([code, range]) => {
             const bounds = options.rangeFilterBounds[code]
-            if (bounds && (range.min !== bounds.min || range.max !== bounds.max)) {
+            if ((!isAttributeGroupLanding || visibleAttributeCodes.has(code)) && bounds && (range.min !== bounds.min || range.max !== bounds.max)) {
                 count++
             }
         })
         return count
-    }, [filters, options.priceRange, options.rangeFilterBounds, listingMode, initialTypeSlug, pathname])
+    }, [filters, options.priceRange, options.rangeFilterBounds, listingMode, initialTypeSlug, pathname, isAttributeGroupLanding, visibleAttributeFilters])
 
     const handleCategoryChange = (value: string) => {
          setSelectedCategory(value === "all" ? null : Number(value))
@@ -692,7 +701,7 @@ export function FilterSidebar({
                     onClick={async () => {
                         await resetFilters({ preserveTypeId: listingMode === "type-landing" ? filters.productTypeId : null })
 
-                        if (listingMode === "type-landing") {
+                        if (listingMode === "type-landing" || listingMode === "attribute-group-landing") {
                             onResetCompleted?.()
                         }
                     }}
@@ -705,7 +714,7 @@ export function FilterSidebar({
             </div>
 
             {/* Product Types - ĐƯA LÊN ĐẦU */}
-            {options.productTypes.length > 0 && (
+            {!isAttributeGroupLanding && options.productTypes.length > 0 && (
                 <>
                     <div className="space-y-3">
                         <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
@@ -784,54 +793,58 @@ export function FilterSidebar({
             ))}
 
             {/* Categories - XUỐNG SAU */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
-                    Danh mục
-                </h3>
-                <RadioGroup
-                    value={categoryValue}
-                    onValueChange={handleCategoryChange}
-                    aria-label="Chọn danh mục sản phẩm"
-                >
-                    <div className="space-y-2.5">
-                        <div className="flex items-center space-x-3 group">
-                            <RadioGroupItem
-                                value="all"
-                                id="category-all"
-                                className="transition-colors"
-                            />
-                            <Label
-                                htmlFor="category-all"
-                                className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
-                            >
-                                Tất cả
-                            </Label>
-                        </div>
-                        {options.categories.map((category) => (
-                            <div key={category.id} className="flex items-center space-x-3 group">
-                                <RadioGroupItem
-                                    value={String(category.id)}
-                                    id={`category-${category.id}`}
-                                    className="transition-colors"
-                                />
-                                <Label
-                                    htmlFor={`category-${category.id}`}
-                                    className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
-                                >
-                                    {category.name}
-                                </Label>
+            {!isAttributeGroupLanding && (
+                <>
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+                            Danh mục
+                        </h3>
+                        <RadioGroup
+                            value={categoryValue}
+                            onValueChange={handleCategoryChange}
+                            aria-label="Chọn danh mục sản phẩm"
+                        >
+                            <div className="space-y-2.5">
+                                <div className="flex items-center space-x-3 group">
+                                    <RadioGroupItem
+                                        value="all"
+                                        id="category-all"
+                                        className="transition-colors"
+                                    />
+                                    <Label
+                                        htmlFor="category-all"
+                                        className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                                    >
+                                        Tất cả
+                                    </Label>
+                                </div>
+                                {options.categories.map((category) => (
+                                    <div key={category.id} className="flex items-center space-x-3 group">
+                                        <RadioGroupItem
+                                            value={String(category.id)}
+                                            id={`category-${category.id}`}
+                                            className="transition-colors"
+                                        />
+                                        <Label
+                                            htmlFor={`category-${category.id}`}
+                                            className="cursor-pointer text-sm font-normal text-[#1C1C1C] hover:text-[#ECAA4D] transition-colors flex-1"
+                                        >
+                                            {category.name}
+                                        </Label>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </RadioGroup>
                     </div>
-                </RadioGroup>
-            </div>
 
-            <Separator className="bg-[#ECAA4D]/20" />
+                    <Separator className="bg-[#ECAA4D]/20" />
+                </>
+            )}
 
             {/* Dynamic Attribute Filters - Render theo filter_type */}
             {/* Animation wrapper cho filters mới xuất hiện khi chọn type */}
             <div className="space-y-6 transition-all duration-300 ease-in-out">
-                {options.attributeFilters.map((attributeFilter) => {
+                {visibleAttributeFilters.map((attributeFilter) => {
                     const filterUI = renderDynamicFilter(attributeFilter)
                     if (!filterUI) return null
 
@@ -848,37 +861,39 @@ export function FilterSidebar({
             </div>
 
             {/* Price Filter */}
-            <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
-                    Khoảng giá
-                </h3>
-                <div className="space-y-4">
-                    <Slider
-                        value={filters.priceRange}
-                        onValueChange={(value) => {
-                            setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], true)
-                        }}
-                        onValueCommit={(value) => {
-                            setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], false)
-                        }}
-                        min={options.priceRange[0]}
-                        max={options.priceRange[1]}
-                        step={50_000}
-                        disabled={sliderDisabled}
-                        className="w-full"
-                        aria-label="Chọn khoảng giá"
-                    />
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 px-3 py-2 text-xs font-medium text-center bg-[#ECAA4D]/10 text-[#1C1C1C] rounded-md border border-[#ECAA4D]/20">
-                            {formatCurrency(filters.priceRange[0])}
-                        </div>
-                        <span className="text-[#1C1C1C]/40 text-xs">-</span>
-                        <div className="flex-1 px-3 py-2 text-xs font-medium text-center bg-[#ECAA4D]/10 text-[#1C1C1C] rounded-md border border-[#ECAA4D]/20">
-                            {formatCurrency(filters.priceRange[1])}
+            {!isAttributeGroupLanding && (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+                        Khoảng giá
+                    </h3>
+                    <div className="space-y-4">
+                        <Slider
+                            value={filters.priceRange}
+                            onValueChange={(value) => {
+                                setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], true)
+                            }}
+                            onValueCommit={(value) => {
+                                setPriceRange([value[0] ?? options.priceRange[0], value[1] ?? options.priceRange[1]], false)
+                            }}
+                            min={options.priceRange[0]}
+                            max={options.priceRange[1]}
+                            step={50_000}
+                            disabled={sliderDisabled}
+                            className="w-full"
+                            aria-label="Chọn khoảng giá"
+                        />
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1 px-3 py-2 text-xs font-medium text-center bg-[#ECAA4D]/10 text-[#1C1C1C] rounded-md border border-[#ECAA4D]/20">
+                                {formatCurrency(filters.priceRange[0])}
+                            </div>
+                            <span className="text-[#1C1C1C]/40 text-xs">-</span>
+                            <div className="flex-1 px-3 py-2 text-xs font-medium text-center bg-[#ECAA4D]/10 text-[#1C1C1C] rounded-md border border-[#ECAA4D]/20">
+                                {formatCurrency(filters.priceRange[1])}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     )
 }

@@ -21,7 +21,7 @@ export type ProductTypeOption = {
   slug: string;
 };
 
-export type ListingMode = "generic" | "type-landing";
+export type ListingMode = "generic" | "type-landing" | "attribute-group-landing";
 
 export type ListingSeoContext = {
   canonicalPath: string;
@@ -172,7 +172,11 @@ export async function renderFilterListing({
   itemListName,
   itemListDescription,
 }: ListingSeoContext) {
-  const listingMode: ListingMode = routeTypeSlug ? "type-landing" : "generic";
+  const listingMode: ListingMode = routeTypeSlug
+    ? "type-landing"
+    : routeAttributeGroupSlug
+      ? "attribute-group-landing"
+      : "generic";
   const productTypeContext = routeTypeSlug
     ? await fetchProductFiltersSafe(undefined, { bypassCache: true })
     : null;
@@ -196,19 +200,33 @@ export async function renderFilterListing({
   ]);
 
   const routeAttributeCodes = Object.keys(routeAttributeSelections ?? {});
-  const routeAttributeFilters = filterOptions?.route_attribute_filters ?? [];
-  const extraAttributeFilters = routeAttributeFilters.filter((filter) => {
-    const matchesRouteGroup = routeAttributeGroupSlug ? filter.slug === routeAttributeGroupSlug : false;
-    const matchesRouteSelection = routeAttributeCodes.includes(filter.code);
-    const alreadyVisible = filterOptions?.attribute_filters.some((item) => item.code === filter.code);
+  const routeAttributeFilters = filterOptions?.route_attribute_filters ?? filterOptions?.attribute_filters ?? [];
+  const routeAttributeGroupFilter = routeAttributeGroupSlug
+    ? routeAttributeFilters.find((filter) => filter.slug === routeAttributeGroupSlug) ?? null
+    : null;
+  const extraAttributeFilters = listingMode === "attribute-group-landing"
+    ? []
+    : routeAttributeFilters.filter((filter) => {
+      const matchesRouteGroup = routeAttributeGroupSlug ? filter.slug === routeAttributeGroupSlug : false;
+      const matchesRouteSelection = routeAttributeCodes.includes(filter.code);
+      const alreadyVisible = filterOptions?.attribute_filters.some((item) => item.code === filter.code);
 
-    return (matchesRouteGroup || matchesRouteSelection) && !alreadyVisible;
-  });
-  const displayFilterOptions = filterOptions && extraAttributeFilters.length > 0
-    ? {
-      ...filterOptions,
-      attribute_filters: [...filterOptions.attribute_filters, ...extraAttributeFilters],
-    }
+      return (matchesRouteGroup || matchesRouteSelection) && !alreadyVisible;
+    });
+  const displayFilterOptions = filterOptions
+    ? listingMode === "attribute-group-landing"
+      ? {
+        ...filterOptions,
+        attribute_filters: routeAttributeGroupFilter ? [routeAttributeGroupFilter] : [],
+        categories: [],
+        filter_groups: [],
+      }
+      : extraAttributeFilters.length > 0
+        ? {
+          ...filterOptions,
+          attribute_filters: [...filterOptions.attribute_filters, ...extraAttributeFilters],
+        }
+        : filterOptions
     : filterOptions;
   const productListFontStyle = getScopedFontStyle(settings, "product_list");
   const pageUrl = buildAbsoluteUrl(canonicalPath);
@@ -263,6 +281,7 @@ export async function renderFilterListing({
         initialAttributeSelections={routeAttributeSelections ?? {}}
         initialPriceRange={routePriceRange ?? null}
         initialCanonicalPath={canonicalPath}
+        initialAttributeGroupSlug={routeAttributeGroupSlug ?? null}
         listingMode={listingMode}
         pageTitle={resolvedPageTitle}
       />

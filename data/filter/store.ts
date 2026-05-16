@@ -382,6 +382,28 @@ export const useWineStore = create<WineStore>((set, get) => ({
   ...initialState,
   initialize: async (prefetchedOptions, prefetchedProducts) => {
     if (get().initialized) {
+      if (prefetchedOptions && prefetchedProducts) {
+        const options = transformOptions(prefetchedOptions)
+        const mapped = prefetchedProducts.data.map((item) =>
+          mapProductToWine(item)
+        )
+
+        set((state) => ({
+          options,
+          filters: {
+            ...state.filters,
+            priceRange: options.priceRange,
+            page: 1,
+          },
+          products: mapped,
+          wines: mapped,
+          meta: prefetchedProducts.meta,
+          loading: false,
+          loadingMore: false,
+          error: null,
+        }))
+      }
+
       return
     }
 
