@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 
 import { Metadata } from "next";
 import ArticleListPage from "@/components/articles/ArticleListPage";
-import { fetchArticleListSafe } from "@/lib/api/articles";
+import { fetchArticleCategoriesSafe, fetchArticleListSafe } from "@/lib/api/articles";
 import { fetchSettingsSafe } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 
@@ -21,6 +21,8 @@ type ArticleRouteSearchParams = {
   page?: string;
   per_page?: string;
   sort?: string;
+  category_slug?: string;
+  category?: string;
 };
 
 export default async function ArticleListRoute({
@@ -32,9 +34,11 @@ export default async function ArticleListRoute({
   const page = parseInt(params.page || "1", 10);
   const perPage = parseInt(params.per_page || "12", 10);
   const sort = params.sort || "-created_at";
+  const categorySlug = params.category_slug || params.category || undefined;
 
-  const [data, settings] = await Promise.all([
-    fetchArticleListSafe({ page, per_page: perPage, sort }),
+  const [data, categories, settings] = await Promise.all([
+    fetchArticleListSafe({ page, per_page: perPage, sort, category_slug: categorySlug }),
+    fetchArticleCategoriesSafe(),
     fetchSettingsSafe(),
   ]);
   const articleListFontStyle = getScopedFontStyle(settings, "article_list");
@@ -47,13 +51,15 @@ export default async function ArticleListRoute({
           meta: {
             pagination: { page, per_page: perPage, total: 0, last_page: 1, has_more: false },
             sorting: { sort },
-            filtering: { author: null, q: null },
+            filtering: { author: null, q: null, category_slug: categorySlug ?? null },
             api_version: "offline",
             timestamp: new Date().toISOString(),
           },
           _links: { self: { href: `${SITE_URL}/bai-viet`, method: "GET" } },
         }
       }
+      categories={categories}
+      activeCategorySlug={categorySlug}
       fontFamily={articleListFontStyle.fontFamily}
       title="Bài viết"
       description="Tất cả bài viết, tin tức, kiến thức và nội dung hỗ trợ khách hàng"

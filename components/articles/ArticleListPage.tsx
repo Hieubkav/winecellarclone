@@ -4,10 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Calendar, ArrowRight, ChevronDown } from "lucide-react";
+import { Calendar, ArrowRight, ChevronDown, BookOpen, Tags } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ArticleListResponse } from "@/lib/api/articles";
+import type { ArticleCategory, ArticleListResponse } from "@/lib/api/articles";
 import { cn } from "@/lib/utils";
 import { getArticleImageUrl } from "@/lib/utils/image";
 import { getArticlePublicHref } from "@/lib/articles/routes";
@@ -21,6 +21,8 @@ const SORT_OPTIONS = [
 
 interface ArticleListPageProps {
   data: ArticleListResponse;
+  categories?: ArticleCategory[];
+  activeCategorySlug?: string;
   fontFamily?: string;
   title?: string;
   description?: string;
@@ -48,14 +50,36 @@ interface BlogCardProps {
     cover_image_url: string | null;
     cover_image_canonical_url?: string | null;
     category_key?: string | null;
+    category_slug?: string | null;
+    article_category?: { slug?: string | null } | null;
     published_at: string;
   };
   index: number;
 }
 
+function ArticleImagePlaceholder({ title }: { title: string }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-[radial-gradient(circle_at_top_left,_#fff7ed,_#f5efe5_38%,_#eadfce_100%)]">
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#D4A84B]/20 blur-2xl" />
+      <div className="absolute -bottom-12 -left-10 h-36 w-36 rounded-full bg-[#9B2C3B]/15 blur-2xl" />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/70 bg-white/75 shadow-sm backdrop-blur">
+          <BookOpen className="h-7 w-7 text-[#9B2C3B]" />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#D4A84B]">Thiên Kim Wine</p>
+          <p className="mt-1 line-clamp-2 text-sm font-bold leading-snug text-stone-700">{title}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BlogCard({ article, index }: BlogCardProps) {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const articleHref = getArticlePublicHref(article);
+  const coverImageUrl = getArticleImageUrl(article.cover_image_canonical_url || article.cover_image_url);
+  const hasCoverImage = Boolean(article.cover_image_canonical_url || article.cover_image_url);
 
   return (
     <div
@@ -66,21 +90,25 @@ function BlogCard({ article, index }: BlogCardProps) {
         {/* Image Container */}
         <Link href={articleHref} className="block">
           <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
-            {!isImageLoaded && (
+            {!hasCoverImage ? (
+              <ArticleImagePlaceholder title={article.title} />
+            ) : !isImageLoaded ? (
               <Skeleton className="absolute inset-0 w-full h-full" />
+            ) : null}
+            {hasCoverImage && (
+              <Image
+                src={coverImageUrl}
+                alt={article.title}
+                fill
+                onLoad={() => setIsImageLoaded(true)}
+                className={cn(
+                  "object-cover transition-transform duration-700 group-hover:scale-105",
+                  isImageLoaded ? "opacity-100" : "opacity-0"
+                )}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                loading="lazy"
+              />
             )}
-            <Image
-              src={getArticleImageUrl(article.cover_image_canonical_url || article.cover_image_url)}
-              alt={article.title}
-              fill
-              onLoad={() => setIsImageLoaded(true)}
-              className={cn(
-                "object-cover transition-transform duration-700 group-hover:scale-105",
-                isImageLoaded ? "opacity-100" : "opacity-0"
-              )}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              loading="lazy"
-            />
           </div>
         </Link>
 
@@ -122,12 +150,20 @@ function BlogCard({ article, index }: BlogCardProps) {
   );
 }
 
-export default function ArticleListPage({ data, fontFamily, title = "Bài viết", description = "Tin tức, kiến thức và xu hướng mới nhất" }: ArticleListPageProps) {
+export default function ArticleListPage({
+  data,
+  categories = [],
+  activeCategorySlug,
+  fontFamily,
+  title = "Bài viết",
+  description = "Tin tức, kiến thức và xu hướng mới nhất"
+}: ArticleListPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { pagination } = data.meta;
   const currentSort = searchParams.get("sort") || "-created_at";
+  const currentCategorySlug = activeCategorySlug || searchParams.get("category_slug") || searchParams.get("category") || "";
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -156,6 +192,21 @@ export default function ArticleListPage({ data, fontFamily, title = "Bài viết
     params.delete("page");
     router.push(`${pathname}?${params.toString()}`);
     setIsDropdownOpen(false);
+  };
+
+  const handleCategoryChange = (categorySlug: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("page");
+    params.delete("category");
+
+    if (categorySlug) {
+      params.set("category_slug", categorySlug);
+    } else {
+      params.delete("category_slug");
+    }
+
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname);
   };
 
   const handleLoadMore = () => {
@@ -211,6 +262,50 @@ export default function ArticleListPage({ data, fontFamily, title = "Bài viết
                 )}
               </div>
             </div>
+
+            {categories.length > 0 && (
+              <div className="mb-8 rounded-2xl border border-stone-200 bg-white p-3 shadow-sm">
+                <div className="mb-3 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                  <Tags className="h-4 w-4 text-[#D4A84B]" />
+                  <span>Lọc theo danh mục</span>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  <button
+                    onClick={() => handleCategoryChange("")}
+                    className={cn(
+                      "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+                      !currentCategorySlug
+                        ? "border-[#9B2C3B] bg-[#9B2C3B] text-white shadow-sm"
+                        : "border-stone-200 bg-stone-50 text-stone-600 hover:border-[#9B2C3B]/40 hover:text-[#9B2C3B]"
+                    )}
+                  >
+                    Tất cả
+                  </button>
+                  {categories.map((category) => (
+                    <button
+                      key={category.slug}
+                      onClick={() => handleCategoryChange(category.slug)}
+                      className={cn(
+                        "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+                        currentCategorySlug === category.slug
+                          ? "border-[#9B2C3B] bg-[#9B2C3B] text-white shadow-sm"
+                          : "border-stone-200 bg-stone-50 text-stone-600 hover:border-[#9B2C3B]/40 hover:text-[#9B2C3B]"
+                      )}
+                    >
+                      {category.name}
+                      {typeof category.articles_count === "number" && (
+                        <span className={cn(
+                          "ml-2 rounded-full px-2 py-0.5 text-xs",
+                          currentCategorySlug === category.slug ? "bg-white/20 text-white" : "bg-white text-stone-500"
+                        )}>
+                          {category.articles_count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Grid */}
             {data.data.length === 0 ? (

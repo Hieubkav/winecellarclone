@@ -103,6 +103,7 @@ export interface ArticleListMeta {
     author: number | null;
     q: string | null;
     category_key?: string | null;
+    category_slug?: string | null;
   };
   api_version: string;
   timestamp: string;
@@ -130,6 +131,10 @@ interface ArticleDetailResponse {
 
 interface ArticleCategoryResponse {
   data: ArticleCategory;
+}
+
+interface ArticleCategoriesResponse {
+  data: ArticleCategory[];
 }
 
 type QueryValue = string | number | Array<string | number> | undefined;
@@ -259,6 +264,34 @@ export async function fetchArticleCategory(slug: string): Promise<ArticleCategor
     }
 
     throw error;
+  }
+}
+
+export async function fetchArticleCategories(): Promise<ArticleCategory[]> {
+  const response = await apiFetch<ArticleCategoriesResponse>("v1/article-categories", {
+    next: { tags: ["article-categories"] },
+  });
+
+  return response.data;
+}
+
+export async function fetchArticleCategoriesSafe(): Promise<ArticleCategory[]> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return [];
+  }
+
+  try {
+    return await fetchArticleCategories();
+  } catch (error) {
+    if (!didWarnArticleList) {
+      didWarnArticleList = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua article categories."
+        : "Không lấy được article categories, bỏ qua.";
+      console.warn(message);
+    }
+
+    return [];
   }
 }
 
