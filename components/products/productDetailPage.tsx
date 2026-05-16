@@ -693,7 +693,7 @@ export default function ProductDetailPage({
             </h1>
 
             {/* Price Section */}
-            <div className="flex items-end gap-2.5 p-3 md:p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-3 md:mb-6">
+            <div className="flex items-end gap-2.5 p-3 md:p-4 bg-[#ECAA4D]/10 rounded-lg border border-[#ECAA4D]/30 mb-2">
               <div className="text-2xl md:text-4xl font-bold text-[#9B2C3B]">
                 {priceLabel}
               </div>
@@ -710,15 +710,19 @@ export default function ProductDetailPage({
             </div>
 
             {activeCombos.length > 0 && (
-              <div className="mb-3 rounded-lg border border-[#9B2C3B]/15 bg-[#9B2C3B]/5 p-3 md:mb-6 md:p-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#9B2C3B]">
-                  Giá thùng / combo
-                </p>
-                <div className="space-y-2">
+              <div className="mb-3 rounded-lg border border-[#9B2C3B]/30 bg-gradient-to-r from-[#9B2C3B]/10 via-[#ECAA4D]/10 to-white p-2.5 shadow-sm md:mb-6">
+                <div className="space-y-1.5">
                   {activeCombos.map((combo) => (
-                    <div key={combo.id} className="flex items-center justify-between gap-3 rounded-md bg-white/80 px-3 py-2 text-sm">
-                      <span className="font-medium text-slate-700">{combo.name}</span>
-                      <span className="shrink-0 font-bold text-[#9B2C3B]">{formatComboPrice(combo.price)}</span>
+                    <div key={combo.id} className="flex items-center justify-between gap-2 rounded-md border border-white/70 bg-white/90 px-3 py-2 text-sm shadow-sm">
+                      <span className="inline-flex min-w-0 flex-1 items-center gap-2 font-semibold text-slate-800">
+                        <span className="rounded-full bg-[#9B2C3B] px-2 py-0.5 text-[10px] uppercase tracking-wide text-white">
+                          Combo
+                        </span>
+                        <span className="truncate">{combo.name}</span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-[#9B2C3B] px-3 py-1 text-sm font-bold text-white">
+                        {formatComboPrice(combo.price)}
+                      </span>
                     </div>
                   ))}
                 </div>
