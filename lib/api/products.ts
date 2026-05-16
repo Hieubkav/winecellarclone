@@ -34,6 +34,13 @@ export interface ProductAttribute {
   terms: ApiTerm[];
 }
 
+export interface ProductCombo {
+  id: number;
+  name: string;
+  price: number | null;
+  position?: number | null;
+}
+
 export interface ProductListItem {
   id: number;
   name: string;
@@ -105,6 +112,7 @@ export interface ProductDetail {
   original_price: number | null;
   discount_percent: number | null;
   show_contact_cta: boolean;
+  combos?: ProductCombo[];
   cover_image_url: string | null;
   cover_image_canonical_url?: string | null;
   main_image_url: string | null;

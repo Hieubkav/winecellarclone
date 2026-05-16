@@ -37,11 +37,20 @@ export interface AdminProductImage {
   path?: string | null;
 }
 
+export interface AdminProductCombo {
+  id?: number;
+  name: string;
+  price: number | null;
+  position: number;
+  active: boolean;
+}
+
 export interface AdminProductDetail extends AdminProduct {
   description: string | null;
   meta_title?: string | null;
   meta_description?: string | null;
   shopee_url?: string | null;
+  combos?: AdminProductCombo[];
   category_ids: number[];
   images?: AdminProductImage[];
   terms?: Array<{

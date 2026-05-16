@@ -10,7 +10,7 @@ import { Button, Card, CardContent, Input, Label, Skeleton } from '../../../comp
 import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { ProductImageCropModal } from '../../../components/ProductImageCropModal';
 import { AttributeCombobox } from '../../../components/AttributeCombobox';
-import { fetchAdminProduct, updateProduct } from '@/features/admin/products/api/products.api';
+import { fetchAdminProduct, updateProduct, type AdminProductCombo } from '@/features/admin/products/api/products.api';
 import { productQueryKeys } from '@/features/admin/products/api/products.query-keys';
 import { uploadProductImage, uploadProductImageUrl } from '@/features/admin/products/api/products.uploads';
 import { fetchAdminSettings } from '@/features/admin/settings/api/settings.api';
@@ -56,6 +56,32 @@ const formatNumberInput = (value: string) => {
 
 const parseNumberValue = (value: string) => (value ? Number(value.replace(/,/g, '')) : null);
 
+type ProductComboDraft = {
+  clientId: string;
+  id?: number;
+  name: string;
+  price: string;
+  active: boolean;
+};
+
+const createBlankCombo = (): ProductComboDraft => ({
+  clientId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  name: '',
+  price: '',
+  active: true,
+});
+
+const serializeCombos = (combos: ProductComboDraft[]): AdminProductCombo[] =>
+  combos
+    .map((combo, index) => ({
+      id: combo.id,
+      name: combo.name.trim(),
+      price: parseNumberValue(combo.price),
+      position: index,
+      active: combo.active,
+    }))
+    .filter((combo) => combo.name.length > 0);
+
 const truncateText = (value: string, maxLength: number) => {
   const trimmed = value.trim();
   if (!trimmed) return '';
@@ -89,6 +115,7 @@ const generateSlug = (text: string): string => {
    const [slug, setSlug] = useState('');
    const [price, setPrice] = useState('');
    const [originalPrice, setOriginalPrice] = useState('');
+  const [combos, setCombos] = useState<ProductComboDraft[]>([]);
   const [shopeeUrl, setShopeeUrl] = useState('');
    const [typeId, setTypeId] = useState('');
    const [categoryIds, setCategoryIds] = useState<number[]>([]);
@@ -178,6 +205,13 @@ const generateSlug = (text: string): string => {
          setSlug(product.slug);
         setPrice(formatNumberInput(product.price?.toString() || ''));
         setOriginalPrice(formatNumberInput(product.original_price?.toString() || ''));
+        setCombos((product.combos || []).map((combo) => ({
+          clientId: combo.id ? `combo-${combo.id}` : createBlankCombo().clientId,
+          id: combo.id,
+          name: combo.name,
+          price: combo.price ? formatNumberInput(String(combo.price)) : '',
+          active: combo.active !== false,
+        })));
          setTypeId(product.type_id?.toString() || '');
          setCategoryIds(product.category_ids || []);
          setDescription(product.description || '');
@@ -574,6 +608,7 @@ const generateSlug = (text: string): string => {
       slug: slug.trim(),
       price: parseNumberValue(price),
       original_price: parseNumberValue(originalPrice),
+      combos: serializeCombos(combos),
       type_id: typeId ? Number(typeId) : null,
       category_ids: categoryIds,
       description: description.trim(),
@@ -588,6 +623,14 @@ const generateSlug = (text: string): string => {
 
     await updateMutation.mutateAsync(data);
    };
+
+  const updateCombo = (clientId: string, patch: Partial<ProductComboDraft>) => {
+    setCombos((current) => current.map((combo) => (combo.clientId === clientId ? { ...combo, ...patch } : combo)));
+  };
+
+  const removeCombo = (clientId: string) => {
+    setCombos((current) => current.filter((combo) => combo.clientId !== clientId));
+  };
  
    if (isLoading) {
      return (
@@ -848,6 +891,55 @@ const generateSlug = (text: string): string => {
                  />
                </div>
              </div>
+
+            <div className="space-y-3 rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <Label>Combo / Giá thùng</Label>
+                  <p className="mt-1 text-xs text-slate-500">Để trống giá combo thì trang sản phẩm sẽ hiện “Liên hệ”.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setCombos((current) => [...current, createBlankCombo()])}>
+                  Thêm combo
+                </Button>
+              </div>
+
+              {combos.length === 0 ? (
+                <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-slate-800">
+                  Chưa có combo. Nếu không nhập, giao diện sản phẩm giữ nguyên.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {combos.map((combo, index) => (
+                    <div key={combo.clientId} className="grid grid-cols-1 gap-3 rounded-md bg-slate-50 p-3 dark:bg-slate-800 md:grid-cols-[1fr_180px_auto]">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tên combo {index + 1}</Label>
+                        <Input
+                          placeholder="Thùng 6 chai tặng 1 chai"
+                          value={combo.name}
+                          onChange={(event) => updateCombo(combo.clientId, { name: event.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Giá combo</Label>
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9,]*"
+                          placeholder="Liên hệ"
+                          value={combo.price}
+                          onChange={(event) => updateCombo(combo.clientId, { price: formatNumberInput(event.target.value) })}
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeCombo(combo.clientId)} aria-label="Xóa combo">
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {productShopeeLinkEnabled && (
               <div className="space-y-2">

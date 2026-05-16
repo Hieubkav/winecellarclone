@@ -84,6 +84,14 @@ const formatOriginalPrice = (product: ProductDetail): string | null => {
   return currencyFormatter.format(product.original_price);
 };
 
+const formatComboPrice = (price: number | null | undefined): string => {
+  if (!price || price <= 0) {
+    return "Liên hệ";
+  }
+
+  return currencyFormatter.format(price);
+};
+
 const resolvePhoneHref = (value?: string | null): string | null => {
   if (!value) return null;
   const trimmed = value.trim();
@@ -448,6 +456,7 @@ export default function ProductDetailPage({
 
   const priceLabel = formatPrice(product);
   const originalPriceLabel = formatOriginalPrice(product);
+  const activeCombos = (product.combos || []).filter((combo) => combo.name?.trim());
   const breadcrumbs = useMemo(() => buildProductBreadcrumbs(product), [product]);
 
   return (
@@ -699,6 +708,22 @@ export default function ProductDetailPage({
                 </span>
               )}
             </div>
+
+            {activeCombos.length > 0 && (
+              <div className="mb-3 rounded-lg border border-[#9B2C3B]/15 bg-[#9B2C3B]/5 p-3 md:mb-6 md:p-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#9B2C3B]">
+                  Giá thùng / combo
+                </p>
+                <div className="space-y-2">
+                  {activeCombos.map((combo) => (
+                    <div key={combo.id} className="flex items-center justify-between gap-3 rounded-md bg-white/80 px-3 py-2 text-sm">
+                      <span className="font-medium text-slate-700">{combo.name}</span>
+                      <span className="shrink-0 font-bold text-[#9B2C3B]">{formatComboPrice(combo.price)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Specifications Grid - Compact */}
             {attributeItems.length > 0 && (
