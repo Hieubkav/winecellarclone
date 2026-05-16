@@ -82,6 +82,10 @@ export interface ArticleCategory {
   id: number;
   name: string;
   slug: string;
+  description?: string | null;
+  active?: boolean;
+  position?: number;
+  articles_count?: number;
 }
 
 export interface ArticleListMeta {
@@ -122,6 +126,10 @@ interface ArticleDetailResponse {
     api_version: string;
     timestamp: string;
   };
+}
+
+interface ArticleCategoryResponse {
+  data: ArticleCategory;
 }
 
 type QueryValue = string | number | Array<string | number> | undefined;
@@ -228,6 +236,45 @@ export async function fetchArticleListSafe(
       const message = isBackendUnavailableError(error)
         ? "Backend chưa sẵn sàng, bỏ qua article list."
         : "Không lấy được article list, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
+  }
+}
+
+export async function fetchArticleCategory(slug: string): Promise<ArticleCategory | null> {
+  try {
+    const response = await apiFetch<ArticleCategoryResponse>(
+      `v1/article-categories/${encodeURIComponent(slug)}`,
+      {
+        next: { tags: ["article-categories", `article-category:${slug}`] },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+export async function fetchArticleCategorySafe(slug: string): Promise<ArticleCategory | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
+  try {
+    return await fetchArticleCategory(slug);
+  } catch (error) {
+    if (!didWarnArticleList) {
+      didWarnArticleList = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua article category."
+        : "Không lấy được article category, bỏ qua.";
       console.warn(message);
     }
 

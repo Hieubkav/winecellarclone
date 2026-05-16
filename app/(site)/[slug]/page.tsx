@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import ArticleListPage from "@/components/articles/ArticleListPage";
-import { fetchArticleListSafe } from "@/lib/api/articles";
+import { fetchArticleCategorySafe, fetchArticleListSafe, type ArticleListResponse } from "@/lib/api/articles";
 import { fetchSettingsSafe } from "@/lib/api/settings";
 import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 import {
@@ -19,6 +19,40 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.v
 
 type CategoryRouteParams = { slug: string };
 type CategoryRouteSearchParams = { page?: string; per_page?: string; sort?: string };
+
+const createEmptyArticleListResponse = ({
+  slug,
+  page,
+  perPage,
+  sort,
+}: {
+  slug: string;
+  page: number;
+  perPage: number;
+  sort: string;
+}): ArticleListResponse => ({
+  data: [],
+  meta: {
+    pagination: {
+      page,
+      per_page: perPage,
+      total: 0,
+      last_page: 1,
+      has_more: false,
+    },
+    sorting: { sort },
+    filtering: {
+      author: null,
+      q: null,
+      category_key: slug,
+    },
+    api_version: "empty",
+    timestamp: new Date().toISOString(),
+  },
+  _links: {
+    self: { href: `${SITE_URL}/${slug}`, method: "GET" },
+  },
+});
 
 export async function generateMetadata({
   params,
@@ -39,17 +73,15 @@ export async function generateMetadata({
     });
   }
 
-  const data = await fetchArticleListSafe({ category_slug: slug, per_page: 1 });
+  const category = await fetchArticleCategorySafe(slug);
 
-  if (!data || data.meta.pagination.total === 0) {
+  if (!category) {
     return { title: "Danh mục không tồn tại" };
   }
 
-  const categoryName = data.data[0]?.article_category?.name || slug;
-
   return {
-    title: `${categoryName} | Thiên Kim Wine`,
-    description: `Các bài viết thuộc danh mục ${categoryName}.`,
+    title: `${category.name} | Thiên Kim Wine`,
+    description: category.description || `Các bài viết thuộc danh mục ${category.name}.`,
     alternates: { canonical: `${SITE_URL}/${slug}` },
   };
 }
@@ -79,24 +111,25 @@ export default async function ArticleCategoryRoute({
   const perPage = parseInt(query.per_page || "12", 10);
   const sort = query.sort || "-created_at";
 
-  const [data, settings] = await Promise.all([
+  const [category, data, settings] = await Promise.all([
+    fetchArticleCategorySafe(slug),
     fetchArticleListSafe({ page, per_page: perPage, sort, category_slug: slug }),
     fetchSettingsSafe(),
   ]);
 
-  if (!data || data.meta.pagination.total === 0) {
+  if (!category) {
     notFound();
   }
 
-  const categoryName = data.data[0]?.article_category?.name || slug;
   const articleListFontStyle = getScopedFontStyle(settings, "article_list");
+  const listData = data ?? createEmptyArticleListResponse({ slug, page, perPage, sort });
 
   return (
     <ArticleListPage
-      data={data}
+      data={listData}
       fontFamily={articleListFontStyle.fontFamily}
-      title={categoryName}
-      description={`Các bài viết thuộc danh mục ${categoryName}`}
+      title={category.name}
+      description={category.description || `Các bài viết thuộc danh mục ${category.name}`}
     />
   );
 }
