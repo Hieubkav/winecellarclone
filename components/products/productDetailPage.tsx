@@ -710,17 +710,27 @@ export default function ProductDetailPage({
             </div>
 
             {activeCombos.length > 0 && (
-              <div className="mb-3 rounded-lg border border-[#9B2C3B]/30 bg-gradient-to-r from-[#9B2C3B]/10 via-[#ECAA4D]/10 to-white p-2.5 shadow-sm md:mb-6">
-                <div className="space-y-1.5">
+              <div className="mb-3 rounded-xl border border-[#9B2C3B]/25 bg-[#FFF7ED] p-2.5 shadow-[0_10px_24px_rgba(155,44,59,0.10)] md:mb-6">
+                <div className="mb-2 flex items-center gap-2 px-1">
+                  <span className="h-2 w-2 rounded-full bg-[#9B2C3B]" />
+                  <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#9B2C3B]">
+                    Giá thùng / combo
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1.5">
                   {activeCombos.map((combo) => (
-                    <div key={combo.id} className="flex items-center justify-between gap-2 rounded-md border border-white/70 bg-white/90 px-3 py-2 text-sm shadow-sm">
-                      <span className="inline-flex min-w-0 flex-1 items-center gap-2 font-semibold text-slate-800">
-                        <span className="rounded-full bg-[#9B2C3B] px-2 py-0.5 text-[10px] uppercase tracking-wide text-white">
+                    <div
+                      key={combo.id}
+                      className="inline-flex w-fit max-w-full flex-wrap items-center gap-1.5 rounded-full border border-[#9B2C3B]/20 bg-white px-2 py-1.5 text-sm shadow-sm"
+                    >
+                      <span className="rounded-full bg-[#9B2C3B] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
                           Combo
-                        </span>
-                        <span className="truncate">{combo.name}</span>
                       </span>
-                      <span className="shrink-0 rounded-full bg-[#9B2C3B] px-3 py-1 text-sm font-bold text-white">
+                      <span className="max-w-[180px] truncate font-semibold text-slate-900 md:max-w-[220px]">
+                        {combo.name}
+                      </span>
+                      <span className="h-4 w-px bg-[#9B2C3B]/20" />
+                      <span className="rounded-full bg-[#9B2C3B] px-2.5 py-0.5 text-sm font-extrabold text-white">
                         {formatComboPrice(combo.price)}
                       </span>
                     </div>
