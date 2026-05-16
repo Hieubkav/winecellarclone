@@ -58,12 +58,15 @@ const applyPresetPayload = (
   });
 };
 
-const resolvePresetPriceRange = (payload: Record<string, unknown>) => {
+const resolvePresetPriceRange = (
+  payload: Record<string, unknown>,
+  fallbackPrice?: { min: number; max: number }
+) => {
   const min = typeof payload.price_min === "number" ? payload.price_min : null;
   const max = typeof payload.price_max === "number" ? payload.price_max : null;
 
   return min !== null || max !== null
-    ? { min: min ?? 0, max: max ?? 0 }
+    ? { min: min ?? fallbackPrice?.min ?? 0, max: max ?? fallbackPrice?.max ?? 0 }
     : null;
 };
 
@@ -165,11 +168,7 @@ export async function resolveProductLandingContext(
   const matchedAttributeGroup = typeSlug
     ? allFilters.attribute_filters.find((group) => group.slug === typeSlug)
     : null;
-  const matchedFilterGroup = typeSlug
-    ? allFilters.filter_groups?.find((group) => group.route_prefix === "san-pham" && group.slug === typeSlug) ?? null
-    : null;
-
-  if (typeSlug && !matchedType && !matchedAttributeGroup && !matchedFilterGroup) {
+  if (typeSlug && !matchedType && !matchedAttributeGroup) {
     return null;
   }
 
@@ -217,24 +216,6 @@ export async function resolveProductLandingContext(
     };
   }
 
-  if (matchedFilterGroup) {
-    if (restSlugs.length !== 1) return null;
-    const preset = matchedFilterGroup.presets.find((item) => item.slug === restSlugs[0]);
-    if (!preset) return null;
-    const presetPayload = preset.filter_payload ?? {};
-    applyPresetPayload(apiParams, presetPayload);
-    routeFilters.priceRange = resolvePresetPriceRange(presetPayload);
-    const resolvedTitle = preset.seo_title || `${matchedFilterGroup.name} - ${preset.name}`;
-    return {
-      canonicalPath: `/san-pham/${matchedFilterGroup.slug}/${preset.slug}`,
-      title: resolvedTitle,
-      description: preset.seo_description || `Khám phá ${resolvedTitle.toLowerCase()} tại Thiên Kim Wine.`,
-      routeFilters,
-      apiParams,
-      filterOptions: allFilters,
-    };
-  }
-
   if (matchedType) {
     apiParams["type[]"] = [matchedType.id];
     titleParts.push(matchedType.name);
@@ -259,7 +240,7 @@ export async function resolveProductLandingContext(
       const { preset } = presetMatch;
       const presetPayload = preset.filter_payload ?? {};
       applyPresetPayload(apiParams, presetPayload);
-      routeFilters.priceRange = resolvePresetPriceRange(presetPayload);
+      routeFilters.priceRange = resolvePresetPriceRange(presetPayload, allFilters.price);
       titleParts.push(preset.name);
       remainingSlugs.shift();
     }

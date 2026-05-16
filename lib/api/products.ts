@@ -354,6 +354,7 @@ export interface ProductFilterGroup {
   name: string;
   slug: string;
   route_prefix: string;
+  show_in_filters?: boolean;
   presets: ProductFilterPreset[];
 }
 

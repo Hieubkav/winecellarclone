@@ -336,6 +336,7 @@ export interface AdminProductFilterGroup {
   route_prefix: string;
   position: number;
   active: boolean;
+  show_in_filters: boolean;
   presets: AdminProductFilterPreset[];
 }
 

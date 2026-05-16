@@ -73,6 +73,20 @@ const appendAttributeQueryParams = (
   })
 }
 
+const readPresetPriceRange = (
+  payload: Record<string, unknown>,
+  fallbackRange: [number, number]
+): [number, number] | null => {
+  const min = typeof payload.price_min === "number" ? payload.price_min : null
+  const max = typeof payload.price_max === "number" ? payload.price_max : null
+
+  if (min === null && max === null) {
+    return null
+  }
+
+  return [min ?? fallbackRange[0], max ?? fallbackRange[1]]
+}
+
 /**
  * Hook to synchronize filter state with URL query parameters
  * Enables deep linking and shareable filter URLs
@@ -203,6 +217,7 @@ export function useFilterUrlSync(syncOptions?: {
               options: {
                 ...state.options,
                 attributeFilters: payload.attribute_filters,
+                filterGroups: payload.filter_groups ?? [],
                 categories: payload.categories,
               },
             }))
@@ -219,6 +234,7 @@ export function useFilterUrlSync(syncOptions?: {
               options: {
                 ...state.options,
                 attributeFilters: payload.attribute_filters,
+                filterGroups: payload.filter_groups ?? [],
                 categories: payload.categories,
               },
             }))
@@ -374,14 +390,30 @@ export function useFilterUrlSync(syncOptions?: {
 
     const routeCanonicalPath = syncOptions?.initialCanonicalPath ?? null
     const routePresetSlug = routeCanonicalPath?.split("?")[0]?.split("/").filter(Boolean).at(-1) ?? null
+    const matchedPresetSlug = selectedTypeSlug && isPriceChanged
+      ? options.filterGroups
+        .flatMap((group) => group.presets)
+        .find((preset) => {
+          const range = readPresetPriceRange(preset.filter_payload, options.priceRange)
+          return Boolean(range && range[0] === filters.priceRange[0] && range[1] === filters.priceRange[1])
+        })?.slug ?? null
+      : null
     const isPresetLanding = Boolean(
       routeCanonicalPath &&
       routePriceRange &&
-      pathname === routeCanonicalPath
+      pathname === routeCanonicalPath &&
+      filters.priceRange[0] === routePriceRange.min &&
+      filters.priceRange[1] === routePriceRange.max
     )
 
     const pathSegments: string[] = []
-    if (isPresetLanding) {
+    if (selectedTypeSlug && matchedPresetSlug) {
+      pathSegments.push(selectedTypeSlug, matchedPresetSlug)
+      if (selectedCategorySlug) {
+        params.set("category", selectedCategorySlug)
+      }
+      appendAttributeQueryParams(params, filters.attributeSelections, options.attributeFilters)
+    } else if (isPresetLanding) {
       if (selectedTypeSlug) {
         pathSegments.push(selectedTypeSlug)
         if (routePresetSlug) {
@@ -430,6 +462,7 @@ export function useFilterUrlSync(syncOptions?: {
     options.categories,
     options.productTypes,
     options.attributeFilters,
+    options.filterGroups,
     syncOptions?.initialCategorySlug,
     syncOptions?.initialAttributeSelections,
     syncOptions?.initialPriceRange,

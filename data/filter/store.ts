@@ -4,6 +4,7 @@ import {
   fetchProductFilters,
   fetchProductList,
   type ExtraAttr,
+  type ProductFilterGroup,
   type ProductFilterOption,
   type ProductListItem,
   type ProductListMeta,
@@ -87,6 +88,7 @@ interface FilterOptionsState {
   productTypes: FilterOption[]
   priceRange: PriceRange
   attributeFilters: AttributeFilter[]
+  filterGroups: ProductFilterGroup[]
   rangeFilterBounds: Record<string, { min: number; max: number }>
 }
 
@@ -320,6 +322,7 @@ const transformOptions = (payload: {
     options: FilterOption[]
     range?: { min: number; max: number }
   }>
+  filter_groups?: ProductFilterGroup[]
 }): FilterOptionsState => {
   const priceRange: PriceRange = [
     Math.max(0, payload.price.min ?? 0),
@@ -339,6 +342,7 @@ const transformOptions = (payload: {
     productTypes: payload.types || [],
     priceRange,
     attributeFilters: payload.attribute_filters,
+    filterGroups: payload.filter_groups ?? [],
     rangeFilterBounds,
   }
 }
@@ -349,6 +353,7 @@ const initialState: WineStoreState = {
     productTypes: [],
     priceRange: [0, DEFAULT_PRICE_MAX],
     attributeFilters: [],
+    filterGroups: [],
     rangeFilterBounds: {},
   },
   filters: {
@@ -420,11 +425,16 @@ export const useWineStore = create<WineStore>((set, get) => ({
     // Fallback: Load từ cache hoặc fetch từ API (legacy flow)
     const cachedOptions = readCache<FilterOptionsState>(FILTER_OPTIONS_CACHE_KEY)
     if (cachedOptions) {
+      const normalizedCachedOptions = {
+        ...cachedOptions,
+        filterGroups: cachedOptions.filterGroups ?? [],
+      }
+
       set((state) => ({
-        options: cachedOptions,
+        options: normalizedCachedOptions,
         filters: {
           ...state.filters,
-          priceRange: cachedOptions.priceRange,
+          priceRange: normalizedCachedOptions.priceRange,
         },
         initialized: true,
         loading: false,
@@ -590,6 +600,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
         options: {
           ...state.options,
           attributeFilters: newOptions.attributeFilters,
+          filterGroups: newOptions.filterGroups,
           rangeFilterBounds: newOptions.rangeFilterBounds,
           categories: newOptions.categories,
         },
@@ -654,6 +665,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
         options: {
           ...state.options,
           attributeFilters: newOptions.attributeFilters,
+          filterGroups: newOptions.filterGroups,
           rangeFilterBounds: newOptions.rangeFilterBounds,
           categories: newOptions.categories,
         },
@@ -744,6 +756,7 @@ export const useWineStore = create<WineStore>((set, get) => ({
         options: {
           ...state.options,
           attributeFilters: newOptions.attributeFilters,
+          filterGroups: newOptions.filterGroups,
           rangeFilterBounds: newOptions.rangeFilterBounds,
           categories: newOptions.categories,
         },

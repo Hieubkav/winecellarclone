@@ -26,6 +26,20 @@ const formatCurrency = (value: number) => currencyFormatter.format(value)
 
 const COLLAPSE_THRESHOLD = 6
 
+const readPresetPriceRange = (
+    payload: Record<string, unknown>,
+    fallbackRange: [number, number],
+): [number, number] | null => {
+    const min = typeof payload.price_min === "number" ? payload.price_min : null
+    const max = typeof payload.price_max === "number" ? payload.price_max : null
+
+    if (min === null && max === null) {
+        return null
+    }
+
+    return [min ?? fallbackRange[0], max ?? fallbackRange[1]]
+}
+
 interface FilterIconProps {
     iconUrl?: string | null
     iconName?: string | null
@@ -492,6 +506,17 @@ export function FilterSidebar({
     const sliderDisabled = options.priceRange[1] <= options.priceRange[0]
     const categoryValue = filters.categoryId ? String(filters.categoryId) : "all"
     const productTypeValue = filters.productTypeId ? String(filters.productTypeId) : "all"
+    const visiblePresetGroups = filters.productTypeId
+        ? options.filterGroups.filter((group) => group.presets.length > 0 && group.show_in_filters !== false)
+        : []
+    const getSelectedPresetSlug = (group: (typeof visiblePresetGroups)[number]) => {
+        const match = group.presets.find((preset) => {
+            const range = readPresetPriceRange(preset.filter_payload, options.priceRange)
+            return Boolean(range && range[0] === filters.priceRange[0] && range[1] === filters.priceRange[1])
+        })
+
+        return match?.slug ?? "all"
+    }
 
     const activeFilterCount = useMemo(() => {
         let count = 0
@@ -529,6 +554,20 @@ export function FilterSidebar({
         }
 
         void setSelectedProductType(nextTypeId)
+    }
+
+    const handlePresetChange = (groupSlug: string, presetSlug: string) => {
+        const group = visiblePresetGroups.find((item) => item.slug === groupSlug)
+        if (!group || presetSlug === "all") {
+            setPriceRange(options.priceRange)
+            return
+        }
+
+        const preset = group.presets.find((item) => item.slug === presetSlug)
+        const range = preset ? readPresetPriceRange(preset.filter_payload, options.priceRange) : null
+        if (range) {
+            setPriceRange(range)
+        }
     }
 
     const renderDynamicFilter = (attributeFilter: {
@@ -718,6 +757,28 @@ export function FilterSidebar({
                     <Separator className="bg-[#ECAA4D]/20" />
                 </>
             )}
+
+            {visiblePresetGroups.map((group) => (
+                <div key={group.id} className="space-y-3">
+                    <h3 className="text-sm font-semibold text-[#1C1C1C] uppercase tracking-wide">
+                        {group.name}
+                    </h3>
+                    <select
+                        value={getSelectedPresetSlug(group)}
+                        onChange={(event) => handlePresetChange(group.slug, event.target.value)}
+                        className="h-10 w-full rounded-md border border-[#ECAA4D]/30 bg-white px-3 text-sm text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#ECAA4D]/40"
+                        aria-label={`Lọc theo ${group.name}`}
+                    >
+                        <option value="all">Tất cả</option>
+                        {group.presets.map((preset) => (
+                            <option key={preset.id} value={preset.slug}>
+                                {preset.name}
+                            </option>
+                        ))}
+                    </select>
+                    <Separator className="bg-[#ECAA4D]/20" />
+                </div>
+            ))}
 
             {/* Categories - XUỐNG SAU */}
             <div className="space-y-3">

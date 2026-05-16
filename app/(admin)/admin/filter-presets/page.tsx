@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Edit, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
 import { Button, Card, Input, Label, Badge } from '../components/ui';
 import {
   createProductFilterGroup,
@@ -17,10 +16,7 @@ import {
 } from '@/lib/api/admin';
 import { toast } from 'sonner';
 
-const buildPresetPath = (group: Pick<AdminProductFilterGroup, 'route_prefix' | 'slug'>, presetSlug?: string) => {
-  const segments = [group.route_prefix, group.slug, presetSlug].filter(Boolean);
-  return `/${segments.join('/')}`;
-};
+const buildPresetPath = (presetSlug?: string) => `/san-pham/{loai-ruou}${presetSlug ? `/${presetSlug}` : ''}`;
 
 const readNumberField = (value: string) => {
   const normalized = value.trim();
@@ -49,7 +45,7 @@ export default function FilterPresetsPage() {
   const [editingGroupId, setEditingGroupId] = useState<number | null>(null);
   const [groupName, setGroupName] = useState('');
   const [groupSlug, setGroupSlug] = useState('');
-  const [routePrefix, setRoutePrefix] = useState('san-pham');
+  const [showInFilters, setShowInFilters] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [editingPreset, setEditingPreset] = useState<{ groupId: number; presetId: number } | null>(null);
   const [presetName, setPresetName] = useState('');
@@ -81,8 +77,9 @@ export default function FilterPresetsPage() {
     const payload = {
       name: groupName.trim(),
       slug: groupSlug.trim() || undefined,
-      route_prefix: routePrefix.trim() || 'san-pham',
+      route_prefix: 'san-pham',
       active: true,
+      show_in_filters: showInFilters,
     };
     if (editingGroupId) {
       await updateProductFilterGroup(editingGroupId, payload);
@@ -94,7 +91,7 @@ export default function FilterPresetsPage() {
     setEditingGroupId(null);
     setGroupName('');
     setGroupSlug('');
-    setRoutePrefix('san-pham');
+    setShowInFilters(false);
     await loadGroups();
   };
 
@@ -132,7 +129,7 @@ export default function FilterPresetsPage() {
     setEditingGroupId(group.id);
     setGroupName(group.name);
     setGroupSlug(group.slug);
-    setRoutePrefix(group.route_prefix || 'san-pham');
+    setShowInFilters(Boolean(group.show_in_filters));
   };
 
   const startEditPreset = (group: AdminProductFilterGroup, preset: AdminProductFilterPreset) => {
@@ -148,7 +145,7 @@ export default function FilterPresetsPage() {
     setEditingGroupId(null);
     setGroupName('');
     setGroupSlug('');
-    setRoutePrefix('san-pham');
+    setShowInFilters(false);
   };
 
   const cancelPresetEdit = () => {
@@ -163,7 +160,7 @@ export default function FilterPresetsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Bộ lọc SEO</h1>
-        <p className="text-sm text-slate-500">Tạo route động như /san-pham/muc-gia/duoi-500k hoặc /bo-suu-tap/ban-chay từ dữ liệu thật.</p>
+        <p className="text-sm text-slate-500">Tạo preset như “Trên 5 triệu”; khi chọn loại rượu sẽ ra route sạch /san-pham/ruou-vang/tren-5-trieu.</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -175,12 +172,22 @@ export default function FilterPresetsPage() {
               <Input value={groupName} onChange={(event) => setGroupName(event.target.value)} placeholder="Mức giá" />
             </div>
             <div className="space-y-1">
-              <Label>Slug nhóm</Label>
+              <Label>Mã nhóm</Label>
               <Input value={groupSlug} onChange={(event) => setGroupSlug(event.target.value)} placeholder="muc-gia" />
+              <p className="text-xs text-slate-500">Mã này chỉ dùng để gom preset, không xuất hiện trong URL public.</p>
             </div>
-            <div className="space-y-1">
-              <Label>Route prefix</Label>
-              <Input value={routePrefix} onChange={(event) => setRoutePrefix(event.target.value)} placeholder="san-pham" />
+            <div className="flex items-start gap-3 rounded-md border border-slate-200 p-3 dark:border-slate-700">
+              <input
+                id="show-in-filters"
+                type="checkbox"
+                checked={showInFilters}
+                onChange={(event) => setShowInFilters(event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-blue-500"
+              />
+              <div className="space-y-1">
+                <Label htmlFor="show-in-filters">Hiện trong bộ lọc sản phẩm</Label>
+                <p className="text-xs text-slate-500">Bật để nhóm này hiện thành dropdown sau khi khách chọn loại rượu.</p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Button type="submit" className="gap-2"><Plus size={16} /> {editingGroupId ? 'Lưu nhóm' : 'Tạo nhóm'}</Button>
@@ -249,18 +256,14 @@ export default function FilterPresetsPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="font-semibold">{group.name}</div>
-                <div className="text-xs text-slate-500">/{group.route_prefix}/{group.slug}</div>
+                <div className="text-xs text-slate-500">{buildPresetPath('{slug-gia}')}</div>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={group.active ? 'success' : 'secondary'}>{group.active ? 'Bật' : 'Tắt'}</Badge>
+                <Badge variant={group.show_in_filters ? 'info' : 'outline'}>{group.show_in_filters ? 'Hiện filter' : 'Ẩn filter'}</Badge>
                 <Button variant="ghost" size="icon" aria-label="Sửa nhóm" onClick={() => startEditGroup(group)}>
                   <Edit size={16} />
                 </Button>
-                <Link href={buildPresetPath(group)} target="_blank" rel="noopener noreferrer">
-                  <Button variant="ghost" size="icon" aria-label="Mở nhóm">
-                    <ExternalLink size={16} />
-                  </Button>
-                </Link>
                 <Button variant="ghost" size="icon" onClick={async () => { await deleteProductFilterGroup(group.id); await loadGroups(); }}>
                   <Trash2 size={16} />
                 </Button>
@@ -269,13 +272,8 @@ export default function FilterPresetsPage() {
             <div className="grid gap-2">
               {group.presets.map((preset) => (
                 <div key={preset.id} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700">
-                  <span>{preset.name} <code className="text-xs text-slate-500">/{group.route_prefix}/{group.slug}/{preset.slug}</code></span>
+                  <span>{preset.name} <code className="text-xs text-slate-500">{buildPresetPath(preset.slug)}</code></span>
                   <div className="flex items-center gap-2">
-                    <Link href={buildPresetPath(group, preset.slug)} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="icon" aria-label="Mở preset">
-                        <ExternalLink size={14} />
-                      </Button>
-                    </Link>
                     <Button variant="ghost" size="icon" aria-label="Sửa preset" onClick={() => startEditPreset(group, preset)}>
                       <Edit size={14} />
                     </Button>
