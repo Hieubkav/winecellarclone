@@ -8,7 +8,6 @@ import { Loader2, ArrowLeft, Pencil, X, ImageIcon, Trash2, Sparkles, ChevronDown
 import { Button, Card, Input, Label } from '@/app/(admin)/admin/components/ui';
 import { AdminStickyActionBar } from '@/app/(admin)/admin/components/AdminStickyActionBar';
 import { stripHtmlTags } from '@/lib/utils/article-content';
-import { getArticleCategoryHub } from '@/lib/articles/routes';
 import { getImageUrl } from '@/lib/utils/image';
 import { useArticleForm } from '../hooks/useArticleForm';
 
@@ -95,8 +94,8 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
     window.open(chatGPTUrl, '_blank');
   };
 
-  const visibleSlots = contentOptions?.slots.filter((slot) => !categoryKey || slot.category_key === categoryKey) ?? [];
-  const previewHub = getArticleCategoryHub(categoryKey);
+  const visibleSlots = contentOptions?.slots.filter((slot) => !categoryKey || slot.category_key === categoryKey || slot.path.startsWith(`/${categoryKey}/`)) ?? [];
+  const previewHub = categoryKey || null;
   const previewSlug = slug || generateSlug(title) || 'bai-viet';
   const previewPath = previewHub ? `/${previewHub}/${previewSlug}` : `/bai-viet/${previewSlug}`;
 
@@ -143,26 +142,26 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
 
             <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
               <div className="space-y-2">
-                <Label>Nhóm nội dung</Label>
+                <Label>Danh mục bài viết</Label>
                 <select
                   value={categoryKey}
                   onChange={(event) => {
                     const nextCategory = event.target.value;
                     setCategoryKey(nextCategory);
                     setContentSlots((prev) =>
-                      prev.filter((slotKey) => contentOptions?.slots.some((slot) => slot.key === slotKey && (!nextCategory || slot.category_key === nextCategory)))
+                      prev.filter((slotKey) => contentOptions?.slots.some((slot) => slot.key === slotKey && (!nextCategory || slot.category_key === nextCategory || slot.path.startsWith(`/${nextCategory}/`))))
                     );
                   }}
                   className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-800"
                 >
-                  <option value="">Chưa phân nhóm</option>
+                  <option value="">Không chọn danh mục</option>
                   {contentOptions?.categories.map((category) => (
                     <option key={category.key} value={category.key}>
                       {category.label}
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-slate-500">Dùng để lọc bài và gợi ý đặt vào trang phù hợp.</p>
+                <p className="text-xs text-slate-500">Dùng để tạo route /danh-muc/ten-bai-viet. Bỏ trống sẽ dùng /bai-viet/ten-bai-viet.</p>
               </div>
               <div className="space-y-2">
                 <button
@@ -199,7 +198,7 @@ Trả lời trực tiếp nội dung bài viết theo format markdown, có cấu
                         </label>
                       ))
                     ) : (
-                      <p className="px-2 py-3 text-sm text-slate-500">Chọn nhóm nội dung để xem trang có thể gắn.</p>
+                      <p className="px-2 py-3 text-sm text-slate-500">Chọn danh mục bài viết để xem trang có thể gắn.</p>
                     )}
                   </div>
                 ) : null}

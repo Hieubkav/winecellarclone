@@ -13,7 +13,12 @@ export const getArticleCategoryHub = (categoryKey?: string | null): string | nul
   return ARTICLE_CATEGORY_HUBS[categoryKey] ?? null;
 };
 
-export const getArticlePublicHref = (article: { slug: string; category_key?: string | null }): string => {
-  const hub = getArticleCategoryHub(article.category_key);
-  return hub ? `/${hub}/${article.slug}` : `/bai-viet/${article.slug}`;
+export const getArticlePublicHref = (article: {
+  slug: string;
+  category_key?: string | null;
+  category_slug?: string | null;
+  article_category?: { slug?: string | null } | null;
+}): string => {
+  const categorySlug = article.article_category?.slug || article.category_slug || getArticleCategoryHub(article.category_key);
+  return categorySlug ? `/${categorySlug}/${article.slug}` : `/bai-viet/${article.slug}`;
 };

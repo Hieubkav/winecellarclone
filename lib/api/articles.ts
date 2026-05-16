@@ -17,6 +17,9 @@ export interface ArticleListItem {
   slug: string;
   excerpt: string | null;
   category_key?: string | null;
+  category_slug?: string | null;
+  article_category_id?: number | null;
+  article_category?: ArticleCategory | null;
   content_slots?: string[];
   cover_image_url: string | null;
   cover_image_canonical_url?: string | null;
@@ -34,6 +37,9 @@ export interface RelatedArticle {
   slug: string;
   excerpt: string | null;
   category_key?: string | null;
+  category_slug?: string | null;
+  article_category_id?: number | null;
+  article_category?: ArticleCategory | null;
   cover_image_url: string | null;
   cover_image_canonical_url?: string | null;
   published_at: string;
@@ -45,6 +51,9 @@ export interface ArticleDetail {
   slug: string;
   excerpt: string | null;
   category_key?: string | null;
+  category_slug?: string | null;
+  article_category_id?: number | null;
+  article_category?: ArticleCategory | null;
   content_slots?: string[];
   content: string | null;
   cover_image_url: string | null;
@@ -67,6 +76,12 @@ export interface ArticleDetail {
     author?: { href: string; method: string };
     related?: { href: string; method: string };
   };
+}
+
+export interface ArticleCategory {
+  id: number;
+  name: string;
+  slug: string;
 }
 
 export interface ArticleListMeta {
@@ -238,6 +253,24 @@ export async function fetchArticleDetail(slug: string): Promise<ArticleDetail | 
   }
 }
 
+export async function fetchArticleDetailByCategory(categorySlug: string, slug: string): Promise<ArticleDetail | null> {
+  try {
+    const response = await apiFetch<ArticleDetailResponse>(
+      `v1/articles/${encodeURIComponent(categorySlug)}/${encodeURIComponent(slug)}`,
+      {
+        next: { tags: ["articles", `article:${categorySlug}:${slug}`] },
+      }
+    );
+    return normalizeArticleDetail(response.data);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
 export async function fetchContentPage(section: string, slug: string): Promise<ArticleDetail | null> {
   try {
     const response = await apiFetch<ArticleDetailResponse>(
@@ -285,6 +318,26 @@ export async function fetchArticleDetailSafe(slug: string): Promise<ArticleDetai
 
   try {
     return await fetchArticleDetail(slug);
+  } catch (error) {
+    if (!didWarnArticleDetail) {
+      didWarnArticleDetail = true;
+      const message = isBackendUnavailableError(error)
+        ? "Backend chưa sẵn sàng, bỏ qua article detail."
+        : "Không lấy được article detail, bỏ qua.";
+      console.warn(message);
+    }
+
+    return null;
+  }
+}
+
+export async function fetchArticleDetailByCategorySafe(categorySlug: string, slug: string): Promise<ArticleDetail | null> {
+  if (shouldSkipApiFetchDuringBuild()) {
+    return null;
+  }
+
+  try {
+    return await fetchArticleDetailByCategory(categorySlug, slug);
   } catch (error) {
     if (!didWarnArticleDetail) {
       didWarnArticleDetail = true;

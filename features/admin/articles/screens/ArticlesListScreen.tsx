@@ -127,7 +127,7 @@ export const ArticlesListScreen = () => {
                   />
                 </TableHead>
                 <SortableHeader label="Tiêu đề" sortKey="title" sortConfig={sortConfig} onSort={handleSort} />
-                {visibleColumns.includes('category_key') && <TableHead>Nhóm</TableHead>}
+                {visibleColumns.includes('category_key') && <TableHead>Danh mục</TableHead>}
                 {visibleColumns.includes('excerpt') && <TableHead>Mô tả ngắn</TableHead>}
                 {visibleColumns.includes('published_at') && (
                   <SortableHeader
@@ -171,7 +171,7 @@ export const ArticlesListScreen = () => {
                   {visibleColumns.includes('category_key') && (
                     <TableCell>
                       <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                        {article.category_key || '—'}
+                        {article.article_category?.name || article.category_slug || article.category_key || '—'}
                       </span>
                     </TableCell>
                   )}

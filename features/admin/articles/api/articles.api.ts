@@ -18,6 +18,9 @@ export interface AdminArticle {
   slug: string;
   excerpt: string | null;
   category_key?: string | null;
+  category_slug?: string | null;
+  article_category_id?: number | null;
+  article_category?: ArticleContentCategory | null;
   content_slots?: string[];
   meta_title?: string | null;
   meta_description?: string | null;
@@ -37,9 +40,12 @@ export interface AdminArticle {
 }
 
 export interface ArticleContentCategory {
+  id?: number;
+  name?: string;
   key: string;
   label: string;
   description: string;
+  slug?: string;
 }
 
 export interface ArticleContentSlot {

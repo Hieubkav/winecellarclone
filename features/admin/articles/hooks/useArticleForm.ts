@@ -110,7 +110,7 @@ export const useArticleForm = ({ articleId }: UseArticleFormOptions = {}) => {
     setTitle(article.title);
     setSlug(article.slug);
     setContent(article.content || "");
-    setCategoryKey(article.category_key || "");
+    setCategoryKey(article.article_category?.slug || article.category_slug || article.category_key || "");
     setContentSlots(Array.isArray(article.content_slots) ? article.content_slots : []);
     setMetaTitle(article.meta_title || "");
     setMetaDescription(article.meta_description || "");

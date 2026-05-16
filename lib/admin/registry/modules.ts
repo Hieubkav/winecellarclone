@@ -6,6 +6,7 @@ export type AdminModuleKey =
   | "attribute-groups"
   | "filter-presets"
   | "articles"
+  | "article-categories"
   | "images"
   | "home-components"
   | "ia"
@@ -52,6 +53,7 @@ export const ADMIN_MODULES: AdminModuleMeta[] = [
   { key: "attribute-groups", label: "Nhóm thuộc tính", route: "/admin/attribute-groups", group: "products" },
   { key: "filter-presets", label: "Bộ lọc SEO", route: "/admin/filter-presets", group: "products" },
   { key: "articles", label: "Bài viết", route: "/admin/articles", group: "content" },
+  { key: "article-categories", label: "Danh mục bài viết", route: "/admin/article-categories", group: "content" },
   { key: "images", label: "Thư viện ảnh", route: "/admin/images", group: "content" },
   { key: "home-components", label: "Trang chủ", route: "/admin/home-components", group: "website" },
   { key: "ia", label: "Trang website", route: "/admin/ia", group: "website" },
@@ -103,6 +105,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
         icon: "FileText",
         subItems: [
           { label: "Bài viết", href: "/admin/articles" },
+          { label: "Danh mục bài viết", href: "/admin/article-categories" },
           { label: "Thư viện ảnh", href: "/admin/images" },
         ],
       },
