@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Edit, FolderTree, Plus, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Edit, ExternalLink, FolderTree, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -381,6 +381,18 @@ export default function ArticleCategoriesPage() {
                   {visibleColumns.includes("actions") && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Link href={`/${category.slug}`} target="_blank">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Mở danh mục trên web"
+                            aria-label="Mở danh mục trên web"
+                          >
+                            <ExternalLink size={16} />
+                          </Button>
+                        </Link>
                         <Link href={`/admin/article-categories/${category.id}/edit`}>
                           <Button type="button" variant="ghost" size="icon" aria-label="Edit">
                             <Edit size={16} />
