@@ -65,9 +65,18 @@ const resolvePresetPriceRange = (
   const min = typeof payload.price_min === "number" ? payload.price_min : null;
   const max = typeof payload.price_max === "number" ? payload.price_max : null;
 
-  return min !== null || max !== null
-    ? { min: min ?? fallbackPrice?.min ?? 0, max: max ?? fallbackPrice?.max ?? 0 }
-    : null;
+  if (min === null && max === null) {
+    return null;
+  }
+
+  const fallbackMin = fallbackPrice?.min ?? 0;
+  const fallbackMax = fallbackPrice?.max ?? 0;
+  const safeMin = Math.max(fallbackMin, min ?? fallbackMin);
+  const safeMax = Math.min(fallbackMax, max ?? fallbackMax);
+
+  return safeMin > safeMax
+    ? { min: safeMin, max: safeMin }
+    : { min: safeMin, max: safeMax };
 };
 
 const findFilterPresetBySlug = (

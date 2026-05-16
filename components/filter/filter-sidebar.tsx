@@ -37,7 +37,10 @@ const readPresetPriceRange = (
         return null
     }
 
-    return [min ?? fallbackRange[0], max ?? fallbackRange[1]]
+    const safeMin = Math.max(fallbackRange[0], min ?? fallbackRange[0])
+    const safeMax = Math.min(fallbackRange[1], max ?? fallbackRange[1])
+
+    return safeMin > safeMax ? [safeMin, safeMin] : [safeMin, safeMax]
 }
 
 interface FilterIconProps {
