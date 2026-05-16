@@ -166,14 +166,21 @@ export default function ArticleListPage({
   const currentCategorySlug = activeCategorySlug || searchParams.get("category_slug") || searchParams.get("category") || "";
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   const currentSortLabel = SORT_OPTIONS.find(opt => opt.value === currentSort)?.label || "Mới nhất";
+  const visibleCategories = categories.filter((category) => (category.articles_count ?? 0) > 0);
+  const currentCategoryLabel = visibleCategories.find((category) => category.slug === currentCategorySlug)?.name || "Tất cả";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -207,6 +214,7 @@ export default function ArticleListPage({
 
     const query = params.toString();
     router.push(query ? `${pathname}?${query}` : pathname);
+    setIsCategoryDropdownOpen(false);
   };
 
   const handleLoadMore = () => {
@@ -263,46 +271,50 @@ export default function ArticleListPage({
               </div>
             </div>
 
-            {categories.length > 0 && (
-              <div className="mb-8 rounded-2xl border border-stone-200 bg-white p-3 shadow-sm">
-                <div className="mb-3 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  <Tags className="h-4 w-4 text-[#D4A84B]" />
-                  <span>Lọc theo danh mục</span>
-                </div>
-                <div className="flex gap-2 overflow-x-auto pb-1">
+            {visibleCategories.length > 0 && (
+              <div className="mb-8 flex justify-start">
+                <div className="relative" ref={categoryDropdownRef}>
                   <button
-                    onClick={() => handleCategoryChange("")}
-                    className={cn(
-                      "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
-                      !currentCategorySlug
-                        ? "border-[#9B2C3B] bg-[#9B2C3B] text-white shadow-sm"
-                        : "border-stone-200 bg-stone-50 text-stone-600 hover:border-[#9B2C3B]/40 hover:text-[#9B2C3B]"
-                    )}
+                    onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                    className="flex min-w-[220px] items-center justify-between gap-3 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-600 shadow-sm transition-colors hover:bg-stone-50"
                   >
-                    Tất cả
+                    <span className="flex items-center gap-2">
+                      <Tags className="h-4 w-4 text-[#D4A84B]" />
+                      <span>Danh mục: <span className="font-semibold text-stone-800">{currentCategoryLabel}</span></span>
+                    </span>
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", isCategoryDropdownOpen && "rotate-180")} />
                   </button>
-                  {categories.map((category) => (
-                    <button
-                      key={category.slug}
-                      onClick={() => handleCategoryChange(category.slug)}
-                      className={cn(
-                        "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
-                        currentCategorySlug === category.slug
-                          ? "border-[#9B2C3B] bg-[#9B2C3B] text-white shadow-sm"
-                          : "border-stone-200 bg-stone-50 text-stone-600 hover:border-[#9B2C3B]/40 hover:text-[#9B2C3B]"
-                      )}
-                    >
-                      {category.name}
-                      {typeof category.articles_count === "number" && (
-                        <span className={cn(
-                          "ml-2 rounded-full px-2 py-0.5 text-xs",
-                          currentCategorySlug === category.slug ? "bg-white/20 text-white" : "bg-white text-stone-500"
-                        )}>
-                          {category.articles_count}
-                        </span>
-                      )}
-                    </button>
-                  ))}
+
+                  {isCategoryDropdownOpen && (
+                    <div className="absolute left-0 top-full z-10 mt-2 w-64 overflow-hidden rounded-xl border border-stone-200 bg-white shadow-lg">
+                      <button
+                        onClick={() => handleCategoryChange("")}
+                        className={cn(
+                          "flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors hover:bg-stone-50",
+                          !currentCategorySlug ? "bg-[#9B2C3B]/5 font-semibold text-[#9B2C3B]" : "text-stone-600"
+                        )}
+                      >
+                        <span>Tất cả</span>
+                      </button>
+                      {visibleCategories.map((category) => (
+                        <button
+                          key={category.slug}
+                          onClick={() => handleCategoryChange(category.slug)}
+                          className={cn(
+                            "flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors hover:bg-stone-50",
+                            currentCategorySlug === category.slug
+                              ? "bg-[#9B2C3B]/5 font-semibold text-[#9B2C3B]"
+                              : "text-stone-600"
+                          )}
+                        >
+                          <span>{category.name}</span>
+                          <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-500">
+                            {category.articles_count}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
