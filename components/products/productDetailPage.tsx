@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
   Phone,
@@ -364,6 +366,9 @@ export default function ProductDetailPage({
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [previewCarouselApi, setPreviewCarouselApi] = useState<CarouselApi | null>(null);
+  const [canPreviewScrollPrev, setCanPreviewScrollPrev] = useState(false);
+  const [canPreviewScrollNext, setCanPreviewScrollNext] = useState(false);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
@@ -375,10 +380,6 @@ export default function ProductDetailPage({
   );
   const selectedImageItem = imageItems[selectedImage] ?? imageItems[0];
   const selectedImageSrc = selectedImageItem?.src ?? "/placeholder/wine-bottle.svg";
-  const selectedImageAspectRatio =
-    selectedImageItem?.width && selectedImageItem?.height
-      ? `${selectedImageItem.width} / ${selectedImageItem.height}`
-      : PRODUCT_IMAGE_ASPECT_RATIO;
   const desktopThumbnailCount = 3;
   const maxThumbnailStart = Math.max(0, imageItems.length - desktopThumbnailCount);
   const needsDesktopThumbnailPager = imageItems.length > desktopThumbnailCount;
@@ -456,6 +457,37 @@ export default function ProductDetailPage({
       carouselApi.off("reInit", handleSelect);
     };
   }, [carouselApi]);
+
+  useEffect(() => {
+    if (!previewCarouselApi) {
+      return;
+    }
+
+    const handleSelect = () => {
+      setSelectedImage(previewCarouselApi.selectedScrollSnap());
+      setCanPreviewScrollPrev(previewCarouselApi.canScrollPrev());
+      setCanPreviewScrollNext(previewCarouselApi.canScrollNext());
+    };
+
+    handleSelect();
+    previewCarouselApi.on("select", handleSelect);
+    previewCarouselApi.on("reInit", handleSelect);
+
+    return () => {
+      previewCarouselApi.off("select", handleSelect);
+      previewCarouselApi.off("reInit", handleSelect);
+    };
+  }, [previewCarouselApi]);
+
+  useEffect(() => {
+    if (!previewCarouselApi || !isImagePreviewOpen) {
+      return;
+    }
+
+    previewCarouselApi.scrollTo(selectedImage, true);
+    setCanPreviewScrollPrev(previewCarouselApi.canScrollPrev());
+    setCanPreviewScrollNext(previewCarouselApi.canScrollNext());
+  }, [previewCarouselApi, isImagePreviewOpen, selectedImage]);
 
   useEffect(() => {
     if (selectedImage < thumbnailStartIndex) {
@@ -671,15 +703,68 @@ export default function ProductDetailPage({
             <Dialog open={isImagePreviewOpen} onOpenChange={setIsImagePreviewOpen}>
               <DialogContent className="w-[92vw] max-w-[960px] border-0 bg-transparent p-0 shadow-none">
                 <DialogTitle className="sr-only">Xem ảnh sản phẩm</DialogTitle>
-                <div className="relative mx-auto max-h-[90vh] w-full overflow-hidden rounded-2xl bg-[#1C1C1C]" style={{ aspectRatio: selectedImageAspectRatio }}>
-                  <ProductImage
-                    src={selectedImageSrc}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 1024px) 92vw, 960px"
-                    className="object-contain"
-                    priority
-                  />
+                <div className="relative mx-auto w-full overflow-hidden rounded-2xl bg-[#1C1C1C]">
+                  <Carousel
+                    setApi={setPreviewCarouselApi}
+                    opts={{ align: "start", loop: false, startIndex: selectedImage }}
+                    className="w-full"
+                  >
+                    <CarouselContent className="ml-0">
+                      {imageItems.map((image, index) => {
+                        const previewAspectRatio =
+                          image.width && image.height
+                            ? `${image.width} / ${image.height}`
+                            : PRODUCT_IMAGE_ASPECT_RATIO;
+
+                        return (
+                          <CarouselItem key={`${image.src}-${index}`} className="pl-0">
+                            <div
+                              className="relative max-h-[90vh] w-full"
+                              style={{ aspectRatio: previewAspectRatio }}
+                            >
+                              <ProductImage
+                                src={image.src}
+                                alt={`${product.name} - ảnh ${index + 1}`}
+                                fill
+                                sizes="(max-width: 1024px) 92vw, 960px"
+                                className="object-contain"
+                                priority={index === selectedImage}
+                              />
+                            </div>
+                          </CarouselItem>
+                        );
+                      })}
+                    </CarouselContent>
+                  </Carousel>
+                  {imageItems.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => previewCarouselApi?.scrollPrev()}
+                        disabled={!canPreviewScrollPrev}
+                        className={`absolute left-3 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1C1C1C] shadow-sm transition hover:bg-white ${
+                          canPreviewScrollPrev ? "" : "cursor-not-allowed opacity-40"
+                        }`}
+                        aria-label="Xem ảnh trước"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => previewCarouselApi?.scrollNext()}
+                        disabled={!canPreviewScrollNext}
+                        className={`absolute right-3 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#1C1C1C] shadow-sm transition hover:bg-white ${
+                          canPreviewScrollNext ? "" : "cursor-not-allowed opacity-40"
+                        }`}
+                        aria-label="Xem ảnh tiếp theo"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                      <div className="absolute bottom-3 left-1/2 z-10 rounded-full bg-black/55 px-3 py-1 text-xs font-semibold text-white -translate-x-1/2">
+                        {selectedImage + 1}/{imageItems.length}
+                      </div>
+                    </>
+                  )}
                   <DialogClose className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#1C1C1C] transition hover:bg-white">
                     <X className="h-4 w-4" />
                   </DialogClose>
