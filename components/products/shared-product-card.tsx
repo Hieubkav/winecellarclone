@@ -65,9 +65,7 @@ const normalizeText = (value: string | null | undefined) =>
     .trim();
 
 const buildTaxonomyUrl = (key: string, value: string) => {
-  const params = new URLSearchParams();
-  params.set(key, value);
-  return `/san-pham?${params.toString()}`;
+  return `/san-pham/${key.replaceAll("_", "-")}/${value}`;
 };
 
 const isBrandGroup = (groupCode?: string, groupName?: string) => {

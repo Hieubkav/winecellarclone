@@ -1,25 +1,29 @@
 import type { Metadata } from "next";
-import SeoHubPage from "@/components/seo/SeoHubPage";
+import { buildFilterMetadata, renderFilterListing } from "../filter/shared";
+import { resolveProductLandingContext } from "@/lib/seo/ia-products";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
+export async function generateMetadata(): Promise<Metadata> {
+  const landingContext = await resolveProductLandingContext(["thuong-hieu"]);
 
-export const metadata: Metadata = {
-  title: "Thương hiệu rượu vang & rượu mạnh | Thiên Kim Wine",
-  description: "Khám phá các thương hiệu rượu vang, whisky, cognac và phụ kiện nổi bật tại Thiên Kim Wine.",
-  alternates: { canonical: `${SITE_URL}/thuong-hieu` },
-};
+  return buildFilterMetadata({
+    searchParams: {},
+    canonicalPath: "/thuong-hieu",
+    routeTypeName: landingContext?.title ?? "Thương hiệu",
+  });
+}
 
-export default function BrandsPage() {
-  return (
-    <SeoHubPage
-      eyebrow="Thương hiệu"
-      title="Thương hiệu rượu nổi bật"
-      description="Tổng hợp các nhà làm vang, thương hiệu rượu mạnh và phụ kiện được chọn lọc để khách hàng dễ so sánh, khám phá và chọn đúng sản phẩm."
-      links={[
-        { label: "Thương hiệu nổi bật", href: "/thuong-hieu/noi-bat", description: "Các thương hiệu được quan tâm và tư vấn nhiều." },
-        { label: "Rượu vang", href: "/san-pham/ruou-vang", description: "Xem sản phẩm rượu vang theo thương hiệu, xuất xứ và phong cách." },
-        { label: "Rượu mạnh", href: "/san-pham/ruou-manh", description: "Khám phá whisky, cognac, gin và các dòng rượu mạnh." },
-      ]}
-    />
-  );
+export default async function BrandsPage() {
+  const landingContext = await resolveProductLandingContext(["thuong-hieu"]);
+
+  return renderFilterListing({
+    canonicalPath: "/thuong-hieu",
+    routeAttributeGroupSlug: landingContext?.routeFilters.attributeGroupSlug ?? "thuong-hieu",
+    routeAttributeSelections: landingContext?.routeFilters.attributeSelections,
+    initialProductParams: landingContext?.apiParams,
+    pageTitle: landingContext?.title ?? "Thương hiệu",
+    collectionName: "Thương hiệu - Thiên Kim Wine",
+    collectionDescription: "Khám phá sản phẩm theo thương hiệu tại Thiên Kim Wine.",
+    itemListName: "Danh sách sản phẩm theo thương hiệu",
+    itemListDescription: "Các sản phẩm chính hãng được lọc theo thương hiệu.",
+  });
 }

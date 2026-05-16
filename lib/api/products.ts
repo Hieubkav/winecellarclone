@@ -370,6 +370,7 @@ export interface ProductFiltersPayload {
     max: number;
   };
   attribute_filters: AttributeFilter[];
+  route_attribute_filters?: AttributeFilter[];
   filter_groups?: ProductFilterGroup[];
 }
 

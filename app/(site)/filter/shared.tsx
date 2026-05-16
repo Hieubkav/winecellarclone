@@ -28,6 +28,7 @@ export type ListingSeoContext = {
   routeTypeSlug?: string | null;
   routeTypeName?: string | null;
   routeCategorySlug?: string | null;
+  routeAttributeGroupSlug?: string | null;
   routeAttributeSelections?: Record<string, string[]>;
   routePriceRange?: { min: number; max: number } | null;
   initialProductParams?: Record<string, string | number | Array<string | number> | undefined>;
@@ -161,6 +162,7 @@ export async function renderFilterListing({
   routeTypeSlug,
   routeTypeName,
   routeCategorySlug,
+  routeAttributeGroupSlug,
   routeAttributeSelections,
   routePriceRange,
   initialProductParams,
@@ -193,6 +195,21 @@ export async function renderFilterListing({
     fetchSettingsSafe(),
   ]);
 
+  const routeAttributeCodes = Object.keys(routeAttributeSelections ?? {});
+  const routeAttributeFilters = filterOptions?.route_attribute_filters ?? [];
+  const extraAttributeFilters = routeAttributeFilters.filter((filter) => {
+    const matchesRouteGroup = routeAttributeGroupSlug ? filter.slug === routeAttributeGroupSlug : false;
+    const matchesRouteSelection = routeAttributeCodes.includes(filter.code);
+    const alreadyVisible = filterOptions?.attribute_filters.some((item) => item.code === filter.code);
+
+    return (matchesRouteGroup || matchesRouteSelection) && !alreadyVisible;
+  });
+  const displayFilterOptions = filterOptions && extraAttributeFilters.length > 0
+    ? {
+      ...filterOptions,
+      attribute_filters: [...filterOptions.attribute_filters, ...extraAttributeFilters],
+    }
+    : filterOptions;
   const productListFontStyle = getScopedFontStyle(settings, "product_list");
   const pageUrl = buildAbsoluteUrl(canonicalPath);
   const defaultCollectionName = effectiveType?.name
@@ -238,7 +255,7 @@ export async function renderFilterListing({
         />
       )}
       <ProductList
-        initialFilterOptions={filterOptions}
+        initialFilterOptions={displayFilterOptions}
         initialProducts={initialProducts}
         fontFamily={productListFontStyle.fontFamily}
         initialTypeSlug={routeTypeSlug ?? null}

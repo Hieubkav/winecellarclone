@@ -7,6 +7,7 @@ import {
 export type ProductLandingRouteFilters = {
   typeSlug?: string | null;
   categorySlug?: string | null;
+  attributeGroupSlug?: string | null;
   attributeSelections?: Record<string, string[]>;
   priceRange?: { min: number; max: number } | null;
 };
@@ -174,8 +175,9 @@ export async function resolveProductLandingContext(
 
   const [typeSlug, ...restSlugs] = cleanSlugs;
   const matchedType = typeSlug ? findBySlug(allFilters.types, typeSlug) : null;
+  const routeAttributeFilters = allFilters.route_attribute_filters ?? allFilters.attribute_filters;
   const matchedAttributeGroup = typeSlug
-    ? allFilters.attribute_filters.find((group) => group.slug === typeSlug)
+    ? routeAttributeFilters.find((group) => group.slug === typeSlug)
     : null;
   if (typeSlug && !matchedType && !matchedAttributeGroup) {
     return null;
@@ -187,6 +189,7 @@ export async function resolveProductLandingContext(
   const filters = scopedFilters ?? allFilters;
   const routeFilters: ProductLandingRouteFilters = {
     typeSlug: matchedType?.slug ?? null,
+    attributeGroupSlug: null,
     attributeSelections: {},
     priceRange: null,
   };
@@ -194,6 +197,7 @@ export async function resolveProductLandingContext(
   const titleParts: string[] = [];
 
   if (matchedAttributeGroup) {
+    routeFilters.attributeGroupSlug = matchedAttributeGroup.slug;
     if (restSlugs.length === 0) {
       const resolvedTitle = matchedAttributeGroup.name;
       return {

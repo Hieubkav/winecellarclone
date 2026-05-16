@@ -31,6 +31,7 @@ const renderLandingPage = (landingContext: Awaited<ReturnType<typeof resolveProd
     routeTypeSlug: landingContext.routeFilters.typeSlug,
     routeTypeName: landingContext.title,
     routeCategorySlug: landingContext.routeFilters.categorySlug,
+    routeAttributeGroupSlug: landingContext.routeFilters.attributeGroupSlug,
     routeAttributeSelections: landingContext.routeFilters.attributeSelections,
     routePriceRange: landingContext.routeFilters.priceRange,
     initialProductParams: landingContext.apiParams,

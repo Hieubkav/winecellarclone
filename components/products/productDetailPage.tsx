@@ -259,7 +259,7 @@ export default function ProductDetailPage({
     const typeSlug = product.type?.slug;
     const baseFilterUrl = typeSlug ? `/san-pham/${typeSlug}` : '/san-pham';
     const buildFilterUrl = (paramKey: string, paramValue: string) => {
-      return `${baseFilterUrl}?${paramKey}=${paramValue}`;
+      return `${baseFilterUrl}/${paramKey.replaceAll("_", "-")}/${paramValue}`;
     };
 
     // Brand và Origin - tìm từ attributes để lấy đúng group_code động
