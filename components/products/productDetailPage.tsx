@@ -266,8 +266,23 @@ export default function ProductDetailPage({
     // Base filter URL với type (nếu có)
     const typeSlug = product.type?.slug;
     const baseFilterUrl = typeSlug ? `/san-pham/${typeSlug}` : '/san-pham';
-    const buildFilterUrl = (paramKey: string, paramValue: string) => {
-      return `${baseFilterUrl}/${paramKey.replaceAll("_", "-")}/${paramValue}`;
+    const normalizeAttributeRouteKey = (groupCode?: string | null, groupName?: string | null) => {
+      const normalizedCode = (groupCode || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      const normalizedName = (groupName || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+      if (["xuat_xu", "origin", "country"].includes(normalizedCode) || normalizedName === "xuat xu") {
+        return "xuat-xu";
+      }
+
+      if (["thuong_hieu", "brand"].includes(normalizedCode) || normalizedName === "thuong hieu") {
+        return "thuong-hieu";
+      }
+
+      return (groupCode || "").replaceAll("_", "-");
+    };
+
+    const buildFilterUrl = (paramKey: string, paramValue: string, groupName?: string | null) => {
+      return `${baseFilterUrl}/${normalizeAttributeRouteKey(paramKey, groupName)}/${paramValue}`;
     };
 
     // Brand và Origin - tìm từ attributes để lấy đúng group_code động
@@ -284,7 +299,7 @@ export default function ProductDetailPage({
         groupCode: brandAttr?.group_code || 'brand',
         label: brandAttr?.group_name || "Thương hiệu",
         value: product.brand_term.name,
-        filterUrl: brandAttr ? buildFilterUrl(brandAttr.group_code, product.brand_term.slug) : undefined,
+        filterUrl: buildFilterUrl(brandAttr?.group_code || "thuong_hieu", product.brand_term.slug, brandAttr?.group_name),
       });
       if (brandAttr) addedCodes.add(brandAttr.group_code);
     }
@@ -301,7 +316,7 @@ export default function ProductDetailPage({
         groupCode: countryAttr?.group_code || 'origin',
         label: countryAttr?.group_name || "Xuất xứ",
         value: product.country_term.name,
-        filterUrl: countryAttr ? buildFilterUrl(countryAttr.group_code, product.country_term.slug) : undefined,
+        filterUrl: buildFilterUrl(countryAttr?.group_code || "xuat_xu", product.country_term.slug, countryAttr?.group_name),
       });
       if (countryAttr) addedCodes.add(countryAttr.group_code);
     }
@@ -337,7 +352,7 @@ export default function ProductDetailPage({
             groupCode: attrGroup.group_code,
             label: attrGroup.group_name || attrGroup.group_code,
             value: termNames,
-            filterUrl: buildFilterUrl(attrGroup.group_code, firstTerm.slug),
+            filterUrl: buildFilterUrl(attrGroup.group_code, firstTerm.slug, attrGroup.group_name),
           });
           addedCodes.add(attrGroup.group_code);
         }

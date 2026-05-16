@@ -47,8 +47,8 @@ export const buildProductBreadcrumbs = (
 
     if (originTerm?.name && originTerm.slug) {
       const originHref = typeSlug
-        ? `/san-pham/${typeSlug}/${originTerm.slug}`
-        : `/san-pham?xuat_xu=${originTerm.slug}`;
+        ? `/san-pham/${typeSlug}/xuat-xu/${originTerm.slug}`
+        : `/san-pham/xuat-xu/${originTerm.slug}`;
       items.push({ label: originTerm.name, href: toAbsoluteHref(originHref, baseUrl) });
     }
 
