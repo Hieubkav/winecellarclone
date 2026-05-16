@@ -713,14 +713,14 @@ export default function ProductDetailPage({
               <div className="mb-3 rounded-lg border border-[#9B2C3B]/30 bg-gradient-to-r from-[#9B2C3B]/10 via-[#ECAA4D]/10 to-white p-2.5 shadow-sm md:mb-6">
                 <div className="space-y-1.5">
                   {activeCombos.map((combo) => (
-                    <div key={combo.id} className="flex items-center justify-between gap-2 rounded-md border border-white/70 bg-white/90 px-3 py-2 text-sm shadow-sm">
-                      <span className="inline-flex min-w-0 flex-1 items-center gap-2 font-semibold text-slate-800">
-                        <span className="rounded-full bg-[#9B2C3B] px-2 py-0.5 text-[10px] uppercase tracking-wide text-white">
+                    <div key={combo.id} className="flex items-center justify-between gap-2 rounded-md border border-white/80 bg-white/95 px-3 py-2.5 text-[17px] shadow-sm">
+                      <span className="inline-flex min-w-0 flex-1 items-center gap-2 font-bold text-slate-900">
+                        <span className="rounded-full bg-[#9B2C3B] px-2.5 py-1 text-xs uppercase tracking-wide text-white">
                           Combo
                         </span>
                         <span className="truncate">{combo.name}</span>
                       </span>
-                      <span className="shrink-0 rounded-full bg-[#9B2C3B] px-3 py-1 text-sm font-bold text-white">
+                      <span className="shrink-0 rounded-full bg-[#9B2C3B] px-3.5 py-1.5 text-[17px] font-extrabold text-white shadow-[0_0_0_0_rgba(155,44,59,0.35)] animate-pulse">
                         {formatComboPrice(combo.price)}
                       </span>
                     </div>
