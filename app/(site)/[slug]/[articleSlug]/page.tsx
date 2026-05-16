@@ -14,13 +14,13 @@ import { getScopedFontStyle } from "@/lib/fonts/resolve-font";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.thienkimwine.vn";
 
 type ArticleCategoryDetailParams = {
-  categorySlug: string;
+  slug: string;
   articleSlug: string;
 };
 
 export async function generateMetadata({ params }: { params: Promise<ArticleCategoryDetailParams> }): Promise<Metadata> {
-  const { categorySlug, articleSlug } = await params;
-  const article = await fetchArticleDetailByCategorySafe(categorySlug, articleSlug);
+  const { slug, articleSlug } = await params;
+  const article = await fetchArticleDetailByCategorySafe(slug, articleSlug);
 
   if (!article) {
     return {
@@ -32,14 +32,14 @@ export async function generateMetadata({ params }: { params: Promise<ArticleCate
   return {
     title: article.meta.title || article.title,
     description: article.meta.description || article.excerpt || undefined,
-    alternates: { canonical: `${SITE_URL}/${categorySlug}/${article.slug}` },
+    alternates: { canonical: `${SITE_URL}/${slug}/${article.slug}` },
   };
 }
 
 export default async function ArticleCategoryDetailRoute({ params }: { params: Promise<ArticleCategoryDetailParams> }) {
-  const { categorySlug, articleSlug } = await params;
+  const { slug, articleSlug } = await params;
   const [article, settings] = await Promise.all([
-    fetchArticleDetailByCategorySafe(categorySlug, articleSlug),
+    fetchArticleDetailByCategorySafe(slug, articleSlug),
     fetchSettingsSafe(),
   ]);
 
@@ -48,14 +48,14 @@ export default async function ArticleCategoryDetailRoute({ params }: { params: P
   }
 
   const articleDetailFontStyle = getScopedFontStyle(settings, "article_detail");
-  const categoryName = article.article_category?.name || categorySlug;
+  const categoryName = article.article_category?.name || slug;
 
   return (
     <ArticleDetailPage
       article={article}
       fontFamily={articleDetailFontStyle.fontFamily}
-      canonicalPath={`/${categorySlug}/${article.slug}`}
-      parentHref={`/${categorySlug}`}
+      canonicalPath={`/${slug}/${article.slug}`}
+      parentHref={`/${slug}`}
       parentLabel={categoryName}
     />
   );
