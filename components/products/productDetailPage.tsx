@@ -711,6 +711,12 @@ export default function ProductDetailPage({
 
             {activeCombos.length > 0 && (
               <div className="mb-3 rounded-lg border border-[#9B2C3B]/30 bg-gradient-to-r from-[#9B2C3B]/10 via-[#ECAA4D]/10 to-white p-2.5 shadow-sm md:mb-6">
+                <style>{`
+                  @keyframes comboLetterGlow {
+                    0%, 100% { color: #0f172a; text-shadow: none; transform: translateY(0); }
+                    45% { color: #9B2C3B; text-shadow: 0 0 10px rgba(236, 170, 77, 0.35); transform: translateY(-1px); }
+                  }
+                `}</style>
                 <div className="space-y-1.5">
                   {activeCombos.map((combo) => (
                     <div key={combo.id} className="flex items-center justify-between gap-2 rounded-md border border-white/80 bg-white/95 px-3 py-2.5 text-[17px] shadow-sm">
@@ -718,9 +724,24 @@ export default function ProductDetailPage({
                         <span className="rounded-full bg-[#9B2C3B] px-2.5 py-1 text-xs uppercase tracking-wide text-white">
                           Combo
                         </span>
-                        <span className="truncate">{combo.name}</span>
+                        <span className="truncate" aria-label={combo.name}>
+                          <span aria-hidden="true">
+                            {Array.from(combo.name).map((char, index) => (
+                              <span
+                                key={`${combo.id}-${index}`}
+                                className="inline-block"
+                                style={{
+                                  animation: "comboLetterGlow 2.8s ease-in-out infinite",
+                                  animationDelay: `${index * 0.055}s`,
+                                }}
+                              >
+                                {char === " " ? "\u00A0" : char}
+                              </span>
+                            ))}
+                          </span>
+                        </span>
                       </span>
-                      <span className="shrink-0 rounded-full bg-[#9B2C3B] px-3.5 py-1.5 text-[17px] font-extrabold text-white shadow-[0_0_0_0_rgba(155,44,59,0.35)] animate-pulse">
+                      <span className="shrink-0 rounded-full border border-[#ECAA4D]/70 bg-[#ECAA4D] px-3.5 py-1.5 text-[17px] font-extrabold text-[#4A1F0A] shadow-sm">
                         {formatComboPrice(combo.price)}
                       </span>
                     </div>
