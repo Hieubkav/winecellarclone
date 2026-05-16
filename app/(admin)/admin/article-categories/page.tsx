@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { AlertTriangle, Edit, FolderTree, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,7 +10,6 @@ import {
   Button,
   Card,
   Input,
-  Label,
   Skeleton,
   Table,
   TableBody,
@@ -34,14 +34,6 @@ type ArticleCategory = {
   updated_at?: string | null;
 };
 
-type ArticleCategoryForm = {
-  name: string;
-  slug: string;
-  description: string;
-  position: number;
-  active: boolean;
-};
-
 type ArticleCategoryResponse = {
   data: ArticleCategory[];
   meta?: {
@@ -51,19 +43,6 @@ type ArticleCategoryResponse = {
     total: number;
   };
 };
-
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
-
-const emptyForm: ArticleCategoryForm = { name: "", slug: "", description: "", position: 0, active: true };
 
 const columns = [
   { key: "select", label: "Chọn" },
@@ -102,10 +81,6 @@ export default function ArticleCategoriesPage() {
   const [visibleColumns, setVisibleColumns] = useState<string[]>(
     columns.filter((column) => column.required || ["select", "name", "slug", "articles_count", "active", "actions"].includes(column.key)).map((column) => column.key)
   );
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<ArticleCategory | null>(null);
-  const [form, setForm] = useState<ArticleCategoryForm>(emptyForm);
-  const [isSaving, setIsSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<ArticleCategory | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingStatus, setTogglingStatus] = useState<number | null>(null);
@@ -201,47 +176,6 @@ export default function ArticleCategoriesPage() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
-  const openCreateForm = () => {
-    setEditingCategory(null);
-    setForm(emptyForm);
-    setIsFormOpen(true);
-  };
-
-  const openEditForm = (category: ArticleCategory) => {
-    setEditingCategory(category);
-    setForm({
-      name: category.name,
-      slug: category.slug,
-      description: category.description ?? "",
-      position: category.position,
-      active: category.active,
-    });
-    setIsFormOpen(true);
-  };
-
-  const saveCategory = async () => {
-    if (!form.name.trim()) {
-      toast.error("Vui lòng nhập tên danh mục");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const payload = { ...form, slug: form.slug || slugify(form.name) };
-      await apiFetch(editingCategory ? `v1/admin/article-categories/${editingCategory.id}` : "v1/admin/article-categories", {
-        method: editingCategory ? "PUT" : "POST",
-        body: JSON.stringify(payload),
-      });
-      setIsFormOpen(false);
-      setEditingCategory(null);
-      setForm(emptyForm);
-      await loadCategories();
-      toast.success(editingCategory ? "Đã lưu danh mục bài viết" : "Đã tạo danh mục bài viết");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   const handleToggleStatus = async (category: ArticleCategory) => {
     setTogglingStatus(category.id);
     try {
@@ -303,10 +237,12 @@ export default function ArticleCategoriesPage() {
             Quản lý danh mục và route bài viết • {totalCategories} danh mục
           </p>
         </div>
-        <Button type="button" onClick={openCreateForm} className="gap-2">
-          <Plus size={16} />
-          Thêm danh mục
-        </Button>
+        <Link href="/admin/article-categories/create">
+          <Button type="button" className="gap-2">
+            <Plus size={16} />
+            Thêm danh mục
+          </Button>
+        </Link>
       </div>
 
       <Card>
@@ -445,9 +381,11 @@ export default function ArticleCategoriesPage() {
                   {visibleColumns.includes("actions") && (
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button type="button" variant="ghost" size="icon" onClick={() => openEditForm(category)} aria-label="Edit">
-                          <Edit size={16} />
-                        </Button>
+                        <Link href={`/admin/article-categories/${category.id}/edit`}>
+                          <Button type="button" variant="ghost" size="icon" aria-label="Edit">
+                            <Edit size={16} />
+                          </Button>
+                        </Link>
                         <Button
                           type="button"
                           variant="ghost"
@@ -520,71 +458,6 @@ export default function ArticleCategoriesPage() {
           </div>
         )}
       </Card>
-
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 max-w-2xl w-full mx-4">
-            <div className="mb-5">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                {editingCategory ? "Sửa danh mục bài viết" : "Thêm danh mục bài viết"}
-              </h3>
-              <p className="text-sm text-slate-500 mt-1">Thông tin này dùng cho phân loại và URL bài viết.</p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1">
-                <Label>Tên</Label>
-                <Input
-                  value={form.name}
-                  onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value, slug: prev.slug || slugify(event.target.value) }))}
-                  placeholder="Kiến thức"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>Slug</Label>
-                <Input value={form.slug} onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))} placeholder="kien-thuc" />
-              </div>
-              <div className="space-y-1 md:col-span-2">
-                <Label>Mô tả</Label>
-                <Input value={form.description} onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))} />
-              </div>
-              <div className="space-y-1">
-                <Label>Thứ tự</Label>
-                <Input
-                  type="number"
-                  value={form.position}
-                  onChange={(event) => setForm((prev) => ({ ...prev, position: Number(event.target.value) }))}
-                />
-              </div>
-              <label className="flex items-center gap-2 self-end text-sm text-slate-700 dark:text-slate-300">
-                <input
-                  type="checkbox"
-                  checked={form.active}
-                  onChange={(event) => setForm((prev) => ({ ...prev, active: event.target.checked }))}
-                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                Hiển thị
-              </label>
-            </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsFormOpen(false);
-                  setEditingCategory(null);
-                }}
-                disabled={isSaving}
-              >
-                Hủy
-              </Button>
-              <Button type="button" onClick={saveCategory} disabled={isSaving} className="gap-2">
-                {!editingCategory && <Plus size={16} />}
-                {isSaving ? "Đang lưu..." : editingCategory ? "Lưu thay đổi" : "Thêm danh mục"}
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
 
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
