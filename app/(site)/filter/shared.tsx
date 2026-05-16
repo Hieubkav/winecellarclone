@@ -19,6 +19,7 @@ export type ProductTypeOption = {
   id: number;
   name: string;
   slug: string;
+  description?: string | null;
 };
 
 export type ListingMode = "generic" | "type-landing" | "attribute-group-landing";
@@ -33,6 +34,7 @@ export type ListingSeoContext = {
   routePriceRange?: { min: number; max: number } | null;
   initialProductParams?: Record<string, string | number | Array<string | number> | undefined>;
   pageTitle?: string;
+  pageSubtitle?: string | null;
   collectionName?: string;
   collectionDescription?: string;
   itemListName?: string;
@@ -167,6 +169,7 @@ export async function renderFilterListing({
   routePriceRange,
   initialProductParams,
   pageTitle,
+  pageSubtitle,
   collectionName,
   collectionDescription,
   itemListName,
@@ -243,6 +246,7 @@ export async function renderFilterListing({
     ? `Các sản phẩm ${effectiveType.name.toLowerCase()} chính hãng tại Thiên Kim Wine`
     : "Các sản phẩm rượu vang chính hãng tại Thiên Kim Wine";
   const resolvedPageTitle = pageTitle || effectiveType?.name || "Sản phẩm của chúng tôi";
+  const resolvedPageSubtitle = pageSubtitle ?? matchedType?.description ?? null;
 
   const itemListProducts = initialProducts?.data?.map((product) => ({
     name: product.name,
@@ -284,6 +288,7 @@ export async function renderFilterListing({
         initialAttributeGroupSlug={routeAttributeGroupSlug ?? null}
         listingMode={listingMode}
         pageTitle={resolvedPageTitle}
+        pageSubtitle={resolvedPageSubtitle}
       />
     </>
   );

@@ -116,6 +116,7 @@ export interface AdminProductType {
   id: number;
   name: string;
   slug: string;
+  description?: string | null;
   order: number | null;
   active: boolean;
   products_count: number;

@@ -31,6 +31,7 @@ interface ProductListProps {
   initialCanonicalPath?: string | null
   listingMode?: "generic" | "type-landing" | "attribute-group-landing"
   pageTitle?: string
+  pageSubtitle?: string | null
 }
 
 export default function WineList({
@@ -45,6 +46,7 @@ export default function WineList({
   initialCanonicalPath = null,
   listingMode = "generic",
   pageTitle = "Sản phẩm của chúng tôi",
+  pageSubtitle = null,
 }: ProductListProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const hydrated = useHydrated()
@@ -163,6 +165,11 @@ export default function WineList({
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:mb-8">
           <div>
             <h1 className="font-serif text-2xl md:text-3xl font-bold text-[#9B2C3B]">{pageTitle}</h1>
+            {pageSubtitle && (
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600 md:text-base">
+                {pageSubtitle}
+              </p>
+            )}
           </div>
           <div className="hidden w-full max-w-xs md:block">
             <FilterSearchBar

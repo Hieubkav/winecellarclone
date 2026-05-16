@@ -22,6 +22,7 @@ export default function ProductTypeCreatePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [_order, _setOrder] = useState('');
   const [active, setActive] = useState('true');
   
@@ -101,6 +102,7 @@ export default function ProductTypeCreatePage() {
     try {
       const result = await createProductType({
         name: name.trim(),
+        description: description.trim() || null,
         order: _order ? Number(_order) : null,
         active: active === 'true',
       });
@@ -171,6 +173,20 @@ export default function ProductTypeCreatePage() {
                 placeholder="Ví dụ: Rượu vang"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Mô tả ngắn</Label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Ví dụ: Tuyển chọn rượu vang chính hãng từ các vùng nổi tiếng, phù hợp biếu tặng và thưởng thức."
+                rows={3}
+                maxLength={1000}
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-500/20 dark:border-slate-700 dark:bg-slate-800"
+              />
+              <p className="text-xs text-slate-500">Hiển thị dưới tiêu đề ở trang nhóm sản phẩm.</p>
             </div>
 
             <div className="space-y-2">
