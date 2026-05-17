@@ -301,7 +301,7 @@ export const useSettingsForm = () => {
       const resolvedWatermarkType = String(data.product_watermark_type || "image")
         .trim()
         .toLowerCase();
-      setWatermarkType(resolvedWatermarkType === "text" ? "text" : "image");
+      setWatermarkType(["none", "image", "text", "both"].includes(resolvedWatermarkType) ? resolvedWatermarkType : "image");
       setWatermarkImageId(data.product_watermark_image_id || null);
       setWatermarkImageUrl(
         resolveAdminImageUrl(
@@ -386,7 +386,7 @@ export const useSettingsForm = () => {
     }
 
     if (activeTab === "watermark") {
-      if (watermarkType === "text" && !watermarkText.trim()) {
+      if ((watermarkType === "text" || watermarkType === "both") && !watermarkText.trim()) {
         toast.error("Vui lòng nhập nội dung watermark chữ");
         return false;
       }

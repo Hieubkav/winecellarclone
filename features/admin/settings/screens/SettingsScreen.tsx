@@ -145,6 +145,14 @@ export const SettingsScreen = () => {
   } = actions;
 
   const previewText = watermarkText.trim() || "Watermark";
+  const watermarkImageEnabled = watermarkType === "image" || watermarkType === "both";
+  const watermarkTextEnabled = watermarkType === "text" || watermarkType === "both";
+  const setWatermarkImageEnabled = (enabled: boolean) => {
+    setWatermarkType(enabled ? (watermarkTextEnabled ? "both" : "image") : (watermarkTextEnabled ? "text" : "none"));
+  };
+  const setWatermarkTextEnabled = (enabled: boolean) => {
+    setWatermarkType(enabled ? (watermarkImageEnabled ? "both" : "text") : (watermarkImageEnabled ? "image" : "none"));
+  };
   const previewOpacity = Math.max(5, Math.min(100, watermarkTextOpacity));
   const previewPositionY = Math.max(0, Math.min(100, watermarkTextPositionY));
   const previewFontSizeMap: Record<string, number> = {
@@ -644,34 +652,37 @@ export const SettingsScreen = () => {
               </div>
               <div className="p-6 space-y-6">
                 <div className="space-y-3">
-                  <Label>Loại watermark</Label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="watermarkType"
-                        value="image"
-                        checked={watermarkType === 'image'}
-                        onChange={(event) => setWatermarkType(event.target.value)}
-                        className="w-4 h-4 text-blue-600"
+                  <Label>Bật watermark</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900">
+                      <Checkbox
+                        checked={watermarkImageEnabled}
+                        onCheckedChange={(value) => setWatermarkImageEnabled(Boolean(value))}
                       />
-                      <span className="text-sm text-slate-700 dark:text-slate-300">Hình ảnh</span>
+                      <span>
+                        <span className="block text-sm font-medium text-slate-800 dark:text-slate-200">Watermark hình</span>
+                        <span className="text-xs text-slate-500">Logo/ảnh PNG đặt ở góc ảnh sản phẩm.</span>
+                      </span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="watermarkType"
-                        value="text"
-                        checked={watermarkType === 'text'}
-                        onChange={(event) => setWatermarkType(event.target.value)}
-                        className="w-4 h-4 text-blue-600"
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 transition hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900">
+                      <Checkbox
+                        checked={watermarkTextEnabled}
+                        onCheckedChange={(value) => setWatermarkTextEnabled(Boolean(value))}
                       />
-                      <span className="text-sm text-slate-700 dark:text-slate-300">Chữ</span>
+                      <span>
+                        <span className="block text-sm font-medium text-slate-800 dark:text-slate-200">Watermark chữ</span>
+                        <span className="text-xs text-slate-500">Chữ mờ có thể kéo vị trí và lặp ngang.</span>
+                      </span>
                     </label>
                   </div>
+                  {watermarkType === "none" && (
+                    <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:bg-slate-800">
+                      Đang tắt toàn bộ watermark sản phẩm.
+                    </p>
+                  )}
                 </div>
 
-                {watermarkType === 'image' && (
+                {watermarkImageEnabled && (
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg space-y-4">
                     <h3 className="font-medium text-slate-700 dark:text-slate-300">Cài đặt watermark hình ảnh</h3>
 
@@ -721,7 +732,7 @@ export const SettingsScreen = () => {
                   </div>
                 )}
 
-                {watermarkType === 'text' && (
+                {watermarkTextEnabled && (
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg space-y-4">
                     <h3 className="font-medium text-slate-700 dark:text-slate-300">Cài đặt watermark chữ</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
