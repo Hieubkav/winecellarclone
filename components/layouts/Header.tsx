@@ -541,20 +541,15 @@ function RecursiveMobileNodes({
               {hasUsableHref ? (
                 <Link
                   href={node.href}
-                  className="min-w-0 flex-1 px-3 py-2.5 text-left leading-snug text-[#1C1C1C]"
+                  className="min-w-0 flex-1 px-3 py-3 text-left text-sm font-semibold leading-snug text-[#1C1C1C]"
                   onClick={onClose}
                 >
-                  <span className="block truncate text-sm font-semibold">{node.label}</span>
-                  {hasChildren && (
-                    <span className="mt-0.5 block text-[10px] font-medium uppercase tracking-[0.12em] text-[#9B2C3B]/70">
-                      Mở trang
-                    </span>
-                  )}
+                  <span className="block truncate">{node.label}</span>
                 </Link>
               ) : (
                 <button
                   type="button"
-                  className="min-w-0 flex-1 px-3 py-2.5 text-left text-sm font-semibold leading-snug text-[#1C1C1C]"
+                  className="min-w-0 flex-1 px-3 py-3 text-left text-sm font-semibold leading-snug text-[#1C1C1C]"
                   onClick={() => hasChildren && onToggle(node.id)}
                 >
                   {node.label}
@@ -569,9 +564,8 @@ function RecursiveMobileNodes({
                     event.preventDefault()
                     onToggle(node.id)
                   }}
-                  className="flex min-h-[44px] w-[76px] shrink-0 items-center justify-center gap-1 border-l border-[#9B2C3B]/10 bg-white/45 px-2 text-xs font-bold text-[#9B2C3B] transition hover:bg-[#9B2C3B]/10"
+                  className="flex min-h-[44px] w-12 shrink-0 items-center justify-center border-l border-[#9B2C3B]/10 bg-white/35 text-[#9B2C3B] transition hover:bg-[#9B2C3B]/10"
                 >
-                  <span>{isExpanded ? "Đóng" : "Mở"}</span>
                   <ChevronDown size={17} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                 </button>
               )}
