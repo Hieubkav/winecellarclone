@@ -51,6 +51,7 @@ export default async function ProductLandingRoute({
     routePriceRange: landingContext.routeFilters.priceRange,
     initialProductParams: landingContext.apiParams,
     pageTitle: landingContext.title,
+    pageSubtitle: landingContext.subtitle,
     collectionName: `${landingContext.title} - Thiên Kim Wine`,
     collectionDescription: landingContext.description,
     itemListName: `Danh sách ${landingContext.title}`,

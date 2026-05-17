@@ -15,6 +15,7 @@ export type ProductLandingRouteFilters = {
 export type ProductLandingContext = {
   canonicalPath: string;
   title: string;
+  subtitle?: string | null;
   description: string;
   routeFilters: ProductLandingRouteFilters;
   apiParams: Record<string, string | number | Array<string | number> | undefined>;
@@ -272,10 +273,14 @@ export async function resolveProductLandingContext(
 
   const resolvedTitle = titleParts.length > 0 ? titleParts.join(" - ") : "Sản phẩm";
   const canonicalPath = cleanSlugs.length > 0 ? `/san-pham/${cleanSlugs.join("/")}` : "/san-pham";
+  const resolvedSubtitle = matchedType && restSlugs.length === 0
+    ? matchedType.description ?? null
+    : null;
 
   return {
     canonicalPath,
     title: resolvedTitle,
+    subtitle: resolvedSubtitle,
     description: `Khám phá ${resolvedTitle.toLowerCase()} chính hãng tại Thiên Kim Wine. Dễ lọc theo nhu cầu, giá và phong cách thưởng thức.`,
     routeFilters,
     apiParams,
